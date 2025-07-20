@@ -33,18 +33,48 @@ Development of a frontend application based on Electron + React + TypeScript.
 
 ## Project Status
 
-This is a newly initialized repository with minimal content. The project currently contains:
-- GPL v3 LICENSE file
-- Basic README.md
-- No source code or build configuration yet
+The project has been successfully initialized with a complete Electron + React + TypeScript development environment:
+- ✅ Complete development environment setup (Electron + React + TypeScript)
+- ✅ Working build system with webpack configuration
+- ✅ Development workflow with hot reload
+- ✅ Security-focused architecture with context isolation
+- ✅ GPL v3 LICENSE and documentation
 
 ## Development Setup
 
-No build tools, package managers, or development dependencies have been configured yet. Future development will require establishing:
-- Programming language and framework selection
-- Build system configuration
-- Testing framework setup
-- Development workflow and tooling
+**Prerequisites:**
+- Node.js v16 or later
+- npm
+
+**Quick Start:**
+```bash
+npm install
+npm run dev  # Start development server + Electron app
+```
+
+**Architecture:**
+- Main Process: Electron main (Node.js environment)
+- Preload Script: API bridge using contextBridge
+- Renderer Process: React UI (web environment)
+
+**Key Design Decisions:**
+- Renderer uses `target: 'web'` for maximum React compatibility
+- Node.js functionality accessed via preload script only
+- Context isolation enabled for security
+
+## Documentation and Design
+
+**worklog/ Directory:**
+All design documents, technical notes, and troubleshooting records are stored in the `worklog/` directory:
+- `worklog/electron-react-setup.md` - Development environment setup and troubleshooting
+- `worklog/` - Store design mockups, wireframes, and UI specifications here
+- `worklog/` - Technical decisions and architecture discussions
+
+**Design Assets:**
+When creating UI designs or mockups, place them in `worklog/` with descriptive names:
+- `worklog/ui-mockup-main-spreadsheet.png` - Main spreadsheet interface
+- `worklog/ui-mockup-asset-library.png` - Asset management interface  
+- `worklog/ui-mockup-preview.png` - Story preview interface
 
 ## License
 
