@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const rendererConfig = {
+  name: 'renderer',
   mode: process.env.NODE_ENV || 'development',
   entry: './src/index.tsx',
   target: 'electron-renderer',
@@ -41,6 +42,7 @@ const rendererConfig = {
 };
 
 const mainConfig = {
+  name: 'main',
   mode: process.env.NODE_ENV || 'development',
   entry: './src/main.ts',
   target: 'electron-main',
@@ -52,7 +54,12 @@ const mainConfig = {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
+        use: {
+          loader: 'ts-loader',
+          options: {
+            configFile: 'tsconfig.electron.json'
+          }
+        },
         exclude: /node_modules/
       }
     ]
@@ -64,6 +71,7 @@ const mainConfig = {
 };
 
 const preloadConfig = {
+  name: 'preload',
   mode: process.env.NODE_ENV || 'development',
   entry: './src/preload.ts',
   target: 'electron-preload',
@@ -75,7 +83,12 @@ const preloadConfig = {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
+        use: {
+          loader: 'ts-loader',
+          options: {
+            configFile: 'tsconfig.electron.json'
+          }
+        },
         exclude: /node_modules/
       }
     ]

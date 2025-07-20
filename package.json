@@ -6,9 +6,10 @@
   "scripts": {
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
-    "start:renderer": "webpack serve --config webpack.config.js --mode development",
+    "build:main": "webpack --mode development --config-name main --config-name preload",
+    "start:renderer": "webpack serve --config webpack.config.js --mode development --config-name renderer",
     "start:electron": "electron .",
-    "dev": "concurrently \"npm run start:renderer\" \"wait-on http://localhost:3000 && npm run start:electron\"",
+    "dev": "concurrently \"npm run start:renderer\" \"npm run build:main && wait-on http://localhost:3000 && npm run start:electron\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
