@@ -5,14 +5,8 @@ const rendererConfig = {
   name: 'renderer',
   mode: process.env.NODE_ENV || 'development',
   entry: './src/index.tsx',
-  target: 'electron-renderer',
+  target: 'web',
   devtool: 'source-map',
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
-  },
   module: {
     rules: [
       {
@@ -40,6 +34,15 @@ const rendererConfig = {
       template: './public/index.html'
     })
   ],
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    },
+    fallback: {
+      "global": false
+    }
+  },
   devServer: {
     port: 3000,
     hot: true
