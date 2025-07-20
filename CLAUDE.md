@@ -64,17 +64,17 @@ npm run dev  # Start development server + Electron app
 
 ## Documentation and Design
 
-**worklog/ Directory:**
+**docs/worklog/ Directory:**
 All design documents, technical notes, and troubleshooting records are stored in the `worklog/` directory:
-- `worklog/electron-react-setup.md` - Development environment setup and troubleshooting
-- `worklog/` - Store design mockups, wireframes, and UI specifications here
-- `worklog/` - Technical decisions and architecture discussions
+- `docs/worklog/electron-react-setup.md` - Development environment setup and troubleshooting
+- `docs/worklog/` - Store design mockups, wireframes, and UI specifications here
+- `docs/worklog/` - Technical decisions and architecture discussions
 
 **Design Assets:**
-When creating UI designs or mockups, place them in `worklog/` with descriptive names:
-- `worklog/ui-mockup-main-spreadsheet.png` - Main spreadsheet interface
-- `worklog/ui-mockup-asset-library.png` - Asset management interface  
-- `worklog/ui-mockup-preview.png` - Story preview interface
+When creating UI designs or mockups, place them in `docs/design/` with descriptive names:
+- `docs/design/ui-mockup-main-spreadsheet.png` - Main spreadsheet interface
+- `docs/design/ui-mockup-asset-library.png` - Asset management interface  
+- `docs/design/ui-mockup-preview.png` - Story preview interface
 
 ## License
 
