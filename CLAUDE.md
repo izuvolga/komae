@@ -1,6 +1,4 @@
-# komae
-
-## Project Overview
+## Project Overview (Plan)
 
 This software is designed to create illustration collections that merge illustrations and manga. Currently, in the doujinshi industry, works are sold in the form of manga or illustration collections. Particularly, those who want the flexibility of manga or wish to reduce the number of drawings they need to create choose to draw in the form of illustration collections. However, many creators who make illustration collections are actually telling stories.
 
@@ -10,7 +8,8 @@ Currently, there is no specialized software to support creating works in this fo
 
 The name "komae" comes from "コマ絵綴り" (sequential panel illustrations).
 
-## Project Architecture
+
+## Project Architecture (Plan)
 
 This software is designed as an application with the following characteristics:
 
@@ -34,58 +33,18 @@ Development of a frontend application based on Electron + React + TypeScript.
 
 ## Project Status
 
-The project has been initialized with a basic Electron + React + TypeScript setup including:
-- Complete development environment configuration
-- Basic React application structure
-- Electron main and preload processes
-- Webpack build configuration
-- Development and build scripts
+This is a newly initialized repository with minimal content. The project currently contains:
+- GPL v3 LICENSE file
+- Basic README.md
+- No source code or build configuration yet
 
 ## Development Setup
 
-### Prerequisites
-- Node.js (v16 or later)
-- npm
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone [repository-url]
-cd komae
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-### Development
-
-Start the development server:
-```bash
-npm run dev
-```
-
-This will:
-- Start the webpack development server on http://localhost:3000
-- Launch the Electron application automatically
-- Enable hot reload for development
-
-### Build
-
-Build the application for production:
-```bash
-npm run build
-```
-
-### Available Scripts
-
-- `npm run dev` - Start development server and Electron app
-- `npm run build` - Build for production
-- `npm run build:dev` - Build for development
-- `npm run start:renderer` - Start only the React development server
-- `npm run start:electron` - Start only the Electron app
+No build tools, package managers, or development dependencies have been configured yet. Future development will require establishing:
+- Programming language and framework selection
+- Build system configuration
+- Testing framework setup
+- Development workflow and tooling
 
 ## License
 
