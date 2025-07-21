@@ -1,12 +1,14 @@
 # Project format with YAML
 
 作成したプロジェクトは以下の形式で保存される。
+これらのファイルを zip 圧縮したものがプロジェクトファイルとなる。
 
 - YAML 形式
 - 画像は相対パスで参照
 - 画像は PNG あるいは WEBP 形式
 
 ```yaml
+komae_version: "1.0" # Komaeのバージョン
 title: "ここにプロジェクトの名称"
 description: "プロジェクトの説明。オプション"
 campus: # キャンパス情報
@@ -14,11 +16,11 @@ campus: # キャンパス情報
   h: 1024
 assets: # アセットのリスト
   - id: "asset-1" # アセットのID
-    type: "ImageAssetTemplate" # アセットの種類
+    type: "ImageAsset" # アセットの種類
     name: "キャラクターA" # アセットの名前
     image: "assets/character_a.png" # 画像の相対パス
   - id: "asset-2"
-    type: "TextAssetTemplate"
+    type: "TextAsset"
     name: "セリフA"
     text: "こんにちは！"
 pages: # ページのリスト

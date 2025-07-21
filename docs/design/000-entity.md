@@ -11,33 +11,36 @@
   - Page は Project の中に複数存在することができる。
   - Page は順序を持つ。
 
-- AssetTemplate
+- Asset
   - 画像や、セリフの吹き出し、エフェクトなどPage 上に配置される要素を抽象化した概念。
   - 背景やキャラクター、セリフの吹き出し、エフェクト表現などの情報を含む
-  - Asset Window (ui.md 参照) に画像をドラッグアンドドロップしたり、メニューバーから新規作成したりすれば AssetTemplate を Project に追加することができる。
-  - AssetTemplate は、Asset Window にのみ存在する。
-  - 現時点で、以下の種類の AssetTemplate が存在する:
-    - ImageAssetTemplate ... 画像を表現するためのテンプレート
-    - ImageGroupAssetTemplate ... 複数の画像をまとめて表現するためのテンプレート
-    - TextAssetTemplate ... テキストを表現するためのテンプレート
+  - Asset Window (ui.md 参照) に画像をドラッグアンドドロップしたり、メニューバーから新規作成したりすれば Asset を Project に追加することができる。
+  - Asset は、Asset Window にのみ存在する。
+  - 現時点で、以下の種類の Asset が存在する:
+    - ImageAsset ... 画像を表現するためのテンプレート
+    - ImageGroupAsset ... 複数の画像をまとめて表現するためのテンプレート
+    - TextAsset ... テキストを表現するためのテンプレート
 
 - AssetInstance
-  - AssetTemplate をコピーして作成される
+  - 背景: 実態として全く同じ画像を複数のページで何度も使うことは少なく、微妙に位置を変えたり、サイズを変えたりすることが多い。そのため、ちょっとした位置の変更のたびに Asset が増えるのは非効率的である。そこで、Asset の属性情報を極力使いまわしつつ、 Page ごとに微妙に異なる配置情報を持つことができるようにするための概念。
+  - Asset をコピーして作成される
   - AssetInstance を Page 上に配置することで、Page の内容が決まる。
   - AssetInstance を Page 上に配置すれば、Page が一つの絵になる。
   - Page 内部に複数存在することができ、AssetInstance 同士の順番がある。
-  - なぜ AssetTemplate が存在するのかというと、AssetInstance はその Page 固有の情報を持つため、同じ AssetTemplate を使っていても、Page ごとに異なる AssetInstance が存在することができる。
-  - 例えば、特定の ImageAssetTemplate に特定のキャラクターの画像を使っていても、微妙にキャラクターの位置を変更できる。
-    - Page 1 では、キャラクターの位置を左に配置し、Page 2 では右に配置することができる。その際は、ImageAssetTemplate は同じでも、Page 1 と Page 2 では異なる AssetInstance が存在し、異なる座標を持つことになる。
+  - なぜ Asset が存在するのかというと、AssetInstance はその Page 固有の情報を持つため、同じ Asset を使っていても、Page ごとに異なる AssetInstance が存在することができる。
+  - 例えば、特定の ImageAsset に特定のキャラクターの画像を使っていても、微妙にキャラクターの位置を変更できる。
+    - Page 1 では、キャラクターの位置を左に配置し、Page 2 では右に配置することができる。その際は、ImageAsset は同じでも、Page 1 と Page 2 では異なる AssetInstance が存在し、異なる座標を持つことになる。
 
-- (将来) ArrangePreset
-  - AssetInstance の配置情報を表現するための概念。
-  - 特定の ArrangePreset を複数の AssetInstance から参照することができる。
-  - 例えば、別々のキャラクターの立ち絵を配置する際に、同じ ArrangePreset を参照することで、同じ位置に配置することができる。
-  - まだ将来的な概念のため、一旦は実装しなくてよい。
+- TODO: Asset に付随する属性情報をさらにまとめる概念が必要化か？
+  - AssetInstance の配置情報を表現するための概念があったほうが良さそう。
+  - 例えば、別々のキャラクターの立ち絵を配置する際に、同じ 属性情報 を参照することで、同じ位置に配置することができる。
+    - 例えば、AssetAttr という概念を作り、AssetInstance がそれを参照することで、同じ位置に配置することができる。
+    - また、TextAsset の場合も、同じフォントや色を使いまわすことができる。
+  - 特定の AssetAttr を複数の AssetInstance から参照することができる。
+  - 課題として、UI 上どこの画面に配置するかが問題...
 
 
-### ImageAssetTemplate
+### ImageAsset
 
 画像を表現するためのテンプレートで、以下の属性をもつ。
 
@@ -46,30 +49,37 @@ id: インスタンスのID (ユーザーが指定する必要はない)
 name: 画像の名前 (デフォルトはファイル名)
 width: 画像の幅
 height: 画像の高さ
-posX: 画像のX座標
-posY: 画像のY座標 (yamlとの互換性のため、posX, posY としている)
+pos_x: 画像のX座標
+pos_y: 画像のY座標 (yamlとの互換性のため、pos_x, pos_y としている)
 path: 画像のファイルパス（絶対パス）
 opacity: 画像の不透明度（0.0〜1.0）
 mask: 画像のマスク情報で、4つの整数値（左、上、右、下）の配列。その４点の矩形範囲のみが表示される。
 ```
 
-###  ImageGroupAssetTemplate
+###  ImageGroupAsset
 
 複数の画像をまとめて表現するためのテンプレートで、以下の属性をもつ。
 
 ```
 id: インスタンスのID (自動生成のため、ユーザーが指定する必要はない)
 name: グループの名前 (デフォルトはファイル名)
-images: ImageAssetTemplate の配列
+images: ImageAsset の配列
 ```
 
-### TextAssetTemplate
+### TextAsset
 
 テキストを表現するためのテンプレートで、以下の属性をもつ。
 
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
-text: テキストの内容
+default_text: デフォルトのテキストの内容（TextAssetInstance で未設定の場合に使用される）
 font: フォントのファイルパス（絶対パス）
+stroke_width: テキストの縁取りの幅（0.0〜1.0）
+font_size: テキストのフォントサイズ（ピクセル単位）
+color_ex: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
+color_in: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
+pos_x: テキストのX座標
+pos_y: テキストのY座標
+vertical: # true の場合、縦書き
 ```
