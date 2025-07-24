@@ -52,7 +52,7 @@ const rendererConfig = {
 const mainConfig = {
   name: 'main',
   mode: process.env.NODE_ENV || 'development',
-  entry: './src/main.ts',
+  entry: './src/main/main.ts',
   target: 'electron-main',
   devtool: 'source-map',
   resolve: {
@@ -81,7 +81,7 @@ const mainConfig = {
 const preloadConfig = {
   name: 'preload',
   mode: process.env.NODE_ENV || 'development',
-  entry: './src/preload.ts',
+  entry: './src/preload/preload.ts',
   target: 'electron-preload',
   devtool: 'source-map',
   resolve: {
