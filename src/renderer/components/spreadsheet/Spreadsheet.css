@@ -1,0 +1,201 @@
+/* スプレッドシート */
+.spreadsheet {
+  display: flex;
+  height: 100%;
+  background-color: white;
+}
+
+.spreadsheet-container {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid #e0e0e0;
+}
+
+/* ヘッダー */
+.spreadsheet-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  z-index: 10;
+}
+
+.header-cell {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-right: 1px solid #dee2e6;
+}
+
+.corner-cell {
+  width: 120px;
+  min-width: 120px;
+  background-color: #e9ecef;
+}
+
+.asset-header {
+  width: 80px;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.asset-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.asset-name {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.asset-type {
+  font-size: 9px;
+  color: #666;
+  font-weight: normal;
+}
+
+/* ボディ */
+.spreadsheet-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.spreadsheet-row {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.spreadsheet-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* セル */
+.cell {
+  padding: 8px;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.page-cell {
+  width: 120px;
+  min-width: 120px;
+  justify-content: flex-start;
+  background-color: #f8f9fa;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.page-number {
+  font-size: 10px;
+  color: #666;
+  font-weight: 500;
+}
+
+.page-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #333;
+}
+
+.asset-cell {
+  width: 80px;
+  min-width: 80px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.asset-cell:hover {
+  background-color: #e3f2fd;
+}
+
+.asset-cell.used {
+  background-color: #e8f5e8;
+}
+
+.asset-cell.unused {
+  background-color: #fff;
+}
+
+.cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.usage-indicator {
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.usage-indicator.active {
+  color: #4caf50;
+}
+
+.usage-indicator.inactive {
+  color: #ddd;
+}
+
+.asset-cell:hover .usage-indicator.inactive {
+  color: #bbb;
+}
+
+/* 詳細パネル */
+.detail-panel {
+  width: 240px;
+  border-left: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+.detail-panel h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-item span {
+  font-size: 12px;
+  color: #333;
+}
