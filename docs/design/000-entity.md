@@ -31,15 +31,14 @@
     - Page 1 では、キャラクターの位置を左に配置し、Page 2 では右に配置することができる。その際は、ImageAsset は同じでも、Page 1 と Page 2 では異なる AssetInstance が存在し、異なる座標を持つことになる。
 
 - AssetAttr
-  - Asset に付随する属性情報をさらにまとめる概念
-  - 例えば、別々のキャラクターの立ち絵を配置する際に、同じ 属性情報 を参照することで、同じ位置に配置することができる。
-    - 例えば、AssetAttr という概念を作り、AssetInstance がそれを参照することで、同じ位置に配置することができる。
-    - また、TextAsset の場合も、同じフォントや色を使いまわすことができる。
-  - 特定の AssetAttr を複数の AssetInstance から参照することができる。
-  - 課題として、UI 上どこの画面に配置するかだが、一旦考えないことにする。
-  - 現時点では、以下の種類の AssetAttr が存在する:
-    - PositionAssetAttr ... pos_x, pos_y の組。座標を持つ。画像やテキストに付与できる。
-    - SizeAssetAttr ... 幅(width)と高さ(height)を持つ
+  - Asset に付随する属性情報を複数のAssetInstanceで共有するための概念
+  - 例えば、複数のキャラクターを「立ち位置A」という同じPositionAssetAttrで参照することで、磁石のように同じ位置に配置することができる
+  - UI上では、ImageAssetTemplateの編集画面でドロップダウンメニュー`[v]`から選択可能
+  - 特定のAssetAttrを複数のAssetInstanceから参照することができる
+  - AssetAttrの名前は、対応するAssetTemplateの名前と同じになる
+  - 現時点では、以下の種類のAssetAttrが存在する:
+    - PositionAssetAttr ... pos_x, pos_yの組。座標情報を共有
+    - SizeAssetAttr ... width, heightの組。サイズ情報を共有
 
 
 ### ImageAsset
@@ -47,15 +46,15 @@
 画像を表現するためのテンプレートで、以下の属性をもつ。
 
 ```
-id: インスタンスのID (ユーザーが指定する必要はない)
+id: テンプレートのID (ユーザーが指定する必要はない)
 name: 画像の名前 (デフォルトはファイル名)
-width: 画像の幅
-height: 画像の高さ
-pos_x: 画像のX座標
-pos_y: 画像のY座標 (yamlとの互換性のため、pos_x, pos_y としている)
-path: 画像のファイルパス（絶対パス）
-opacity: 画像の不透明度（0.0〜1.0）
-mask: 画像のマスク情報で、4つの整数値（左、上、右、下）の配列。その４点の矩形範囲のみが表示される。
+original_file_path: 画像のファイルパス（絶対パス）
+original_width: 元画像の幅
+original_height: 元画像の高さ
+default_pos_x: デフォルトのX座標
+default_pos_y: デフォルトのY座標
+default_opacity: デフォルトの不透明度（0.0〜1.0）
+default_mask: デフォルトのマスク情報で、4つの整数値（左、上、右、下）の配列
 ```
 
 ### TextAsset
@@ -63,7 +62,7 @@ mask: 画像のマスク情報で、4つの整数値（左、上、右、下）�
 テキストを表現するためのテンプレートで、以下の属性をもつ。
 
 ```
-id: インスタンスのID (ユーザーが指定する必要はない)
+id: テンプレートのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
 default_text: デフォルトのテキストの内容（TextAssetInstance で未設定の場合に使用される）
 font: フォントのファイルパス（絶対パス）
@@ -71,7 +70,73 @@ stroke_width: テキストの縁取りの幅（0.0〜1.0）
 font_size: テキストのフォントサイズ（ピクセル単位）
 color_ex: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
 color_in: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
-pos_x: テキストのX座標
-pos_y: テキストのY座標
+default_pos_x: デフォルトのX座標
+default_pos_y: デフォルトのY座標
 vertical: # true の場合、縦書き
+```
+
+### AssetInstance
+
+AssetTemplateを実際のPageに配置する際のインスタンス。以下の属性をもつ。
+
+#### ImageAssetInstance
+
+```
+id: インスタンスのID (ユーザーが指定する必要はない)
+asset_id: 参照するImageAssetのID
+page_id: 配置されるPageのID
+z_index: 描画順序（数値が大きいほど前面に表示）
+position_attr_id: 参照するPositionAssetAttrのID (optional)
+size_attr_id: 参照するSizeAssetAttrのID (optional)
+override_pos_x: AssetAttrやAssetのdefault値を上書きするX座標 (optional)
+override_pos_y: AssetAttrやAssetのdefault値を上書きするY座標 (optional)
+override_opacity: デフォルトの不透明度を上書き (optional)
+override_mask: デフォルトのマスク情報を上書き (optional)
+transform: 変形情報
+  scale_x: X軸スケール（1.0が等倍）
+  scale_y: Y軸スケール（1.0が等倍）
+  rotation: 回転角度（度数法）
+```
+
+#### TextAssetInstance
+
+```
+id: インスタンスのID (ユーザーが指定する必要はない)
+asset_id: 参照するTextAssetのID
+page_id: 配置されるPageのID
+z_index: 描画順序（数値が大きいほど前面に表示）
+position_attr_id: 参照するPositionAssetAttrのID (optional)
+override_text: Assetのdefault_textを上書きするテキスト内容 (optional)
+override_pos_x: AssetAttrやAssetのdefault値を上書きするX座標 (optional)
+override_pos_y: AssetAttrやAssetのdefault値を上書きするY座標 (optional)
+font_override: フォント設定の上書き (optional)
+  size: フォントサイズ
+  color_ex: 縁取りの色
+  color_in: 内部の色
+transform: 変形情報
+  scale_x: X軸スケール（1.0が等倍）
+  scale_y: Y軸スケール（1.0が等倍）
+  rotation: 回転角度（度数法）
+```
+
+### PositionAssetAttr
+
+位置情報を共有するための属性。
+
+```
+id: 属性のID (ユーザーが指定する必要はない)
+name: 属性の名前（例: "立ち位置A", "セリフ位置"）
+pos_x: X座標
+pos_y: Y座標
+```
+
+### SizeAssetAttr
+
+サイズ情報を共有するための属性。
+
+```
+id: 属性のID (ユーザーが指定する必要はない)
+name: 属性の名前（例: "標準サイズ", "拡大表示"）
+width: 幅
+height: 高さ
 ```
