@@ -35,8 +35,15 @@
 .preview-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 12px;
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .preview-header h3 {
@@ -111,6 +118,15 @@
   border-color: #007bff;
 }
 
+/* ページ情報 */
+.page-info {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+  text-align: right;
+  width: 100%;
+}
+
 /* プレビューコンテンツ */
 .preview-content {
   flex: 1;
@@ -129,8 +145,8 @@
 }
 
 .preview-canvas-container {
+  position: relative;
   flex: 1;
-  overflow: auto;
   background-color: #f5f5f5;
   background-image: 
     linear-gradient(45deg, #eee 25%, transparent 25%), 
@@ -152,12 +168,11 @@
 
 /* スクロール用のスペース確保 */
 .preview-canvas-wrapper {
-  position: relative;
-  min-height: 100%;
-  min-width: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0 0;
   display: inline-block;
-  padding: 16px;
-  text-align: center;
 }
 
 .canvas-background {
@@ -221,28 +236,3 @@
   max-width: 80px;
 }
 
-/* プレビュー情報 */
-.preview-info {
-  padding: 12px 16px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #f8f9fa;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-}
-
-.info-item label {
-  color: #666;
-  font-weight: 500;
-}
-
-.info-item span {
-  color: #333;
-}

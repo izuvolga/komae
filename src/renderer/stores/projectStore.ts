@@ -50,6 +50,7 @@ interface ProjectStore {
   togglePreview: () => void;
   setAssetLibraryWidth: (width: number) => void;
   setPreviewWidth: (width: number) => void;
+  setPreviewScroll: (x: number, y: number) => void;
   
   // App Actions
   setLoading: (loading: boolean) => void;
@@ -81,6 +82,8 @@ export const useProjectStore = create<ProjectStore>()(
           showPreview: true,
           assetLibraryWidth: 280,
           previewWidth: 320,
+          previewScrollX: 0,
+          previewScrollY: 0,
         },
         app: {
           isLoading: false,
@@ -213,6 +216,11 @@ export const useProjectStore = create<ProjectStore>()(
 
         setPreviewWidth: (width) => set((state) => {
           state.ui.previewWidth = Math.max(200, Math.min(600, width));
+        }),
+
+        setPreviewScroll: (x, y) => set((state) => {
+          state.ui.previewScrollX = x;
+          state.ui.previewScrollY = y;
         }),
 
         clearErrors: () => set((state) => {

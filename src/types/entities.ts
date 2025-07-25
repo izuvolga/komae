@@ -128,6 +128,8 @@ export interface UIState {
   showPreview: boolean;
   assetLibraryWidth: number;
   previewWidth: number;
+  previewScrollX: number;
+  previewScrollY: number;
 }
 
 // アプリケーション状態

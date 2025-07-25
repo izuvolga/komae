@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { PanelCollapseRightIcon } from '../icons/PanelIcons';
 import './PreviewArea.css';
@@ -8,11 +8,52 @@ export const PreviewArea: React.FC = () => {
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const previewMode = useProjectStore((state) => state.ui.previewMode);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
+  const previewScrollX = useProjectStore((state) => state.ui.previewScrollX);
+  const previewScrollY = useProjectStore((state) => state.ui.previewScrollY);
   const setPreviewMode = useProjectStore((state) => state.setPreviewMode);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
+  const setPreviewScroll = useProjectStore((state) => state.setPreviewScroll);
   const togglePreview = useProjectStore((state) => state.togglePreview);
 
+  const previewContentRef = useRef<HTMLDivElement>(null);
+
   if (!project) return null;
+
+  const canvasWidth = project.canvas.width;
+  const canvasHeight = project.canvas.height;
+
+  // パッシブリスナー問題を回避するためuseEffectで直接イベントを設定
+  React.useEffect(() => {
+    const container = previewContentRef.current;
+    if (!container) return;
+
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const containerRect = container.getBoundingClientRect();
+      const canvasActualWidth = canvasWidth * zoomLevel;
+      const canvasActualHeight = canvasHeight * zoomLevel;
+      
+      // スクロール制限の計算
+      const maxScrollX = Math.max(0, canvasActualWidth - containerRect.width);
+      const maxScrollY = Math.max(0, canvasActualHeight - containerRect.height);
+      
+      const scrollSpeed = 30;
+      const newScrollX = previewScrollX;
+      const newScrollY = Math.min(maxScrollY, Math.max(0, 
+        previewScrollY + (e.deltaY > 0 ? scrollSpeed : -scrollSpeed)
+      ));
+      
+      setPreviewScroll(newScrollX, newScrollY);
+    };
+
+    container.addEventListener('wheel', handleWheelNative, { passive: false });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheelNative);
+    };
+  }, [previewScrollX, previewScrollY, setPreviewScroll, canvasWidth, canvasHeight, zoomLevel]);
 
   const pages = Object.values(project.pages);
   const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
@@ -38,9 +79,6 @@ export const PreviewArea: React.FC = () => {
     setPreviewMode(mode);
   };
 
-  const canvasWidth = project.canvas.width;
-  const canvasHeight = project.canvas.height;
-
   return (
     <div className="preview-area">
       <div className="preview-header">
@@ -59,41 +97,54 @@ export const PreviewArea: React.FC = () => {
           </div>
         </div>
         <div className="preview-controls">
-          <div className="zoom-control">
-            <label>倍率:</label>
-            <input
-              type="range"
-              min="0.1"
-              max="3.0"
-              step="0.1"
-              value={zoomLevel}
-              onChange={handleZoomChange}
-              className="zoom-slider"
-            />
-            <span className="zoom-value">{Math.round(zoomLevel * 100)}%</span>
+          <div className="controls-left">
+            <div className="zoom-control">
+              <label>倍率:</label>
+              <input
+                type="range"
+                min="0.1"
+                max="3.0"
+                step="0.1"
+                value={zoomLevel}
+                onChange={handleZoomChange}
+                className="zoom-slider"
+              />
+              <span className="zoom-value">{Math.round(zoomLevel * 100)}%</span>
+            </div>
+            <div className="mode-control">
+              <button
+                className={`mode-btn ${previewMode === 'fit' ? 'active' : ''}`}
+                onClick={() => handleModeChange('fit')}
+                title="フィット表示"
+              >
+                フィット
+              </button>
+              <button
+                className={`mode-btn ${previewMode === 'actual' ? 'active' : ''}`}
+                onClick={() => handleModeChange('actual')}
+                title="実際のサイズ"
+              >
+                実寸
+              </button>
+            </div>
           </div>
-          <div className="mode-control">
-            <button
-              className={`mode-btn ${previewMode === 'fit' ? 'active' : ''}`}
-              onClick={() => handleModeChange('fit')}
-              title="フィット表示"
-            >
-              フィット
-            </button>
-            <button
-              className={`mode-btn ${previewMode === 'actual' ? 'active' : ''}`}
-              onClick={() => handleModeChange('actual')}
-              title="実際のサイズ"
-            >
-              実寸
-            </button>
+          <div className="page-info">
+            <span>Page:{Object.values(project.pages).indexOf(currentPageData) + 1} Assets:{Object.keys(currentPageData.asset_instances).length} {canvasWidth}×{canvasHeight}px</span>
           </div>
         </div>
       </div>
 
-      <div className="preview-content">
+      <div 
+        className="preview-content"
+        ref={previewContentRef}
+      >
         <div className="preview-canvas-container">
-          <div className="preview-canvas-wrapper">
+          <div 
+            className="preview-canvas-wrapper"
+            style={{
+              transform: `translate(${-canvasWidth * zoomLevel / 2 - previewScrollX}px, ${-canvasHeight * zoomLevel / 2 - previewScrollY}px)`,
+            }}
+          >
             <div 
               className="preview-canvas"
               style={{
@@ -123,22 +174,6 @@ export const PreviewArea: React.FC = () => {
                   );
                 })}
             </div>
-          </div>
-        </div>
-
-        {/* ページ情報 */}
-        <div className="preview-info">
-          <div className="info-item">
-            <label>ページ:</label>
-            <span>{currentPageData.title}</span>
-          </div>
-          <div className="info-item">
-            <label>キャンバス:</label>
-            <span>{canvasWidth} × {canvasHeight}px</span>
-          </div>
-          <div className="info-item">
-            <label>アセット数:</label>
-            <span>{Object.keys(currentPageData.asset_instances).length}</span>
           </div>
         </div>
       </div>
