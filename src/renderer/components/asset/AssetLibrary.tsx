@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import type { Asset } from '../../../types/entities';
 import './AssetLibrary.css';
 
@@ -76,7 +77,7 @@ export const AssetLibrary: React.FC = () => {
             onClick={toggleAssetLibrary}
             title="アセットライブラリを閉じる"
           >
-            [| ]
+            <PanelCollapseLeftIcon />
           </button>
           <h3>アセット</h3>
         </div>

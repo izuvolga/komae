@@ -2,6 +2,7 @@ import React from 'react';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
+import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import './MainLayout.css';
 
@@ -164,7 +165,7 @@ export const MainLayout: React.FC = () => {
                   onClick={toggleAssetLibrary}
                   title="アセットライブラリを開く"
                 >
-                  [| ]
+                  <PanelExpandLeftIcon />
                 </button>
               )}
               
@@ -179,7 +180,7 @@ export const MainLayout: React.FC = () => {
                   onClick={togglePreview}
                   title="プレビューウィンドウを開く"
                 >
-                  [ |]
+                  <PanelExpandRightIcon />
                 </button>
               )}
             </div>

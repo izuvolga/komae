@@ -146,17 +146,17 @@
 
 /* パネル切り替えボタン */
 .panel-toggle-btn {
-  padding: 4px 8px;
+  padding: 6px 8px;
   border: 1px solid #ccc;
   background-color: white;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 12px;
-  font-family: monospace;
   color: #666;
   min-width: 32px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel-toggle-btn:hover {

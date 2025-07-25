@@ -1,5 +1,6 @@
 import React from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { PanelCollapseRightIcon } from '../icons/PanelIcons';
 import './PreviewArea.css';
 
 export const PreviewArea: React.FC = () => {
@@ -53,7 +54,7 @@ export const PreviewArea: React.FC = () => {
               onClick={togglePreview}
               title="プレビューウィンドウを閉じる"
             >
-              [ |]
+              <PanelCollapseRightIcon />
             </button>
           </div>
         </div>
