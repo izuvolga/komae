@@ -185,8 +185,10 @@ export const PreviewArea: React.FC = () => {
           <div 
             className="preview-canvas-wrapper"
             style={{
-              width: canvasWidth * zoomLevel + 100,
-              height: canvasHeight * zoomLevel + 100,
+              width: canvasWidth * zoomLevel + 400,
+              height: canvasHeight * zoomLevel + 400,
+              minWidth: '200%',
+              minHeight: '200%',
             }}
           >
             <div 
