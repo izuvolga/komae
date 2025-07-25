@@ -16,6 +16,9 @@ export const PreviewArea: React.FC = () => {
   const togglePreview = useProjectStore((state) => state.togglePreview);
 
   const previewContentRef = useRef<HTMLDivElement>(null);
+  const [isPanning, setIsPanning] = React.useState(false);
+  const [panStartPos, setPanStartPos] = React.useState({ x: 0, y: 0 });
+  const [panStartScroll, setPanStartScroll] = React.useState({ x: 0, y: 0 });
 
   if (!project) return null;
 
@@ -69,12 +72,70 @@ export const PreviewArea: React.FC = () => {
       setPreviewScroll(newScrollX, newScrollY);
     };
 
+    // マウスパンイベントハンドラー
+    const handleMouseDown = (e: MouseEvent) => {
+      // 中ボタン（ホイールボタン）の場合のみパン開始
+      if (e.button === 1) { // 中ボタン = 1
+        e.preventDefault();
+        setIsPanning(true);
+        setPanStartPos({ x: e.clientX, y: e.clientY });
+        setPanStartScroll({ x: previewScrollX, y: previewScrollY });
+        document.body.style.cursor = 'grabbing';
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPanning) return;
+      
+      e.preventDefault();
+      const deltaX = e.clientX - panStartPos.x;
+      const deltaY = e.clientY - panStartPos.y;
+      
+      // パン方向を逆にする（ドラッグ方向と逆方向にスクロール）
+      const rawScrollX = panStartScroll.x - deltaX;
+      const rawScrollY = panStartScroll.y - deltaY;
+      
+      // スクロール制限を適用
+      const containerRect = container.getBoundingClientRect();
+      const canvasActualWidth = canvasWidth * zoomLevel;
+      const canvasActualHeight = canvasHeight * zoomLevel;
+      
+      const containerHalfWidth = containerRect.width / 2;
+      const containerHalfHeight = containerRect.height / 2;
+      const canvasHalfWidth = canvasActualWidth / 2;
+      const canvasHalfHeight = canvasActualHeight / 2;
+      
+      const maxScrollY = canvasHalfHeight + containerHalfHeight;
+      const minScrollY = -(canvasHalfHeight + containerHalfHeight);
+      const maxScrollX = canvasHalfWidth + containerHalfWidth;
+      const minScrollX = -(canvasHalfWidth + containerHalfWidth);
+      
+      const newScrollX = Math.min(maxScrollX, Math.max(minScrollX, rawScrollX));
+      const newScrollY = Math.min(maxScrollY, Math.max(minScrollY, rawScrollY));
+      
+      setPreviewScroll(newScrollX, newScrollY);
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (e.button === 1 && isPanning) { // 中ボタンを離した場合
+        e.preventDefault();
+        setIsPanning(false);
+        document.body.style.cursor = '';
+      }
+    };
+
     container.addEventListener('wheel', handleWheelNative, { passive: false });
+    container.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
     
     return () => {
       container.removeEventListener('wheel', handleWheelNative);
+      container.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [previewScrollX, previewScrollY, setPreviewScroll, canvasWidth, canvasHeight, zoomLevel]);
+  }, [previewScrollX, previewScrollY, setPreviewScroll, canvasWidth, canvasHeight, zoomLevel, isPanning, panStartPos, panStartScroll]);
 
   const pages = Object.values(project.pages);
   const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
