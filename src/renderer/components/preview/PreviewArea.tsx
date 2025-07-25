@@ -43,8 +43,19 @@ export const PreviewArea: React.FC = () => {
   return (
     <div className="preview-area">
       <div className="preview-header">
-        <div className="header-left">
-          <h3>プレビュー</h3>
+        <div className="header-top">
+          <div className="header-left">
+            <h3>プレビュー</h3>
+          </div>
+          <div className="header-right">
+            <button 
+              className="panel-toggle-btn preview-close-btn"
+              onClick={togglePreview}
+              title="プレビューウィンドウを閉じる"
+            >
+              [ |]
+            </button>
+          </div>
         </div>
         <div className="preview-controls">
           <div className="zoom-control">
@@ -76,13 +87,6 @@ export const PreviewArea: React.FC = () => {
               実寸
             </button>
           </div>
-          <button 
-            className="panel-toggle-btn preview-close-btn"
-            onClick={togglePreview}
-            title="プレビューウィンドウを閉じる"
-          >
-            [ |]
-          </button>
         </div>
       </div>
 
