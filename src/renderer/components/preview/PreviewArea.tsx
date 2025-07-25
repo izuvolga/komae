@@ -35,13 +35,23 @@ export const PreviewArea: React.FC = () => {
       const canvasActualWidth = canvasWidth * zoomLevel;
       const canvasActualHeight = canvasHeight * zoomLevel;
       
-      // スクロール制限の計算
-      const maxScrollX = Math.max(0, canvasActualWidth - containerRect.width);
-      const maxScrollY = Math.max(0, canvasActualHeight - containerRect.height);
+      // スクロール制限の計算（キャンバスの端がコンテナの端に触れるまで）
+      const containerHalfWidth = containerRect.width / 2;
+      const containerHalfHeight = containerRect.height / 2;
+      const canvasHalfWidth = canvasActualWidth / 2;
+      const canvasHalfHeight = canvasActualHeight / 2;
+      
+      // 最大スクロール範囲：キャンバスの上端がコンテナの下端に触れるまで
+      const maxScrollY = canvasHalfHeight + containerHalfHeight;
+      // 最小スクロール範囲：キャンバスの下端がコンテナの上端に触れるまで
+      const minScrollY = -(canvasHalfHeight + containerHalfHeight);
+      
+      const maxScrollX = canvasHalfWidth + containerHalfWidth;
+      const minScrollX = -(canvasHalfWidth + containerHalfWidth);
       
       const scrollSpeed = 30;
       const newScrollX = previewScrollX;
-      const newScrollY = Math.min(maxScrollY, Math.max(0, 
+      const newScrollY = Math.min(maxScrollY, Math.max(minScrollY, 
         previewScrollY + (e.deltaY > 0 ? scrollSpeed : -scrollSpeed)
       ));
       
