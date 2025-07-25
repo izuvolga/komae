@@ -31,6 +31,17 @@ export const PreviewArea: React.FC = () => {
       e.preventDefault();
       e.stopPropagation();
       
+      // ⌘キー（macOS）が押されている場合はズーム処理
+      if (e.metaKey) {
+        const zoomSpeed = 0.1;
+        const zoomDirection = e.deltaY > 0 ? -1 : 1; // 上にスクロール = ズームイン
+        const newZoomLevel = Math.min(3.0, Math.max(0.1, zoomLevel + (zoomSpeed * zoomDirection)));
+        
+        setZoomLevel(newZoomLevel);
+        return;
+      }
+      
+      // 通常のスクロール処理
       const containerRect = container.getBoundingClientRect();
       const canvasActualWidth = canvasWidth * zoomLevel;
       const canvasActualHeight = canvasHeight * zoomLevel;
