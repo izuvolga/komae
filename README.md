@@ -8,7 +8,11 @@ In such cases, they express stories by reusing almost identical illustrations wh
 
 Currently, there is no specialized software to support creating works in this format. Therefore, we aim to create software that supports the creation of such works.
 
-The name "komae" comes from "コマ絵綴り" (sequential panel illustrations).
+The name "komae" comes from "コマ" (koma) and "絵" (e).
+"koma" meaning "panel" in Japanese, which is a common term in manga and comics.
+"e" meaning "picture" or "illustration".
+
+The name reflects the software's purpose of creating illustrated stories with a focus on panels and images, similar to manga but with a unique approach to storytelling through illustrations.
 
 ## Project Architecture
 
