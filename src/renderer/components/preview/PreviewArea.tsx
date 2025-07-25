@@ -8,11 +8,8 @@ export const PreviewArea: React.FC = () => {
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const previewMode = useProjectStore((state) => state.ui.previewMode);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
-  const previewScrollX = useProjectStore((state) => state.ui.previewScrollX);
-  const previewScrollY = useProjectStore((state) => state.ui.previewScrollY);
   const setPreviewMode = useProjectStore((state) => state.setPreviewMode);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
-  const setPreviewScroll = useProjectStore((state) => state.setPreviewScroll);
   const togglePreview = useProjectStore((state) => state.togglePreview);
 
   const previewContentRef = useRef<HTMLDivElement>(null);
@@ -45,31 +42,11 @@ export const PreviewArea: React.FC = () => {
       }
       
       // 通常のスクロール処理
-      const containerRect = container.getBoundingClientRect();
-      const canvasActualWidth = canvasWidth * zoomLevel;
-      const canvasActualHeight = canvasHeight * zoomLevel;
-      
-      // スクロール制限の計算（キャンバスの端がコンテナの端に触れるまで）
-      const containerHalfWidth = containerRect.width / 2;
-      const containerHalfHeight = containerRect.height / 2;
-      const canvasHalfWidth = canvasActualWidth / 2;
-      const canvasHalfHeight = canvasActualHeight / 2;
-      
-      // 最大スクロール範囲：キャンバスの上端がコンテナの下端に触れるまで
-      const maxScrollY = canvasHalfHeight + containerHalfHeight;
-      // 最小スクロール範囲：キャンバスの下端がコンテナの上端に触れるまで
-      const minScrollY = -(canvasHalfHeight + containerHalfHeight);
-      
-      const maxScrollX = canvasHalfWidth + containerHalfWidth;
-      const minScrollX = -(canvasHalfWidth + containerHalfWidth);
-      
       const scrollSpeed = 30;
-      const newScrollX = previewScrollX;
-      const newScrollY = Math.min(maxScrollY, Math.max(minScrollY, 
-        previewScrollY + (e.deltaY > 0 ? scrollSpeed : -scrollSpeed)
-      ));
+      const deltaY = e.deltaY > 0 ? scrollSpeed : -scrollSpeed;
       
-      setPreviewScroll(newScrollX, newScrollY);
+      // ネイティブスクロール位置を更新
+      container.scrollTop += deltaY;
     };
 
     // マウスパンイベントハンドラー
@@ -79,7 +56,7 @@ export const PreviewArea: React.FC = () => {
         e.preventDefault();
         setIsPanning(true);
         setPanStartPos({ x: e.clientX, y: e.clientY });
-        setPanStartScroll({ x: previewScrollX, y: previewScrollY });
+        setPanStartScroll({ x: container.scrollLeft, y: container.scrollTop });
         document.body.style.cursor = 'grabbing';
       }
     };
@@ -92,28 +69,12 @@ export const PreviewArea: React.FC = () => {
       const deltaY = e.clientY - panStartPos.y;
       
       // パン方向を逆にする（ドラッグ方向と逆方向にスクロール）
-      const rawScrollX = panStartScroll.x - deltaX;
-      const rawScrollY = panStartScroll.y - deltaY;
+      const newScrollX = panStartScroll.x - deltaX;
+      const newScrollY = panStartScroll.y - deltaY;
       
-      // スクロール制限を適用
-      const containerRect = container.getBoundingClientRect();
-      const canvasActualWidth = canvasWidth * zoomLevel;
-      const canvasActualHeight = canvasHeight * zoomLevel;
-      
-      const containerHalfWidth = containerRect.width / 2;
-      const containerHalfHeight = containerRect.height / 2;
-      const canvasHalfWidth = canvasActualWidth / 2;
-      const canvasHalfHeight = canvasActualHeight / 2;
-      
-      const maxScrollY = canvasHalfHeight + containerHalfHeight;
-      const minScrollY = -(canvasHalfHeight + containerHalfHeight);
-      const maxScrollX = canvasHalfWidth + containerHalfWidth;
-      const minScrollX = -(canvasHalfWidth + containerHalfWidth);
-      
-      const newScrollX = Math.min(maxScrollX, Math.max(minScrollX, rawScrollX));
-      const newScrollY = Math.min(maxScrollY, Math.max(minScrollY, rawScrollY));
-      
-      setPreviewScroll(newScrollX, newScrollY);
+      // ネイティブスクロール位置を更新
+      container.scrollLeft = newScrollX;
+      container.scrollTop = newScrollY;
     };
 
     const handleMouseUp = (e: MouseEvent) => {
@@ -135,7 +96,7 @@ export const PreviewArea: React.FC = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [previewScrollX, previewScrollY, setPreviewScroll, canvasWidth, canvasHeight, zoomLevel, isPanning, panStartPos, panStartScroll]);
+  }, [canvasWidth, canvasHeight, zoomLevel, isPanning, panStartPos, panStartScroll, setZoomLevel]);
 
   const pages = Object.values(project.pages);
   const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
@@ -216,15 +177,16 @@ export const PreviewArea: React.FC = () => {
         </div>
       </div>
 
-      <div 
-        className="preview-content"
-        ref={previewContentRef}
-      >
-        <div className="preview-canvas-container">
+      <div className="preview-content">
+        <div 
+          className="preview-canvas-container"
+          ref={previewContentRef}
+        >
           <div 
             className="preview-canvas-wrapper"
             style={{
-              transform: `translate(${-canvasWidth * zoomLevel / 2 - previewScrollX}px, ${-canvasHeight * zoomLevel / 2 - previewScrollY}px)`,
+              width: canvasWidth * zoomLevel + 100,
+              height: canvasHeight * zoomLevel + 100,
             }}
           >
             <div 
