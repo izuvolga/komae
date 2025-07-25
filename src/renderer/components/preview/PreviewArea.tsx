@@ -98,6 +98,24 @@ export const PreviewArea: React.FC = () => {
     };
   }, [canvasWidth, canvasHeight, zoomLevel, isPanning, panStartPos, panStartScroll, setZoomLevel]);
 
+  // 初期スクロール位置を中央に設定
+  React.useEffect(() => {
+    const container = previewContentRef.current;
+    if (!container) return;
+
+    // コンテナとキャンバスの中央位置を計算
+    const containerRect = container.getBoundingClientRect();
+    const wrapperWidth = Math.max(canvasWidth * zoomLevel + 400, containerRect.width * 2);
+    const wrapperHeight = Math.max(canvasHeight * zoomLevel + 400, containerRect.height * 2);
+    
+    // キャンバスを中央に配置するスクロール位置
+    const centerScrollLeft = (wrapperWidth - containerRect.width) / 2;
+    const centerScrollTop = (wrapperHeight - containerRect.height) / 2;
+    
+    container.scrollLeft = centerScrollLeft;
+    container.scrollTop = centerScrollTop;
+  }, [canvasWidth, canvasHeight, zoomLevel]);
+
   const pages = Object.values(project.pages);
   const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
 
