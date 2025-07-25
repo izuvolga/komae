@@ -7,9 +7,11 @@ import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
   const project = useProjectStore((state) => state.project);
-  const activeWindow = useProjectStore((state) => state.ui.activeWindow);
+  const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
+  const showPreview = useProjectStore((state) => state.ui.showPreview);
   const setProject = useProjectStore((state) => state.setProject);
-  const addAsset = useProjectStore((state) => state.addAsset);
+  const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
+  const togglePreview = useProjectStore((state) => state.togglePreview);
 
   const handleCreateProject = async () => {
     try {
@@ -143,11 +145,13 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="main-layout">
-      <div className="layout-grid">
+      <div className={`layout-grid ${!showAssetLibrary ? 'hide-asset' : ''} ${!showPreview ? 'hide-preview' : ''}`}>
         {/* Left Panel - Asset Library */}
-        <div className="left-panel">
-          <AssetLibrary />
-        </div>
+        {showAssetLibrary && (
+          <div className="left-panel">
+            <AssetLibrary />
+          </div>
+        )}
 
         {/* Center Panel - Spreadsheet */}
         <div className="center-panel">
@@ -156,11 +160,19 @@ export const MainLayout: React.FC = () => {
               <span className="project-title">{project.metadata.title}</span>
             </div>
             <div className="toolbar-section">
-              <button className="btn-small" title="新しいページを追加">
-                ページ追加
+              <button 
+                className={`toolbar-btn ${showAssetLibrary ? 'active' : ''}`}
+                onClick={toggleAssetLibrary}
+                title="アセットライブラリの表示を切り替え"
+              >
+                アセット
               </button>
-              <button className="btn-small" title="アセットをインポート">
-                アセット追加
+              <button 
+                className={`toolbar-btn ${showPreview ? 'active' : ''}`}
+                onClick={togglePreview}
+                title="プレビューウィンドウの表示を切り替え"
+              >
+                プレビュー
               </button>
             </div>
           </div>
@@ -170,9 +182,11 @@ export const MainLayout: React.FC = () => {
         </div>
 
         {/* Right Panel - Preview */}
-        <div className="right-panel">
-          <PreviewArea />
-        </div>
+        {showPreview && (
+          <div className="right-panel">
+            <PreviewArea />
+          </div>
+        )}
       </div>
     </div>
   );

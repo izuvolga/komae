@@ -53,6 +53,27 @@
   background-color: #ddd;
 }
 
+/* アセットライブラリ非表示時 */
+.layout-grid.hide-asset {
+  grid-template-areas: 
+    "center right";
+  grid-template-columns: 1fr 320px;
+}
+
+/* プレビュー非表示時 */
+.layout-grid.hide-preview {
+  grid-template-areas: 
+    "left center";
+  grid-template-columns: 280px 1fr;
+}
+
+/* 両方非表示時 */
+.layout-grid.hide-asset.hide-preview {
+  grid-template-areas: 
+    "center";
+  grid-template-columns: 1fr;
+}
+
 .left-panel {
   grid-area: left;
   background-color: white;

@@ -124,6 +124,8 @@ export interface UIState {
   activeWindow: 'asset' | 'spreadsheet' | 'preview';
   previewMode: 'fit' | 'actual' | 'custom';
   zoomLevel: number;
+  showAssetLibrary: boolean;
+  showPreview: boolean;
 }
 
 // アプリケーション状態
