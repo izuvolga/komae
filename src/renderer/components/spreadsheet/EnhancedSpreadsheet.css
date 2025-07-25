@@ -1,0 +1,276 @@
+/* 新しいスプレッドシート */
+.enhanced-spreadsheet {
+  height: 100%;
+  overflow: auto;
+  background-color: white;
+}
+
+.spreadsheet-table {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ヘッダー */
+.spreadsheet-header {
+  display: grid;
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  z-index: 10;
+  grid-template-columns: 40px 60px 120px repeat(auto-fit, 100px);
+  min-width: min-content;
+}
+
+.header-cell {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-right: 1px solid #dee2e6;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  min-height: 40px;
+}
+
+.page-number-header {
+  background-color: #e9ecef;
+}
+
+.delete-header {
+  background-color: #e9ecef;
+}
+
+.preview-header {
+  background-color: #e9ecef;
+}
+
+.asset-header {
+  background-color: #f8f9fa;
+}
+
+.asset-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.asset-name {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.asset-type {
+  font-size: 9px;
+  color: #666;
+  font-weight: normal;
+}
+
+/* ボディ */
+.spreadsheet-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.spreadsheet-row {
+  display: grid;
+  grid-template-columns: 40px 60px 120px repeat(auto-fit, 100px);
+  min-width: min-content;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.spreadsheet-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* セル */
+.cell {
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  min-height: 50px;
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+/* ページ番号セル */
+.page-number-cell {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #666;
+}
+
+/* 削除ボタンセル */
+.delete-cell {
+  background-color: #f8f9fa;
+}
+
+.delete-page-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #dc3545;
+  background-color: white;
+  color: #dc3545;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.delete-page-btn:hover:not(:disabled) {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* プレビューセル */
+.preview-cell {
+  background-color: #f8f9fa;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.preview-cell:hover {
+  background-color: #e9ecef;
+}
+
+.page-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-mini-canvas {
+  width: 80px;
+  height: 36px;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.preview-content {
+  text-align: center;
+}
+
+.page-title {
+  font-size: 9px;
+  color: #333;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+.asset-count {
+  font-size: 8px;
+  color: #666;
+}
+
+/* アセットセル */
+.asset-cell {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.asset-cell:hover {
+  background-color: #e3f2fd;
+}
+
+.asset-cell.used {
+  background-color: #e8f5e8;
+}
+
+.asset-cell.unused {
+  background-color: #fff;
+}
+
+.cell-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.asset-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* 新規ページ追加行 */
+.add-page-row {
+  border-bottom: none;
+  background-color: #f8f9fa;
+  display: flex;
+}
+
+.add-page-cell {
+  flex: 1;
+  padding: 16px;
+  border-right: none;
+}
+
+.add-page-btn {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #007bff;
+  background-color: white;
+  color: #007bff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.add-page-btn:hover {
+  background-color: #007bff;
+  color: white;
+  border-style: solid;
+}
+
+/* スクロールバーの調整 */
+.enhanced-spreadsheet::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.enhanced-spreadsheet::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.enhanced-spreadsheet::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.enhanced-spreadsheet::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

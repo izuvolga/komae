@@ -1,8 +1,7 @@
 import React from 'react';
 import { AssetLibrary } from '../asset/AssetLibrary';
-import { PageList } from '../page/PageList';
 import { PreviewArea } from '../preview/PreviewArea';
-import { Spreadsheet } from '../spreadsheet/Spreadsheet';
+import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { useProjectStore } from '../../stores/projectStore';
 import './MainLayout.css';
 
@@ -154,42 +153,25 @@ export const MainLayout: React.FC = () => {
         <div className="center-panel">
           <div className="toolbar">
             <div className="toolbar-section">
-              <button 
-                className={`toolbar-btn ${activeWindow === 'asset' ? 'active' : ''}`}
-                onClick={() => useProjectStore.getState().setActiveWindow('asset')}
-              >
-                アセット
-              </button>
-              <button 
-                className={`toolbar-btn ${activeWindow === 'spreadsheet' ? 'active' : ''}`}
-                onClick={() => useProjectStore.getState().setActiveWindow('spreadsheet')}
-              >
-                スプレッドシート
-              </button>
-              <button 
-                className={`toolbar-btn ${activeWindow === 'preview' ? 'active' : ''}`}
-                onClick={() => useProjectStore.getState().setActiveWindow('preview')}
-              >
-                プレビュー
-              </button>
+              <span className="project-title">{project.metadata.title}</span>
             </div>
             <div className="toolbar-section">
-              <span className="project-title">{project.metadata.title}</span>
+              <button className="btn-small" title="新しいページを追加">
+                ページ追加
+              </button>
+              <button className="btn-small" title="アセットをインポート">
+                アセット追加
+              </button>
             </div>
           </div>
           <div className="main-content">
-            <Spreadsheet />
+            <EnhancedSpreadsheet />
           </div>
         </div>
 
         {/* Right Panel - Preview */}
         <div className="right-panel">
           <PreviewArea />
-        </div>
-
-        {/* Bottom Panel - Page List */}
-        <div className="bottom-panel">
-          <PageList />
         </div>
       </div>
     </div>
