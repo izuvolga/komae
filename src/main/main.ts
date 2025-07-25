@@ -51,7 +51,8 @@ class KomaeApp {
         preload: path.join(__dirname, 'preload.js'),
         sandbox: false,
       },
-      titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+      titleBarStyle: 'default',
+      title: 'Komae - Sequential Panel Illustration Creator',
     });
 
     // Load the app
