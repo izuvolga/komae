@@ -156,24 +156,32 @@ export const MainLayout: React.FC = () => {
         {/* Center Panel - Spreadsheet */}
         <div className="center-panel">
           <div className="toolbar">
-            <div className="toolbar-section">
+            <div className="toolbar-section left-section">
+              {/* Asset非表示時：プロジェクト名の左にボタン */}
+              {!showAssetLibrary && (
+                <button 
+                  className="panel-toggle-btn asset-open-btn"
+                  onClick={toggleAssetLibrary}
+                  title="アセットライブラリを開く"
+                >
+                  [| ]
+                </button>
+              )}
+              
               <span className="project-title">{project.metadata.title}</span>
             </div>
-            <div className="toolbar-section">
-              <button 
-                className={`toolbar-btn ${showAssetLibrary ? 'active' : ''}`}
-                onClick={toggleAssetLibrary}
-                title="アセットライブラリの表示を切り替え"
-              >
-                アセット
-              </button>
-              <button 
-                className={`toolbar-btn ${showPreview ? 'active' : ''}`}
-                onClick={togglePreview}
-                title="プレビューウィンドウの表示を切り替え"
-              >
-                プレビュー
-              </button>
+            
+            <div className="toolbar-section right-section">
+              {/* Preview非表示時：プロジェクト名の右にボタン */}
+              {!showPreview && (
+                <button 
+                  className="panel-toggle-btn preview-open-btn"
+                  onClick={togglePreview}
+                  title="プレビューウィンドウを開く"
+                >
+                  [ |]
+                </button>
+              )}
             </div>
           </div>
           <div className="main-content">

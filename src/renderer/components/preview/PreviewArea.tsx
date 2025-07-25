@@ -9,6 +9,7 @@ export const PreviewArea: React.FC = () => {
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
   const setPreviewMode = useProjectStore((state) => state.setPreviewMode);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
+  const togglePreview = useProjectStore((state) => state.togglePreview);
 
   if (!project) return null;
 
@@ -42,7 +43,9 @@ export const PreviewArea: React.FC = () => {
   return (
     <div className="preview-area">
       <div className="preview-header">
-        <h3>プレビュー</h3>
+        <div className="header-left">
+          <h3>プレビュー</h3>
+        </div>
         <div className="preview-controls">
           <div className="zoom-control">
             <label>倍率:</label>
@@ -73,6 +76,13 @@ export const PreviewArea: React.FC = () => {
               実寸
             </button>
           </div>
+          <button 
+            className="panel-toggle-btn preview-close-btn"
+            onClick={togglePreview}
+            title="プレビューウィンドウを閉じる"
+          >
+            [ |]
+          </button>
         </div>
       </div>
 

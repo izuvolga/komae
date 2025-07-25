@@ -111,6 +111,15 @@
   gap: 8px;
 }
 
+.left-section {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.right-section {
+  justify-content: flex-end;
+}
+
 .toolbar-btn {
   padding: 6px 12px;
   border: 1px solid #ddd;
@@ -133,6 +142,37 @@
 .project-title {
   font-weight: 500;
   color: #333;
+}
+
+/* パネル切り替えボタン */
+.panel-toggle-btn {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  font-family: monospace;
+  color: #666;
+  min-width: 32px;
+  text-align: center;
+}
+
+.panel-toggle-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.asset-close-btn,
+.asset-open-btn {
+  margin-right: 8px;
+}
+
+.preview-close-btn,
+.preview-open-btn {
+  margin-left: 8px;
 }
 
 /* メインコンテンツ */

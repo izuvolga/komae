@@ -9,6 +9,7 @@ export const AssetLibrary: React.FC = () => {
   const selectAssets = useProjectStore((state) => state.selectAssets);
   const importAsset = useProjectStore((state) => state.importAsset);
   const deleteAsset = useProjectStore((state) => state.deleteAsset);
+  const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
 
   const assetList = Object.values(assets);
@@ -69,7 +70,16 @@ export const AssetLibrary: React.FC = () => {
   return (
     <div className="asset-library">
       <div className="asset-library-header">
-        <h3>アセットライブラリ</h3>
+        <div className="header-left">
+          <button 
+            className="panel-toggle-btn asset-close-btn"
+            onClick={toggleAssetLibrary}
+            title="アセットライブラリを閉じる"
+          >
+            [| ]
+          </button>
+          <h3>アセット</h3>
+        </div>
         <div className="asset-actions">
           <button className="btn-icon" onClick={handleImportClick} title="アセットをインポート">
             +
