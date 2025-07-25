@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
@@ -10,9 +10,71 @@ export const MainLayout: React.FC = () => {
   const project = useProjectStore((state) => state.project);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
+  const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
+  const previewWidth = useProjectStore((state) => state.ui.previewWidth);
   const setProject = useProjectStore((state) => state.setProject);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const togglePreview = useProjectStore((state) => state.togglePreview);
+  const setAssetLibraryWidth = useProjectStore((state) => state.setAssetLibraryWidth);
+  const setPreviewWidth = useProjectStore((state) => state.setPreviewWidth);
+
+  // ドラッグリサイズの状態
+  const [isDragging, setIsDragging] = useState<'asset' | 'preview' | null>(null);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartWidth, setDragStartWidth] = useState(0);
+
+  // アセットライブラリのリサイズ開始
+  const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging('asset');
+    setDragStartX(e.clientX);
+    setDragStartWidth(assetLibraryWidth);
+  }, [assetLibraryWidth]);
+
+  // プレビューのリサイズ開始
+  const handlePreviewResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging('preview');
+    setDragStartX(e.clientX);
+    setDragStartWidth(previewWidth);
+  }, [previewWidth]);
+
+  // マウス移動処理
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - dragStartX;
+    
+    if (isDragging === 'asset') {
+      const newWidth = dragStartWidth + deltaX;
+      setAssetLibraryWidth(newWidth);
+    } else if (isDragging === 'preview') {
+      const newWidth = dragStartWidth - deltaX; // プレビューは右側なので反転
+      setPreviewWidth(newWidth);
+    }
+  }, [isDragging, dragStartX, dragStartWidth, setAssetLibraryWidth, setPreviewWidth]);
+
+  // マウスアップ処理
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(null);
+  }, []);
+
+  // グローバルマウスイベントの設定
+  React.useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleCreateProject = async () => {
     try {
@@ -144,13 +206,50 @@ export const MainLayout: React.FC = () => {
     );
   }
 
+  // 動的なグリッドカラムの計算
+  const getGridTemplateColumns = () => {
+    const parts = [];
+    if (showAssetLibrary) {
+      parts.push(`${assetLibraryWidth}px`);
+    }
+    parts.push('1fr');
+    if (showPreview) {
+      parts.push(`${previewWidth}px`);
+    }
+    return parts.join(' ');
+  };
+
+  // 動的なグリッドテンプレートエリアの計算
+  const getGridTemplateAreas = () => {
+    if (showAssetLibrary && showPreview) {
+      return '"left center right"';
+    } else if (showAssetLibrary && !showPreview) {
+      return '"left center"';
+    } else if (!showAssetLibrary && showPreview) {
+      return '"center right"';
+    } else {
+      return '"center"';
+    }
+  };
+
   return (
     <div className="main-layout">
-      <div className={`layout-grid ${!showAssetLibrary ? 'hide-asset' : ''} ${!showPreview ? 'hide-preview' : ''}`}>
+      <div 
+        className="layout-grid"
+        style={{
+          gridTemplateColumns: getGridTemplateColumns(),
+          gridTemplateAreas: getGridTemplateAreas(),
+        }}
+      >
         {/* Left Panel - Asset Library */}
         {showAssetLibrary && (
           <div className="left-panel">
             <AssetLibrary />
+            {/* Asset Library Resizer */}
+            <div 
+              className="panel-resizer asset-resizer"
+              onMouseDown={handleAssetResizeStart}
+            />
           </div>
         )}
 
@@ -193,6 +292,11 @@ export const MainLayout: React.FC = () => {
         {/* Right Panel - Preview */}
         {showPreview && (
           <div className="right-panel">
+            {/* Preview Resizer */}
+            <div 
+              className="panel-resizer preview-resizer"
+              onMouseDown={handlePreviewResizeStart}
+            />
             <PreviewArea />
           </div>
         )}

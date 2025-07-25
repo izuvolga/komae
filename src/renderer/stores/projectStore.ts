@@ -48,6 +48,8 @@ interface ProjectStore {
   setZoomLevel: (level: number) => void;
   toggleAssetLibrary: () => void;
   togglePreview: () => void;
+  setAssetLibraryWidth: (width: number) => void;
+  setPreviewWidth: (width: number) => void;
   
   // App Actions
   setLoading: (loading: boolean) => void;
@@ -77,6 +79,8 @@ export const useProjectStore = create<ProjectStore>()(
           zoomLevel: 1.0,
           showAssetLibrary: true,
           showPreview: true,
+          assetLibraryWidth: 280,
+          previewWidth: 320,
         },
         app: {
           isLoading: false,
@@ -201,6 +205,14 @@ export const useProjectStore = create<ProjectStore>()(
 
         togglePreview: () => set((state) => {
           state.ui.showPreview = !state.ui.showPreview;
+        }),
+
+        setAssetLibraryWidth: (width) => set((state) => {
+          state.ui.assetLibraryWidth = Math.max(200, Math.min(600, width));
+        }),
+
+        setPreviewWidth: (width) => set((state) => {
+          state.ui.previewWidth = Math.max(200, Math.min(600, width));
         }),
 
         clearErrors: () => set((state) => {

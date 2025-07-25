@@ -126,6 +126,8 @@ export interface UIState {
   zoomLevel: number;
   showAssetLibrary: boolean;
   showPreview: boolean;
+  assetLibraryWidth: number;
+  previewWidth: number;
 }
 
 // アプリケーション状態
