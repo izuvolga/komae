@@ -78,32 +78,36 @@ export const PreviewArea: React.FC = () => {
 
       <div className="preview-content">
         <div className="preview-canvas-container">
-          <div 
-            className="preview-canvas"
-            style={{
-              width: canvasWidth * zoomLevel,
-              height: canvasHeight * zoomLevel,
-            }}
-          >
-            {/* キャンバス背景 */}
-            <div className="canvas-background" />
-            
-            {/* アセットインスタンスのレンダリング */}
-            {Object.values(currentPageData.asset_instances)
-              .sort((a, b) => a.z_index - b.z_index)
-              .map((instance) => {
-                const asset = project.assets[instance.asset_id];
-                if (!asset) return null;
+          <div className="preview-canvas-wrapper">
+            <div 
+              className="preview-canvas"
+              style={{
+                width: canvasWidth * zoomLevel,
+                height: canvasHeight * zoomLevel,
+                position: 'relative',
+                display: 'inline-block',
+              }}
+            >
+              {/* キャンバス背景 */}
+              <div className="canvas-background" />
+              
+              {/* アセットインスタンスのレンダリング */}
+              {Object.values(currentPageData.asset_instances)
+                .sort((a, b) => a.z_index - b.z_index)
+                .map((instance) => {
+                  const asset = project.assets[instance.asset_id];
+                  if (!asset) return null;
 
-                return (
-                  <PreviewAssetInstance
-                    key={instance.id}
-                    instance={instance}
-                    asset={asset}
-                    zoomLevel={zoomLevel}
-                  />
-                );
-              })}
+                  return (
+                    <PreviewAssetInstance
+                      key={instance.id}
+                      instance={instance}
+                      asset={asset}
+                      zoomLevel={zoomLevel}
+                    />
+                  );
+                })}
+            </div>
           </div>
         </div>
 
