@@ -10,22 +10,24 @@ export const Spreadsheet: React.FC = () => {
 
   if (!project) return null;
 
-  const pages = Object.values(project.pages);
+  const pages = project.pages;
   const assets = Object.values(project.assets);
   
   // 現在のページを取得、なければ最初のページ
-  const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
+  const currentPageData = currentPage 
+    ? pages.find(page => page.id === currentPage) 
+    : pages[0];
 
   const handleCellClick = (pageId: string, assetId: string) => {
     toggleAssetInstance(pageId, assetId);
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
-    const page = project.pages[pageId];
+    const page = pages.find(p => p.id === pageId);
     if (!page) return false;
     
     return Object.values(page.asset_instances).some(
-      instance => instance.asset_id === assetId
+      (instance: any) => instance.asset_id === assetId
     );
   };
 

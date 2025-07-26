@@ -28,16 +28,16 @@ export class ProjectManager {
         size_attrs: {},
       },
       assets: {},
-      pages: {},
+      pages: [],
     };
 
     // デフォルトページを作成
     const defaultPageId = `page-${uuidv4()}`;
-    projectData.pages[defaultPageId] = {
+    projectData.pages.push({
       id: defaultPageId,
       title: 'Page 1',
       asset_instances: {},
-    };
+    });
 
     return projectData;
   }

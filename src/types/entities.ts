@@ -113,7 +113,7 @@ export interface ProjectData {
     size_attrs: Record<string, SizeAssetAttr>;
   };
   assets: Record<string, Asset>;
-  pages: Record<string, Page>;
+  pages: Page[]; // 配列形式に変更
 }
 
 // UI状態

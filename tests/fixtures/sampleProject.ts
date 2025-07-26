@@ -4,7 +4,7 @@ export const mockImageAsset: Asset = {
   id: 'test-image-1',
   type: 'ImageAsset',
   name: 'テスト画像',
-  original_file_path: 'assets/test-image.png',
+  original_file_path: 'assets/images/test-image.png', // 相対パス
   original_width: 300,
   original_height: 400,
   default_pos_x: 100,
@@ -18,7 +18,7 @@ export const mockTextAsset: Asset = {
   type: 'TextAsset',
   name: 'テストテキスト',
   default_text: 'こんにちは',
-  font: 'system-ui',
+  font: 'assets/fonts/test-font.ttf', // 相対パス
   stroke_width: 2.0,
   font_size: 24,
   color_ex: '#000000',
@@ -77,7 +77,5 @@ export const mockProject: ProjectData = {
     'test-image-1': mockImageAsset,
     'test-text-1': mockTextAsset,
   },
-  pages: {
-    'test-page-1': mockPage,
-  },
+  pages: [mockPage], // 配列形式に変更
 };

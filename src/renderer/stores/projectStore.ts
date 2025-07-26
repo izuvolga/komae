@@ -12,6 +12,15 @@ import type {
   ExportOptions 
 } from '../../types/entities';
 
+// ページ配列操作のヘルパー関数
+const findPageById = (pages: Page[], pageId: string): Page | undefined => {
+  return pages.find(page => page.id === pageId);
+};
+
+const findPageIndexById = (pages: Page[], pageId: string): number => {
+  return pages.findIndex(page => page.id === pageId);
+};
+
 interface ProjectStore {
   // State
   project: ProjectData | null;
@@ -98,9 +107,8 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.lastSaved = new Date();
           
           // 最初のページを現在のページに設定
-          const pageIds = Object.keys(project.pages);
-          if (pageIds.length > 0 && !state.ui.currentPage) {
-            state.ui.currentPage = pageIds[0];
+          if (project.pages.length > 0 && !state.ui.currentPage) {
+            state.ui.currentPage = project.pages[0].id;
           }
         }),
 
@@ -131,7 +139,7 @@ export const useProjectStore = create<ProjectStore>()(
           delete state.project.assets[assetId];
           
           // 関連するAssetInstanceも削除
-          Object.values(state.project.pages).forEach(page => {
+          state.project.pages.forEach(page => {
             Object.entries(page.asset_instances).forEach(([instanceId, instance]) => {
               if (instance.asset_id === assetId) {
                 delete page.asset_instances[instanceId];
@@ -145,47 +153,62 @@ export const useProjectStore = create<ProjectStore>()(
         // Page Actions
         addPage: (page) => set((state) => {
           if (!state.project) return;
-          state.project.pages[page.id] = page;
+          state.project.pages.push(page);
           state.app.isDirty = true;
         }),
 
         updatePage: (pageId, updates) => set((state) => {
-          if (!state.project?.pages[pageId]) return;
-          Object.assign(state.project.pages[pageId], updates);
-          state.app.isDirty = true;
+          if (!state.project) return;
+          const pageIndex = findPageIndexById(state.project.pages, pageId);
+          if (pageIndex >= 0) {
+            Object.assign(state.project.pages[pageIndex], updates);
+            state.app.isDirty = true;
+          }
         }),
 
         deletePage: (pageId) => set((state) => {
           if (!state.project) return;
-          delete state.project.pages[pageId];
-          
-          // 現在のページが削除された場合は別のページを選択
-          if (state.ui.currentPage === pageId) {
-            const remainingPages = Object.keys(state.project.pages);
-            state.ui.currentPage = remainingPages.length > 0 ? remainingPages[0] : null;
+          const pageIndex = findPageIndexById(state.project.pages, pageId);
+          if (pageIndex >= 0) {
+            state.project.pages.splice(pageIndex, 1);
+            
+            // 現在のページが削除された場合は別のページを選択
+            if (state.ui.currentPage === pageId) {
+              state.ui.currentPage = state.project.pages.length > 0 ? state.project.pages[0].id : null;
+            }
+            
+            state.app.isDirty = true;
           }
-          
-          state.app.isDirty = true;
         }),
 
         reorderPages: (pageIds) => set((state) => {
           if (!state.project) return;
           
-          // ページ順序を更新（実装は後で詳細化）
-          console.log('Reordering pages:', pageIds);
+          // 新しい順序でページを並び替え
+          const reorderedPages = pageIds.map(id => 
+            findPageById(state.project!.pages, id)
+          ).filter((page): page is Page => page !== undefined);
+          
+          state.project.pages = reorderedPages;
           state.app.isDirty = true;
         }),
 
         addAssetInstance: (pageId, instance) => set((state) => {
-          if (!state.project?.pages[pageId]) return;
-          state.project.pages[pageId].asset_instances[instance.id] = instance;
-          state.app.isDirty = true;
+          if (!state.project) return;
+          const page = findPageById(state.project.pages, pageId);
+          if (page) {
+            page.asset_instances[instance.id] = instance;
+            state.app.isDirty = true;
+          }
         }),
 
         deleteAssetInstance: (pageId, instanceId) => set((state) => {
-          if (!state.project?.pages[pageId]?.asset_instances[instanceId]) return;
-          delete state.project.pages[pageId].asset_instances[instanceId];
-          state.app.isDirty = true;
+          if (!state.project) return;
+          const page = findPageById(state.project.pages, pageId);
+          if (page?.asset_instances[instanceId]) {
+            delete page.asset_instances[instanceId];
+            state.app.isDirty = true;
+          }
         }),
 
         selectPages: (pageIds) => set((state) => {
@@ -223,15 +246,19 @@ export const useProjectStore = create<ProjectStore>()(
 
         // AssetInstance Actions
         updateAssetInstance: (pageId, instanceId, updates) => set((state) => {
-          if (!state.project?.pages[pageId]?.asset_instances[instanceId]) return;
-          Object.assign(state.project.pages[pageId].asset_instances[instanceId], updates);
-          state.app.isDirty = true;
+          if (!state.project) return;
+          const page = findPageById(state.project.pages, pageId);
+          if (page?.asset_instances[instanceId]) {
+            Object.assign(page.asset_instances[instanceId], updates);
+            state.app.isDirty = true;
+          }
         }),
 
         toggleAssetInstance: (pageId, assetId) => set((state) => {
-          if (!state.project?.pages[pageId]) return;
+          if (!state.project) return;
+          const page = findPageById(state.project.pages, pageId);
+          if (!page) return;
           
-          const page = state.project.pages[pageId];
           const existingInstance = Object.values(page.asset_instances).find(
             instance => instance.asset_id === assetId
           );

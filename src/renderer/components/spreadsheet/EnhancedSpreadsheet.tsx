@@ -153,11 +153,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
-    const page = project.pages[pageId];
+    const page = project.pages.find(p => p.id === pageId);
     if (!page) return false;
     
     return Object.values(page.asset_instances).some(
-      instance => instance.asset_id === assetId
+      (instance: any) => instance.asset_id === assetId
     );
   };
 

@@ -114,8 +114,10 @@ export const PreviewArea: React.FC = () => {
     container.scrollTop = centerScrollTop;
   }, [canvasWidth, canvasHeight, zoomLevel]);
 
-  const pages = Object.values(project.pages);
-  const currentPageData = currentPage ? project.pages[currentPage] : pages[0];
+  const pages = project.pages;
+  const currentPageData = currentPage 
+    ? pages.find(page => page.id === currentPage) 
+    : pages[0];
 
   if (!currentPageData) {
     return (
@@ -244,8 +246,8 @@ export const PreviewArea: React.FC = () => {
               
               {/* アセットインスタンスのレンダリング */}
               {Object.values(currentPageData.asset_instances)
-                .sort((a, b) => a.z_index - b.z_index)
-                .map((instance) => {
+                .sort((a: any, b: any) => a.z_index - b.z_index)
+                .map((instance: any) => {
                   const asset = project.assets[instance.asset_id];
                   if (!asset) return null;
 
