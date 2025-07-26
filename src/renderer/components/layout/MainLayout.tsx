@@ -215,7 +215,7 @@ export const MainLayout: React.FC = () => {
         <div className="welcome-screen">
           <div className="welcome-content">
             <h1>Komae</h1>
-            <p>イラスト集作成ツール</p>
+            <p>Create illustration collections</p>
             <div className="welcome-actions">
               <button className="btn-primary" onClick={handleCreateProject}>新規プロジェクト</button>
               <button className="btn-secondary" onClick={handleOpenProject}>プロジェクトを開く</button>
