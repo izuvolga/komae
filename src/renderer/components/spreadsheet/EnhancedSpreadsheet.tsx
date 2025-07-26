@@ -104,7 +104,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
         <div className="spreadsheet-header">
           <div className="cell header-cell page-number-header">#</div>
           <div className="cell header-cell delete-header">削除</div>
-          <div className="cell header-cell preview-header">Preview</div>
+          <div className="cell header-cell preview-column-header">Preview</div>
           {assets.map((asset) => (
             <div key={asset.id} className="cell header-cell asset-header">
               <div className="asset-header-content">
