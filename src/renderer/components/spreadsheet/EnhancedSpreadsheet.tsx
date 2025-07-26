@@ -163,7 +163,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   return (
     <div 
-      className="enhanced-spreadsheet"
+      className="enhanced-spreadsheet scrollbar-large"
       style={{ 
         maxWidth,
         width: maxWidth ? `${maxWidth}px` : 'auto'

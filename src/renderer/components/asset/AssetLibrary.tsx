@@ -96,7 +96,7 @@ export const AssetLibrary: React.FC = () => {
         </div>
       </div>
 
-      <div className="asset-list">
+      <div className="asset-list scrollbar-large">
         {assetList.length === 0 ? (
           <div className="empty-state">
             <p>アセットがありません</p>

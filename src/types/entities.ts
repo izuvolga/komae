@@ -122,7 +122,6 @@ export interface UIState {
   selectedPages: string[];
   currentPage: string | null;
   activeWindow: 'asset' | 'spreadsheet' | 'preview';
-  previewMode: 'fit' | 'actual' | 'custom';
   zoomLevel: number;
   showAssetLibrary: boolean;
   showPreview: boolean;

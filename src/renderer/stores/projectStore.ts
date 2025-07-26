@@ -44,7 +44,6 @@ interface ProjectStore {
   selectPages: (pageIds: string[]) => void;
   setCurrentPage: (pageId: string | null) => void;
   setActiveWindow: (window: UIState['activeWindow']) => void;
-  setPreviewMode: (mode: UIState['previewMode']) => void;
   setZoomLevel: (level: number) => void;
   toggleAssetLibrary: () => void;
   togglePreview: () => void;
@@ -76,7 +75,6 @@ export const useProjectStore = create<ProjectStore>()(
           selectedPages: [],
           currentPage: null,
           activeWindow: 'asset',
-          previewMode: 'fit',
           zoomLevel: 1.0,
           showAssetLibrary: true,
           showPreview: true,
@@ -192,10 +190,6 @@ export const useProjectStore = create<ProjectStore>()(
 
         selectPages: (pageIds) => set((state) => {
           state.ui.selectedPages = pageIds;
-        }),
-
-        setPreviewMode: (mode) => set((state) => {
-          state.ui.previewMode = mode;
         }),
 
         setZoomLevel: (level) => set((state) => {

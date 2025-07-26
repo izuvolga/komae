@@ -275,27 +275,3 @@
   color: white;
   border-style: solid;
 }
-
-/* スクロールバーの調整 */
-.enhanced-spreadsheet::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-.enhanced-spreadsheet::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 6px;
-}
-
-.enhanced-spreadsheet::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 6px;
-}
-
-.enhanced-spreadsheet::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.enhanced-spreadsheet::-webkit-scrollbar-corner {
-  background: #f1f1f1;
-}

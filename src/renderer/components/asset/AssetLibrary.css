@@ -75,29 +75,6 @@
   max-height: calc(100vh - 80px);
 }
 
-/* スクロールバーのスタイル */
-.asset-list::-webkit-scrollbar {
-  width: 12px;
-}
-
-.asset-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 6px;
-}
-
-.asset-list::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 6px;
-}
-
-.asset-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.asset-list::-webkit-scrollbar-corner {
-  background: #f1f1f1;
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
