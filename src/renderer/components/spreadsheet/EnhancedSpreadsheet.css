@@ -4,6 +4,11 @@
   max-height: 100%;
   overflow: auto;
   background-color: white;
+  user-select: none; /* パン中のテキスト選択を防ぐ */
+}
+
+.enhanced-spreadsheet:active {
+  cursor: grab;
 }
 
 .spreadsheet-table {

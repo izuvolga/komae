@@ -15,6 +15,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
+  
+  // パン機能用のstate
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStartPos, setPanStartPos] = useState({ x: 0, y: 0 });
+  const [panStartScroll, setPanStartScroll] = useState({ x: 0, y: 0 });
+  const spreadsheetRef = React.useRef<HTMLDivElement>(null);
 
   if (!project) return null;
 
@@ -51,6 +57,65 @@ export const EnhancedSpreadsheet: React.FC = () => {
       window.removeEventListener('resize', calculateMaxWidth);
     };
   }, [showAssetLibrary, showPreview, assetLibraryWidth, previewWidth]);
+
+  // パン機能のイベントハンドラー
+  useEffect(() => {
+    const container = spreadsheetRef.current;
+    if (!container) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      // 中ボタン（ホイールボタン）の場合のみパン開始
+      if (e.button === 1) {
+        e.preventDefault();
+        setIsPanning(true);
+        setPanStartPos({ x: e.clientX, y: e.clientY });
+        setPanStartScroll({ x: container.scrollLeft, y: container.scrollTop });
+        document.body.style.cursor = 'grabbing';
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPanning) return;
+      
+      e.preventDefault();
+      const deltaX = e.clientX - panStartPos.x;
+      const deltaY = e.clientY - panStartPos.y;
+      
+      // パン方向を逆にする（ドラッグ方向と逆方向にスクロール）
+      const newScrollX = panStartScroll.x - deltaX;
+      const newScrollY = panStartScroll.y - deltaY;
+      
+      container.scrollLeft = newScrollX;
+      container.scrollTop = newScrollY;
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (e.button === 1 && isPanning) {
+        e.preventDefault();
+        setIsPanning(false);
+        document.body.style.cursor = '';
+      }
+    };
+
+    // コンテキストメニューを無効化（中ボタンクリック時）
+    const handleContextMenu = (e: MouseEvent) => {
+      if (isPanning) {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('contextmenu', handleContextMenu);
+    
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [isPanning, panStartPos, panStartScroll]);
 
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
@@ -95,6 +160,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     <div 
       className="enhanced-spreadsheet"
       style={{ maxWidth }}
+      ref={spreadsheetRef}
     >
       <div 
         className="spreadsheet-table"
