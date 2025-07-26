@@ -109,3 +109,6 @@ assets/
 *.rar
 *.tar
 *.zip
+
+# Images
+*.png

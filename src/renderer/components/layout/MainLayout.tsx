@@ -107,82 +107,103 @@ export const MainLayout: React.FC = () => {
   };
 
   const handleCreateSampleProject = () => {
+    // アセットを20個生成
+    const assets: any = {};
+    const imageTypes = ['キャラクター', '背景', 'アイテム', 'エフェクト'];
+    const textTypes = ['セリフ', 'ナレーション', 'モノローグ', 'タイトル'];
+    
+    for (let i = 1; i <= 20; i++) {
+      if (i <= 10) {
+        // 画像アセット10個
+        const imageType = imageTypes[(i - 1) % imageTypes.length];
+        assets[`sample-img-${i}`] = {
+          id: `sample-img-${i}`,
+          type: 'ImageAsset' as const,
+          name: `${imageType}${Math.ceil(i / imageTypes.length)}`,
+          original_file_path: `/sample/${imageType.toLowerCase()}${i}.png`,
+          original_width: 300 + (i * 20),
+          original_height: 400 + (i * 30),
+          default_pos_x: 50 + (i * 30),
+          default_pos_y: 50 + (i * 20),
+          default_opacity: 1.0,
+          default_mask: [0, 0, 300 + (i * 20), 400 + (i * 30)] as [number, number, number, number],
+        };
+      } else {
+        // テキストアセット10個
+        const textIndex = i - 10;
+        const textType = textTypes[(textIndex - 1) % textTypes.length];
+        const sampleTexts = ['こんにちは！', 'いい天気ですね', 'ありがとう', 'さようなら', 'おはよう', 'こんばんは', 'お疲れ様', 'がんばって', 'いらっしゃいませ', 'また明日'];
+        
+        assets[`sample-text-${textIndex}`] = {
+          id: `sample-text-${textIndex}`,
+          type: 'TextAsset' as const,
+          name: `${textType}${textIndex}`,
+          default_text: sampleTexts[(textIndex - 1) % sampleTexts.length],
+          font: 'system-ui',
+          stroke_width: 2.0,
+          font_size: 20 + textIndex * 2,
+          color_ex: '#000000',
+          color_in: textIndex % 2 === 0 ? '#FFFFFF' : '#FFE4E1',
+          default_pos_x: 400 + (textIndex * 25),
+          default_pos_y: 80 + (textIndex * 15),
+          vertical: textIndex % 3 === 0,
+        };
+      }
+    }
+
+    // ページを20個生成
+    const pages: any = {};
+    for (let i = 1; i <= 20; i++) {
+      const asset_instances: any = {};
+      
+      // 各ページに2-4個のランダムなアセットインスタンスを配置
+      const instanceCount = 2 + (i % 3); // 2-4個
+      const usedAssets = new Set<string>();
+      
+      for (let j = 0; j < instanceCount; j++) {
+        let assetKey: string;
+        do {
+          const assetIndex = Math.floor(Math.random() * 20) + 1;
+          assetKey = assetIndex <= 10 ? `sample-img-${assetIndex}` : `sample-text-${assetIndex - 10}`;
+        } while (usedAssets.has(assetKey));
+        
+        usedAssets.add(assetKey);
+        
+        asset_instances[`instance-${i}-${j}`] = {
+          id: `instance-${i}-${j}`,
+          asset_id: assetKey,
+          z_index: j,
+          transform: { 
+            scale_x: 0.8 + (Math.random() * 0.4), // 0.8-1.2
+            scale_y: 0.8 + (Math.random() * 0.4), // 0.8-1.2
+            rotation: (Math.random() - 0.5) * 10  // -5度から5度
+          },
+          opacity: 0.7 + (Math.random() * 0.3), // 0.7-1.0
+        };
+      }
+      
+      pages[`sample-page-${i}`] = {
+        id: `sample-page-${i}`,
+        title: `ページ${i}`,
+        asset_instances,
+      };
+    }
+
     // サンプルプロジェクトデータ
     const sampleProject = {
       metadata: {
         komae_version: '1.0',
         project_version: '1.0',
-        title: 'サンプルプロジェクト',
-        description: 'Komaeの機能を試すためのサンプルプロジェクト',
+        title: '大規模サンプルプロジェクト',
+        description: 'アセット20個・ページ20個の大規模サンプルプロジェクト',
       },
       canvas: { width: 800, height: 600 },
       asset_attrs: {
         position_attrs: {},
         size_attrs: {},
       },
-      assets: {
-        'sample-img-1': {
-          id: 'sample-img-1',
-          type: 'ImageAsset' as const,
-          name: 'キャラクター1',
-          original_file_path: '/sample/character1.png',
-          original_width: 400,
-          original_height: 600,
-          default_pos_x: 100,
-          default_pos_y: 50,
-          default_opacity: 1.0,
-          default_mask: [0, 0, 400, 600] as [number, number, number, number],
-        },
-        'sample-text-1': {
-          id: 'sample-text-1',
-          type: 'TextAsset' as const,
-          name: 'セリフ1',
-          default_text: 'こんにちは！',
-          font: 'system-ui',
-          stroke_width: 2.0,
-          font_size: 24,
-          color_ex: '#000000',
-          color_in: '#FFFFFF',
-          default_pos_x: 500,
-          default_pos_y: 100,
-          vertical: false,
-        },
-      },
-      pages: {
-        'sample-page-1': {
-          id: 'sample-page-1',
-          title: 'ページ1',
-          asset_instances: {
-            'instance-1': {
-              id: 'instance-1',
-              asset_id: 'sample-img-1',
-              z_index: 0,
-              transform: { scale_x: 1.0, scale_y: 1.0, rotation: 0 },
-              opacity: 1.0,
-            },
-            'instance-2': {
-              id: 'instance-2',
-              asset_id: 'sample-text-1',
-              z_index: 1,
-              transform: { scale_x: 1.0, scale_y: 1.0, rotation: 0 },
-              opacity: 1.0,
-            },
-          },
-        },
-        'sample-page-2': {
-          id: 'sample-page-2',
-          title: 'ページ2',
-          asset_instances: {
-            'instance-3': {
-              id: 'instance-3',
-              asset_id: 'sample-img-1',
-              z_index: 0,
-              transform: { scale_x: 1.2, scale_y: 1.2, rotation: 5 },
-              opacity: 0.8,
-            },
-          },
-        },
-      },
+      assets,
+      pages,
     };
 
     setProject(sampleProject);
