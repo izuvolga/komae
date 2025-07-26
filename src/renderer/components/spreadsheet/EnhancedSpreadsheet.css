@@ -12,10 +12,11 @@
 }
 
 .spreadsheet-table {
-  width: 100%;
   min-height: min-content;
   display: flex;
   flex-direction: column;
+  width: fit-content;
+  min-width: 100%;
 }
 
 /* ヘッダー */

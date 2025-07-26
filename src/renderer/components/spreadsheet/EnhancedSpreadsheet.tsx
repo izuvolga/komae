@@ -48,13 +48,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
       setMaxWidth(finalWidth);
     };
 
+    // 初期計算
     calculateMaxWidth();
     
     // ウィンドウリサイズ監視
     window.addEventListener('resize', calculateMaxWidth);
     
+    // レンダリング後の再計算（タイミング問題対応）
+    const timeoutId = setTimeout(calculateMaxWidth, 0);
+    
     return () => {
       window.removeEventListener('resize', calculateMaxWidth);
+      clearTimeout(timeoutId);
     };
   }, [showAssetLibrary, showPreview, assetLibraryWidth, previewWidth]);
 
@@ -159,12 +164,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
   return (
     <div 
       className="enhanced-spreadsheet"
-      style={{ maxWidth }}
+      style={{ 
+        maxWidth,
+        width: maxWidth ? `${maxWidth}px` : 'auto'
+      }}
       ref={spreadsheetRef}
     >
       <div 
         className="spreadsheet-table"
-        style={{ maxWidth }}
       >
         {/* ヘッダー行 */}
         <div className="spreadsheet-header">
