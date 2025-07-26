@@ -54,7 +54,9 @@ npm run dev  # Start development server + Electron app
 
 **Development Workflow:**
 - User will run `npm run dev` command for testing
-- Commit changes only after user confirms functionality works correctly
+- **IMPORTANT**: Never commit changes without explicit user permission
+- Always stop and wait for user instructions before committing
+- Commit changes only after user confirms functionality works correctly and explicitly asks for commit
 
 **Architecture:**
 - Main Process: Electron main (Node.js environment)

@@ -152,7 +152,7 @@ export const MainLayout: React.FC = () => {
     }
 
     // ページを20個生成
-    const pages: any = {};
+    const pages: any[] = [];
     for (let i = 1; i <= 20; i++) {
       const asset_instances: any = {};
       
@@ -182,11 +182,11 @@ export const MainLayout: React.FC = () => {
         };
       }
       
-      pages[`sample-page-${i}`] = {
+      pages.push({
         id: `sample-page-${i}`,
         title: `ページ${i}`,
         asset_instances,
-      };
+      });
     }
 
     // サンプルプロジェクトデータ
