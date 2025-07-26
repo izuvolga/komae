@@ -1,14 +1,12 @@
 import React, { useRef, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
-import { PanelCollapseRightIcon } from '../icons/PanelIcons';
+import { PanelCollapseRightIcon, FitToViewIcon } from '../icons/PanelIcons';
 import './PreviewArea.css';
 
 export const PreviewArea: React.FC = () => {
   const project = useProjectStore((state) => state.project);
   const currentPage = useProjectStore((state) => state.ui.currentPage);
-  const previewMode = useProjectStore((state) => state.ui.previewMode);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
-  const setPreviewMode = useProjectStore((state) => state.setPreviewMode);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
   const togglePreview = useProjectStore((state) => state.togglePreview);
 
@@ -136,8 +134,38 @@ export const PreviewArea: React.FC = () => {
     setZoomLevel(parseFloat(e.target.value));
   };
 
-  const handleModeChange = (mode: typeof previewMode) => {
-    setPreviewMode(mode);
+  const handleFitToView = () => {
+    const container = previewContentRef.current;
+    if (!container) return;
+
+    // コンテナのサイズを取得
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+
+    // キャンバスサイズに対してコンテナに収まるズームレベルを計算
+    const widthRatio = containerWidth / canvasWidth;
+    const heightRatio = containerHeight / canvasHeight;
+    
+    // 両方向に収まる最小の倍率を選択（マージンを考慮して0.9倍）
+    const fitZoomLevel = Math.min(widthRatio, heightRatio) * 0.9;
+    const clampedZoomLevel = Math.min(3.0, Math.max(0.1, fitZoomLevel));
+    
+    setZoomLevel(clampedZoomLevel);
+    
+    // ズーム変更後、キャンバスを中央に配置
+    setTimeout(() => {
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const wrapperWidth = Math.max(canvasWidth * clampedZoomLevel + 400, containerRect.width * 2);
+      const wrapperHeight = Math.max(canvasHeight * clampedZoomLevel + 400, containerRect.height * 2);
+      
+      const centerScrollLeft = (wrapperWidth - containerRect.width) / 2;
+      const centerScrollTop = (wrapperHeight - containerRect.height) / 2;
+      
+      container.scrollLeft = centerScrollLeft;
+      container.scrollTop = centerScrollTop;
+    }, 50);
   };
 
   return (
@@ -174,18 +202,11 @@ export const PreviewArea: React.FC = () => {
             </div>
             <div className="mode-control">
               <button
-                className={`mode-btn ${previewMode === 'fit' ? 'active' : ''}`}
-                onClick={() => handleModeChange('fit')}
-                title="フィット表示"
+                className="mode-btn fit-btn"
+                onClick={handleFitToView}
+                title="キャンバスをプレビュー画面に収める"
               >
-                フィット
-              </button>
-              <button
-                className={`mode-btn ${previewMode === 'actual' ? 'active' : ''}`}
-                onClick={() => handleModeChange('actual')}
-                title="実際のサイズ"
-              >
-                実寸
+                <FitToViewIcon size={14} />
               </button>
             </div>
           </div>
