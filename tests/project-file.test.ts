@@ -1,19 +1,35 @@
 // YAML プロジェクトファイル（project.komae）の保存・読み込み機能のテスト
 
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
 import { ProjectData } from '../src/types/entities';
 import { mockProject } from './fixtures/sampleProject';
 
-// テスト対象の関数（まだ実装されていない）
+// テスト対象の関数
 import { saveProjectFile, loadProjectFile, ProjectFileError } from '../src/utils/projectFile';
 
 describe('YAML プロジェクトファイルの保存・読み込み', () => {
+  let tempDir: string;
+  
+  beforeAll(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'komae-test-'));
+  });
+
+  afterAll(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
   
   describe('saveProjectFile', () => {
     test('プロジェクトデータをYAML形式で保存できる', async () => {
-      const filePath = '/test/project.komae';
+      const filePath = path.join(tempDir, 'project.komae');
       const projectData = mockProject;
 
       await expect(saveProjectFile(filePath, projectData)).resolves.toBeUndefined();
+      
+      // ファイルが作成されたことを確認
+      const stats = await fs.stat(filePath);
+      expect(stats.isFile()).toBe(true);
     });
 
     test('無効なファイルパスでエラーが発生する', async () => {
@@ -33,7 +49,10 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
 
   describe('loadProjectFile', () => {
     test('YAMLファイルからプロジェクトデータを読み込める', async () => {
-      const filePath = '/test/project.komae';
+      const filePath = path.join(tempDir, 'load-test.komae');
+      
+      // 先にファイルを保存
+      await saveProjectFile(filePath, mockProject);
 
       const result = await loadProjectFile(filePath);
 
@@ -48,19 +67,25 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
     });
 
     test('存在しないファイルでエラーが発生する', async () => {
-      const nonExistentPath = '/test/nonexistent.komae';
+      const nonExistentPath = path.join(tempDir, 'nonexistent.komae');
 
       await expect(loadProjectFile(nonExistentPath)).rejects.toThrow(ProjectFileError);
     });
 
     test('不正なYAMLファイルでエラーが発生する', async () => {
-      const invalidYamlPath = '/test/invalid.komae';
+      const invalidYamlPath = path.join(tempDir, 'invalid.komae');
+      
+      // 不正なYAMLファイルを作成
+      await fs.writeFile(invalidYamlPath, 'invalid: yaml: content: [', 'utf8');
 
       await expect(loadProjectFile(invalidYamlPath)).rejects.toThrow(ProjectFileError);
     });
 
     test('不正なプロジェクト構造でエラーが発生する', async () => {
-      const invalidStructurePath = '/test/invalid-structure.komae';
+      const invalidStructurePath = path.join(tempDir, 'invalid-structure.komae');
+      
+      // 不正な構造のYAMLファイルを作成
+      await fs.writeFile(invalidStructurePath, 'invalid_structure: true', 'utf8');
 
       await expect(loadProjectFile(invalidStructurePath)).rejects.toThrow(ProjectFileError);
     });
@@ -68,7 +93,7 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
 
   describe('YAML形式の確認', () => {
     test('配列形式のページ定義が正しく保存・読み込みされる', async () => {
-      const filePath = '/test/array-pages.komae';
+      const filePath = path.join(tempDir, 'array-pages.komae');
       const projectWithArrayPages: ProjectData = {
         ...mockProject,
         pages: [
@@ -97,7 +122,7 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
     });
 
     test('相対パスのアセットファイル参照が保持される', async () => {
-      const filePath = '/test/relative-paths.komae';
+      const filePath = path.join(tempDir, 'relative-paths.komae');
       
       await saveProjectFile(filePath, mockProject);
       const result = await loadProjectFile(filePath);
