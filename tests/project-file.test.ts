@@ -139,4 +139,63 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
       }
     });
   });
+
+  describe('Zodバリデーション統合', () => {
+    test('バリデーションエラーのあるプロジェクトファイルでエラーが発生する', async () => {
+      const invalidProjectPath = path.join(tempDir, 'invalid-validation.komae');
+      
+      // バリデーションに引っかかるデータを作成（負のcanvas幅）
+      const invalidProjectData = {
+        metadata: {
+          komae_version: '1.0',
+          project_version: '1.0',
+          title: 'Invalid Project'
+        },
+        canvas: {
+          width: -100, // 負の値は無効
+          height: 600
+        },
+        asset_attrs: {
+          position_attrs: {},
+          size_attrs: {}
+        },
+        assets: {},
+        pages: []
+      };
+
+      // 直接YAMLファイルを作成（Zodバリデーションを回避するため）
+      const yamlContent = `
+metadata:
+  komae_version: "1.0"
+  project_version: "1.0"
+  title: "Invalid Project"
+canvas:
+  width: -100
+  height: 600
+asset_attrs:
+  position_attrs: {}
+  size_attrs: {}
+assets: {}
+pages: []
+`;
+      await fs.writeFile(invalidProjectPath, yamlContent, 'utf8');
+
+      await expect(loadProjectFile(invalidProjectPath)).rejects.toThrow(ProjectFileError);
+    });
+
+    test('有効なプロジェクトデータは正常にバリデーションを通過する', async () => {
+      const validProjectPath = path.join(tempDir, 'valid-validation.komae');
+      
+      // 有効なプロジェクトデータで保存
+      await saveProjectFile(validProjectPath, mockProject);
+      
+      // 読み込みでもバリデーションが通過することを確認
+      const result = await loadProjectFile(validProjectPath);
+      
+      expect(result).toBeDefined();
+      expect(result.metadata.title).toBe(mockProject.metadata.title);
+      expect(result.canvas.width).toBe(mockProject.canvas.width);
+      expect(Array.isArray(result.pages)).toBe(true);
+    });
+  });
 });

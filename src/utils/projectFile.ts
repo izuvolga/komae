@@ -3,6 +3,7 @@
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
 import { ProjectData } from '../types/entities';
+import { validateProjectData } from './validation';
 
 /**
  * プロジェクトファイル操作に関するエラー
@@ -96,7 +97,15 @@ export async function loadProjectFile(filePath: string): Promise<ProjectData> {
       throw new ProjectFileError('Invalid project structure: pages must be an array', 'INVALID_STRUCTURE');
     }
 
-    return parsedData as ProjectData;
+    // Zodスキーマによる詳細なバリデーション
+    try {
+      return validateProjectData(parsedData);
+    } catch (validationError: any) {
+      throw new ProjectFileError(
+        `Project validation failed: ${validationError.message}`,
+        'VALIDATION_FAILED'
+      );
+    }
   } catch (error) {
     if (error instanceof ProjectFileError) {
       throw error;
