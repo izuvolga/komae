@@ -244,7 +244,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     <input
                       type="checkbox"
                       checked={isAssetUsedInPage(page.id, asset.id)}
-                      onChange={() => handleCellClick(page.id, asset.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleCellClick(page.id, asset.id);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                       className="asset-checkbox"
                     />
                   </div>

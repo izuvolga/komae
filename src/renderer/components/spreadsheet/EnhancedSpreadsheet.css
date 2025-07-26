@@ -243,6 +243,15 @@
   width: 16px;
   height: 16px;
   cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+  margin: 2px;
+}
+
+.asset-checkbox:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
 }
 
 /* 新規ページ追加行 */
