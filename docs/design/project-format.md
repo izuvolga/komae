@@ -1,11 +1,23 @@
-# Project format with YAML
+# Project Format Specification
 
-作成したプロジェクトは以下の形式で保存される。
-これらのファイルを zip 圧縮したものがプロジェクトファイルとなる。
+Komaeプロジェクトはディレクトリベースで管理され、メインプロジェクトファイル（project.komae）にはYAML形式でプロジェクト情報を保存します。
 
-- YAML 形式
-- 画像は相対パスで参照
-- 画像は PNG あるいは WEBP 形式
+## ディレクトリ構造
+
+```
+my_story.komae/                    # プロジェクトディレクトリ
+├── project.komae                  # メインプロジェクトファイル（YAML形式）
+├── assets/                        # アセットファイル
+│   ├── images/                    # 画像ファイル（PNG, WEBP形式）
+│   └── fonts/                     # フォントファイル（TTF, OTF形式）
+└── .komae/                        # 内部設定（隠しディレクトリ）
+```
+
+## project.komae の仕様
+
+- **フォーマット**: YAML形式
+- **相対パス参照**: アセットファイルは `assets/` からの相対パス
+- **文字エンコーディング**: UTF-8
 
 ```yaml
 # プロジェクト基本情報
@@ -51,7 +63,7 @@ assets:
   img-character-a:
     type: "ImageAsset"
     name: "キャラクターA"
-    original_file_path: "assets/character_a.png"
+    original_file_path: "assets/images/character_a.png"
     original_width: 320
     original_height: 440
     default_pos_x: 200
@@ -62,7 +74,7 @@ assets:
   img-background:
     type: "ImageAsset"
     name: "背景"
-    original_file_path: "assets/background.png"
+    original_file_path: "assets/images/background.png"
     original_width: 768
     original_height: 1024
     default_pos_x: 0
@@ -73,7 +85,7 @@ assets:
   img-effect:
     type: "ImageAsset"
     name: "エフェクト"
-    original_file_path: "assets/effect.png"
+    original_file_path: "assets/images/effect.png"
     original_width: 400
     original_height: 300
     default_pos_x: 100
