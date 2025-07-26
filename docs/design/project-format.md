@@ -120,9 +120,9 @@ assets:
     default_pos_y: 100
     vertical: false                  # 横書き
 
-# ページ定義
+# ページ定義（配列形式 - 順序重要）
 pages:
-  page-001:
+  - id: "page-1753563500000-35vhjp7gy"
     title: "ページ1"
     asset_instances:
       # 背景（最背面）
@@ -164,7 +164,7 @@ pages:
           size: 20
           color_in: "#FFFF00"
   
-  page-002:
+  - id: "page-1753563500001-abvhjp7gy"
     title: "ページ2"
     asset_instances:
       # 背景（同じAssetを再利用）
@@ -206,7 +206,7 @@ pages:
           size: 18
           color_ex: "#0000FF"
   
-  page-003:
+  - id: "page-1753563500002-cdvhjp7gy"
     title: "ページ3"
     asset_instances:
       # エフェクト背景
@@ -244,6 +244,12 @@ pages:
 
 ## データ構造の特徴
 
+### ページ順序の明確な管理
+
+- **配列形式**: ページ順序が配列インデックスで明確に管理される
+- **順序操作**: 挿入、移動、削除が直感的
+- **UI連携**: SpreadSheetの行順序と配列順序が一致
+
 ### Asset/AssetInstance/AssetAttrの完全分離
 
 - **Assets**: テンプレート定義（default値を持つ）
@@ -271,9 +277,33 @@ pages:
 - **フォント設定**: `font`, `font_size`, `color_ex/in`, `stroke_width`
 - **個別オーバーライド**: `override_text`, `font_override`
 
+### ID管理とページ操作
+
+```typescript
+// ページ順序変更
+const movePageUp = (index: number) => {
+  if (index > 0) {
+    [pages[index], pages[index-1]] = [pages[index-1], pages[index]];
+  }
+};
+
+// 新ページ挿入
+const insertPageAt = (index: number, newPage: Page) => {
+  pages.splice(index, 0, newPage);
+};
+
+// 自動ID生成
+const createNewPage = (title: string): Page => ({
+  id: `page-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  title,
+  asset_instances: {}
+});
+```
+
 ### 実用的な例
 
 3ページの完整な例で以下を実証：
+- 配列形式でのページ順序管理
 - 同じAssetの異なる設定での再利用
 - AssetAttrによる位置の共有
 - 個別オーバーライドによる細かな調整
