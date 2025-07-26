@@ -14,14 +14,13 @@
 
 /* ヘッダー */
 .spreadsheet-header {
-  display: grid;
+  display: flex;
   position: sticky;
   top: 0;
   background-color: #f8f9fa;
   border-bottom: 2px solid #dee2e6;
   z-index: 10;
-  grid-template-columns: 40px 60px 120px repeat(auto-fit, 100px);
-  min-width: min-content;
+  flex-shrink: 0;
 }
 
 .header-cell {
@@ -38,18 +37,26 @@
 
 .page-number-header {
   background-color: #e9ecef;
+  width: 40px;
+  min-width: 40px;
 }
 
 .delete-header {
   background-color: #e9ecef;
+  width: 60px;
+  min-width: 60px;
 }
 
 .preview-header {
   background-color: #e9ecef;
+  width: 120px;
+  min-width: 120px;
 }
 
 .asset-header {
   background-color: #f8f9fa;
+  width: 100px;
+  min-width: 100px;
 }
 
 .asset-header-content {
@@ -82,9 +89,8 @@
 }
 
 .spreadsheet-row {
-  display: grid;
-  grid-template-columns: 40px 60px 120px repeat(auto-fit, 100px);
-  min-width: min-content;
+  display: flex;
+  flex-shrink: 0;
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -109,11 +115,15 @@
   background-color: #f8f9fa;
   font-weight: 600;
   color: #666;
+  width: 40px;
+  min-width: 40px;
 }
 
 /* 削除ボタンセル */
 .delete-cell {
   background-color: #f8f9fa;
+  width: 60px;
+  min-width: 60px;
 }
 
 .delete-page-btn {
@@ -147,6 +157,8 @@
   background-color: #f8f9fa;
   cursor: pointer;
   padding: 4px;
+  width: 120px;
+  min-width: 120px;
 }
 
 .preview-cell:hover {
@@ -196,6 +208,8 @@
 .asset-cell {
   cursor: pointer;
   transition: all 0.2s;
+  width: 100px;
+  min-width: 100px;
 }
 
 .asset-cell:hover {
@@ -257,20 +271,24 @@
 
 /* スクロールバーの調整 */
 .enhanced-spreadsheet::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
 }
 
 .enhanced-spreadsheet::-webkit-scrollbar-track {
   background: #f1f1f1;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .enhanced-spreadsheet::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #888;
+  border-radius: 6px;
 }
 
 .enhanced-spreadsheet::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #555;
+}
+
+.enhanced-spreadsheet::-webkit-scrollbar-corner {
+  background: #f1f1f1;
 }

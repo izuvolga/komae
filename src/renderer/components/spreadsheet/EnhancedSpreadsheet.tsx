@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import './EnhancedSpreadsheet.css';
 
@@ -8,13 +8,52 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const deletePage = useProjectStore((state) => state.deletePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
+  const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
+  const showPreview = useProjectStore((state) => state.ui.showPreview);
+  const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
+  const previewWidth = useProjectStore((state) => state.ui.previewWidth);
   
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
+  const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
 
   if (!project) return null;
 
   const pages = Object.values(project.pages);
   const assets = Object.values(project.assets);
+
+  // 中央パネルの最大幅を計算
+  useEffect(() => {
+    const calculateMaxWidth = () => {
+      const windowWidth = window.innerWidth;
+      let availableWidth = windowWidth;
+      
+      // アセットライブラリが表示されている場合はその幅を引く
+      if (showAssetLibrary) {
+        availableWidth -= assetLibraryWidth;
+      }
+      
+      // プレビューが表示されている場合はその幅を引く
+      if (showPreview) {
+        availableWidth -= previewWidth;
+      }
+      
+      // 余白やボーダーを考慮
+      availableWidth -= 20;
+      
+      // 最小幅を保証
+      const finalWidth = Math.max(availableWidth, 300);
+      setMaxWidth(finalWidth);
+    };
+
+    calculateMaxWidth();
+    
+    // ウィンドウリサイズ監視
+    window.addEventListener('resize', calculateMaxWidth);
+    
+    return () => {
+      window.removeEventListener('resize', calculateMaxWidth);
+    };
+  }, [showAssetLibrary, showPreview, assetLibraryWidth, previewWidth]);
 
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
@@ -56,8 +95,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
   };
 
   return (
-    <div className="enhanced-spreadsheet">
-      <div className="spreadsheet-table">
+    <div 
+      className="enhanced-spreadsheet"
+      style={{ maxWidth }}
+    >
+      <div 
+        className="spreadsheet-table"
+        style={{ maxWidth }}
+      >
         {/* ヘッダー行 */}
         <div className="spreadsheet-header">
           <div className="cell header-cell page-number-header">#</div>
