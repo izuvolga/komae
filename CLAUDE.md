@@ -52,6 +52,10 @@ npm install
 npm run dev  # Start development server + Electron app
 ```
 
+**Development Workflow:**
+- User will run `npm run dev` command for testing
+- Commit changes only after user confirms functionality works correctly
+
 **Architecture:**
 - Main Process: Electron main (Node.js environment)
 - Preload Script: API bridge using contextBridge
