@@ -37,9 +37,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
         availableWidth -= previewWidth;
       }
       
-      // 余白やボーダーを考慮
-      availableWidth -= 20;
-      
       // 最小幅を保証
       const finalWidth = Math.max(availableWidth, 300);
       setMaxWidth(finalWidth);
