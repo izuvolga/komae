@@ -2,8 +2,10 @@
 .asset-library {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
   background-color: white;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .asset-library-header {
@@ -13,6 +15,8 @@
   padding: 12px 16px;
   border-bottom: 1px solid #e0e0e0;
   background-color: #f8f9fa;
+  flex-shrink: 0;
+  min-height: 60px;
 }
 
 .header-left {
@@ -63,9 +67,35 @@
   flex: 1;
   padding: 8px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-height: 0;
+  max-height: calc(100vh - 80px);
+}
+
+/* スクロールバーのスタイル */
+.asset-list::-webkit-scrollbar {
+  width: 12px;
+}
+
+.asset-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.asset-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+.asset-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.asset-list::-webkit-scrollbar-corner {
+  background: #f1f1f1;
 }
 
 .empty-state {
