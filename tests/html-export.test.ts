@@ -208,14 +208,24 @@ describe('HTML Export - 単一ファイル出力', () => {
       const exporter = new HtmlExporter();
       const script = exporter.generateNavigationScript(mockProject);
       
-      // page[0]の内容でz_indexの小さい方（background-1）が先に来る
-      const page0Content = script.match(/pages\[0\]\s*=\s*"([^"]+)"/)?.[1];
+      // pages配列の最初の要素を確認（エスケープされた文字列を含む全体を抽出）
+      const pagesArrayMatch = script.match(/const pages = \[\s*"((?:[^"\\]|\\.)*)"/);
+      expect(pagesArrayMatch).toBeTruthy();
+      
+      const page0Content = pagesArrayMatch?.[1];
       expect(page0Content).toBeTruthy();
       
-      // backgroundがcharacterより前に定義されている
-      const bgIndex = page0Content?.indexOf('background-1');
-      const charIndex = page0Content?.indexOf('character-1');
-      expect(bgIndex).toBeLessThan(charIndex || Infinity);
+      // エスケープされた文字列を元に戻す
+      const unescapedContent = page0Content?.replace(/\\"/g, '"');
+      
+      // backgroundがcharacterより前に定義されている（z_index順）
+      const bgIndex = unescapedContent?.indexOf('background-1');
+      const charIndex = unescapedContent?.indexOf('character-1');
+      
+      // 両方のアセットが存在することを確認
+      expect(bgIndex).toBeGreaterThan(-1);
+      expect(charIndex).toBeGreaterThan(-1);
+      expect(bgIndex).toBeLessThan(charIndex);
     });
   });
 
