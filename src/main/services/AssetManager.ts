@@ -3,7 +3,15 @@ import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
-import type { Asset, ImageAsset, TextAsset } from '../../types/entities';
+import { 
+  detectDuplicateAssetName, 
+  generateUniqueAssetName, 
+  resolveDuplicateAssetConflict,
+  DuplicateResolutionStrategy 
+} from '../../utils/duplicateAssetHandler';
+import type { Asset, ImageAsset, TextAsset, ProjectData } from '../../types/entities';
+
+export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
 export class AssetManager {
   private fileSystemService: FileSystemService;
@@ -21,7 +29,11 @@ export class AssetManager {
     this.currentProjectPath = projectPath;
   }
 
-  async importAsset(filePath: string): Promise<Asset> {
+  async importAsset(
+    filePath: string, 
+    project?: ProjectData, 
+    duplicateStrategy: DuplicateResolutionStrategy = DuplicateResolutionStrategy.AUTO_RENAME
+  ): Promise<Asset> {
     const tracker = new PerformanceTracker('asset_import');
     
     try {
@@ -35,11 +47,11 @@ export class AssetManager {
       }
 
       const extension = path.extname(filePath);
-      const fileName = path.basename(filePath, extension);
+      const originalFileName = path.basename(filePath, extension);
       
       await this.logger.logDevelopment('asset_import_start', 'Asset import process started', {
         filePath,
-        fileName,
+        fileName: originalFileName,
         extension,
         projectPath: this.currentProjectPath,
       });
@@ -48,9 +60,59 @@ export class AssetManager {
       const assetType = getAssetTypeFromExtension(extension);
       await validateAssetFile(filePath, assetType);
 
+      // 重複アセット名のハンドリング
+      let finalAssetName = originalFileName;
+      let shouldReplaceExisting = false;
+      
+      if (project) {
+        const duplicateResult = detectDuplicateAssetName(originalFileName, project);
+        
+        if (duplicateResult.isDuplicate) {
+          await this.logger.logDevelopment('duplicate_asset_detected', 'Duplicate asset name detected', {
+            originalName: originalFileName,
+            existingAsset: duplicateResult.existingAsset?.id,
+            strategy: duplicateStrategy,
+          });
+
+          const conflictResolution = await resolveDuplicateAssetConflict(
+            {
+              name: originalFileName,
+              filePath,
+              type: assetType,
+            },
+            project,
+            duplicateStrategy
+          );
+
+          finalAssetName = conflictResolution.resolvedName;
+          shouldReplaceExisting = conflictResolution.shouldReplaceExisting || false;
+
+          if (conflictResolution.shouldCancel) {
+            const cancelError = new Error('Asset import was cancelled due to duplicate name conflict');
+            await this.logger.logAssetOperation('import', {
+              name: originalFileName,
+              filePath,
+              type: assetType,
+            }, {
+              projectPath: this.currentProjectPath,
+              resolution: 'cancelled',
+            }, false);
+            throw cancelError;
+          }
+
+          await this.logger.logDevelopment('duplicate_asset_resolved', 'Duplicate asset conflict resolved', {
+            originalName: originalFileName,
+            resolvedName: finalAssetName,
+            strategy: duplicateStrategy,
+            wasAutoRenamed: conflictResolution.wasAutoRenamed,
+            shouldReplace: shouldReplaceExisting,
+          });
+        }
+      }
+
       let asset: Asset;
       if (assetType === 'image') {
-        asset = await this.importImageAsset(filePath, fileName, extension);
+        asset = await this.importImageAsset(filePath, finalAssetName, extension);
       } else {
         throw new Error(`Unsupported file type: ${extension}`);
       }
@@ -62,6 +124,10 @@ export class AssetManager {
         type: assetType,
       }, {
         projectPath: this.currentProjectPath,
+        originalFileName: originalFileName,
+        finalAssetName: finalAssetName,
+        wasRenamed: originalFileName !== finalAssetName,
+        shouldReplaceExisting,
       }, true);
 
       await tracker.end({ success: true, assetId: asset.id });
