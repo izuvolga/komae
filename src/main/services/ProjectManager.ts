@@ -11,9 +11,11 @@ import type {
 } from '../../types/entities';
 import { saveProjectFile, loadProjectFile } from '../../utils/projectFile';
 import { createProjectDirectory, validateProjectDirectory } from '../../utils/projectDirectory';
+import { getLogger, PerformanceTracker } from '../../utils/logger';
 
 export class ProjectManager {
   private currentProjectPath: string | null = null;
+  private logger = getLogger();
 
   /**
    * プラットフォームを検出する
@@ -124,14 +126,22 @@ export class ProjectManager {
   }
 
   async saveProject(projectData: ProjectData, filePath?: string): Promise<string> {
+    const tracker = new PerformanceTracker('project_save');
     let targetPath = filePath || this.currentProjectPath;
 
     if (!targetPath) {
-      // 新規保存の場合はダイアログを表示（実際にはrendererから呼ばれる）
-      throw new Error('No file path specified for new project');
+      const error = new Error('No file path specified for new project');
+      await this.logger.logError('project_save', error);
+      throw error;
     }
 
     try {
+      await this.logger.logDevelopment('project_save_start', 'Project save process started', {
+        targetPath,
+        hasAssets: Object.keys(projectData.assets).length,
+        pageCount: projectData.pages.length,
+      });
+
       let stats: any = null;
       try {
         stats = await fs.stat(targetPath);
@@ -139,20 +149,21 @@ export class ProjectManager {
         // ファイルが存在しない場合は null のまま
       }
       
+      let actualFilePath: string;
       if (stats && stats.isDirectory() && targetPath.endsWith('.komae')) {
         // プロジェクトディレクトリの場合
         const dirName = path.basename(targetPath);
         const projectFilePath = path.join(targetPath, dirName);
         await saveProjectFile(projectFilePath, projectData);
         this.currentProjectPath = targetPath;
-        return projectFilePath;
+        actualFilePath = projectFilePath;
       } else {
         // ファイルが指定された場合、または存在しないパスの場合
         if (targetPath.endsWith('.komae')) {
           // .komaeファイルの場合は直接保存
           await saveProjectFile(targetPath, projectData);
           this.currentProjectPath = path.dirname(targetPath);
-          return targetPath;
+          actualFilePath = targetPath;
         } else {
           // 従来通りのYAMLファイル保存
           const yamlContent = yaml.dump(projectData, {
@@ -163,10 +174,31 @@ export class ProjectManager {
 
           await fs.writeFile(targetPath, yamlContent, 'utf8');
           this.currentProjectPath = path.dirname(targetPath);
-          return targetPath;
+          actualFilePath = targetPath;
         }
       }
+
+      await this.logger.logProjectOperation('save', {
+        path: actualFilePath,
+        name: projectData.metadata.title,
+        format: actualFilePath.endsWith('.komae') ? 'komae' : 'yaml',
+      }, {
+        assetCount: Object.keys(projectData.assets).length,
+        pageCount: projectData.pages.length,
+      }, true);
+
+      await tracker.end({ success: true, filePath: actualFilePath });
+      return actualFilePath;
+
     } catch (error) {
+      await this.logger.logProjectOperation('save', {
+        path: targetPath,
+      }, {
+        error: error instanceof Error ? error.message : String(error),
+      }, false);
+
+      await tracker.end({ success: false, error: error instanceof Error ? error.message : String(error) });
+      
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to save project: ${message}`);
     }

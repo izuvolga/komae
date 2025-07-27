@@ -2,11 +2,13 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile } from '../../utils/assetManager';
+import { getLogger, PerformanceTracker } from '../../utils/logger';
 import type { Asset, ImageAsset, TextAsset } from '../../types/entities';
 
 export class AssetManager {
   private fileSystemService: FileSystemService;
   private currentProjectPath: string | null = null;
+  private logger = getLogger();
 
   constructor() {
     this.fileSystemService = new FileSystemService();
@@ -20,21 +22,62 @@ export class AssetManager {
   }
 
   async importAsset(filePath: string): Promise<Asset> {
-    if (!this.currentProjectPath) {
-      throw new Error('No project is currently open. Please open or create a project first.');
-    }
-
-    const extension = path.extname(filePath);
-    const fileName = path.basename(filePath, extension);
+    const tracker = new PerformanceTracker('asset_import');
     
-    // ファイルタイプを検証
-    const assetType = getAssetTypeFromExtension(extension);
-    await validateAssetFile(filePath, assetType);
+    try {
+      if (!this.currentProjectPath) {
+        const error = new Error('No project is currently open. Please open or create a project first.');
+        await this.logger.logError('asset_import', error, {
+          filePath,
+          currentProjectPath: this.currentProjectPath,
+        });
+        throw error;
+      }
 
-    if (assetType === 'image') {
-      return await this.importImageAsset(filePath, fileName, extension);
-    } else {
-      throw new Error(`Unsupported file type: ${extension}`);
+      const extension = path.extname(filePath);
+      const fileName = path.basename(filePath, extension);
+      
+      await this.logger.logDevelopment('asset_import_start', 'Asset import process started', {
+        filePath,
+        fileName,
+        extension,
+        projectPath: this.currentProjectPath,
+      });
+
+      // ファイルタイプを検証
+      const assetType = getAssetTypeFromExtension(extension);
+      await validateAssetFile(filePath, assetType);
+
+      let asset: Asset;
+      if (assetType === 'image') {
+        asset = await this.importImageAsset(filePath, fileName, extension);
+      } else {
+        throw new Error(`Unsupported file type: ${extension}`);
+      }
+
+      await this.logger.logAssetOperation('import', {
+        id: asset.id,
+        name: asset.name,
+        filePath,
+        type: assetType,
+      }, {
+        projectPath: this.currentProjectPath,
+      }, true);
+
+      await tracker.end({ success: true, assetId: asset.id });
+      return asset;
+
+    } catch (error) {
+      await this.logger.logAssetOperation('import', {
+        filePath,
+        type: path.extname(filePath),
+      }, {
+        projectPath: this.currentProjectPath,
+        error: error instanceof Error ? error.message : String(error),
+      }, false);
+
+      await tracker.end({ success: false, error: error instanceof Error ? error.message : String(error) });
+      throw error;
     }
   }
 
@@ -81,9 +124,25 @@ export class AssetManager {
   }
 
   async deleteAsset(assetId: string): Promise<void> {
-    // TODO: アセットファイルの削除処理
-    // プロジェクトディレクトリ内のアセットファイルを削除
-    console.log(`Deleting asset: ${assetId}`);
+    try {
+      await this.logger.logAssetOperation('delete', {
+        id: assetId,
+      }, {
+        projectPath: this.currentProjectPath,
+      }, true);
+
+      // TODO: アセットファイルの削除処理
+      // プロジェクトディレクトリ内のアセットファイルを削除
+      console.log(`Deleting asset: ${assetId}`);
+    } catch (error) {
+      await this.logger.logAssetOperation('delete', {
+        id: assetId,
+      }, {
+        projectPath: this.currentProjectPath,
+        error: error instanceof Error ? error.message : String(error),
+      }, false);
+      throw error;
+    }
   }
 
   async optimizeAsset(assetId: string): Promise<Asset> {

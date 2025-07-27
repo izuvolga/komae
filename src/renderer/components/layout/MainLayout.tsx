@@ -4,6 +4,7 @@ import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
+import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {

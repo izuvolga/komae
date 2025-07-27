@@ -4,6 +4,7 @@ import * as os from 'os';
 import { ProjectManager } from './services/ProjectManager';
 import { FileSystemService } from './services/FileSystemService';
 import { AssetManager } from './services/AssetManager';
+import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
 
 class KomaeApp {
@@ -11,6 +12,7 @@ class KomaeApp {
   private projectManager: ProjectManager;
   private fileSystemService: FileSystemService;
   private assetManager: AssetManager;
+  private logger = getLogger();
 
   constructor() {
     this.projectManager = new ProjectManager();
@@ -340,6 +342,39 @@ class KomaeApp {
     ipcMain.handle('shell:showItemInFolder', async (event, filePath: string) => {
       const { shell } = await import('electron');
       shell.showItemInFolder(filePath);
+    });
+
+    // Logger Operations
+    ipcMain.handle('logger:userInteraction', async (event, action: string, component: string, context: any) => {
+      try {
+        await this.logger.logUserInteraction(action, component, context);
+      } catch (error) {
+        console.error('Failed to log user interaction:', error);
+      }
+    });
+
+    ipcMain.handle('logger:error', async (event, operation: string, error: Error | string, context: any) => {
+      try {
+        await this.logger.logError(operation, error, context);
+      } catch (logError) {
+        console.error('Failed to log error:', logError);
+      }
+    });
+
+    ipcMain.handle('logger:development', async (event, operation: string, description: string, context: any) => {
+      try {
+        await this.logger.logDevelopment(operation, description, context);
+      } catch (error) {
+        console.error('Failed to log development info:', error);
+      }
+    });
+
+    ipcMain.handle('logger:performance', async (event, operation: string, duration: number, context: any) => {
+      try {
+        await this.logger.logPerformance(operation, duration, context);
+      } catch (error) {
+        console.error('Failed to log performance:', error);
+      }
     });
   }
 }

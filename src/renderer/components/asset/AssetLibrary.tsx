@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import type { Asset } from '../../../types/entities';
 import './AssetLibrary.css';
@@ -12,10 +13,18 @@ export const AssetLibrary: React.FC = () => {
   const deleteAsset = useProjectStore((state) => state.deleteAsset);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
+  const logger = getRendererLogger();
 
   const assetList = Object.values(assets);
 
   const handleAssetClick = (assetId: string, ctrlKey: boolean) => {
+    logger.logUserInteraction('asset_select', 'AssetLibrary', {
+      assetId,
+      ctrlKey,
+      selectionType: ctrlKey ? 'multiple' : 'single',
+      currentSelection: selectedAssets.length,
+    });
+
     if (ctrlKey) {
       // 複数選択
       const isSelected = selectedAssets.includes(assetId);
@@ -31,8 +40,14 @@ export const AssetLibrary: React.FC = () => {
   };
 
   const handleImportClick = async () => {
+    const tracker = new UIPerformanceTracker('asset_import_dialog');
+    
     try {
-      const result = await window.electronAPI.fileSystem.showOpenDialog({
+      await logger.logUserInteraction('asset_import_dialog_open', 'AssetLibrary', {
+        currentAssetCount: assetList.length,
+      });
+
+      const result = await window.electronAPI?.fileSystem?.showOpenDialog({
         title: 'アセットをインポート',
         filters: [
           { name: '画像ファイル', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'] },
@@ -41,17 +56,43 @@ export const AssetLibrary: React.FC = () => {
         properties: ['openFile', 'multiSelections'],
       });
 
+      await tracker.end({ dialogResult: result.canceled ? 'canceled' : 'confirmed' });
+
       if (!result.canceled && result.filePaths.length > 0) {
+        await logger.logUserInteraction('asset_import_start', 'AssetLibrary', {
+          fileCount: result.filePaths.length,
+          filePaths: result.filePaths.map((p: string) => p.split('/').pop() || p), // ファイル名のみをログ
+        });
+
+        let successCount = 0;
+        let errorCount = 0;
+
         for (const filePath of result.filePaths) {
           try {
             await importAsset(filePath);
+            successCount++;
           } catch (error) {
+            errorCount++;
             const message = error instanceof Error ? error.message : String(error);
+            await logger.logError('asset_import_file', error as Error, {
+              filePath: filePath.split('/').pop() || filePath,
+              component: 'AssetLibrary',
+            });
             alert(`ファイル "${filePath}" のインポートに失敗しました:\n${message}`);
           }
         }
+
+        await logger.logUserInteraction('asset_import_complete', 'AssetLibrary', {
+          totalFiles: result.filePaths.length,
+          successCount,
+          errorCount,
+          newAssetCount: assetList.length,
+        });
       }
     } catch (error) {
+      await logger.logError('asset_import_dialog', error as Error, {
+        component: 'AssetLibrary',
+      });
       console.error('Failed to import assets:', error);
       alert('アセットのインポートに失敗しました');
     }
@@ -60,18 +101,41 @@ export const AssetLibrary: React.FC = () => {
   const handleDeleteClick = () => {
     if (selectedAssets.length === 0) return;
     
+    logger.logUserInteraction('asset_delete_confirm', 'AssetLibrary', {
+      selectedCount: selectedAssets.length,
+      selectedAssets: selectedAssets,
+    });
+
     const confirmed = confirm(`選択した${selectedAssets.length}個のアセットを削除しますか？`);
     if (confirmed) {
+      logger.logUserInteraction('asset_delete_execute', 'AssetLibrary', {
+        deletedCount: selectedAssets.length,
+        deletedAssets: selectedAssets,
+      });
+
       selectedAssets.forEach(assetId => deleteAsset(assetId));
       selectAssets([]);
+    } else {
+      logger.logUserInteraction('asset_delete_cancel', 'AssetLibrary', {
+        selectedCount: selectedAssets.length,
+      });
     }
   };
 
   const handleDragStart = (assetId: string) => {
+    logger.logUserInteraction('asset_drag_start', 'AssetLibrary', {
+      assetId,
+      assetName: assets[assetId]?.name,
+    });
     setDraggedAsset(assetId);
   };
 
   const handleDragEnd = () => {
+    if (draggedAsset) {
+      logger.logUserInteraction('asset_drag_end', 'AssetLibrary', {
+        assetId: draggedAsset,
+      });
+    }
     setDraggedAsset(null);
   };
 

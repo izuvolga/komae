@@ -64,6 +64,21 @@ const electronAPI = {
       ipcRenderer.invoke('shell:showItemInFolder', filePath),
   },
 
+  // Logger Integration
+  logger: {
+    logUserInteraction: (action: string, component: string, context: any): Promise<void> =>
+      ipcRenderer.invoke('logger:userInteraction', action, component, context),
+    
+    logError: (operation: string, error: Error | string, context: any): Promise<void> =>
+      ipcRenderer.invoke('logger:error', operation, error, context),
+    
+    logDevelopment: (operation: string, description: string, context: any): Promise<void> =>
+      ipcRenderer.invoke('logger:development', operation, description, context),
+    
+    logPerformance: (operation: string, duration: number, context: any): Promise<void> =>
+      ipcRenderer.invoke('logger:performance', operation, duration, context),
+  },
+
   // Menu Event Listeners
   menu: {
     onNewProject: (callback: () => void) => {
