@@ -25,8 +25,17 @@ export type AssetType = 'image' | 'font';
  * @returns 絶対パス
  */
 export function resolveAssetPath(projectPath: string, assetPath: string): string {
-  // TODO: 実装が必要
-  throw new Error('resolveAssetPath not implemented');
+  if (!assetPath || assetPath.trim() === '') {
+    throw new AssetManagerError('Invalid asset path provided', 'INVALID_PATH');
+  }
+  
+  // 既に絶対パスの場合はそのまま返す
+  if (path.isAbsolute(assetPath)) {
+    return assetPath;
+  }
+  
+  // 相対パスを絶対パスに変換
+  return path.join(projectPath, assetPath);
 }
 
 /**
@@ -36,8 +45,23 @@ export function resolveAssetPath(projectPath: string, assetPath: string): string
  * @returns 相対パス
  */
 export function makeAssetPathRelative(projectPath: string, absolutePath: string): string {
-  // TODO: 実装が必要
-  throw new Error('makeAssetPathRelative not implemented');
+  // 既に相対パスの場合はそのまま返す
+  if (!path.isAbsolute(absolutePath)) {
+    return absolutePath;
+  }
+  
+  // プロジェクトディレクトリ内のパスかチェック
+  const relativePath = path.relative(projectPath, absolutePath);
+  
+  // プロジェクト外のパスの場合（../ で始まる）
+  if (relativePath.startsWith('..')) {
+    throw new AssetManagerError(
+      `Path is outside project directory: ${absolutePath}`, 
+      'PATH_OUTSIDE_PROJECT'
+    );
+  }
+  
+  return relativePath;
 }
 
 /**
@@ -52,8 +76,66 @@ export async function copyAssetToProject(
   sourceFilePath: string, 
   assetType: 'images' | 'fonts'
 ): Promise<string> {
-  // TODO: 実装が必要
-  throw new Error('copyAssetToProject not implemented');
+  // パラメータ検証
+  if (!projectPath || !sourceFilePath) {
+    throw new AssetManagerError('Invalid parameters provided', 'INVALID_PARAMETERS');
+  }
+  
+  if (assetType !== 'images' && assetType !== 'fonts') {
+    throw new AssetManagerError(`Invalid asset type: ${assetType}`, 'INVALID_ASSET_TYPE');
+  }
+  
+  // ソースファイルの存在確認
+  try {
+    const sourceStats = await fs.stat(sourceFilePath);
+    if (!sourceStats.isFile()) {
+      throw new AssetManagerError(`Source is not a file: ${sourceFilePath}`, 'SOURCE_NOT_FILE');
+    }
+  } catch (error: any) {
+    if (error instanceof AssetManagerError) {
+      throw error;
+    }
+    throw new AssetManagerError(`Source file not found: ${sourceFilePath}`, 'SOURCE_NOT_FOUND');
+  }
+  
+  // ファイル名と拡張子を取得
+  const originalFileName = path.basename(sourceFilePath);
+  const extension = path.extname(originalFileName);
+  const nameWithoutExt = path.basename(originalFileName, extension);
+  
+  // 保存先ディレクトリを決定
+  const targetDir = path.join(projectPath, 'assets', assetType);
+  
+  // ファイル名の重複チェックと連番生成
+  let targetFileName = originalFileName;
+  let targetPath = path.join(targetDir, targetFileName);
+  let counter = 1;
+  
+  try {
+    while (true) {
+      try {
+        await fs.access(targetPath);
+        // ファイルが存在する場合は連番を付ける
+        targetFileName = `${nameWithoutExt}_${counter}${extension}`;
+        targetPath = path.join(targetDir, targetFileName);
+        counter++;
+      } catch {
+        // ファイルが存在しない場合は使用可能
+        break;
+      }
+    }
+    
+    // ファイルをコピー
+    await fs.copyFile(sourceFilePath, targetPath);
+    
+    // 相対パスを返す
+    return path.join('assets', assetType, targetFileName);
+  } catch (error) {
+    throw new AssetManagerError(
+      `Failed to copy asset: ${error instanceof Error ? error.message : String(error)}`,
+      'COPY_FAILED'
+    );
+  }
 }
 
 /**
@@ -63,8 +145,37 @@ export async function copyAssetToProject(
  * @returns 検証が成功した場合はtrue
  */
 export async function validateAssetFile(filePath: string, expectedType: AssetType): Promise<boolean> {
-  // TODO: 実装が必要
-  throw new Error('validateAssetFile not implemented');
+  // ファイルの存在確認
+  try {
+    const stats = await fs.stat(filePath);
+    if (!stats.isFile()) {
+      throw new AssetManagerError(`Path is not a file: ${filePath}`, 'NOT_A_FILE');
+    }
+  } catch (error: any) {
+    if (error instanceof AssetManagerError) {
+      throw error;
+    }
+    throw new AssetManagerError(`File not found: ${filePath}`, 'FILE_NOT_FOUND');
+  }
+  
+  // ファイル拡張子からタイプを判定
+  const extension = path.extname(filePath);
+  try {
+    const actualType = getAssetTypeFromExtension(extension);
+    if (actualType !== expectedType) {
+      throw new AssetManagerError(
+        `File type mismatch: expected ${expectedType}, but got ${actualType}`,
+        'TYPE_MISMATCH'
+      );
+    }
+  } catch (error) {
+    if (error instanceof AssetManagerError) {
+      throw error;
+    }
+    throw new AssetManagerError(`Failed to validate file: ${String(error)}`, 'VALIDATION_FAILED');
+  }
+  
+  return true;
 }
 
 /**
@@ -73,6 +184,19 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
  * @returns アセットタイプ
  */
 export function getAssetTypeFromExtension(extension: string): AssetType {
-  // TODO: 実装が必要
-  throw new Error('getAssetTypeFromExtension not implemented');
+  const lowerExt = extension.toLowerCase();
+  
+  // 画像ファイル拡張子
+  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+  if (imageExtensions.includes(lowerExt)) {
+    return 'image';
+  }
+  
+  // フォントファイル拡張子
+  const fontExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
+  if (fontExtensions.includes(lowerExt)) {
+    return 'font';
+  }
+  
+  throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');
 }
