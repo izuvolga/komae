@@ -219,7 +219,11 @@ class KomaeApp {
 
     ipcMain.handle('project:save', async (event, projectData, filePath?: string) => {
       try {
-        return await this.projectManager.saveProject(projectData, filePath);
+        const savedPath = await this.projectManager.saveProject(projectData, filePath);
+        // 保存したプロジェクトパスをAssetManagerに設定
+        const projectDir = this.projectManager.getCurrentProjectPath();
+        this.assetManager.setCurrentProjectPath(projectDir);
+        return savedPath;
       } catch (error) {
         console.error('Failed to save project:', error);
         throw error;
@@ -228,7 +232,11 @@ class KomaeApp {
 
     ipcMain.handle('project:load', async (event, filePath: string) => {
       try {
-        return await this.projectManager.loadProject(filePath);
+        const projectData = await this.projectManager.loadProject(filePath);
+        // 読み込んだプロジェクトパスをAssetManagerに設定
+        const projectDir = this.projectManager.getCurrentProjectPath();
+        this.assetManager.setCurrentProjectPath(projectDir);
+        return projectData;
       } catch (error) {
         console.error('Failed to load project:', error);
         throw error;
@@ -246,7 +254,10 @@ class KomaeApp {
 
     ipcMain.handle('project:createDirectory', async (event, projectPath: string) => {
       try {
-        return await this.projectManager.createProjectDirectory(projectPath);
+        await this.projectManager.createProjectDirectory(projectPath);
+        // 作成したプロジェクトパスをAssetManagerに設定
+        this.assetManager.setCurrentProjectPath(projectPath);
+        return;
       } catch (error) {
         console.error('Failed to create project directory:', error);
         throw error;

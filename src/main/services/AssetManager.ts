@@ -1,27 +1,47 @@
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
+import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile } from '../../utils/assetManager';
 import type { Asset, ImageAsset, TextAsset } from '../../types/entities';
 
 export class AssetManager {
   private fileSystemService: FileSystemService;
+  private currentProjectPath: string | null = null;
 
   constructor() {
     this.fileSystemService = new FileSystemService();
   }
 
-  async importAsset(filePath: string): Promise<Asset> {
-    const extension = this.fileSystemService.getFileExtension(filePath);
-    const fileName = this.fileSystemService.getFileName(filePath);
+  /**
+   * 現在のプロジェクトパスを設定
+   */
+  setCurrentProjectPath(projectPath: string | null): void {
+    this.currentProjectPath = projectPath;
+  }
 
-    if (this.isImageFile(extension)) {
-      return await this.importImageAsset(filePath, fileName);
+  async importAsset(filePath: string): Promise<Asset> {
+    if (!this.currentProjectPath) {
+      throw new Error('No project is currently open. Please open or create a project first.');
+    }
+
+    const extension = path.extname(filePath);
+    const fileName = path.basename(filePath, extension);
+    
+    // ファイルタイプを検証
+    const assetType = getAssetTypeFromExtension(extension);
+    await validateAssetFile(filePath, assetType);
+
+    if (assetType === 'image') {
+      return await this.importImageAsset(filePath, fileName, extension);
     } else {
       throw new Error(`Unsupported file type: ${extension}`);
     }
   }
 
-  private async importImageAsset(filePath: string, fileName: string): Promise<ImageAsset> {
+  private async importImageAsset(filePath: string, fileName: string, extension: string): Promise<ImageAsset> {
+    // ファイルをプロジェクトにコピー
+    const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'images');
+    
     // 画像の基本情報を取得（実際の実装では画像ライブラリを使用）
     const imageInfo = await this.getImageInfo(filePath);
     
@@ -29,7 +49,7 @@ export class AssetManager {
       id: `img-${uuidv4()}`,
       type: 'ImageAsset',
       name: fileName,
-      original_file_path: filePath,
+      original_file_path: relativePath, // 相対パスを使用
       original_width: imageInfo.width,
       original_height: imageInfo.height,
       default_pos_x: 0,
@@ -72,10 +92,6 @@ export class AssetManager {
     throw new Error('Asset optimization not implemented yet');
   }
 
-  private isImageFile(extension: string): boolean {
-    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp'];
-    return imageExtensions.includes(extension);
-  }
 
   private async getImageInfo(filePath: string): Promise<{ width: number; height: number }> {
     // TODO: 実際の画像情報を取得する実装

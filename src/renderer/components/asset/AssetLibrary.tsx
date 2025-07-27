@@ -36,17 +36,24 @@ export const AssetLibrary: React.FC = () => {
         title: 'アセットをインポート',
         filters: [
           { name: '画像ファイル', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'] },
+          { name: 'フォントファイル', extensions: ['ttf', 'otf', 'woff', 'woff2'] },
         ],
         properties: ['openFile', 'multiSelections'],
       });
 
       if (!result.canceled && result.filePaths.length > 0) {
         for (const filePath of result.filePaths) {
-          await importAsset(filePath);
+          try {
+            await importAsset(filePath);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            alert(`ファイル "${filePath}" のインポートに失敗しました:\n${message}`);
+          }
         }
       }
     } catch (error) {
       console.error('Failed to import assets:', error);
+      alert('アセットのインポートに失敗しました');
     }
   };
 
@@ -161,6 +168,11 @@ const AssetItem: React.FC<AssetItemProps> = ({
         <div className="asset-type">
           {asset.type === 'ImageAsset' ? '画像' : 'テキスト'}
         </div>
+        {asset.type === 'ImageAsset' && (
+          <div className="asset-path" title={asset.original_file_path}>
+            {asset.original_file_path}
+          </div>
+        )}
       </div>
     </div>
   );
