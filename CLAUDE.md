@@ -68,6 +68,23 @@ npm run dev  # Start development server + Electron app
 - Node.js functionality accessed via preload script only
 - Context isolation enabled for security
 
+## Issue Management
+
+**GitHub Issues & gh CLI:**
+- All project tasks and features are managed as GitHub Issues
+- Use `gh` command-line tool for issue operations:
+  ```bash
+  gh issue list                    # List all issues
+  gh issue view <number>           # View specific issue
+  gh issue create --title "..." --body "..."  # Create new issue
+  gh issue edit <number> --body "..."         # Edit issue content
+  gh issue close <number> --comment "..."     # Close with comment
+  ```
+- Issues should be written in English for broader accessibility
+- Use clear titles with appropriate emoji prefixes (🔗, 💾, 🧪, etc.)
+- Include detailed implementation requirements and success criteria
+- Reference related files and dependencies in issue descriptions
+
 ## Documentation and Design
 
 **docs/worklog/ Directory:**
