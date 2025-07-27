@@ -20,6 +20,9 @@ export const MainLayout: React.FC = () => {
   const togglePreview = useProjectStore((state) => state.togglePreview);
   const setAssetLibraryWidth = useProjectStore((state) => state.setAssetLibraryWidth);
   const setPreviewWidth = useProjectStore((state) => state.setPreviewWidth);
+  const saveProject = useProjectStore((state) => state.saveProject);
+  const loadProject = useProjectStore((state) => state.loadProject);
+  const addNotification = useProjectStore((state) => state.addNotification);
 
   // ドラッグリサイズの状態
   const [isDragging, setIsDragging] = useState<'asset' | 'preview' | null>(null);
@@ -62,32 +65,25 @@ export const MainLayout: React.FC = () => {
     setIsDragging(null);
   }, []);
 
-  // 保存処理
+  // 保存処理（ストアのsaveProject機能を使用）
   const handleSaveProject = useCallback(async () => {
-    if (!project) return;
-
     try {
-      if (currentProjectPath) {
-        // 既存プロジェクトの上書き保存
-        await window.electronAPI.project.save(project, currentProjectPath);
-      } else {
-        // 名前を付けて保存
-        const result = await window.electronAPI.fileSystem.showSaveDialog({
-          title: 'プロジェクトを保存',
-          defaultPath: `${project.metadata.title}.komae`,
-          filters: [{ name: 'Komae Project', extensions: ['komae'] }],
-        });
-
-        if (!result.canceled && result.filePath) {
-          await window.electronAPI.project.createDirectory(result.filePath);
-          await window.electronAPI.project.save(project, result.filePath);
-          setCurrentProjectPath(result.filePath);
-        }
-      }
+      await saveProject();
     } catch (error) {
       console.error('Failed to save project:', error);
     }
-  }, [project, currentProjectPath, setCurrentProjectPath]);
+  }, [saveProject]);
+
+  // テスト用通知ボタン（開発中のみ）
+  const handleTestNotification = useCallback(() => {
+    addNotification({
+      type: 'success',
+      title: 'テスト通知',
+      message: '通知システムが正常に動作しています',
+      autoClose: true,
+      duration: 3000,
+    });
+  }, [addNotification]);
 
   // メニューイベントの設定
   React.useEffect(() => {
@@ -185,8 +181,7 @@ export const MainLayout: React.FC = () => {
   // 指定されたパスからプロジェクトを読み込む
   const loadProjectFromPath = async (filePath: string) => {
     try {
-      const projectData = await window.electronAPI.project.load(filePath);
-      setProject(projectData);
+      await loadProject(filePath);
       setCurrentProjectPath(filePath);
     } catch (error) {
       console.error('Failed to load project:', error);
@@ -380,6 +375,16 @@ export const MainLayout: React.FC = () => {
             </div>
             
             <div className="toolbar-section right-section">
+              {/* テスト用通知ボタン（開発中のみ） */}
+              <button 
+                className="btn-secondary"
+                onClick={handleTestNotification}
+                title="テスト通知を表示"
+                style={{ marginRight: '8px', fontSize: '12px', padding: '4px 8px' }}
+              >
+                📢 通知テスト
+              </button>
+              
               {/* Preview非表示時：プロジェクト名の右にボタン */}
               {!showPreview && (
                 <button 

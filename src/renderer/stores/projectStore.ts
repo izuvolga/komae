@@ -9,7 +9,8 @@ import type {
   AssetInstance, 
   Page,
   ExportFormat,
-  ExportOptions 
+  ExportOptions,
+  AppNotification 
 } from '../../types/entities';
 
 // ページ配列操作のヘルパー関数
@@ -67,6 +68,9 @@ interface ProjectStore {
   setDirty: (dirty: boolean) => void;
   addError: (error: AppState['errors'][0]) => void;
   clearErrors: () => void;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp'>) => void;
+  removeNotification: (notificationId: string) => void;
+  clearNotifications: () => void;
   
   // Async Actions
   saveProject: () => Promise<void>;
@@ -100,6 +104,7 @@ export const useProjectStore = create<ProjectStore>()(
           isDirty: false,
           lastSaved: null,
           errors: [],
+          notifications: [],
           clipboard: null,
         },
 
@@ -127,6 +132,7 @@ export const useProjectStore = create<ProjectStore>()(
           state.ui.selectedPages = [];
           state.app.isDirty = false;
           state.app.lastSaved = null;
+          state.app.notifications = [];
         }),
 
         // Asset Actions
@@ -332,9 +338,28 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.errors.push(error);
         }),
 
+        addNotification: (notification) => set((state) => {
+          const newNotification: AppNotification = {
+            ...notification,
+            id: `notification-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            timestamp: new Date(),
+          };
+          state.app.notifications.push(newNotification);
+        }),
+
+        removeNotification: (notificationId) => set((state) => {
+          state.app.notifications = state.app.notifications.filter(
+            notification => notification.id !== notificationId
+          );
+        }),
+
+        clearNotifications: () => set((state) => {
+          state.app.notifications = [];
+        }),
+
         // Async Actions
         saveProject: async () => {
-          const { project } = get();
+          const { project, addNotification } = get();
           if (!project) return;
 
           set((state) => { state.app.isLoading = true; });
@@ -346,6 +371,14 @@ export const useProjectStore = create<ProjectStore>()(
               state.app.lastSaved = new Date();
               state.app.isLoading = false;
             });
+            // 保存成功の通知を表示
+            addNotification({
+              type: 'success',
+              title: 'プロジェクトが保存されました',
+              message: 'プロジェクトファイルの保存が完了しました',
+              autoClose: true,
+              duration: 3000,
+            });
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             set((state) => {
@@ -356,16 +389,38 @@ export const useProjectStore = create<ProjectStore>()(
               });
               state.app.isLoading = false;
             });
+
+            // 保存失敗の通知を表示
+            addNotification({
+              type: 'error',
+              title: 'プロジェクトの保存に失敗しました',
+              message: `エラー: ${message}`,
+              autoClose: false,
+            });
+            
             throw error;
           }
         },
 
         loadProject: async (filePath) => {
+          const { addNotification } = get();
           set((state) => { state.app.isLoading = true; });
           
           try {
             const projectData = await window.electronAPI.project.load(filePath);
             get().setProject(projectData);
+            
+            // ローディング状態を解除
+            set((state) => { state.app.isLoading = false; });
+            
+            // プロジェクト読み込み成功の通知を表示
+            addNotification({
+              type: 'success',
+              title: 'プロジェクトが読み込まれました',
+              message: `${projectData.metadata.title} を開きました`,
+              autoClose: true,
+              duration: 3000,
+            });
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             set((state) => {
@@ -376,17 +431,37 @@ export const useProjectStore = create<ProjectStore>()(
               });
               state.app.isLoading = false;
             });
+
+            // プロジェクト読み込み失敗の通知を表示
+            addNotification({
+              type: 'error',
+              title: 'プロジェクトの読み込みに失敗しました',
+              message: `エラー: ${message}`,
+              autoClose: false,
+            });
+            
             throw error;
           }
         },
 
         importAsset: async (filePath) => {
+          const { addNotification } = get();
           set((state) => { state.app.isLoading = true; });
           
           try {
             const asset = await window.electronAPI.assets.import(filePath);
             get().addAsset(asset);
             set((state) => { state.app.isLoading = false; });
+            
+            // アセットインポート成功の通知を表示
+            addNotification({
+              type: 'success',
+              title: 'アセットがインポートされました',
+              message: `${asset.name} をプロジェクトに追加しました`,
+              autoClose: true,
+              duration: 3000,
+            });
+            
             return asset;
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -398,6 +473,15 @@ export const useProjectStore = create<ProjectStore>()(
               });
               state.app.isLoading = false;
             });
+
+            // アセットインポート失敗の通知を表示
+            addNotification({
+              type: 'error',
+              title: 'アセットのインポートに失敗しました',
+              message: `エラー: ${message}`,
+              autoClose: false,
+            });
+            
             throw error;
           }
         },

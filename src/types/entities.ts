@@ -139,11 +139,22 @@ export interface AppError {
   stack?: string;
 }
 
+export interface AppNotification {
+  id: string;
+  type: 'success' | 'info' | 'warning' | 'error';
+  title: string;
+  message?: string;
+  timestamp: Date;
+  autoClose?: boolean;
+  duration?: number; // ミリ秒
+}
+
 export interface AppState {
   isLoading: boolean;
   isDirty: boolean;
   lastSaved: Date | null;
   errors: AppError[];
+  notifications: AppNotification[];
   clipboard: any | null; // TODO: 具体的な型を後で定義
 }
 

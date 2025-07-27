@@ -1,5 +1,6 @@
 import React from 'react';
 import { MainLayout } from './components/layout/MainLayout';
+import { NotificationDisplay } from './components/notification/NotificationDisplay';
 import { useProjectStore } from './stores/projectStore';
 import './App.css';
 
@@ -37,6 +38,7 @@ const App: React.FC = () => {
       )}
       
       <MainLayout />
+      <NotificationDisplay />
     </div>
   );
 };
