@@ -380,7 +380,7 @@ export const MainLayout: React.FC = () => {
                 className="btn-secondary"
                 onClick={handleTestNotification}
                 title="テスト通知を表示"
-                style={{ marginRight: '8px', fontSize: '12px', padding: '4px 8px' }}
+                style={{ marginRight: '8px', fontSize: '12px', padding: '4px 8px', display: 'none' }} // 開発中のみ表示
               >
                 📢 通知テスト
               </button>
