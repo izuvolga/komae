@@ -98,7 +98,7 @@ export const AssetLibrary: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async () => {
     if (selectedAssets.length === 0) return;
     
     logger.logUserInteraction('asset_delete_confirm', 'AssetLibrary', {
@@ -113,8 +113,20 @@ export const AssetLibrary: React.FC = () => {
         deletedAssets: selectedAssets,
       });
 
-      selectedAssets.forEach(assetId => deleteAsset(assetId));
-      selectAssets([]);
+      // 非同期処理として各アセットを削除
+      try {
+        for (const assetId of selectedAssets) {
+          await deleteAsset(assetId);
+        }
+        selectAssets([]);
+      } catch (error) {
+        console.error('Failed to delete assets:', error);
+        logger.logError('asset_delete_batch', error as Error, {
+          selectedAssets,
+          component: 'AssetLibrary',
+        });
+        alert('アセットの削除中にエラーが発生しました');
+      }
     } else {
       logger.logUserInteraction('asset_delete_cancel', 'AssetLibrary', {
         selectedCount: selectedAssets.length,

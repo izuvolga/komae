@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
-import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile } from '../../utils/assetManager';
+import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import { 
   detectDuplicateAssetName, 
@@ -189,17 +189,74 @@ export class AssetManager {
     return asset;
   }
 
-  async deleteAsset(assetId: string): Promise<void> {
+  async deleteAsset(assetId: string, project?: ProjectData): Promise<void> {
+    const tracker = new PerformanceTracker('asset_delete');
+    
     try {
+      if (!this.currentProjectPath) {
+        const error = new Error('No project is currently open. Please open or create a project first.');
+        await this.logger.logError('asset_delete', error, {
+          assetId,
+          currentProjectPath: this.currentProjectPath,
+        });
+        throw error;
+      }
+
+      // プロジェクトデータからアセット情報を取得
+      let assetInfo: { name?: string; filePath?: string; type?: string } = { name: assetId };
+      
+      if (project?.assets[assetId]) {
+        const asset = project.assets[assetId];
+        assetInfo = {
+          name: asset.name,
+          filePath: asset.type === 'ImageAsset' ? asset.original_file_path : undefined,
+          type: asset.type,
+        };
+      }
+
+      await this.logger.logDevelopment('asset_delete_start', 'Asset deletion process started', {
+        assetId,
+        assetName: assetInfo.name,
+        filePath: assetInfo.filePath,
+        projectPath: this.currentProjectPath,
+      });
+
+      // 物理ファイルを削除（ImageAssetの場合のみ）
+      if (assetInfo.filePath && project?.assets[assetId]?.type === 'ImageAsset') {
+        try {
+          await deleteAssetFromProject(this.currentProjectPath, assetInfo.filePath);
+          
+          await this.logger.logDevelopment('asset_file_deleted', 'Asset file deleted from filesystem', {
+            assetId,
+            deletedPath: assetInfo.filePath,
+          });
+        } catch (fileError) {
+          // ファイル削除失敗をログに記録するが、プロセスは継続
+          await this.logger.logError('asset_file_delete', fileError as Error, {
+            assetId,
+            filePath: assetInfo.filePath,
+            projectPath: this.currentProjectPath,
+          });
+          
+          // ファイルが見つからない場合は警告のみ、その他のエラーは再スロー
+          if (!fileError || !(fileError as any).message?.includes('not found')) {
+            throw fileError;
+          }
+        }
+      }
+
       await this.logger.logAssetOperation('delete', {
         id: assetId,
+        name: assetInfo.name,
+        filePath: assetInfo.filePath,
+        type: assetInfo.type,
       }, {
         projectPath: this.currentProjectPath,
+        fileDeleted: !!assetInfo.filePath,
       }, true);
 
-      // TODO: アセットファイルの削除処理
-      // プロジェクトディレクトリ内のアセットファイルを削除
-      console.log(`Deleting asset: ${assetId}`);
+      await tracker.end({ success: true, assetId });
+
     } catch (error) {
       await this.logger.logAssetOperation('delete', {
         id: assetId,
@@ -207,6 +264,8 @@ export class AssetManager {
         projectPath: this.currentProjectPath,
         error: error instanceof Error ? error.message : String(error),
       }, false);
+
+      await tracker.end({ success: false, error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }

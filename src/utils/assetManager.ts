@@ -200,3 +200,67 @@ export function getAssetTypeFromExtension(extension: string): AssetType {
   
   throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');
 }
+
+/**
+ * プロジェクトからアセットファイルを削除
+ */
+export async function deleteAssetFromProject(
+  projectPath: string,
+  assetPath: string
+): Promise<void> {
+  try {
+    // パスを正規化（相対パスまたは絶対パス両方に対応）
+    let targetPath: string;
+    
+    if (path.isAbsolute(assetPath)) {
+      // 絶対パスの場合、プロジェクト内かチェック
+      if (!assetPath.startsWith(projectPath)) {
+        throw new AssetManagerError(
+          `Asset file is outside project directory: ${assetPath}`,
+          'INVALID_PATH'
+        );
+      }
+      targetPath = assetPath;
+    } else {
+      // 相対パスの場合
+      if (assetPath.includes('..')) {
+        throw new AssetManagerError(
+          `Invalid relative path (contains '..'): ${assetPath}`,
+          'INVALID_PATH'
+        );
+      }
+      targetPath = path.join(projectPath, assetPath);
+    }
+
+    // ファイルの存在確認
+    try {
+      const stats = await fs.stat(targetPath);
+      if (!stats.isFile()) {
+        throw new AssetManagerError(
+          `Path is not a file: ${assetPath}`,
+          'NOT_A_FILE'
+        );
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new AssetManagerError(
+          `Asset file not found: ${assetPath}`,
+          'FILE_NOT_FOUND'
+        );
+      }
+      throw error;
+    }
+
+    // ファイルを削除
+    await fs.unlink(targetPath);
+
+  } catch (error) {
+    if (error instanceof AssetManagerError) {
+      throw error;
+    }
+    throw new AssetManagerError(
+      `Failed to delete asset file: ${error instanceof Error ? error.message : String(error)}`,
+      'DELETE_FAILED'
+    );
+  }
+}

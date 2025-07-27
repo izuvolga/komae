@@ -9,6 +9,7 @@ import {
   copyAssetToProject,
   validateAssetFile,
   getAssetTypeFromExtension,
+  deleteAssetFromProject,
   AssetManagerError 
 } from '../src/utils/assetManager';
 
@@ -179,6 +180,64 @@ describe('相対パス解決とアセットファイル管理', () => {
     });
   });
 
+  describe('deleteAssetFromProject', () => {
+    test('コピーしたアセットファイルを削除できる', async () => {
+      // まずファイルをコピー
+      const relativePath = await copyAssetToProject(projectDir, testImageFile, 'images');
+      const absolutePath = resolveAssetPath(projectDir, relativePath);
+      
+      // ファイルが存在することを確認
+      const statsBefore = await fs.stat(absolutePath);
+      expect(statsBefore.isFile()).toBe(true);
+      
+      // ファイルを削除
+      await deleteAssetFromProject(projectDir, relativePath);
+      
+      // ファイルが削除されたことを確認
+      await expect(fs.stat(absolutePath)).rejects.toThrow();
+    });
+
+    test('存在しないファイルの削除でエラーが発生する', async () => {
+      const nonExistentPath = 'assets/images/nonexistent.png';
+      
+      await expect(deleteAssetFromProject(projectDir, nonExistentPath)).rejects.toThrow(AssetManagerError);
+    });
+
+    test('プロジェクト外のパスでエラーが発生する', async () => {
+      const outsidePath = '../outside.png';
+      
+      await expect(deleteAssetFromProject(projectDir, outsidePath)).rejects.toThrow(AssetManagerError);
+    });
+
+    test('絶対パスでもファイル削除できる', async () => {
+      // まずファイルをコピー
+      const relativePath = await copyAssetToProject(projectDir, testImageFile, 'images');
+      const absolutePath = resolveAssetPath(projectDir, relativePath);
+      
+      // 絶対パスで削除
+      await deleteAssetFromProject(projectDir, absolutePath);
+      
+      // ファイルが削除されたことを確認
+      await expect(fs.stat(absolutePath)).rejects.toThrow();
+    });
+
+    test('フォントファイルも削除できる', async () => {
+      // フォントファイルをコピー
+      const relativePath = await copyAssetToProject(projectDir, testFontFile, 'fonts');
+      const absolutePath = resolveAssetPath(projectDir, relativePath);
+      
+      // ファイルが存在することを確認
+      const statsBefore = await fs.stat(absolutePath);
+      expect(statsBefore.isFile()).toBe(true);
+      
+      // ファイルを削除
+      await deleteAssetFromProject(projectDir, relativePath);
+      
+      // ファイルが削除されたことを確認
+      await expect(fs.stat(absolutePath)).rejects.toThrow();
+    });
+  });
+
   describe('パス処理の統合テスト', () => {
     test('ファイルコピー後に相対パス化ができる', async () => {
       const copiedRelativePath = await copyAssetToProject(projectDir, testImageFile, 'images');
@@ -197,6 +256,28 @@ describe('相対パス解決とアセットファイル管理', () => {
       
       // プロジェクト外パスは相対パス化できない
       expect(() => makeAssetPathRelative(projectDir, outsidePath)).toThrow(AssetManagerError);
+    });
+
+    test('ファイルのコピーと削除のライフサイクル', async () => {
+      // ファイルをコピー
+      const relativePath = await copyAssetToProject(projectDir, testImageFile, 'images');
+      const absolutePath = resolveAssetPath(projectDir, relativePath);
+      
+      // ファイルが存在することを確認
+      const statsBefore = await fs.stat(absolutePath);
+      expect(statsBefore.isFile()).toBe(true);
+      
+      // ファイルを削除
+      await deleteAssetFromProject(projectDir, relativePath);
+      
+      // ファイルが削除されたことを確認
+      await expect(fs.stat(absolutePath)).rejects.toThrow();
+      
+      // 同じファイルを再度コピーできることを確認
+      const newRelativePath = await copyAssetToProject(projectDir, testImageFile, 'images');
+      const newAbsolutePath = resolveAssetPath(projectDir, newRelativePath);
+      const statsAfter = await fs.stat(newAbsolutePath);
+      expect(statsAfter.isFile()).toBe(true);
     });
   });
 });

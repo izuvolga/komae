@@ -285,9 +285,9 @@ class KomaeApp {
       }
     });
 
-    ipcMain.handle('asset:delete', async (event, assetId: string) => {
+    ipcMain.handle('asset:delete', async (event, assetId: string, project?: any) => {
       try {
-        return await this.assetManager.deleteAsset(assetId);
+        return await this.assetManager.deleteAsset(assetId, project);
       } catch (error) {
         console.error('Failed to delete asset:', error);
         throw error;

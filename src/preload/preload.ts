@@ -36,8 +36,8 @@ const electronAPI = {
     import: (filePath: string) => 
       ipcRenderer.invoke('asset:import', filePath),
     
-    delete: (assetId: string) => 
-      ipcRenderer.invoke('asset:delete', assetId),
+    delete: (assetId: string, project?: any) => 
+      ipcRenderer.invoke('asset:delete', assetId, project),
     
     optimize: (assetId: string) => 
       ipcRenderer.invoke('asset:optimize', assetId),

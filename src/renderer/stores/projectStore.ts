@@ -142,21 +142,34 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.isDirty = true;
         }),
 
-        deleteAsset: (assetId) => set((state) => {
+        deleteAsset: async (assetId) => {
+          const state = get();
           if (!state.project) return;
-          delete state.project.assets[assetId];
-          
-          // 関連するAssetInstanceも削除
-          state.project.pages.forEach(page => {
-            Object.entries(page.asset_instances).forEach(([instanceId, instance]) => {
-              if (instance.asset_id === assetId) {
-                delete page.asset_instances[instanceId];
-              }
+
+          try {
+            // 物理ファイルを削除（ElectronAPI経由）
+            await window.electronAPI?.assets?.delete(assetId, state.project);
+          } catch (error) {
+            console.error('Failed to delete asset file:', error);
+            // ファイル削除に失敗してもプロジェクトデータからは削除する
+          }
+
+          set((state) => {
+            if (!state.project) return;
+            delete state.project.assets[assetId];
+            
+            // 関連するAssetInstanceも削除
+            state.project.pages.forEach(page => {
+              Object.entries(page.asset_instances).forEach(([instanceId, instance]) => {
+                if (instance.asset_id === assetId) {
+                  delete page.asset_instances[instanceId];
+                }
+              });
             });
+            
+            state.app.isDirty = true;
           });
-          
-          state.app.isDirty = true;
-        }),
+        },
 
         // Page Actions
         addPage: (page) => set((state) => {
