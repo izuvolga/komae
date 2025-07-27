@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import * as path from 'path';
+import * as os from 'os';
 import { ProjectManager } from './services/ProjectManager';
 import { FileSystemService } from './services/FileSystemService';
 import { AssetManager } from './services/AssetManager';
@@ -18,6 +19,37 @@ class KomaeApp {
     
     this.setupEventHandlers();
     this.setupIPC();
+  }
+
+  /**
+   * プラットフォーム固有のファイルダイアログ設定を取得
+   * 注意: 開発段階のため、macOSでもファイル選択を使用
+   */
+  private getOpenDialogOptions(): Electron.OpenDialogOptions {
+    // 開発段階: 全プラットフォームでファイル選択を使用
+    return {
+      title: 'Open Project',
+      filters: [
+        { name: 'Komae Project', extensions: ['komae'] },
+      ],
+      properties: ['openFile'],
+    };
+    
+    // 将来のリリース版では以下のコードを使用:
+    // const platform = os.platform();
+    // if (platform === 'darwin') {
+    //   return {
+    //     title: 'Open Project',
+    //     filters: [{ name: 'Komae Project', extensions: ['komae'] }],
+    //     properties: ['openDirectory'],
+    //   };
+    // } else {
+    //   return {
+    //     title: 'Open Project', 
+    //     filters: [{ name: 'Komae Project', extensions: ['komae'] }],
+    //     properties: ['openFile'],
+    //   };
+    // }
   }
 
   private setupEventHandlers(): void {
@@ -85,13 +117,8 @@ class KomaeApp {
             label: 'Open Project',
             accelerator: 'CmdOrCtrl+O',
             click: async () => {
-              const result = await dialog.showOpenDialog(this.mainWindow!, {
-                title: 'Open Project',
-                filters: [
-                  { name: 'Komae Project', extensions: ['komae'] },
-                ],
-                properties: ['openFile'],
-              });
+              const options = this.getOpenDialogOptions();
+              const result = await dialog.showOpenDialog(this.mainWindow!, options);
 
               if (!result.canceled && result.filePaths.length > 0) {
                 this.mainWindow?.webContents.send('menu:open-project', result.filePaths[0]);
@@ -217,6 +244,24 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('project:createDirectory', async (event, projectPath: string) => {
+      try {
+        return await this.projectManager.createProjectDirectory(projectPath);
+      } catch (error) {
+        console.error('Failed to create project directory:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('project:validateDirectory', async (event, projectPath: string) => {
+      try {
+        return await this.projectManager.validateProjectDirectory(projectPath);
+      } catch (error) {
+        console.error('Failed to validate project directory:', error);
+        throw error;
+      }
+    });
+
     // Asset Operations
     ipcMain.handle('asset:import', async (event, filePath: string) => {
       try {
@@ -248,7 +293,15 @@ class KomaeApp {
     // File System Operations
     ipcMain.handle('dialog:showOpen', async (event, options) => {
       try {
-        return await dialog.showOpenDialog(this.mainWindow!, options);
+        // プラットフォーム固有の設定をマージ
+        const platformOptions = this.getOpenDialogOptions();
+        const mergedOptions = {
+          ...platformOptions,
+          ...options,
+          // プラットフォーム固有のpropertiesを優先
+          properties: platformOptions.properties,
+        };
+        return await dialog.showOpenDialog(this.mainWindow!, mergedOptions);
       } catch (error) {
         console.error('Failed to show open dialog:', error);
         throw error;

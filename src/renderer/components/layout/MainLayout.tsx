@@ -8,11 +8,13 @@ import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
   const project = useProjectStore((state) => state.project);
+  const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
   const setProject = useProjectStore((state) => state.setProject);
+  const setCurrentProjectPath = useProjectStore((state) => state.setCurrentProjectPath);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const togglePreview = useProjectStore((state) => state.togglePreview);
   const setAssetLibraryWidth = useProjectStore((state) => state.setAssetLibraryWidth);
@@ -59,6 +61,60 @@ export const MainLayout: React.FC = () => {
     setIsDragging(null);
   }, []);
 
+  // 保存処理
+  const handleSaveProject = useCallback(async () => {
+    if (!project) return;
+
+    try {
+      if (currentProjectPath) {
+        // 既存プロジェクトの上書き保存
+        await window.electronAPI.project.save(project, currentProjectPath);
+      } else {
+        // 名前を付けて保存
+        const result = await window.electronAPI.fileSystem.showSaveDialog({
+          title: 'プロジェクトを保存',
+          defaultPath: `${project.metadata.title}.komae`,
+          filters: [{ name: 'Komae Project', extensions: ['komae'] }],
+        });
+
+        if (!result.canceled && result.filePath) {
+          await window.electronAPI.project.createDirectory(result.filePath);
+          await window.electronAPI.project.save(project, result.filePath);
+          setCurrentProjectPath(result.filePath);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save project:', error);
+    }
+  }, [project, currentProjectPath, setCurrentProjectPath]);
+
+  // メニューイベントの設定
+  React.useEffect(() => {
+    const unsubscribeSave = window.electronAPI.menu.onSaveProject(() => {
+      handleSaveProject();
+    });
+
+    const unsubscribeOpen = window.electronAPI.menu.onOpenProject((filePath) => {
+      // メニューからの場合は既にパスが渡されるので直接読み込む
+      // UIボタンからの場合はファイルダイアログを表示
+      if (filePath) {
+        loadProjectFromPath(filePath);
+      } else {
+        handleOpenProjectDialog();
+      }
+    });
+
+    const unsubscribeNew = window.electronAPI.menu.onNewProject(() => {
+      handleCreateProject();
+    });
+
+    return () => {
+      unsubscribeSave();
+      unsubscribeOpen();
+      unsubscribeNew();
+    };
+  }, [handleSaveProject]);
+
   // グローバルマウスイベントの設定
   React.useEffect(() => {
     if (isDragging) {
@@ -78,31 +134,61 @@ export const MainLayout: React.FC = () => {
 
   const handleCreateProject = async () => {
     try {
-      const projectData = await window.electronAPI.project.create({
-        title: '新しいプロジェクト',
-        description: '',
-        canvas: { width: 800, height: 600 }
+      // プロジェクトの保存先を選択
+      const result = await window.electronAPI.fileSystem.showSaveDialog({
+        title: '新しいプロジェクトを作成',
+        defaultPath: '新しいプロジェクト.komae',
+        filters: [{ name: 'Komae Project', extensions: ['komae'] }],
       });
-      setProject(projectData);
+
+      if (!result.canceled && result.filePath) {
+        // プロジェクトディレクトリを作成
+        await window.electronAPI.project.createDirectory(result.filePath);
+        
+        // プロジェクトデータを作成
+        const projectData = await window.electronAPI.project.create({
+          title: 'プロジェクト',
+          description: '',
+          canvas: { width: 800, height: 600 }
+        });
+        
+        // プロジェクトを保存
+        await window.electronAPI.project.save(projectData, result.filePath);
+        
+        setProject(projectData);
+        setCurrentProjectPath(result.filePath);
+      }
     } catch (error) {
       console.error('Failed to create project:', error);
     }
   };
 
-  const handleOpenProject = async () => {
+  // ファイルダイアログ経由でプロジェクトを開く
+  const handleOpenProjectDialog = async () => {
     try {
+      // プラットフォーム固有の設定を使用（メインプロセス側で設定済み）
       const result = await window.electronAPI.fileSystem.showOpenDialog({
         title: 'プロジェクトを開く',
         filters: [{ name: 'Komae Project', extensions: ['komae'] }],
-        properties: ['openFile'],
+        properties: [], // プラットフォーム固有の設定はメインプロセス側で適用
       });
 
       if (!result.canceled && result.filePaths.length > 0) {
-        const projectData = await window.electronAPI.project.load(result.filePaths[0]);
-        setProject(projectData);
+        await loadProjectFromPath(result.filePaths[0]);
       }
     } catch (error) {
       console.error('Failed to open project:', error);
+    }
+  };
+
+  // 指定されたパスからプロジェクトを読み込む
+  const loadProjectFromPath = async (filePath: string) => {
+    try {
+      const projectData = await window.electronAPI.project.load(filePath);
+      setProject(projectData);
+      setCurrentProjectPath(filePath);
+    } catch (error) {
+      console.error('Failed to load project:', error);
     }
   };
 
@@ -218,7 +304,7 @@ export const MainLayout: React.FC = () => {
             <p>Create illustration collections</p>
             <div className="welcome-actions">
               <button className="btn-primary" onClick={handleCreateProject}>新規プロジェクト</button>
-              <button className="btn-secondary" onClick={handleOpenProject}>プロジェクトを開く</button>
+              <button className="btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
               <button className="btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
             </div>
           </div>

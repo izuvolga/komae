@@ -24,11 +24,13 @@ const findPageIndexById = (pages: Page[], pageId: string): number => {
 interface ProjectStore {
   // State
   project: ProjectData | null;
+  currentProjectPath: string | null;
   ui: UIState;
   app: AppState;
 
   // Project Actions
   setProject: (project: ProjectData) => void;
+  setCurrentProjectPath: (path: string | null) => void;
   clearProject: () => void;
   
   // Asset Actions
@@ -79,6 +81,7 @@ export const useProjectStore = create<ProjectStore>()(
       immer((set, get) => ({
         // Initial State
         project: null,
+        currentProjectPath: null,
         ui: {
           selectedAssets: [],
           selectedPages: [],
@@ -112,8 +115,13 @@ export const useProjectStore = create<ProjectStore>()(
           }
         }),
 
+        setCurrentProjectPath: (path) => set((state) => {
+          state.currentProjectPath = path;
+        }),
+
         clearProject: () => set((state) => {
           state.project = null;
+          state.currentProjectPath = null;
           state.ui.currentPage = null;
           state.ui.selectedAssets = [];
           state.ui.selectedPages = [];

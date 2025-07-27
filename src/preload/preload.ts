@@ -23,6 +23,12 @@ const electronAPI = {
     
     export: (format: ExportFormat, options: ExportOptions): Promise<string> => 
       ipcRenderer.invoke('project:export', format, options),
+    
+    createDirectory: (projectPath: string): Promise<void> => 
+      ipcRenderer.invoke('project:createDirectory', projectPath),
+    
+    validateDirectory: (projectPath: string): Promise<boolean> => 
+      ipcRenderer.invoke('project:validateDirectory', projectPath),
   },
 
   // Asset Operations

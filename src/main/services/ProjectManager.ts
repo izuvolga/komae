@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
 import type { 
   ProjectData, 
@@ -8,9 +9,89 @@ import type {
   ExportFormat, 
   ExportOptions 
 } from '../../types/entities';
+import { saveProjectFile, loadProjectFile } from '../../utils/projectFile';
+import { createProjectDirectory, validateProjectDirectory } from '../../utils/projectDirectory';
 
 export class ProjectManager {
   private currentProjectPath: string | null = null;
+
+  /**
+   * プラットフォームを検出する
+   */
+  private getPlatform(): 'darwin' | 'win32' | 'linux' {
+    return os.platform() as 'darwin' | 'win32' | 'linux';
+  }
+
+  /**
+   * macOS用のInfo.plistファイルを生成する
+   */
+  private async createInfoPlist(projectPath: string): Promise<void> {
+    const plistContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDisplayName</key>
+    <string>Komae Project</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>komae</string>
+            </array>
+            <key>CFBundleTypeName</key>
+            <string>Komae Project</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSTypeIsPackage</key>
+            <true/>
+        </dict>
+    </array>
+    <key>CFBundleIdentifier</key>
+    <string>com.komae.project</string>
+    <key>CFBundleName</key>
+    <string>Komae Project</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>LSTypeIsPackage</key>
+    <true/>
+</dict>
+</plist>`;
+
+    const contentsDir = path.join(projectPath, 'Contents');
+    await fs.mkdir(contentsDir, { recursive: true });
+    await fs.writeFile(path.join(contentsDir, 'Info.plist'), plistContent, 'utf8');
+  }
+
+  /**
+   * 新しいプロジェクトディレクトリを作成する
+   */
+  async createProjectDirectory(projectPath: string): Promise<void> {
+    try {
+      await createProjectDirectory(projectPath);
+      
+      // 開発段階では Info.plist 生成を無効化
+      // 将来のリリース版では以下のコードを有効化:
+      // if (this.getPlatform() === 'darwin') {
+      //   await this.createInfoPlist(projectPath);
+      // }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to create project directory: ${message}`);
+    }
+  }
+
+  /**
+   * プロジェクトディレクトリを検証する
+   */
+  async validateProjectDirectory(projectPath: string): Promise<boolean> {
+    try {
+      return await validateProjectDirectory(projectPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to validate project directory: ${message}`);
+    }
+  }
 
   async createProject(params: ProjectCreateParams): Promise<ProjectData> {
     const projectId = uuidv4();
@@ -51,34 +132,103 @@ export class ProjectManager {
     }
 
     try {
-      // YAMLとして保存
-      const yamlContent = yaml.dump(projectData, {
-        indent: 2,
-        lineWidth: -1,
-        noRefs: true,
-      });
+      let stats: any = null;
+      try {
+        stats = await fs.stat(targetPath);
+      } catch (statError) {
+        // ファイルが存在しない場合は null のまま
+      }
+      
+      if (stats && stats.isDirectory() && targetPath.endsWith('.komae')) {
+        // プロジェクトディレクトリの場合
+        const dirName = path.basename(targetPath);
+        const projectFilePath = path.join(targetPath, dirName);
+        await saveProjectFile(projectFilePath, projectData);
+        this.currentProjectPath = targetPath;
+        return projectFilePath;
+      } else {
+        // ファイルが指定された場合、または存在しないパスの場合
+        if (targetPath.endsWith('.komae')) {
+          // .komaeファイルの場合は直接保存
+          await saveProjectFile(targetPath, projectData);
+          this.currentProjectPath = path.dirname(targetPath);
+          return targetPath;
+        } else {
+          // 従来通りのYAMLファイル保存
+          const yamlContent = yaml.dump(projectData, {
+            indent: 2,
+            lineWidth: -1,
+            noRefs: true,
+          });
 
-      await fs.writeFile(targetPath, yamlContent, 'utf8');
-      this.currentProjectPath = targetPath;
-
-      return targetPath;
+          await fs.writeFile(targetPath, yamlContent, 'utf8');
+          this.currentProjectPath = path.dirname(targetPath);
+          return targetPath;
+        }
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to save project: ${message}`);
     }
   }
 
-  async loadProject(filePath: string): Promise<ProjectData> {
-    try {
-      const content = await fs.readFile(filePath, 'utf8');
-      const projectData = yaml.load(content) as ProjectData;
-
-      // 基本的な検証
-      if (!projectData.metadata || !projectData.canvas) {
-        throw new Error('Invalid project file format');
+  /**
+   * プロジェクトファイルを自動検出する
+   * @param inputPath ディレクトリまたはファイルパス
+   * @returns 検出されたプロジェクトファイルのパス
+   */
+  private async detectProjectFile(inputPath: string): Promise<string> {
+    const stats = await fs.stat(inputPath);
+    
+    if (stats.isFile()) {
+      // ファイルが指定された場合はそのまま使用
+      return inputPath;
+    }
+    
+    if (stats.isDirectory()) {
+      // ディレクトリが指定された場合は内部のプロジェクトファイルを検索
+      const dirName = path.basename(inputPath);
+      
+      // 1. [ディレクトリ名].komae を検索
+      if (dirName.endsWith('.komae')) {
+        const primaryCandidate = path.join(inputPath, `${dirName}`);
+        try {
+          await fs.access(primaryCandidate);
+          return primaryCandidate;
+        } catch {
+          // 見つからない場合は次の候補を試す
+        }
       }
+      
+      // 2. project.komae を検索（フォールバック）
+      const fallbackCandidate = path.join(inputPath, 'project.komae');
+      try {
+        await fs.access(fallbackCandidate);
+        return fallbackCandidate;
+      } catch {
+        throw new Error(`No valid project file found in directory: ${inputPath}`);
+      }
+    }
+    
+    throw new Error(`Invalid path type: ${inputPath}`);
+  }
 
-      this.currentProjectPath = filePath;
+  async loadProject(inputPath: string): Promise<ProjectData> {
+    try {
+      // プロジェクトファイルを自動検出
+      const projectFilePath = await this.detectProjectFile(inputPath);
+      
+      // YAMLファイルを読み込み
+      const projectData = await loadProjectFile(projectFilePath);
+      
+      // プロジェクトパスを設定（ディレクトリの場合はディレクトリパス、ファイルの場合は親ディレクトリ）
+      const stats = await fs.stat(inputPath);
+      if (stats.isDirectory()) {
+        this.currentProjectPath = inputPath;
+      } else {
+        this.currentProjectPath = path.dirname(inputPath);
+      }
+      
       return projectData;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
