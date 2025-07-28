@@ -54,14 +54,44 @@ export const resolveAssetPath = (relativePath: string, projectPath: string | nul
  * RendererプロセスからElectronAPIを通じて画像を読み込む
  */
 export const loadImageAsDataUrl = async (filePath: string, projectPath?: string | null): Promise<string> => {
+  return await loadImageWithRetry(filePath, projectPath, 0);
+};
+
+/**
+ * プロジェクトパス同期を待って画像を読み込む（再試行機能付き）
+ */
+async function loadImageWithRetry(filePath: string, projectPath: string | null | undefined, retryCount: number): Promise<string> {
+  const maxRetries = 3;
+  const retryDelay = 100; // 100ms
+  
   try {
+    // 相対パスでプロジェクトパスが利用できない場合の対処
+    const isRelativePath = !filePath.startsWith('/') && !filePath.match(/^[A-Za-z]:/);
+    
+    if (isRelativePath && !projectPath && retryCount < maxRetries) {
+      console.debug(`[loadImageAsDataUrl] Relative path without project path, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries + 1}):`, filePath);
+      
+      // プロジェクトパスの同期を待つ
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      // プロジェクトストアから最新のプロジェクトパスを取得
+      try {
+        const latestProjectPath = await window.electronAPI?.project?.getCurrentPath?.();
+        return await loadImageWithRetry(filePath, latestProjectPath, retryCount + 1);
+      } catch {
+        // getCurrentPathが失敗した場合は再試行
+        return await loadImageWithRetry(filePath, projectPath, retryCount + 1);
+      }
+    }
+    
     // 相対パスの場合は絶対パスに変換
     const resolvedPath = projectPath ? resolveAssetPath(filePath, projectPath) : filePath;
     
     console.debug('[loadImageAsDataUrl] Loading image:', {
       original: filePath,
       projectPath,
-      resolved: resolvedPath
+      resolved: resolvedPath,
+      retryCount
     });
     
     // ElectronAPIを通じて画像ファイルを読み込み
@@ -77,13 +107,28 @@ export const loadImageAsDataUrl = async (filePath: string, projectPath?: string 
     console.error('[loadImageAsDataUrl] Failed to load image:', {
       filePath,
       projectPath,
+      retryCount,
       error: error instanceof Error ? error.message : String(error)
     });
+    
+    // 相対パスでプロジェクトパスが利用できない場合で、まだ再試行可能な場合
+    const isRelativePath = !filePath.startsWith('/') && !filePath.match(/^[A-Za-z]:/);
+    if (isRelativePath && !projectPath && retryCount < maxRetries) {
+      console.debug(`[loadImageAsDataUrl] Retrying after error (attempt ${retryCount + 1}/${maxRetries + 1})`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      try {
+        const latestProjectPath = await window.electronAPI?.project?.getCurrentPath?.();
+        return await loadImageWithRetry(filePath, latestProjectPath, retryCount + 1);
+      } catch {
+        return await loadImageWithRetry(filePath, projectPath, retryCount + 1);
+      }
+    }
     
     // フォールバック：1x1透明PNG
     return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
   }
-};
+}
 
 /**
  * 画像のサムネイルサイズを計算する

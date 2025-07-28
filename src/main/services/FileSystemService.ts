@@ -64,12 +64,21 @@ export class FileSystemService {
    */
   async readImageAsDataUrl(filePath: string): Promise<string> {
     try {
+      console.debug('[FileSystemService] Reading image file:', filePath);
+      
+      // 相対パスが渡された場合の警告
+      if (!filePath.startsWith('/') && !filePath.match(/^[A-Za-z]:/)) {
+        console.warn('[FileSystemService] Relative path detected - this should be resolved before reaching main process:', filePath);
+      }
+      
       const imageBuffer = await fs.readFile(filePath);
       const mimeType = this.getMimeType(filePath);
       const base64Data = imageBuffer.toString('base64');
       return `data:${mimeType};base64,${base64Data}`;
     } catch (error) {
       console.error('Failed to read image file:', error);
+      console.error('[FileSystemService] File path that failed:', filePath);
+      
       // フォールバック：1x1透明PNG
       return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
     }

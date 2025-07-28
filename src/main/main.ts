@@ -342,9 +342,11 @@ class KomaeApp {
     // File System Operations
     ipcMain.handle('fileSystem:readImageAsDataUrl', async (event, filePath: string) => {
       try {
+        console.debug('[Main IPC] fileSystem:readImageAsDataUrl called with:', filePath);
         return await this.fileSystemService.readImageAsDataUrl(filePath);
       } catch (error) {
         console.error('Failed to read image as data URL:', error);
+        console.error('[Main IPC] Error for file path:', filePath);
         throw error;
       }
     });
