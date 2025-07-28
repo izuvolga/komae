@@ -254,6 +254,15 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('project:getCurrentPath', async () => {
+      try {
+        return this.projectManager.getCurrentProjectPath();
+      } catch (error) {
+        console.error('Failed to get current project path:', error);
+        throw error;
+      }
+    });
+
     ipcMain.handle('project:createDirectory', async (event, projectPath: string) => {
       try {
         await this.projectManager.createProjectDirectory(projectPath);
@@ -326,6 +335,16 @@ class KomaeApp {
         return await dialog.showSaveDialog(this.mainWindow!, options);
       } catch (error) {
         console.error('Failed to show save dialog:', error);
+        throw error;
+      }
+    });
+
+    // File System Operations
+    ipcMain.handle('fileSystem:readImageAsDataUrl', async (event, filePath: string) => {
+      try {
+        return await this.fileSystemService.readImageAsDataUrl(filePath);
+      } catch (error) {
+        console.error('Failed to read image as data URL:', error);
         throw error;
       }
     });

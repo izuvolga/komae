@@ -367,6 +367,11 @@ export const useProjectStore = create<ProjectStore>()(
           
           try {
             const filePath = await window.electronAPI.project.save(project);
+            
+            // プロジェクトパスを取得して設定
+            const projectPath = await window.electronAPI.project.getCurrentPath();
+            get().setCurrentProjectPath(projectPath);
+            
             set((state) => {
               state.app.isDirty = false;
               state.app.lastSaved = new Date();
@@ -410,6 +415,10 @@ export const useProjectStore = create<ProjectStore>()(
           try {
             const projectData = await window.electronAPI.project.load(filePath);
             get().setProject(projectData);
+            
+            // プロジェクトパスを取得して設定
+            const projectPath = await window.electronAPI.project.getCurrentPath();
+            get().setCurrentProjectPath(projectPath);
             
             // ローディング状態を解除
             set((state) => { state.app.isLoading = false; });

@@ -162,6 +162,7 @@ export class ProjectManager {
         if (targetPath.endsWith('.komae')) {
           // .komaeファイルの場合は直接保存
           await saveProjectFile(targetPath, projectData);
+          // プロジェクトパスは常に.komaeファイルの親ディレクトリ
           this.currentProjectPath = path.dirname(targetPath);
           actualFilePath = targetPath;
         } else {
@@ -253,11 +254,13 @@ export class ProjectManager {
       // YAMLファイルを読み込み
       const projectData = await loadProjectFile(projectFilePath);
       
-      // プロジェクトパスを設定（ディレクトリの場合はディレクトリパス、ファイルの場合は親ディレクトリ）
+      // プロジェクトパスを設定（.komaeディレクトリパスに統一）
       const stats = await fs.stat(inputPath);
       if (stats.isDirectory()) {
+        // ディレクトリが指定された場合はそのディレクトリをプロジェクトパスとする
         this.currentProjectPath = inputPath;
       } else {
+        // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
       }
       

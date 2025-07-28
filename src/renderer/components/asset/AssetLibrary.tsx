@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
-import type { Asset } from '../../../types/entities';
+import { AssetThumbnail } from './AssetThumbnail';
+import type { Asset, ImageAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
 export const AssetLibrary: React.FC = () => {
@@ -232,7 +233,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
     >
       <div className="asset-thumbnail">
         {asset.type === 'ImageAsset' ? (
-          <div className="image-placeholder">IMG</div>
+          <AssetThumbnail asset={asset as ImageAsset} />
         ) : (
           <div className="text-placeholder">TXT</div>
         )}

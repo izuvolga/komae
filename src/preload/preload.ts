@@ -29,6 +29,9 @@ const electronAPI = {
     
     validateDirectory: (projectPath: string): Promise<boolean> => 
       ipcRenderer.invoke('project:validateDirectory', projectPath),
+      
+    getCurrentPath: (): Promise<string | null> => 
+      ipcRenderer.invoke('project:getCurrentPath'),
   },
 
   // Asset Operations
@@ -50,6 +53,9 @@ const electronAPI = {
     
     showSaveDialog: (options: SaveDialogOptions) => 
       ipcRenderer.invoke('dialog:showSave', options),
+    
+    readImageAsDataUrl: (filePath: string): Promise<string> => 
+      ipcRenderer.invoke('fileSystem:readImageAsDataUrl', filePath),
   },
 
   // System Integration

@@ -58,4 +58,37 @@ export class FileSystemService {
   getFileName(filePath: string): string {
     return path.basename(filePath, path.extname(filePath));
   }
+
+  /**
+   * 画像ファイルをBase64 DataURLとして読み込む
+   */
+  async readImageAsDataUrl(filePath: string): Promise<string> {
+    try {
+      const imageBuffer = await fs.readFile(filePath);
+      const mimeType = this.getMimeType(filePath);
+      const base64Data = imageBuffer.toString('base64');
+      return `data:${mimeType};base64,${base64Data}`;
+    } catch (error) {
+      console.error('Failed to read image file:', error);
+      // フォールバック：1x1透明PNG
+      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    }
+  }
+
+  /**
+   * ファイル拡張子からMIMEタイプを取得
+   */
+  private getMimeType(filePath: string): string {
+    const ext = this.getFileExtension(filePath);
+    switch (ext) {
+      case '.png': return 'image/png';
+      case '.jpg':
+      case '.jpeg': return 'image/jpeg';
+      case '.gif': return 'image/gif';
+      case '.webp': return 'image/webp';
+      case '.svg': return 'image/svg+xml';
+      case '.bmp': return 'image/bmp';
+      default: return 'image/png';
+    }
+  }
 }

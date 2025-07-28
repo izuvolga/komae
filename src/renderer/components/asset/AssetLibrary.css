@@ -132,33 +132,30 @@
   opacity: 0.5;
 }
 
-.asset-thumbnail {
-  width: 32px;
-  height: 32px;
+.asset-item .asset-thumbnail {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  /* AssetThumbnailコンポーネント自体にスタイリングを委ね、ここでは位置のみ指定 */
+}
+
+/* テキストアセット用のプレースホルダー */
+.asset-item .asset-thumbnail .text-placeholder {
+  width: 48px;
+  height: 48px;
   border: 1px solid #ddd;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 8px;
-  flex-shrink: 0;
   background-color: #f5f5f5;
-}
-
-.image-placeholder,
-.text-placeholder {
   font-size: 10px;
-  color: #666;
+  color: #ff9800;
   font-weight: 500;
 }
 
-.image-placeholder {
-  color: #4caf50;
-}
-
-.text-placeholder {
-  color: #ff9800;
-}
+/* 古いスタイルは削除 - AssetThumbnailコンポーネントで管理 */
 
 .asset-info {
   flex: 1;

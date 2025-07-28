@@ -1,6 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { PanelCollapseRightIcon, FitToViewIcon } from '../icons/PanelIcons';
+import { PagePreview } from './PagePreview';
 import './PreviewArea.css';
 
 export const PreviewArea: React.FC = () => {
@@ -244,22 +245,12 @@ export const PreviewArea: React.FC = () => {
               {/* キャンバス背景 */}
               <div className="canvas-background" />
               
-              {/* アセットインスタンスのレンダリング */}
-              {Object.values(currentPageData.asset_instances)
-                .sort((a: any, b: any) => a.z_index - b.z_index)
-                .map((instance: any) => {
-                  const asset = project.assets[instance.asset_id];
-                  if (!asset) return null;
-
-                  return (
-                    <PreviewAssetInstance
-                      key={instance.id}
-                      instance={instance}
-                      asset={asset}
-                      zoomLevel={zoomLevel}
-                    />
-                  );
-                })}
+              {/* SVGベースのページプレビュー */}
+              <PagePreview
+                project={project}
+                page={currentPageData}
+                zoomLevel={zoomLevel}
+              />
             </div>
           </div>
         </div>
@@ -268,45 +259,3 @@ export const PreviewArea: React.FC = () => {
   );
 };
 
-interface PreviewAssetInstanceProps {
-  instance: any;
-  asset: any;
-  zoomLevel: number;
-}
-
-const PreviewAssetInstance: React.FC<PreviewAssetInstanceProps> = ({
-  instance,
-  asset,
-  zoomLevel,
-}) => {
-  const transform = instance.transform || {};
-  const scaleX = transform.scale_x || 1;
-  const scaleY = transform.scale_y || 1;
-  const rotation = transform.rotation || 0;
-  const opacity = instance.opacity || 1;
-
-  const style: React.CSSProperties = {
-    position: 'absolute',
-    left: (asset.default_pos_x || 0) * zoomLevel,
-    top: (asset.default_pos_y || 0) * zoomLevel,
-    transform: `scale(${scaleX * zoomLevel}, ${scaleY * zoomLevel}) rotate(${rotation}deg)`,
-    opacity,
-    zIndex: instance.z_index,
-  };
-
-  return (
-    <div className="preview-asset-instance" style={style}>
-      {asset.type === 'ImageAsset' ? (
-        <div className="preview-image-placeholder">
-          <span>IMG</span>
-          <div className="asset-name">{asset.name}</div>
-        </div>
-      ) : (
-        <div className="preview-text-placeholder">
-          <span>{asset.default_text || 'TEXT'}</span>
-          <div className="asset-name">{asset.name}</div>
-        </div>
-      )}
-    </div>
-  );
-};
