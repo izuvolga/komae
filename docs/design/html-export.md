@@ -53,41 +53,15 @@ Project を HTML として出力すると、おおむね以下のようなコー
       page[0] = "<use href="#background" /><use href="#character1" />"
       page[1] = "<use href="#background" /><use href="#character2" />"
       という内容になる。
-
     -->
   </script>
 
-  <!-- ビューワーの SVG 要素の定義 -->
-  <svg
-    id="{}"
-    width="400"
-    viewBox="0 0 768 1024"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    visibility="hidden"
-  >
-      <defs>
-          <clipPath id="mask-id-circle"><path d="..パス指定"/></clipPath>
-      </defs>
-  
-      <!-- 存在する ImageAsset を宣言しておく -->
-      <g id="assets">
-          <g visibility="hidden">
-              <g id="background" opacity="1">
-                  <image id="image-background" xlink:href="data:image/png;base64,ABCDEFG..." width="768" height="1024" x="0" y="0" clip-path="url(#mask-id-circle)" />
-              </g>
-              <g id="character" opacity="1">
-                  <image id="image-background" xlink:href="data:image/png;base64,ABCDEFG..." width="768" height="1024" x="0" y="0" clip-path="url(#mask-id-circle)" />
-              </g>
-          </g>
-      </g>
-  
-      <!-- JavaScript で id="draw" の内容を描画する (1ページ目) -->
-      <g id="draw">
-          <use href="#background" /><use href="#character1" />
-      </g>
+  <!-- !!! ここに上述の "SVG Structure (svg-structure.md)" の内容を埋め込む !!! -->
+  <svg ... 中略>
+    <g id="draw">
+      <!-- ここにページごとのアセットを動的に挿入する -->
+    </g>
   </svg>
-  <!-- ページ SVG 要素の定義終了 -->
 
 </body>
 </html>
