@@ -12,6 +12,7 @@ import type {
   ExportOptions,
   AppNotification 
 } from '../../types/entities';
+import { getDefaultExportSettings } from '../../utils/exportSettings';
 
 // ページ配列操作のヘルパー関数
 const findPageById = (pages: Page[], pageId: string): Page | undefined => {
@@ -75,7 +76,7 @@ interface ProjectStore {
   // Async Actions
   saveProject: () => Promise<void>;
   loadProject: (filePath: string) => Promise<void>;
-  exportProject: (format: ExportFormat, options?: ExportOptions) => Promise<void>;
+  exportProject: (format: ExportFormat, options?: Partial<ExportOptions>) => Promise<void>;
   importAsset: (filePath: string) => Promise<Asset>;
 }
 
@@ -486,14 +487,22 @@ export const useProjectStore = create<ProjectStore>()(
           }
         },
 
-        exportProject: async (format, options = {}) => {
+        exportProject: async (format, options = {} as Partial<ExportOptions>) => {
           const { project } = get();
           if (!project) return;
 
           set((state) => { state.app.isLoading = true; });
           
           try {
-            await window.electronAPI.project.export(format, options);
+            // デフォルト設定を生成し、オプションをマージ
+            const defaultSettings = getDefaultExportSettings(project);
+            const mergedOptions: ExportOptions = {
+              ...defaultSettings,
+              ...options,
+              format // formatは引数から設定
+            };
+            
+            await window.electronAPI.project.export(format, mergedOptions);
             set((state) => { state.app.isLoading = false; });
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
