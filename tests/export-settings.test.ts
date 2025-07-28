@@ -1,4 +1,4 @@
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect, beforeEach } from '@jest/globals';
 import type { ProjectData, ExportFormat, ExportOptions } from '../src/types/entities';
 
 // エクスポート設定管理機能をインポート（TDDのRED状態を作るため）
@@ -19,7 +19,13 @@ describe('Export Settings Manager', () => {
       size_attrs: {},
     },
     assets: {},
-    pages: []
+    pages: [
+      {
+        id: 'page1',
+        title: 'テストページ1',
+        asset_instances: {}
+      }
+    ]
   };
 
   describe('デフォルト設定の生成', () => {

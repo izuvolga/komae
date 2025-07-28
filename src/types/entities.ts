@@ -166,13 +166,30 @@ export interface ProjectCreateParams {
   template?: string;
 }
 
-export type ExportFormat = 'html' | 'png';
+export type ExportFormat = 'html' | 'svg' | 'png';
+
+export interface HtmlExportOptions {
+  singleFile?: boolean;
+  includeNavigation?: boolean;
+  autoPlay?: boolean;
+}
+
+export interface SvgExportOptions {
+  separateFiles?: boolean;
+  embedImages?: boolean;
+  optimizeSize?: boolean;
+}
 
 export interface ExportOptions {
-  quality?: number;
-  embedAssets?: boolean;
-  includeViewer?: boolean;
-  optimize?: boolean;
+  format: ExportFormat;
+  title: string;
+  outputPath: string;
+  width: number;
+  height: number;
+  quality: number;
+  embedAssets: boolean;
+  htmlOptions?: HtmlExportOptions;
+  svgOptions?: SvgExportOptions;
 }
 
 // ファイルダイアログ用
