@@ -50,6 +50,42 @@ export const resolveAssetPath = (relativePath: string, projectPath: string | nul
 };
 
 /**
+ * プレビュー用に絶対パスを生成する
+ * ドキュメント仕様（svg-structure.md）に従い、アプリ起動中はローカルファイルパスを使用
+ */
+export const getAbsoluteImagePath = (relativePath: string, projectPath: string | null): string => {
+  // 既に絶対パスの場合はそのまま返す
+  if (relativePath.startsWith('/') || relativePath.match(/^[A-Za-z]:/)) {
+    return relativePath;
+  }
+  
+  // プロジェクトパスがない場合は相対パスをそのまま返す
+  if (!projectPath) {
+    console.warn('[getAbsoluteImagePath] No project path provided for relative path:', relativePath);
+    return relativePath;
+  }
+  
+  // resolveAssetPathを使用して絶対パスを生成
+  return resolveAssetPath(relativePath, projectPath);
+};
+
+/**
+ * プレビュー用にカスタムプロトコルURLを生成する
+ * komae-asset://プロトコルを使用してローカルファイルにアクセス
+ */
+export const getCustomProtocolUrl = (relativePath: string, projectPath: string | null): string => {
+  const absolutePath = getAbsoluteImagePath(relativePath, projectPath);
+  
+  // 既にカスタムプロトコルの場合はそのまま返す
+  if (absolutePath.startsWith('komae-asset://')) {
+    return absolutePath;
+  }
+  
+  // 絶対パスをカスタムプロトコルURLに変換
+  return `komae-asset://${absolutePath}`;
+};
+
+/**
  * ファイルパスから画像のBase64 DataURLを生成する
  * RendererプロセスからElectronAPIを通じて画像を読み込む
  */

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, protocol } from 'electron';
 import * as path from 'path';
 import * as os from 'os';
 import { ProjectManager } from './services/ProjectManager';
@@ -21,6 +21,7 @@ class KomaeApp {
     
     this.setupEventHandlers();
     this.setupIPC();
+    this.setupCustomProtocol();
   }
 
   /**
@@ -396,6 +397,46 @@ class KomaeApp {
       } catch (error) {
         console.error('Failed to log performance:', error);
       }
+    });
+  }
+
+  /**
+   * カスタムプロトコルを登録してプレビュー用ローカルファイルアクセスを有効化
+   */
+  private setupCustomProtocol(): void {
+    // アプリ準備完了後にプロトコルを登録
+    app.whenReady().then(() => {
+      protocol.registerFileProtocol('komae-asset', (request, callback) => {
+        try {
+          // URLをデコードして正しいパスを取得
+          let filePath = decodeURIComponent(request.url.substr(13)); // 'komae-asset://' を除去
+          
+          // 余分なスラッシュを除去
+          if (filePath.startsWith('//')) {
+            filePath = filePath.substr(1);
+          }
+          
+          console.debug('[Custom Protocol] Requested file path:', filePath);
+          
+          // セキュリティ: プロジェクトディレクトリ内のファイルのみアクセス許可
+          const currentProjectPath = this.projectManager.getCurrentProjectPath();
+          console.debug('[Custom Protocol] Current project path:', currentProjectPath);
+          
+          if (currentProjectPath && filePath.startsWith(currentProjectPath)) {
+            console.debug('[Custom Protocol] Allowing access to:', filePath);
+            callback({ path: filePath });
+          } else {
+            console.warn('[Custom Protocol] Access denied to:', filePath);
+            console.warn('[Custom Protocol] Project path:', currentProjectPath);
+            callback({ error: -3 }); // ERROR_ABORTED
+          }
+        } catch (error) {
+          console.error('[Custom Protocol] Error processing request:', error);
+          callback({ error: -2 }); // ERROR_FAILED
+        }
+      });
+      
+      console.log('[Custom Protocol] komae-asset:// protocol registered successfully');
     });
   }
 }
