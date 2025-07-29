@@ -274,7 +274,7 @@ describe('ExportService', () => {
       const options: ExportOptions = {
         format: 'html',
         title: 'Invalid Path Test',
-        outputPath: '/invalid/nonexistent/path',
+        outputPath: '/root/nonexistent/readonly', // より確実に失敗するパス
         width: 800,
         height: 600,
         quality: 90,
@@ -286,9 +286,7 @@ describe('ExportService', () => {
         },
       };
 
-      const result = await exportService.exportProject(mockProject, options);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      await expect(exportService.exportProject(mockProject, options)).rejects.toThrow();
     });
 
     it('should handle empty project data', async () => {

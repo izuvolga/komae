@@ -1,4 +1,4 @@
-import type { ProjectData, ImageAsset, AssetInstance, ImageAssetInstance } from '../types/entities';
+import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance } from '../types/entities';
 
 /**
  * 共通のSVG構造生成ロジック
@@ -24,32 +24,41 @@ export function generateSvgStructureCommon(
 
   for (const instance of instances) {
     const asset = project.assets[instance.asset_id];
-    if (!asset || asset.type !== 'ImageAsset') {
+    if (!asset) {
       continue;
     }
 
-    const imageAsset = asset as ImageAsset;
-    
-    // アセット定義を追加（初回のみ）
-    if (!processedAssets.has(asset.id)) {
-      const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
-      const assetDef = generateAssetDefinition(imageAsset, protocolUrl);
-      assetDefinitions.push(assetDef);
-      processedAssets.add(asset.id);
-    }
+    if (asset.type === 'ImageAsset') {
+      const imageAsset = asset as ImageAsset;
+      
+      // アセット定義を追加（初回のみ）
+      if (!processedAssets.has(asset.id)) {
+        const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
+        const assetDef = generateImageAssetDefinition(imageAsset, protocolUrl);
+        assetDefinitions.push(assetDef);
+        processedAssets.add(asset.id);
+      }
 
-    // 使用要素を追加（インスタンスごと）
-    const useElement = generateUseElement(imageAsset, instance);
-    useElements.push(useElement);
+      // 使用要素を追加（インスタンスごと）
+      const useElement = generateUseElement(imageAsset, instance);
+      useElements.push(useElement);
+      
+    } else if (asset.type === 'TextAsset') {
+      const textAsset = asset as TextAsset;
+      
+      // テキストアセットは直接インライン要素として追加
+      const textElement = generateTextElement(textAsset, instance);
+      useElements.push(textElement);
+    }
   }
 
   return { assetDefinitions, useElements };
 }
 
 /**
- * アセット定義を生成する（<defs>内で使用）
+ * 画像アセット定義を生成する（<defs>内で使用）
  */
-function generateAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
+function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
   const x = asset.default_pos_x;
   const y = asset.default_pos_y;
   const width = asset.original_width;
@@ -97,4 +106,37 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   const opacityAttr = instance.opacity !== undefined ? ` opacity="${instance.opacity}"` : '';
   
   return `<use href="#${asset.id}"${transformAttr}${opacityAttr} />`;
+}
+
+/**
+ * テキスト要素を生成する（直接描画用）
+ */
+function generateTextElement(asset: TextAsset, instance: AssetInstance): string {
+  // Transform文字列を構築
+  const transforms = [];
+  
+  // スケール調整
+  if (instance.transform) {
+    const { scale_x, scale_y, rotation } = instance.transform;
+    if (scale_x !== 1.0 || scale_y !== 1.0) {
+      transforms.push(`scale(${scale_x ?? 1.0},${scale_y ?? 1.0})`);
+    }
+    if (rotation !== 0) {
+      transforms.push(`rotate(${rotation ?? 0})`);
+    }
+  }
+  
+  const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
+  const opacityAttr = instance.opacity !== undefined ? ` opacity="${instance.opacity}"` : '';
+  
+  // テキストスタイルを構築
+  const textStyle = `font-family: ${asset.font}; font-size: ${asset.font_size}px; fill: ${asset.color_in}; stroke: ${asset.color_ex}; stroke-width: ${asset.stroke_width}px;`;
+  
+  if (asset.vertical) {
+    // 縦書きテキストの処理
+    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}" writing-mode="tb"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
+  } else {
+    // 横書きテキストの処理
+    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
+  }
 }
