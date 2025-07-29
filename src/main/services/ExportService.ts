@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { getLogger } from '../../utils/logger';
+import { generateSvgStructureCommon } from '../../utils/svgGeneratorCommon';
 import type { ProjectData, ExportOptions, Page, Asset, AssetInstance } from '../../types/entities';
 
 export interface ExportResult {
@@ -193,69 +194,35 @@ export class ExportService {
     const sortedInstances = Object.values(page.asset_instances)
       .sort((a, b) => a.z_index - b.z_index);
 
-    // SVG要素を生成
-    const svgElements: string[] = [];
-
-    for (const instance of sortedInstances) {
-      const asset = project.assets[instance.asset_id];
-      if (!asset) {
-        throw new Error(`Asset not found: ${instance.asset_id}`);
+    // 共通のSVG生成ロジックを使用
+    const { assetDefinitions, useElements } = generateSvgStructureCommon(
+      project, 
+      sortedInstances, 
+      (filePath: string) => {
+        // エクスポート時はfile://プロトコルを使用
+        return `file://${path.resolve(filePath)}`;
       }
+    );
 
-      const svgElement = await this.generateAssetSVGElement(asset, instance);
-      svgElements.push(svgElement);
-    }
-
-    // SVGコンテンツを構築
-    const svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>${page.title}</title>
-  ${svgElements.join('\n  ')}
-</svg>`;
+    // SVGコンテンツを構築（ドキュメント仕様に準拠）
+    const svgContent = [
+      `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">`,
+      `  <title>${page.title}</title>`,
+      `  <defs></defs>`,
+      `  <g id="assets">`,
+      `    <g visibility="hidden">`,
+      ...assetDefinitions.map(def => `      ${def}`),
+      `    </g>`,
+      `  </g>`,
+      `  <g id="draw">`,
+      ...useElements.map(use => `    ${use}`),
+      `  </g>`,
+      `</svg>`
+    ].join('\n');
 
     return svgContent;
   }
 
-  /**
-   * アセットのSVG要素を生成
-   */
-  private async generateAssetSVGElement(asset: Asset, instance: AssetInstance): Promise<string> {
-    const { transform, opacity } = instance;
-    
-    // 変換行列を計算
-    const transforms: string[] = [];
-    
-    if (transform.scale_x !== 1.0 || transform.scale_y !== 1.0) {
-      transforms.push(`scale(${transform.scale_x}, ${transform.scale_y})`);
-    }
-    
-    if (transform.rotation !== 0) {
-      transforms.push(`rotate(${transform.rotation})`);
-    }
-
-    const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-    const opacityAttr = opacity !== 1.0 ? ` opacity="${opacity}"` : '';
-
-    if (asset.type === 'ImageAsset') {
-      // 画像アセットの処理
-      const imageData = await this.loadImageAsBase64(asset.original_file_path);
-      
-      return `<image x="${asset.default_pos_x}" y="${asset.default_pos_y}" width="${asset.original_width}" height="${asset.original_height}" href="${imageData}"${transformAttr}${opacityAttr}/>`;
-      
-    } else if (asset.type === 'TextAsset') {
-      // テキストアセットの処理
-      const textStyle = `font-family: ${asset.font}; font-size: ${asset.font_size}px; fill: ${asset.color_in}; stroke: ${asset.color_ex}; stroke-width: ${asset.stroke_width}px;`;
-      
-      if (asset.vertical) {
-        // 縦書きテキストの処理
-        return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}" writing-mode="tb"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
-      } else {
-        // 横書きテキストの処理
-        return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
-      }
-    }
-
-    throw new Error(`Unsupported asset type: ${(asset as any).type}`);
-  }
 
   /**
    * HTMLコンテンツを生成
@@ -462,29 +429,6 @@ function stopAutoPlay() {
     return Buffer.concat([baseBuffer, padding]);
   }
 
-  /**
-   * 画像をBase64データURLとして読み込み
-   */
-  private async loadImageAsBase64(filePath: string): Promise<string> {
-    try {
-      const imageBuffer = await fs.readFile(filePath);
-      const ext = path.extname(filePath).toLowerCase();
-      
-      let mimeType = 'image/png'; // デフォルト
-      if (ext === '.jpg' || ext === '.jpeg') {
-        mimeType = 'image/jpeg';
-      } else if (ext === '.gif') {
-        mimeType = 'image/gif';
-      } else if (ext === '.svg') {
-        mimeType = 'image/svg+xml';
-      }
-
-      return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
-    } catch (error) {
-      // 画像が見つからない場合はプレースホルダーを返す
-      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTkiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
-    }
-  }
 
   /**
    * ファイル名をサニタイズ
