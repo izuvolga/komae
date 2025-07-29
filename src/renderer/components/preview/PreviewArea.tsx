@@ -40,12 +40,20 @@ export const PreviewArea: React.FC = () => {
         return;
       }
       
-      // 通常のスクロール処理
-      const scrollSpeed = 30;
-      const deltaY = e.deltaY > 0 ? scrollSpeed : -scrollSpeed;
+      // 通常のスクロール処理（縦・横両方対応）
+      const scrollSpeed = 10;
       
-      // ネイティブスクロール位置を更新
-      container.scrollTop += deltaY;
+      // 横スクロール処理（Magic Padの二本指横スワイプ）
+      if (Math.abs(e.deltaX) > 0) {
+        const deltaX = e.deltaX > 0 ? scrollSpeed : -scrollSpeed;
+        container.scrollLeft += deltaX;
+      }
+      
+      // 縦スクロール処理
+      if (Math.abs(e.deltaY) > 0) {
+        const deltaY = e.deltaY > 0 ? scrollSpeed : -scrollSpeed;
+        container.scrollTop += deltaY;
+      }
     };
 
     // マウスパンイベントハンドラー
