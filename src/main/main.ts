@@ -4,6 +4,7 @@ import * as os from 'os';
 import { ProjectManager } from './services/ProjectManager';
 import { FileSystemService } from './services/FileSystemService';
 import { AssetManager } from './services/AssetManager';
+import { ExportService } from './services/ExportService';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
 
@@ -12,12 +13,14 @@ class KomaeApp {
   private projectManager: ProjectManager;
   private fileSystemService: FileSystemService;
   private assetManager: AssetManager;
+  private exportService: ExportService;
   private logger = getLogger();
 
   constructor() {
     this.projectManager = new ProjectManager();
     this.fileSystemService = new FileSystemService();
     this.assetManager = new AssetManager();
+    this.exportService = new ExportService();
     
     this.setupEventHandlers();
     this.setupIPC();
@@ -236,10 +239,29 @@ class KomaeApp {
       }
     });
 
-    ipcMain.handle('project:export', async (event, format: ExportFormat, options: ExportOptions) => {
+    ipcMain.handle('project:export', async (event, projectData: any, format: ExportFormat, options: ExportOptions) => {
       try {
-        return await this.projectManager.exportProject(format, options);
+        if (!projectData) {
+          throw new Error('No project data provided for export');
+        }
+
+        // ExportServiceを使用してエクスポートを実行
+        const result = await this.exportService.exportProject(projectData, options);
+        
+        if (result.success) {
+          await this.logger.logDevelopment('export_success', 'Project export completed successfully', {
+            format: options.format,
+            outputPath: result.outputPath
+          });
+          return result.outputPath;
+        } else {
+          throw new Error(result.error || 'Export failed');
+        }
       } catch (error) {
+        await this.logger.logError('export_failed', error as Error, {
+          format: options.format,
+          title: options.title
+        });
         console.error('Failed to export project:', error);
         throw error;
       }

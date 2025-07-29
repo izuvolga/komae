@@ -21,8 +21,8 @@ const electronAPI = {
     load: (filePath: string): Promise<ProjectData> => 
       ipcRenderer.invoke('project:load', filePath),
     
-    export: (format: ExportFormat, options: ExportOptions): Promise<string> => 
-      ipcRenderer.invoke('project:export', format, options),
+    export: (projectData: any, format: ExportFormat, options: ExportOptions): Promise<string> => 
+      ipcRenderer.invoke('project:export', projectData, format, options),
     
     createDirectory: (projectPath: string): Promise<void> => 
       ipcRenderer.invoke('project:createDirectory', projectPath),

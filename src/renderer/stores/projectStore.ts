@@ -511,7 +511,7 @@ export const useProjectStore = create<ProjectStore>()(
               format // formatは引数から設定
             };
             
-            await window.electronAPI.project.export(format, mergedOptions);
+            await window.electronAPI.project.export(project, format, mergedOptions);
             set((state) => { state.app.isLoading = false; });
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);

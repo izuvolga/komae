@@ -92,13 +92,17 @@ export const MainLayout: React.FC = () => {
         pageCount: project?.pages.length || 0
       });
 
-      // 実際のエクスポート処理を呼び出し（将来実装）
-      // TODO: ExportService を使用して実際のエクスポートを実行
+      // ExportServiceを使用して実際のエクスポートを実行
+      if (!project) {
+        throw new Error('プロジェクトが読み込まれていません');
+      }
+
+      const outputPath = await window.electronAPI.project.export(project, options.format, options);
       
       addNotification({
         type: 'success',
         title: 'エクスポート完了',
-        message: `${options.format.toUpperCase()}形式でのエクスポートが完了しました。`,
+        message: `${options.format.toUpperCase()}形式でのエクスポートが完了しました。\n出力先: ${outputPath}`,
         duration: 5000
       });
 
