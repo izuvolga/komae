@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadImageAsDataUrl, calculateThumbnailSize } from '../../utils/imageUtils';
+import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ImageAsset } from '../../../types/entities';
 import './AssetThumbnail.css';
@@ -15,7 +15,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   maxWidth = 120,
   maxHeight = 80,
 }) => {
-  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [customProtocolUrl, setCustomProtocolUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
@@ -23,19 +23,20 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   useEffect(() => {
     let isMounted = true;
     
-    const loadImage = async () => {
+    const generateProtocolUrl = () => {
       setIsLoading(true);
       setHasError(false);
       
       try {
-        const dataUrl = await loadImageAsDataUrl(asset.original_file_path, currentProjectPath);
+        // カスタムプロトコルURLを生成（非同期処理不要）
+        const protocolUrl = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
         
         if (isMounted) {
-          setImageDataUrl(dataUrl);
+          setCustomProtocolUrl(protocolUrl);
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Failed to load thumbnail:', error);
+        console.error('Failed to generate protocol URL:', error);
         
         if (isMounted) {
           setHasError(true);
@@ -44,7 +45,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       }
     };
 
-    loadImage();
+    generateProtocolUrl();
     
     return () => {
       isMounted = false;
@@ -70,7 +71,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     );
   }
 
-  if (hasError || !imageDataUrl) {
+  if (hasError || !customProtocolUrl) {
     return (
       <div 
         className="asset-thumbnail error"
@@ -90,7 +91,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       style={{ width: maxWidth, height: maxHeight }}
     >
       <img
-        src={imageDataUrl}
+        src={customProtocolUrl}
         alt={asset.name}
         style={{
           width: thumbnailSize.width,
