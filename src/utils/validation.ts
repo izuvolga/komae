@@ -57,6 +57,8 @@ const ImageAssetSchema = z.object({
   original_height: z.number().int().min(1),
   default_pos_x: z.number(),
   default_pos_y: z.number(),
+  default_width: z.number().int().min(1),
+  default_height: z.number().int().min(1),
   default_opacity: z.number().min(0).max(1),
   default_mask: z.tuple([z.number(), z.number(), z.number(), z.number()]),
 });

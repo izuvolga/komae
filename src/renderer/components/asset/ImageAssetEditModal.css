@@ -1,0 +1,277 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal Container */
+.image-asset-edit-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 700px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+/* Modal Content */
+.modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.edit-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Preview Section */
+.preview-section {
+  flex: 0 0 320px;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
+  background-color: #fafbfc;
+}
+
+.image-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.canvas-frame {
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-frame img {
+  pointer-events: none;
+}
+
+/* Parameters Section */
+.parameters-section {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.parameter-group {
+  margin-bottom: 20px;
+}
+
+.parameter-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.parameter-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.2s;
+}
+
+.parameter-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.parameter-input.small {
+  width: 80px;
+}
+
+.parameter-input.readonly {
+  background-color: #f8f9fa;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Position and Size Inputs */
+.position-inputs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.input-with-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-with-label label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  text-transform: none;
+  letter-spacing: normal;
+  min-width: 20px;
+}
+
+/* Opacity Control */
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opacity-slider {
+  flex: 1;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.opacity-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+}
+
+.opacity-value {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Mask Inputs */
+.mask-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mask-row {
+  display: flex;
+  gap: 12px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.cancel-button,
+.save-button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button {
+  background-color: white;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background-color: #f8f9fa;
+  border-color: #bbb;
+}
+
+.save-button {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .image-asset-edit-modal {
+    width: 95vw;
+    height: 95vh;
+  }
+  
+  .edit-layout {
+    flex-direction: column;
+  }
+  
+  .preview-section {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .parameters-section {
+    flex: 1;
+  }
+}

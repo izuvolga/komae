@@ -3,6 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
+import { ImageAssetEditModal } from './ImageAssetEditModal';
 import type { Asset, ImageAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
@@ -12,8 +13,10 @@ export const AssetLibrary: React.FC = () => {
   const selectAssets = useProjectStore((state) => state.selectAssets);
   const importAsset = useProjectStore((state) => state.importAsset);
   const deleteAsset = useProjectStore((state) => state.deleteAsset);
+  const updateAsset = useProjectStore((state) => state.updateAsset);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
+  const [editingAsset, setEditingAsset] = useState<ImageAsset | null>(null);
   const logger = getRendererLogger();
 
   const assetList = Object.values(assets);
@@ -38,6 +41,30 @@ export const AssetLibrary: React.FC = () => {
       // 単一選択
       selectAssets([assetId]);
     }
+  };
+
+  const handleAssetDoubleClick = (asset: Asset) => {
+    logger.logUserInteraction('asset_double_click', 'AssetLibrary', {
+      assetId: asset.id,
+      assetType: asset.type,
+      assetName: asset.name,
+    });
+
+    if (asset.type === 'ImageAsset') {
+      setEditingAsset(asset as ImageAsset);
+    }
+  };
+
+  const handleModalClose = () => {
+    setEditingAsset(null);
+  };
+
+  const handleAssetSave = (updatedAsset: ImageAsset) => {
+    updateAsset(updatedAsset.id, updatedAsset);
+    logger.logUserInteraction('asset_save', 'AssetLibrary', {
+      assetId: updatedAsset.id,
+      assetName: updatedAsset.name,
+    });
   };
 
   const handleImportClick = async () => {
@@ -196,12 +223,23 @@ export const AssetLibrary: React.FC = () => {
               isSelected={selectedAssets.includes(asset.id)}
               isDragged={draggedAsset === asset.id}
               onClick={handleAssetClick}
+              onDoubleClick={handleAssetDoubleClick}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             />
           ))
         )}
       </div>
+
+      {/* ImageAsset編集モーダル */}
+      {editingAsset && (
+        <ImageAssetEditModal
+          asset={editingAsset}
+          isOpen={!!editingAsset}
+          onClose={handleModalClose}
+          onSave={handleAssetSave}
+        />
+      )}
     </div>
   );
 };
@@ -211,6 +249,7 @@ interface AssetItemProps {
   isSelected: boolean;
   isDragged: boolean;
   onClick: (assetId: string, ctrlKey: boolean) => void;
+  onDoubleClick: (asset: Asset) => void;
   onDragStart: (assetId: string) => void;
   onDragEnd: () => void;
 }
@@ -220,6 +259,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
   isSelected,
   isDragged,
   onClick,
+  onDoubleClick,
   onDragStart,
   onDragEnd,
 }) => {
@@ -228,6 +268,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
       className={`asset-item ${isSelected ? 'selected' : ''} ${isDragged ? 'dragged' : ''}`}
       draggable
       onClick={(e) => onClick(asset.id, e.ctrlKey || e.metaKey)}
+      onDoubleClick={() => onDoubleClick(asset)}
       onDragStart={() => onDragStart(asset.id)}
       onDragEnd={onDragEnd}
     >

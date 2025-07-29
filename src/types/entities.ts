@@ -40,6 +40,8 @@ export interface ImageAsset extends BaseAsset {
   original_height: number;
   default_pos_x: number;
   default_pos_y: number;
+  default_width: number;
+  default_height: number;
   default_opacity: number;
   default_mask: [number, number, number, number]; // [left, top, right, bottom]
 }

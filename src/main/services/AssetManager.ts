@@ -163,6 +163,8 @@ export class AssetManager {
       original_height: imageInfo.height,
       default_pos_x: 0,
       default_pos_y: 0,
+      default_width: imageInfo.width,
+      default_height: imageInfo.height,
       default_opacity: 1.0,
       default_mask: [0, 0, imageInfo.width, imageInfo.height],
     };
