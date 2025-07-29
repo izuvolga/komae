@@ -30,8 +30,8 @@ export const PreviewArea: React.FC = () => {
       e.preventDefault();
       e.stopPropagation();
       
-      // ⌘キー（macOS）が押されている場合はズーム処理
-      if (e.metaKey) {
+      // ⌘キーまたはctrlKey（ピンチズーム）が押されている場合はズーム処理
+      if (e.metaKey || e.ctrlKey) {
         const zoomSpeed = 0.1;
         const zoomDirection = e.deltaY > 0 ? -1 : 1; // 上にスクロール = ズームイン
         const newZoomLevel = Math.min(3.0, Math.max(0.1, zoomLevel + (zoomSpeed * zoomDirection)));
