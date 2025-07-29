@@ -1,0 +1,112 @@
+/* PageThumbnail スタイル */
+.page-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.page-thumbnail:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.page-thumbnail:active {
+  transform: translateY(0);
+}
+
+/* ローディング状態 */
+.page-thumbnail.loading {
+  background: #f8f9fa;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e0e0e0;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* エラー状態 */
+.page-thumbnail.error {
+  background: #fff5f5;
+  border-color: #fed7d7;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #e53e3e;
+}
+
+.error-icon {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.error-text {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* サムネイル画像 */
+.page-thumbnail img {
+  border-radius: 3px;
+}
+
+/* EnhancedSpreadsheet との統合 */
+.preview-cell .page-thumbnail {
+  margin: 2px auto;
+}
+
+/* 選択状態 */
+.page-thumbnail.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+  background: #f8f9ff;
+}
+
+/* 小さいサイズ用の調整 */
+.page-thumbnail.small {
+  border-radius: 2px;
+}
+
+.page-thumbnail.small .error-icon {
+  font-size: 12px;
+}
+
+.page-thumbnail.small .error-text {
+  font-size: 8px;
+}
+
+.page-thumbnail.small .spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 1.5px;
+}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { PageThumbnail } from './PageThumbnail';
 import './EnhancedSpreadsheet.css';
+import './PageThumbnail.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
@@ -219,15 +221,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 onClick={() => handlePreviewClick(page.id)}
               >
                 <div className="page-preview">
-                  <div className="preview-mini-canvas">
-                    {/* 簡易プレビュー - 使用されているアセット数を表示 */}
-                    <div className="preview-content">
-                      <div className="page-title">{page.title}</div>
-                      <div className="asset-count">
-                        {Object.keys(page.asset_instances).length}個
-                      </div>
-                    </div>
-                  </div>
+                  <PageThumbnail
+                    project={project}
+                    page={page}
+                    width={80}
+                    height={60}
+                    className="small"
+                    onClick={() => handlePreviewClick(page.id)}
+                  />
                 </div>
               </div>
               
