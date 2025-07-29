@@ -2,9 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
+import { ExportDialog } from '../export/ExportDialog';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
+import type { ExportOptions } from '../../../types/entities';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
@@ -28,6 +30,9 @@ export const MainLayout: React.FC = () => {
   const [isDragging, setIsDragging] = useState<'asset' | 'preview' | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartWidth, setDragStartWidth] = useState(0);
+
+  // エクスポートダイアログの状態
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // アセットライブラリのリサイズ開始
   const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {
@@ -75,6 +80,49 @@ export const MainLayout: React.FC = () => {
   }, [saveProject]);
 
   // テスト用通知ボタン（開発中のみ）
+  // エクスポート処理
+  const handleExport = useCallback(async (options: ExportOptions) => {
+    const logger = getRendererLogger();
+    const tracker = new UIPerformanceTracker('export_project');
+
+    try {
+      await logger.logUserInteraction('export_start', 'MainLayout', {
+        format: options.format,
+        projectName: options.title,
+        pageCount: project?.pages.length || 0
+      });
+
+      // 実際のエクスポート処理を呼び出し（将来実装）
+      // TODO: ExportService を使用して実際のエクスポートを実行
+      
+      addNotification({
+        type: 'success',
+        title: 'エクスポート完了',
+        message: `${options.format.toUpperCase()}形式でのエクスポートが完了しました。`,
+        duration: 5000
+      });
+
+      await tracker.end({ success: true, format: options.format });
+
+    } catch (error) {
+      console.error('エクスポートエラー:', error);
+
+      addNotification({
+        type: 'error',
+        title: 'エクスポート失敗',
+        message: `エクスポート中にエラーが発生しました: ${error}`,
+        duration: 8000
+      });
+
+      await logger.logError('export_failed', error as Error, {
+        format: options.format,
+        projectName: options.title
+      });
+
+      await tracker.end({ success: false, error: String(error) });
+    }
+  }, [project, addNotification]);
+
   const handleTestNotification = useCallback(() => {
     addNotification({
       type: 'success',
@@ -105,10 +153,15 @@ export const MainLayout: React.FC = () => {
       handleCreateProject();
     });
 
+    const unsubscribeExportProject = window.electronAPI.menu.onExportProject(() => {
+      setShowExportDialog(true);
+    });
+
     return () => {
       unsubscribeSave();
       unsubscribeOpen();
       unsubscribeNew();
+      unsubscribeExportProject();
     };
   }, [handleSaveProject]);
 
@@ -413,6 +466,13 @@ export const MainLayout: React.FC = () => {
             <PreviewArea />
           </div>
         )}
+
+        {/* エクスポートダイアログ */}
+        <ExportDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          onExport={handleExport}
+        />
       </div>
     </div>
   );

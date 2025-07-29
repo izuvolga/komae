@@ -138,20 +138,10 @@ class KomaeApp {
           { type: 'separator' },
           {
             label: 'Export Project',
-            submenu: [
-              {
-                label: 'Export to HTML',
-                click: () => {
-                  this.mainWindow?.webContents.send('menu:export-html');
-                },
-              },
-              {
-                label: 'Export to PNG',
-                click: () => {
-                  this.mainWindow?.webContents.send('menu:export-png');
-                },
-              },
-            ],
+            accelerator: 'CmdOrCtrl+E',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:export-project');
+            },
           },
         ],
       },

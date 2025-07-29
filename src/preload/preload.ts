@@ -105,16 +105,10 @@ const electronAPI = {
       return () => ipcRenderer.removeListener('menu:save-project', handler);
     },
     
-    onExportHtml: (callback: () => void) => {
+    onExportProject: (callback: () => void) => {
       const handler = () => callback();
-      ipcRenderer.on('menu:export-html', handler);
-      return () => ipcRenderer.removeListener('menu:export-html', handler);
-    },
-    
-    onExportPng: (callback: () => void) => {
-      const handler = () => callback();
-      ipcRenderer.on('menu:export-png', handler);
-      return () => ipcRenderer.removeListener('menu:export-png', handler);
+      ipcRenderer.on('menu:export-project', handler);
+      return () => ipcRenderer.removeListener('menu:export-project', handler);
     },
     
     onUndo: (callback: () => void) => {
