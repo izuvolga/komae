@@ -191,8 +191,7 @@ export const MainLayout: React.FC = () => {
       // プロジェクトの保存先を選択
       const result = await window.electronAPI.fileSystem.showSaveDialog({
         title: '新しいプロジェクトを作成',
-        defaultPath: '新しいプロジェクト.komae',
-        filters: [{ name: 'Komae Project', extensions: ['komae'] }],
+        defaultPath: '新しいプロジェクト',
       });
 
       if (!result.canceled && result.filePath) {

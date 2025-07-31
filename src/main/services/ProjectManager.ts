@@ -128,6 +128,7 @@ export class ProjectManager {
   async saveProject(projectData: ProjectData, filePath?: string): Promise<string> {
     const tracker = new PerformanceTracker('project_save');
     let targetPath = filePath || this.currentProjectPath;
+    console.log(`Saving project to: ${targetPath}`);
 
     if (!targetPath) {
       const error = new Error('No file path specified for new project');
@@ -150,12 +151,13 @@ export class ProjectManager {
       }
       
       let actualFilePath: string;
-      if (stats && stats.isDirectory() && targetPath.endsWith('.komae')) {
+      if (stats && stats.isDirectory()) {
         // プロジェクトディレクトリの場合
         const dirName = path.basename(targetPath);
-        const projectFilePath = path.join(targetPath, dirName);
+        const projectFilePath = path.join(targetPath, `${dirName}.komae`);
         await saveProjectFile(projectFilePath, projectData);
         this.currentProjectPath = targetPath;
+        console.log(`currentProjectPath = ${this.currentProjectPath}`);
         actualFilePath = projectFilePath;
       } else {
         // ファイルが指定された場合、または存在しないパスの場合
@@ -164,6 +166,10 @@ export class ProjectManager {
           await saveProjectFile(targetPath, projectData);
           // プロジェクトパスは常に.komaeファイルの親ディレクトリ
           this.currentProjectPath = path.dirname(targetPath);
+          console.log(`currentProjectPath = ${this.currentProjectPath}`);
+          this.logger.logDevelopment('project_manager', 'Debug current project path', {
+            currentProjectPath: this.currentProjectPath,
+          });
           actualFilePath = targetPath;
         } else {
           // 従来通りのYAMLファイル保存
@@ -175,6 +181,9 @@ export class ProjectManager {
 
           await fs.writeFile(targetPath, yamlContent, 'utf8');
           this.currentProjectPath = path.dirname(targetPath);
+          this.logger.logDevelopment('project_manager', 'Debug current project path', {
+            currentProjectPath: this.currentProjectPath,
+          });
           actualFilePath = targetPath;
         }
       }
@@ -223,14 +232,12 @@ export class ProjectManager {
       const dirName = path.basename(inputPath);
       
       // 1. [ディレクトリ名].komae を検索
-      if (dirName.endsWith('.komae')) {
-        const primaryCandidate = path.join(inputPath, `${dirName}`);
-        try {
-          await fs.access(primaryCandidate);
-          return primaryCandidate;
-        } catch {
-          // 見つからない場合は次の候補を試す
-        }
+      const primaryCandidate = path.join(inputPath, `${dirName}.komae`);
+      try {
+        await fs.access(primaryCandidate);
+        return primaryCandidate;
+      } catch {
+        // 見つからない場合は次の候補を試す
       }
       
       // 2. project.komae を検索（フォールバック）
@@ -259,9 +266,15 @@ export class ProjectManager {
       if (stats.isDirectory()) {
         // ディレクトリが指定された場合はそのディレクトリをプロジェクトパスとする
         this.currentProjectPath = inputPath;
+        this.logger.logDevelopment('project_manager', 'Debug current project path', {
+          currentProjectPath: this.currentProjectPath,
+        });
       } else {
         // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
+        this.logger.logDevelopment('project_manager', 'Debug current project path', {
+          currentProjectPath: this.currentProjectPath,
+        });
       }
       
       return projectData;

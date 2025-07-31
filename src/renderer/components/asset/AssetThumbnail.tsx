@@ -28,6 +28,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       setHasError(false);
       
       try {
+        console.log('Generating custom protocol URL for asset:', currentProjectPath, asset.original_file_path);
         // カスタムプロトコルURLを生成（非同期処理不要）
         const protocolUrl = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
         

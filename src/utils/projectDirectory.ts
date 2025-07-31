@@ -15,17 +15,12 @@ export class ProjectDirectoryError extends Error {
 
 /**
  * プロジェクトディレクトリを作成する
- * @param projectPath プロジェクトディレクトリのパス (.komae拡張子)
+ * @param projectPath プロジェクトディレクトリのパス
  */
 export async function createProjectDirectory(projectPath: string): Promise<void> {
   // パスの検証
   if (!projectPath || projectPath.trim() === '') {
     throw new ProjectDirectoryError('Invalid project path provided', 'INVALID_PATH');
-  }
-
-  // .komae拡張子の確認
-  if (!projectPath.endsWith('.komae')) {
-    throw new ProjectDirectoryError('Project path must end with .komae extension', 'INVALID_EXTENSION');
   }
 
   // 既存ディレクトリの確認

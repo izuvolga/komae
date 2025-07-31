@@ -28,13 +28,10 @@ export function resolveAssetPath(projectPath: string, assetPath: string): string
   if (!assetPath || assetPath.trim() === '') {
     throw new AssetManagerError('Invalid asset path provided', 'INVALID_PATH');
   }
-  
   // 既に絶対パスの場合はそのまま返す
   if (path.isAbsolute(assetPath)) {
     return assetPath;
   }
-  
-  // 相対パスを絶対パスに変換
   return path.join(projectPath, assetPath);
 }
 

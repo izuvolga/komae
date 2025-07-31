@@ -7,46 +7,28 @@
  * プロジェクトディレクトリをベースとして相対パスを解決
  */
 export const resolveAssetPath = (relativePath: string, projectPath: string | null): string => {
+  console.log('[resolveAssetPath] Resolving asset path:', {
+    relativePath,
+    projectPath
+  });
   if (!projectPath) {
     console.warn('[resolveAssetPath] No project path provided, returning relative path as-is:', relativePath);
     return relativePath;
   }
-  
   // 既に絶対パスの場合はそのまま返す
   if (relativePath.startsWith('/') || relativePath.match(/^[A-Za-z]:/)) {
-    console.debug('[resolveAssetPath] Path is already absolute:', relativePath);
+    console.log('[resolveAssetPath] Path is already absolute:', relativePath);
     return relativePath;
   }
-  
   // プロジェクトディレクトリをベースとして相対パスを解決
   const resolvedPath = `${projectPath}/${relativePath}`;
-  
-  // 重複チェック：パス内に同じディレクトリ名が連続している場合の修正
-  const pathParts = resolvedPath.split('/');
-  const deduplicatedParts: string[] = [];
-  
-  for (let i = 0; i < pathParts.length; i++) {
-    const currentPart = pathParts[i];
-    const prevPart: string | undefined = deduplicatedParts[deduplicatedParts.length - 1];
-    
-    // 同じディレクトリ名が連続している場合はスキップ（ただし空文字列は除く）
-    if (currentPart && currentPart === prevPart && currentPart.includes('.komae')) {
-      console.warn('[resolveAssetPath] Duplicate directory detected, skipping:', currentPart);
-      continue;
-    }
-    
-    deduplicatedParts.push(currentPart);
-  }
-  
-  const finalPath = deduplicatedParts.join('/');
-  console.debug('[resolveAssetPath] Path resolution:', {
+  console.log('[resolveAssetPath] Path resolution:', {
     original: relativePath,
     projectPath,
     resolved: resolvedPath,
-    final: finalPath
+    final: resolvedPath
   });
-  
-  return finalPath;
+  return resolvedPath;
 };
 
 /**
@@ -105,7 +87,7 @@ async function loadImageWithRetry(filePath: string, projectPath: string | null |
     const isRelativePath = !filePath.startsWith('/') && !filePath.match(/^[A-Za-z]:/);
     
     if (isRelativePath && !projectPath && retryCount < maxRetries) {
-      console.debug(`[loadImageAsDataUrl] Relative path without project path, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries + 1}):`, filePath);
+      console.log(`[loadImageAsDataUrl] Relative path without project path, retrying in ${retryDelay}ms (attempt ${retryCount + 1}/${maxRetries + 1}):`, filePath);
       
       // プロジェクトパスの同期を待つ
       await new Promise(resolve => setTimeout(resolve, retryDelay));
@@ -123,7 +105,7 @@ async function loadImageWithRetry(filePath: string, projectPath: string | null |
     // 相対パスの場合は絶対パスに変換
     const resolvedPath = projectPath ? resolveAssetPath(filePath, projectPath) : filePath;
     
-    console.debug('[loadImageAsDataUrl] Loading image:', {
+    console.log('[loadImageAsDataUrl] Loading image:', {
       original: filePath,
       projectPath,
       resolved: resolvedPath,

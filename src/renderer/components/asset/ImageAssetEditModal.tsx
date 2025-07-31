@@ -53,9 +53,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     if (!currentProjectPath) {
       return relativePath;
     }
-    // 相対パスから先頭のスラッシュを削除し、絶対パスを構築
-    const cleanRelativePath = relativePath.replace(/^\/+/, '');
-    return `${currentProjectPath}/${cleanRelativePath}`;
+    return `${currentProjectPath}/${relativePath}`;
   };
 
   // プレビュー表示用のスケールを計算する関数（キャンバス用）

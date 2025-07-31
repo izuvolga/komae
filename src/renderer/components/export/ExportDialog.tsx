@@ -31,7 +31,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
       setProjectName(project.metadata.title || 'untitled-project');
       if (currentProjectPath) {
         // プロジェクトと同じディレクトリをデフォルトの出力先とする
-        const defaultOutput = currentProjectPath.replace(/\.komae$/, '');
+        const defaultOutput = currentProjectPath;
         setOutputPath(defaultOutput);
       }
     }
