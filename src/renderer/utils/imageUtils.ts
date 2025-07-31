@@ -7,10 +7,6 @@
  * プロジェクトディレクトリをベースとして相対パスを解決
  */
 export const resolveAssetPath = (relativePath: string, projectPath: string | null): string => {
-  console.log('[resolveAssetPath] Resolving asset path:', {
-    relativePath,
-    projectPath
-  });
   if (!projectPath) {
     console.warn('[resolveAssetPath] No project path provided, returning relative path as-is:', relativePath);
     return relativePath;
@@ -22,12 +18,6 @@ export const resolveAssetPath = (relativePath: string, projectPath: string | nul
   }
   // プロジェクトディレクトリをベースとして相対パスを解決
   const resolvedPath = `${projectPath}/${relativePath}`;
-  console.log('[resolveAssetPath] Path resolution:', {
-    original: relativePath,
-    projectPath,
-    resolved: resolvedPath,
-    final: resolvedPath
-  });
   return resolvedPath;
 };
 

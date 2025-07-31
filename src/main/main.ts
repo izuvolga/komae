@@ -427,9 +427,7 @@ class KomaeApp {
           if (filePath.startsWith('//')) {
             filePath = filePath.substr(1);
           }
-          
           console.debug('[Custom Protocol] Requested file path:', filePath);
-          
           // セキュリティ: プロジェクトディレクトリ内のファイルのみアクセス許可
           const currentProjectPath = this.projectManager.getCurrentProjectPath();
           console.debug('[Custom Protocol] Current project path:', currentProjectPath);
@@ -447,7 +445,6 @@ class KomaeApp {
           callback({ error: -2 }); // ERROR_FAILED
         }
       });
-      
       console.log('[Custom Protocol] komae-asset:// protocol registered successfully');
     });
   }

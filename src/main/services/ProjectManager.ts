@@ -128,7 +128,6 @@ export class ProjectManager {
   async saveProject(projectData: ProjectData, filePath?: string): Promise<string> {
     const tracker = new PerformanceTracker('project_save');
     let targetPath = filePath || this.currentProjectPath;
-    console.log(`Saving project to: ${targetPath}`);
 
     if (!targetPath) {
       const error = new Error('No file path specified for new project');
@@ -157,7 +156,6 @@ export class ProjectManager {
         const projectFilePath = path.join(targetPath, `${dirName}.komae`);
         await saveProjectFile(projectFilePath, projectData);
         this.currentProjectPath = targetPath;
-        console.log(`currentProjectPath = ${this.currentProjectPath}`);
         actualFilePath = projectFilePath;
       } else {
         // ファイルが指定された場合、または存在しないパスの場合
@@ -166,10 +164,6 @@ export class ProjectManager {
           await saveProjectFile(targetPath, projectData);
           // プロジェクトパスは常に.komaeファイルの親ディレクトリ
           this.currentProjectPath = path.dirname(targetPath);
-          console.log(`currentProjectPath = ${this.currentProjectPath}`);
-          this.logger.logDevelopment('project_manager', 'Debug current project path', {
-            currentProjectPath: this.currentProjectPath,
-          });
           actualFilePath = targetPath;
         } else {
           // 従来通りのYAMLファイル保存
@@ -181,9 +175,6 @@ export class ProjectManager {
 
           await fs.writeFile(targetPath, yamlContent, 'utf8');
           this.currentProjectPath = path.dirname(targetPath);
-          this.logger.logDevelopment('project_manager', 'Debug current project path', {
-            currentProjectPath: this.currentProjectPath,
-          });
           actualFilePath = targetPath;
         }
       }
@@ -261,20 +252,14 @@ export class ProjectManager {
       // YAMLファイルを読み込み
       const projectData = await loadProjectFile(projectFilePath);
       
-      // プロジェクトパスを設定（.komaeディレクトリパスに統一）
+      // プロジェクトパスを設定
       const stats = await fs.stat(inputPath);
       if (stats.isDirectory()) {
         // ディレクトリが指定された場合はそのディレクトリをプロジェクトパスとする
         this.currentProjectPath = inputPath;
-        this.logger.logDevelopment('project_manager', 'Debug current project path', {
-          currentProjectPath: this.currentProjectPath,
-        });
       } else {
         // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
-        this.logger.logDevelopment('project_manager', 'Debug current project path', {
-          currentProjectPath: this.currentProjectPath,
-        });
       }
       
       return projectData;

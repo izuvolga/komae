@@ -238,7 +238,6 @@ export const MainLayout: React.FC = () => {
   const loadProjectFromPath = async (filePath: string) => {
     try {
       await loadProject(filePath);
-      setCurrentProjectPath(filePath);
     } catch (error) {
       console.error('Failed to load project:', error);
     }
