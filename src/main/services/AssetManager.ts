@@ -1,5 +1,7 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import imageSize from 'image-size';
 import { FileSystemService } from './FileSystemService';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
@@ -280,8 +282,21 @@ export class AssetManager {
 
 
   private async getImageInfo(filePath: string): Promise<{ width: number; height: number }> {
-    // TODO: 実際の画像情報を取得する実装
-    // 現在はダミーデータを返す
-    return { width: 800, height: 600 };
+    try {
+      const imageBuffer = fs.readFileSync(filePath);
+      const dimensions = imageSize(imageBuffer);
+      if (dimensions.width && dimensions.height) {
+        return { 
+          width: dimensions.width, 
+          height: dimensions.height 
+        };
+      } else {
+        throw new Error('Unable to determine image dimensions');
+      }
+    } catch (error) {
+      // エラーの場合はデフォルト値を返す
+      console.warn(`Failed to get image dimensions for ${filePath}:`, error);
+      return { width: 800, height: 600 };
+    }
   }
 }

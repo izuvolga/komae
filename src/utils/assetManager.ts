@@ -189,12 +189,6 @@ export function getAssetTypeFromExtension(extension: string): AssetType {
     return 'image';
   }
   
-  // フォントファイル拡張子
-  const fontExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
-  if (fontExtensions.includes(lowerExt)) {
-    return 'font';
-  }
-  
   throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');
 }
 

@@ -51,7 +51,12 @@ export const AssetLibrary: React.FC = () => {
     });
 
     if (asset.type === 'ImageAsset') {
-      setEditingAsset(asset as ImageAsset);
+      let editingAsset = asset as ImageAsset;
+      logger.logUserInteraction('asset_edit_open', 'ImageAsset', {
+        assetId: editingAsset.id,
+        assetName: editingAsset.name,
+      });
+      setEditingAsset(editingAsset);
     }
   };
 
@@ -79,7 +84,6 @@ export const AssetLibrary: React.FC = () => {
         title: 'アセットをインポート',
         filters: [
           { name: '画像ファイル', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'] },
-          { name: 'フォントファイル', extensions: ['ttf', 'otf', 'woff', 'woff2'] },
         ],
         properties: ['openFile', 'multiSelections'],
       });
