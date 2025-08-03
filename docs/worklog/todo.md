@@ -4,7 +4,7 @@
 - [x]: プロジェクト新規作成時にキャンパスサイズを指定できるように（現在は800x600固定）
 
 ## ImageAsset 関連
-- [ ]: SpreadSheet 上の ImageAssetInstance のパラメータ値をプレビューに反映させる
+- [x]: SpreadSheet 上の ImageAssetInstance のパラメータ値をプレビューに反映させる
 - [ ]: ImageAsset 編集画面のDEFAULT SIZE の縦横比を固定するオプション
 - [ ]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
 - [ ]: スプレッドシートセルの編集機能
