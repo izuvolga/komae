@@ -29,10 +29,8 @@ class KomaeApp {
 
   /**
    * プラットフォーム固有のファイルダイアログ設定を取得
-   * 注意: 開発段階のため、macOSでもファイル選択を使用
    */
   private getOpenDialogOptions(): Electron.OpenDialogOptions {
-    // 開発段階: 全プラットフォームでファイル選択を使用
     return {
       title: 'Open Project',
       filters: [
@@ -40,22 +38,6 @@ class KomaeApp {
       ],
       properties: ['openFile'],
     };
-    
-    // 将来のリリース版では以下のコードを使用:
-    // const platform = os.platform();
-    // if (platform === 'darwin') {
-    //   return {
-    //     title: 'Open Project',
-    //     filters: [{ name: 'Komae Project', extensions: ['komae'] }],
-    //     properties: ['openDirectory'],
-    //   };
-    // } else {
-    //   return {
-    //     title: 'Open Project', 
-    //     filters: [{ name: 'Komae Project', extensions: ['komae'] }],
-    //     properties: ['openFile'],
-    //   };
-    // }
   }
 
   private setupEventHandlers(): void {

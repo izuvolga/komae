@@ -67,21 +67,18 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         canvas,
       };
 
-      // プロジェクト保存先を選択するダイアログを表示
-      const saveResult = await window.electronAPI.fileSystem.showSaveDialog({
-        title: 'プロジェクトの保存先を選択',
-        defaultPath: title.trim(),
-        filters: [
-          { name: 'Komae Project Directory', extensions: [''] }
-        ]
+      // プロジェクト保存先ディレクトリを選択するダイアログを表示
+      const saveResult = await window.electronAPI.fileSystem.showOpenDialog({
+        title: `「${title.trim()}」フォルダを作成する親ディレクトリを選択`,
+        properties: ['openDirectory', 'createDirectory']
       });
 
-      if (saveResult.canceled || !saveResult.filePath) {
+      if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
         // キャンセルされた場合はプロジェクト作成をキャンセル
         addNotification({
           type: 'info',
           title: 'プロジェクト作成がキャンセルされました',
-          message: '保存先が選択されませんでした',
+          message: '保存先ディレクトリが選択されませんでした',
           autoClose: true,
           duration: 3000,
         });
@@ -89,8 +86,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         return;
       }
 
-      const projectDir = saveResult.filePath;
+      const parentDir = saveResult.filePaths[0];
       const projectName = title.trim();
+      const projectDir = `${parentDir}/${projectName}`;
       const projectFilePath = `${projectDir}/${projectName}.komae`;
 
       // ElectronAPIを通じてプロジェクトデータを作成
@@ -262,6 +260,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               <div className="settings-info">
                 キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
               </div>
+              {title.trim() && (
+                <div className="settings-info" style={{ marginTop: '8px' }}>
+                  作成される構造:<br />
+                  選択ディレクトリ/{title.trim()}/<br />
+                  　└ {title.trim()}.komae
+                </div>
+              )}
             </div>
           </div>
         </div>
