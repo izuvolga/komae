@@ -1,14 +1,12 @@
 # v0.0 リリースに向けてのTODO
 
 ## プロジェクト管理
-- [ ]: プロジェクト新規作成時にキャンパスサイズを指定できるように（現在は800x600固定）
+- [x]: プロジェクト新規作成時にキャンパスサイズを指定できるように（現在は800x600固定）
 
 ## ImageAsset 関連
-
-- [ ]: ImageAssetInstance のデフォルト値を、ImageAsset の値（DEFAULT SIZE）を初期値として参照する
-- [ ]: Preview Windowで、設定済みの ImageAssetInstance の位置があっていない問題の解消
-- [ ]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
+- [ ]: SpreadSheet 上の ImageAssetInstance のパラメータ値をプレビューに反映させる
 - [ ]: ImageAsset 編集画面のDEFAULT SIZE の縦横比を固定するオプション
+- [ ]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
 - [ ]: スプレッドシートセルの編集機能
 - [ ]: スプレッドシートをダブルクリックして、モーダルを表示、ImageAssetInstance を編集できるようにする（サイズ、z-index、マスク）
 - [ ]: ドラッグ＆ドロップで ImageAsset を追加できるようにする
