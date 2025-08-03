@@ -105,8 +105,8 @@ export function generateSvgStructureCommon(
 function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
   const x = asset.default_pos_x;
   const y = asset.default_pos_y;
-  const width = asset.original_width;
-  const height = asset.original_height;
+  const width = asset.default_width;
+  const height = asset.default_height;
   const opacity = asset.default_opacity ?? 1.0;
   
   return [
@@ -147,8 +147,8 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
     if (rotation !== undefined && rotation !== 0) {
       // 回転の中心点を画像の中心に設定
-      const centerX = asset.default_pos_x + asset.original_width / 2;
-      const centerY = asset.default_pos_y + asset.original_height / 2;
+      const centerX = asset.default_pos_x + asset.default_width / 2;
+      const centerY = asset.default_pos_y + asset.default_height / 2;
       console.log(`Rotation transform for ${asset.id}: rotate(${rotation} ${centerX} ${centerY})`);
       transforms.push(`rotate(${rotation} ${centerX} ${centerY})`);
     }
