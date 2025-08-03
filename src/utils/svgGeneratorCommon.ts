@@ -74,7 +74,6 @@ export function generateSvgStructureCommon(
     if (asset.type === 'ImageAsset') {
       const imageAsset = asset as ImageAsset;
       
-      console.log(`Processing ImageAsset: ${imageAsset.id}, Instance: ${instance.id}, override_pos_x = ${instance.override_pos_x}, override_pos_y = ${instance.override_pos_y}`);
       // アセット定義を追加（初回のみ）
       if (!processedAssets.has(asset.id)) {
         const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
@@ -132,7 +131,6 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     // アセットのデフォルト位置からの差分を計算してtranslateに追加
     const translateX = posX - asset.default_pos_x;
     const translateY = posY - asset.default_pos_y;
-    console.log(`Position override for ${asset.id}: default(${asset.default_pos_x},${asset.default_pos_y}) -> instance(${posX},${posY}) = translate(${translateX},${translateY})`);
     if (translateX !== 0 || translateY !== 0) {
       transforms.push(`translate(${translateX},${translateY})`);
     }
@@ -142,14 +140,12 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   if (instance.transform) {
     const { scale_x, scale_y, rotation } = instance.transform;
     if (scale_x !== undefined && scale_y !== undefined && (scale_x !== 1.0 || scale_y !== 1.0)) {
-      console.log(`Scale transform for ${asset.id}: scale(${scale_x},${scale_y})`);
       transforms.push(`scale(${scale_x},${scale_y})`);
     }
     if (rotation !== undefined && rotation !== 0) {
       // 回転の中心点を画像の中心に設定
       const centerX = asset.default_pos_x + asset.default_width / 2;
       const centerY = asset.default_pos_y + asset.default_height / 2;
-      console.log(`Rotation transform for ${asset.id}: rotate(${rotation} ${centerX} ${centerY})`);
       transforms.push(`rotate(${rotation} ${centerX} ${centerY})`);
     }
   }
@@ -160,14 +156,12 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     const imageInstance = instance as ImageAssetInstance;
     if (imageInstance.override_opacity !== undefined) {
       finalOpacity = imageInstance.override_opacity;
-      console.log(`Opacity override for ${asset.id}: ${finalOpacity}`);
     }
   }
   
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
   const opacityAttr = finalOpacity !== undefined ? ` opacity="${finalOpacity}"` : '';
   
-  console.log(`Generated use element for ${asset.id}: <use href="#${asset.id}"${transformAttr}${opacityAttr} />`);
   return `<use href="#${asset.id}"${transformAttr}${opacityAttr} />`;
 }
 
