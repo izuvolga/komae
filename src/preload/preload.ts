@@ -54,6 +54,9 @@ const electronAPI = {
     showSaveDialog: (options: SaveDialogOptions) => 
       ipcRenderer.invoke('dialog:showSave', options),
     
+    showDirectorySelectDialog: (options: { title?: string }) => 
+      ipcRenderer.invoke('dialog:showDirectorySelect', options),
+    
     readImageAsDataUrl: (filePath: string): Promise<string> => 
       ipcRenderer.invoke('fileSystem:readImageAsDataUrl', filePath),
   },

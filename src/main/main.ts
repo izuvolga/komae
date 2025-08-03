@@ -334,6 +334,20 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('dialog:showDirectorySelect', async (event, options) => {
+      try {
+        const directoryOptions = {
+          title: options.title || 'ディレクトリを選択',
+          properties: ['openDirectory', 'createDirectory'] as const,
+          ...options
+        };
+        return await dialog.showOpenDialog(this.mainWindow!, directoryOptions);
+      } catch (error) {
+        console.error('Failed to show directory select dialog:', error);
+        throw error;
+      }
+    });
+
     // File System Operations
     ipcMain.handle('fileSystem:readImageAsDataUrl', async (event, filePath: string) => {
       try {

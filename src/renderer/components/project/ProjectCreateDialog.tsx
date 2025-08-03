@@ -68,9 +68,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       };
 
       // プロジェクト保存先ディレクトリを選択するダイアログを表示
-      const saveResult = await window.electronAPI.fileSystem.showOpenDialog({
-        title: `「${title.trim()}」フォルダを作成する親ディレクトリを選択`,
-        properties: ['openDirectory', 'createDirectory']
+      const saveResult = await window.electronAPI.fileSystem.showDirectorySelectDialog({
+        title: `「${title.trim()}」フォルダを作成する親ディレクトリを選択`
       });
 
       if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
