@@ -6,7 +6,11 @@ In such cases, they express stories by reusing almost identical illustrations wh
 
 Currently, there is no specialized software to support creating works in this format. Therefore, we aim to create software that supports the creation of such works.
 
-The name "komae" comes from "コマ絵綴り" (sequential panel illustrations).
+The name "komae" comes from "コマ" (koma) and "絵" (e).
+"koma" meaning "panel" in Japanese, which is a common term in manga and comics.
+"e" meaning "picture" or "illustration".
+
+The name reflects the software's purpose of creating illustrated stories with a focus on panels and images, similar to manga but with a unique approach to storytelling through illustrations.
 
 
 ## Project Architecture (Plan)
@@ -67,23 +71,6 @@ npm run dev  # Start development server + Electron app
 - Renderer uses `target: 'web'` for maximum React compatibility
 - Node.js functionality accessed via preload script only
 - Context isolation enabled for security
-
-## Issue Management
-
-**GitHub Issues & gh CLI:**
-- All project tasks and features are managed as GitHub Issues
-- Use `gh` command-line tool for issue operations:
-  ```bash
-  gh issue list                    # List all issues
-  gh issue view <number>           # View specific issue
-  gh issue create --title "..." --body "..."  # Create new issue
-  gh issue edit <number> --body "..."         # Edit issue content
-  gh issue close <number> --comment "..."     # Close with comment
-  ```
-- Issues should be written in English for broader accessibility
-- Use clear titles with appropriate emoji prefixes (🔗, 💾, 🧪, etc.)
-- Include detailed implementation requirements and success criteria
-- Reference related files and dependencies in issue descriptions
 
 ## Documentation and Design
 
