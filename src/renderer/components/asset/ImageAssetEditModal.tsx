@@ -19,6 +19,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const [editedAsset, setEditedAsset] = useState<ImageAsset>(asset);
+  const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
 
   useEffect(() => {
     setEditedAsset(asset);
@@ -37,6 +38,36 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  // 縦横比固定での サイズ変更処理
+  const handleSizeChange = (field: 'default_width' | 'default_height', value: number) => {
+    if (!aspectRatioLocked) {
+      // 縦横比固定が無効の場合は通常の変更
+      handleInputChange(field, value);
+      return;
+    }
+
+    // 縦横比固定が有効の場合
+    const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
+    
+    if (field === 'default_width') {
+      // 幅が変更された場合、高さを自動調整
+      const newHeight = Math.round(value / originalAspectRatio);
+      setEditedAsset(prev => ({
+        ...prev,
+        default_width: value,
+        default_height: newHeight
+      }));
+    } else {
+      // 高さが変更された場合、幅を自動調整
+      const newWidth = Math.round(value * originalAspectRatio);
+      setEditedAsset(prev => ({
+        ...prev,
+        default_width: newWidth,
+        default_height: value
+      }));
+    }
   };
 
   const handleMaskChange = (index: number, value: number) => {
@@ -168,13 +199,28 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
               {/* Default Size (editable) */}
               <div className="parameter-group">
                 <label>Default Size</label>
+                
+                {/* 縦横比固定オプション */}
+                <div className="aspect-ratio-control">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={aspectRatioLocked}
+                      onChange={(e) => setAspectRatioLocked(e.target.checked)}
+                      className="aspect-ratio-checkbox"
+                    />
+                    <span className="checkmark"> </span>
+                    <span>元画像の縦横比</span>
+                  </label>
+                </div>
+                
                 <div className="position-inputs">
                   <div className="input-with-label">
                     <label>W:</label>
                     <input
                       type="number"
                       value={editedAsset.default_width}
-                      onChange={(e) => handleInputChange('default_width', parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleSizeChange('default_width', parseInt(e.target.value) || 0)}
                       className="parameter-input small"
                     />
                   </div>
@@ -183,7 +229,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <input
                       type="number"
                       value={editedAsset.default_height}
-                      onChange={(e) => handleInputChange('default_height', parseInt(e.target.value) || 0)}
+                      onChange={(e) => handleSizeChange('default_height', parseInt(e.target.value) || 0)}
                       className="parameter-input small"
                     />
                   </div>
