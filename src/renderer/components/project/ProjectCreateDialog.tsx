@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import { useProjectStore } from '../../stores/projectStore';
+import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
+import './ProjectCreateDialog.css';
+
+interface ProjectCreateDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+// プリセットのキャンバスサイズ
+const CANVAS_PRESETS = [
+  { name: 'Standard (768x1024)', width: 768, height: 1024 },
+  { name: 'HD Portrait (720x1280)', width: 720, height: 1280 },
+  { name: 'Square (1080x1080)', width: 1080, height: 1080 },
+  { name: 'A4 Portrait (595x842)', width: 595, height: 842 },
+  { name: 'Custom', width: 800, height: 600 }, // カスタム用のデフォルト値
+];
+
+export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const { setProject, addNotification } = useProjectStore();
+  
+  // フォーム状態
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState('0'); // Standard preset
+  const [customWidth, setCustomWidth] = useState(800);
+  const [customHeight, setCustomHeight] = useState(600);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // 現在のキャンバス設定を取得
+  const getCurrentCanvas = (): CanvasConfig => {
+    const presetIndex = parseInt(selectedPreset);
+    if (presetIndex < CANVAS_PRESETS.length - 1) {
+      // プリセット選択
+      const preset = CANVAS_PRESETS[presetIndex];
+      return { width: preset.width, height: preset.height };
+    } else {
+      // カスタム選択
+      return { width: customWidth, height: customHeight };
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!title.trim()) {
+      addNotification({
+        type: 'warning',
+        title: '入力エラー',
+        message: 'プロジェクト名を入力してください',
+        autoClose: true,
+        duration: 3000,
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    
+    try {
+      const canvas = getCurrentCanvas();
+      const params: ProjectCreateParams = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        canvas,
+      };
+
+      // ElectronAPIを通じてプロジェクトを作成
+      const projectData = await window.electronAPI.project.create(params);
+      setProject(projectData);
+
+      addNotification({
+        type: 'success',
+        title: 'プロジェクトが作成されました',
+        message: `「${title}」が正常に作成されました`,
+        autoClose: true,
+        duration: 3000,
+      });
+
+      // フォームをリセット
+      setTitle('');
+      setDescription('');
+      setSelectedPreset('0');
+      setCustomWidth(800);
+      setCustomHeight(600);
+      
+      onClose();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      addNotification({
+        type: 'error',
+        title: 'プロジェクトの作成に失敗しました',
+        message: `エラー: ${message}`,
+        autoClose: false,
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // フォームをリセット
+    setTitle('');
+    setDescription('');
+    setSelectedPreset('0');
+    setCustomWidth(800);
+    setCustomHeight(600);
+    onClose();
+  };
+
+  const isCustomSelected = parseInt(selectedPreset) === CANVAS_PRESETS.length - 1;
+  const currentCanvas = getCurrentCanvas();
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={handleCancel}>
+      <div className="modal-content project-create-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>新規プロジェクト作成</h2>
+          <button 
+            className="modal-close-btn" 
+            onClick={handleCancel}
+            disabled={isCreating}
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <div className="form-section">
+            {/* プロジェクト基本情報 */}
+            <div className="form-field">
+              <label className="form-label required">プロジェクト名</label>
+              <input
+                type="text"
+                className="form-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="私の物語"
+                disabled={isCreating}
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">説明 (オプション)</label>
+              <textarea
+                className="form-textarea"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="キャラクターの日常を描いた作品..."
+                rows={3}
+                disabled={isCreating}
+              />
+            </div>
+
+            <div className="form-divider"></div>
+
+            {/* キャンバス設定 */}
+            <div className="form-field">
+              <label className="form-label">キャンバスサイズ</label>
+              <div className="canvas-presets">
+                {CANVAS_PRESETS.map((preset, index) => (
+                  <label key={index} className="preset-option">
+                    <input
+                      type="radio"
+                      name="canvasPreset"
+                      value={index.toString()}
+                      checked={selectedPreset === index.toString()}
+                      onChange={(e) => setSelectedPreset(e.target.value)}
+                      disabled={isCreating}
+                    />
+                    <span className="preset-label">
+                      <span className="preset-name">{preset.name}</span>
+                      {index < CANVAS_PRESETS.length - 1 && (
+                        <span className="preset-size">
+                          {preset.width} × {preset.height}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* カスタムサイズ設定 */}
+            {isCustomSelected && (
+              <div className="form-field">
+                <div className="custom-size-fields">
+                  <div className="size-field">
+                    <label className="form-label">幅 (px)</label>
+                    <input
+                      type="number"
+                      className="form-input size-input"
+                      value={customWidth}
+                      onChange={(e) => setCustomWidth(Number(e.target.value) || 800)}
+                      min={100}
+                      max={4000}
+                      disabled={isCreating}
+                    />
+                  </div>
+                  <div className="size-field">
+                    <label className="form-label">高さ (px)</label>
+                    <input
+                      type="number"
+                      className="form-input size-input"
+                      value={customHeight}
+                      onChange={(e) => setCustomHeight(Number(e.target.value) || 600)}
+                      min={100}
+                      max={4000}
+                      disabled={isCreating}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 現在の設定確認 */}
+            <div className="settings-preview">
+              <strong>設定確認</strong>
+              <div className="settings-info">
+                キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button 
+            className="btn btn-secondary" 
+            onClick={handleCancel}
+            disabled={isCreating}
+          >
+            キャンセル
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleCreate}
+            disabled={isCreating}
+          >
+            {isCreating ? '作成中...' : '作成'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

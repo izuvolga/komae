@@ -3,6 +3,7 @@ import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { ExportDialog } from '../export/ExportDialog';
+import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
@@ -31,8 +32,9 @@ export const MainLayout: React.FC = () => {
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartWidth, setDragStartWidth] = useState(0);
 
-  // エクスポートダイアログの状態
+  // ダイアログの状態
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
 
   // アセットライブラリのリサイズ開始
   const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {
@@ -154,7 +156,7 @@ export const MainLayout: React.FC = () => {
     });
 
     const unsubscribeNew = window.electronAPI.menu.onNewProject(() => {
-      handleCreateProject();
+      setShowProjectCreateDialog(true);
     });
 
     const unsubscribeExportProject = window.electronAPI.menu.onExportProject(() => {
@@ -186,7 +188,8 @@ export const MainLayout: React.FC = () => {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const handleCreateProject = async () => {
+  // 旧式のプロジェクト作成（ウェルカム画面のボタン用）
+  const handleCreateProjectLegacy = async () => {
     try {
       // プロジェクトの保存先を選択
       const result = await window.electronAPI.fileSystem.showSaveDialog({
@@ -198,7 +201,7 @@ export const MainLayout: React.FC = () => {
         // プロジェクトディレクトリを作成
         await window.electronAPI.project.createDirectory(result.filePath);
         
-        // プロジェクトデータを作成
+        // プロジェクトデータを作成（デフォルトサイズ）
         const projectData = await window.electronAPI.project.create({
           title: 'プロジェクト',
           description: '',
@@ -348,19 +351,32 @@ export const MainLayout: React.FC = () => {
 
   if (!project) {
     return (
-      <div className="main-layout">
-        <div className="welcome-screen">
-          <div className="welcome-content">
-            <h1>Komae</h1>
-            <p>Create illustration collections</p>
-            <div className="welcome-actions">
-              <button className="btn-primary" onClick={handleCreateProject}>新規プロジェクト</button>
-              <button className="btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
-              <button className="btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
+      <>
+        <div className="main-layout">
+          <div className="welcome-screen">
+            <div className="welcome-content">
+              <h1>Komae</h1>
+              <p>Create illustration collections</p>
+              <div className="welcome-actions">
+                <button 
+                  className="btn-primary" 
+                  onClick={() => setShowProjectCreateDialog(true)}
+                >
+                  新規プロジェクト
+                </button>
+                <button className="btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
+                <button className="btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        
+        {/* ウェルカム画面でもダイアログを表示 */}
+        <ProjectCreateDialog
+          isOpen={showProjectCreateDialog}
+          onClose={() => setShowProjectCreateDialog(false)}
+        />
+      </>
     );
   }
 
@@ -469,13 +485,19 @@ export const MainLayout: React.FC = () => {
           </div>
         )}
 
-        {/* エクスポートダイアログ */}
+        {/* ダイアログ群 */}
         <ExportDialog
           isOpen={showExportDialog}
           onClose={() => setShowExportDialog(false)}
           onExport={handleExport}
         />
       </div>
+      
+      {/* プロジェクト作成ダイアログ */}
+      <ProjectCreateDialog
+        isOpen={showProjectCreateDialog}
+        onClose={() => setShowProjectCreateDialog(false)}
+      />
     </div>
   );
 };

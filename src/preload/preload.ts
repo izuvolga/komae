@@ -90,6 +90,7 @@ const electronAPI = {
     onNewProject: (callback: () => void) => {
       const handler = () => callback();
       ipcRenderer.on('menu:new-project', handler);
+      console.log('Registered new project menu listener');
       return () => ipcRenderer.removeListener('menu:new-project', handler);
     },
     
