@@ -26,6 +26,32 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // キャンバスのアスペクト比を保持した最適なサイズを計算
+  const calculateOptimalSize = (maxWidth: number, maxHeight: number) => {
+    const canvasAspectRatio = project.canvas.width / project.canvas.height;
+    const containerAspectRatio = maxWidth / maxHeight;
+    
+    let optimalWidth: number;
+    let optimalHeight: number;
+    
+    if (canvasAspectRatio > containerAspectRatio) {
+      // キャンバスの方が横長 → 幅を最大に
+      optimalWidth = maxWidth;
+      optimalHeight = maxWidth / canvasAspectRatio;
+    } else {
+      // キャンバスの方が縦長 → 高さを最大に
+      optimalHeight = maxHeight;
+      optimalWidth = maxHeight * canvasAspectRatio;
+    }
+    
+    return {
+      width: Math.round(optimalWidth),
+      height: Math.round(optimalHeight)
+    };
+  };
+
+  const optimalSize = calculateOptimalSize(width, height);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -40,11 +66,11 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           return getCustomProtocolUrl(filePath, currentProjectPath);
         });
 
-        // サムネイル用のSVGを組み立て
+        // サムネイル用のSVGを組み立て（最適なサイズを使用）
         const svgContent = [
           `<svg`,
-          `  width="${width}"`,
-          `  height="${height}"`,
+          `  width="${optimalSize.width}"`,
+          `  height="${optimalSize.height}"`,
           `  viewBox="0 0 ${project.canvas.width} ${project.canvas.height}"`,
           `  xmlns="http://www.w3.org/2000/svg"`,
           `  xmlns:xlink="http://www.w3.org/1999/xlink"`,
@@ -80,13 +106,13 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [project, page, width, height, currentProjectPath]);
+  }, [project, page, width, height, currentProjectPath, optimalSize.width, optimalSize.height]);
 
   if (isLoading) {
     return (
       <div 
         className={`page-thumbnail loading ${className}`}
-        style={{ width, height }}
+        style={{ width: optimalSize.width, height: optimalSize.height }}
         onClick={onClick}
       >
         <div className="loading-spinner">
@@ -100,7 +126,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
     return (
       <div 
         className={`page-thumbnail error ${className}`}
-        style={{ width, height }}
+        style={{ width: optimalSize.width, height: optimalSize.height }}
         onClick={onClick}
         title={`エラー: ${error}`}
       >
@@ -115,7 +141,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
   return (
     <div 
       className={`page-thumbnail ${className}`}
-      style={{ width, height }}
+      style={{ width: optimalSize.width, height: optimalSize.height }}
       onClick={onClick}
       title={`${page.title} - クリックして選択`}
       dangerouslySetInnerHTML={{ __html: svgContent }}
