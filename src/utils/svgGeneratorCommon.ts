@@ -31,6 +31,7 @@ export function generateSvgStructureCommon(
     if (asset.type === 'ImageAsset') {
       const imageAsset = asset as ImageAsset;
       
+      console.log(`Processing ImageAsset: ${imageAsset.id}, Instance: ${instance.id}, override_pos_x = ${instance.override_pos_x}, override_pos_y = ${instance.override_pos_y}`);
       // アセット定義を追加（初回のみ）
       if (!processedAssets.has(asset.id)) {
         const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
