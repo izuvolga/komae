@@ -10,11 +10,12 @@ interface ProjectCreateDialogProps {
 
 // プリセットのキャンバスサイズ
 const CANVAS_PRESETS = [
-  { name: 'Standard (768x1024)', width: 768, height: 1024 },
-  { name: 'HD Portrait (720x1280)', width: 720, height: 1280 },
-  { name: 'Square (1080x1080)', width: 1080, height: 1080 },
-  { name: 'A4 Portrait (595x842)', width: 595, height: 842 },
-  { name: 'Custom', width: 800, height: 600 }, // カスタム用のデフォルト値
+  { name: '縦長（3:4）', width: 768, height: 1024 },
+  { name: '縦長（9:16）', width: 720, height: 1280 },
+  { name: '横長（4:3）', width: 1024, height: 768 },
+  { name: '横長（16:9）', width: 1280, height: 720 },
+  { name: 'スクエア', width: 1024, height: 1024 },
+  { name: 'カスタム', width: 800, height: 600 }, // カスタム用のデフォルト値
 ];
 
 export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
