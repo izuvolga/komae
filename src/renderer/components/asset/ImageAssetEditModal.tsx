@@ -20,6 +20,8 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const [editedAsset, setEditedAsset] = useState<ImageAsset>(asset);
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
+  // 一時的な入力値を保持（空文字列対応のため）
+  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setEditedAsset(asset);
@@ -40,11 +42,86 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     }));
   };
 
+  // 数値フィールドの入力変更処理（一時的に文字列を保持）
+  const handleNumericInputChange = (field: keyof ImageAsset, value: string) => {
+    setTempInputValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 数値フィールドのフォーカスアウト処理（数値に変換してAssetに反映）
+  const handleNumericInputBlur = (field: keyof ImageAsset, value: string) => {
+    const numericValue = value === '' ? 0 : (parseInt(value) || 0);
+    setEditedAsset(prev => ({
+      ...prev,
+      [field]: numericValue
+    }));
+    // 一時的な値をクリア
+    setTempInputValues(prev => {
+      const newTemp = { ...prev };
+      delete newTemp[field];
+      return newTemp;
+    });
+  };
+
   // 縦横比固定での サイズ変更処理
-  const handleSizeChange = (field: 'default_width' | 'default_height', value: number) => {
+  const handleSizeChange = (field: 'default_width' | 'default_height', value: string) => {
     if (!aspectRatioLocked) {
       // 縦横比固定が無効の場合は通常の変更
-      handleInputChange(field, value);
+      handleNumericInputChange(field, value);
+      return;
+    }
+
+    // 縦横比固定が有効の場合
+    if (value === '') {
+      // 空白の場合は一時的に保持
+      handleNumericInputChange(field, value);
+    } else {
+      // 数値が入力された場合は自動調整
+      const numericValue = parseInt(value) || 0;
+      const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
+      
+      if (field === 'default_width') {
+        // 幅が変更された場合、高さを自動調整
+        const newHeight = Math.round(numericValue / originalAspectRatio);
+        setEditedAsset(prev => ({
+          ...prev,
+          default_width: numericValue,
+          default_height: newHeight
+        }));
+        // 両方の一時的な値をクリア
+        setTempInputValues(prev => {
+          const newTemp = { ...prev };
+          delete newTemp['default_width'];
+          delete newTemp['default_height'];
+          return newTemp;
+        });
+      } else {
+        // 高さが変更された場合、幅を自動調整
+        const newWidth = Math.round(numericValue * originalAspectRatio);
+        setEditedAsset(prev => ({
+          ...prev,
+          default_width: newWidth,
+          default_height: numericValue
+        }));
+        // 両方の一時的な値をクリア
+        setTempInputValues(prev => {
+          const newTemp = { ...prev };
+          delete newTemp['default_width'];
+          delete newTemp['default_height'];
+          return newTemp;
+        });
+      }
+    }
+  };
+
+  // 縦横比固定でのサイズフィールドのフォーカスアウト処理
+  const handleSizeBlur = (field: 'default_width' | 'default_height', value: string) => {
+    const numericValue = value === '' ? 0 : (parseInt(value) || 0);
+    
+    if (!aspectRatioLocked) {
+      handleNumericInputBlur(field, value);
       return;
     }
 
@@ -52,31 +129,60 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
     
     if (field === 'default_width') {
-      // 幅が変更された場合、高さを自動調整
-      const newHeight = Math.round(value / originalAspectRatio);
+      const newHeight = Math.round(numericValue / originalAspectRatio);
       setEditedAsset(prev => ({
         ...prev,
-        default_width: value,
+        default_width: numericValue,
         default_height: newHeight
       }));
     } else {
-      // 高さが変更された場合、幅を自動調整
-      const newWidth = Math.round(value * originalAspectRatio);
+      const newWidth = Math.round(numericValue * originalAspectRatio);
       setEditedAsset(prev => ({
         ...prev,
         default_width: newWidth,
-        default_height: value
+        default_height: numericValue
       }));
     }
   };
 
-  const handleMaskChange = (index: number, value: number) => {
+  const handleMaskChange = (index: number, value: string) => {
+    setTempInputValues(prev => ({
+      ...prev,
+      [`mask_${index}`]: value
+    }));
+  };
+
+  const handleMaskBlur = (index: number, value: string) => {
+    const numericValue = value === '' ? 0 : (parseInt(value) || 0);
     const newMask = [...editedAsset.default_mask] as [number, number, number, number];
-    newMask[index] = value;
+    newMask[index] = numericValue;
     setEditedAsset(prev => ({
       ...prev,
       default_mask: newMask
     }));
+    // 一時的な値をクリア
+    setTempInputValues(prev => {
+      const newTemp = { ...prev };
+      delete newTemp[`mask_${index}`];
+      return newTemp;
+    });
+  };
+
+  // 表示用の値を取得する関数（一時的な値があればそれを、なければAssetの値を使用）
+  const getDisplayValue = (field: keyof ImageAsset): string | number => {
+    if (tempInputValues[field] !== undefined) {
+      return tempInputValues[field];
+    }
+    return editedAsset[field] as string | number;
+  };
+
+  // マスク値の表示用の値を取得
+  const getMaskDisplayValue = (index: number): string | number => {
+    const tempKey = `mask_${index}`;
+    if (tempInputValues[tempKey] !== undefined) {
+      return tempInputValues[tempKey];
+    }
+    return editedAsset.default_mask[index];
   };
 
   // 絶対パスを生成する関数
@@ -154,8 +260,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>X:</label>
                     <input
                       type="number"
-                      value={editedAsset.default_pos_x}
-                      onChange={(e) => handleInputChange('default_pos_x', parseInt(e.target.value) || 0)}
+                      value={getDisplayValue('default_pos_x')}
+                      onChange={(e) => handleNumericInputChange('default_pos_x', e.target.value)}
+                      onBlur={(e) => handleNumericInputBlur('default_pos_x', e.target.value)}
                       className="parameter-input small"
                     />
                   </div>
@@ -163,8 +270,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>Y:</label>
                     <input
                       type="number"
-                      value={editedAsset.default_pos_y}
-                      onChange={(e) => handleInputChange('default_pos_y', parseInt(e.target.value) || 0)}
+                      value={getDisplayValue('default_pos_y')}
+                      onChange={(e) => handleNumericInputChange('default_pos_y', e.target.value)}
+                      onBlur={(e) => handleNumericInputBlur('default_pos_y', e.target.value)}
                       className="parameter-input small"
                     />
                   </div>
@@ -210,7 +318,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       className="aspect-ratio-checkbox"
                     />
                     <span className="checkmark"> </span>
-                    <span>元画像の縦横比</span>
+                    <span>元画像の縦横比を保持</span>
                   </label>
                 </div>
                 
@@ -219,8 +327,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>W:</label>
                     <input
                       type="number"
-                      value={editedAsset.default_width}
-                      onChange={(e) => handleSizeChange('default_width', parseInt(e.target.value) || 0)}
+                      value={getDisplayValue('default_width')}
+                      onChange={(e) => handleSizeChange('default_width', e.target.value)}
+                      onBlur={(e) => handleSizeBlur('default_width', e.target.value)}
                       className="parameter-input small"
                     />
                   </div>
@@ -228,8 +337,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>H:</label>
                     <input
                       type="number"
-                      value={editedAsset.default_height}
-                      onChange={(e) => handleSizeChange('default_height', parseInt(e.target.value) || 0)}
+                      value={getDisplayValue('default_height')}
+                      onChange={(e) => handleSizeChange('default_height', e.target.value)}
+                      onBlur={(e) => handleSizeBlur('default_height', e.target.value)}
                       className="parameter-input small"
                     />
                   </div>
@@ -262,8 +372,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       <label>Left:</label>
                       <input
                         type="number"
-                        value={editedAsset.default_mask[0]}
-                        onChange={(e) => handleMaskChange(0, parseInt(e.target.value) || 0)}
+                        value={getMaskDisplayValue(0)}
+                        onChange={(e) => handleMaskChange(0, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(0, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
@@ -271,8 +382,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       <label>Top:</label>
                       <input
                         type="number"
-                        value={editedAsset.default_mask[1]}
-                        onChange={(e) => handleMaskChange(1, parseInt(e.target.value) || 0)}
+                        value={getMaskDisplayValue(1)}
+                        onChange={(e) => handleMaskChange(1, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(1, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
@@ -282,8 +394,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       <label>Right:</label>
                       <input
                         type="number"
-                        value={editedAsset.default_mask[2]}
-                        onChange={(e) => handleMaskChange(2, parseInt(e.target.value) || 0)}
+                        value={getMaskDisplayValue(2)}
+                        onChange={(e) => handleMaskChange(2, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(2, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
@@ -291,8 +404,9 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       <label>Bottom:</label>
                       <input
                         type="number"
-                        value={editedAsset.default_mask[3]}
-                        onChange={(e) => handleMaskChange(3, parseInt(e.target.value) || 0)}
+                        value={getMaskDisplayValue(3)}
+                        onChange={(e) => handleMaskChange(3, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(3, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
