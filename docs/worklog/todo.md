@@ -6,6 +6,10 @@
 ## ImageAsset 関連
 - [x]: SpreadSheet 上の ImageAssetInstance のパラメータ値をプレビューに反映させる
 - [ ]: ImageAsset 編集画面のDEFAULT SIZE の縦横比を固定するオプション
+
+ImageAsset 編集のモーダルにおいて @src/renderer/components/asset/ImageAssetEditModal.tsx
+テキストボックス上の値を、テキストボックス横の上下ボタンを押下して更新したら、プレビュー画面（preview-sectionの子要素）にも変更がリアルタイムに反映されるようにできますか。現状、カーソルを外したときのみ、反映がされるようになっています。
+
 - [ ]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
 - [ ]: スプレッドシートセルの編集機能
 - [ ]: スプレッドシートをダブルクリックして、モーダルを表示、ImageAssetInstance を編集できるようにする（サイズ、z-index、マスク）
