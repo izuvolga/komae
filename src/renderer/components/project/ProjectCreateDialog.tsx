@@ -67,16 +67,55 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         canvas,
       };
 
-      // ElectronAPIを通じてプロジェクトを作成
+      // プロジェクト保存先を選択するダイアログを表示
+      const saveResult = await window.electronAPI.fileSystem.showSaveDialog({
+        title: 'プロジェクトの保存先を選択',
+        defaultPath: title.trim(),
+        filters: [
+          { name: 'Komae Project Directory', extensions: [''] }
+        ]
+      });
+
+      if (saveResult.canceled || !saveResult.filePath) {
+        // キャンセルされた場合はプロジェクト作成をキャンセル
+        addNotification({
+          type: 'info',
+          title: 'プロジェクト作成がキャンセルされました',
+          message: '保存先が選択されませんでした',
+          autoClose: true,
+          duration: 3000,
+        });
+        setIsCreating(false);
+        return;
+      }
+
+      const projectDir = saveResult.filePath;
+      const projectName = title.trim();
+      const projectFilePath = `${projectDir}/${projectName}.komae`;
+
+      // ElectronAPIを通じてプロジェクトデータを作成
       const projectData = await window.electronAPI.project.create(params);
+
+      // プロジェクトディレクトリを作成
+      await window.electronAPI.project.createDirectory(projectDir);
+
+      // プロジェクトファイルを保存
+      await window.electronAPI.project.save(projectData, projectFilePath);
+      
+      // プロジェクトをストアに設定
       setProject(projectData);
+
+      // プロジェクトパスを取得して設定
+      const currentProjectPath = await window.electronAPI.project.getCurrentPath();
+      const { setCurrentProjectPath } = useProjectStore.getState();
+      setCurrentProjectPath(currentProjectPath);
 
       addNotification({
         type: 'success',
         title: 'プロジェクトが作成されました',
-        message: `「${title}」が正常に作成されました`,
+        message: `「${projectName}」が ${projectDir} に保存されました`,
         autoClose: true,
-        duration: 3000,
+        duration: 5000,
       });
 
       // フォームをリセット
