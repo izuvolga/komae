@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { generateSvgStructure } from '../../utils/svgGenerator';
+import { generateSvgStructureCommon } from '../../../utils/svgGeneratorCommon';
+import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ProjectData, Page } from '../../../types/entities';
 
@@ -35,7 +36,9 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
 
         // 共通のSVG生成ユーティリティを使用
         const instances = Object.values(page.asset_instances).sort((a, b) => a.z_index - b.z_index);
-        const { assetDefinitions, useElements } = generateSvgStructure(project, instances, currentProjectPath);
+        const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, (filePath: string) => {
+          return getCustomProtocolUrl(filePath, currentProjectPath);
+        });
 
         // サムネイル用のSVGを組み立て
         const svgContent = [

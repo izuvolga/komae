@@ -10,6 +10,49 @@ export interface SvgStructureResult {
 }
 
 /**
+ * 完全なSVG文字列を生成する（PagePreview用）
+ */
+export function generateCompleteSvg(
+  project: ProjectData, 
+  instances: AssetInstance[], 
+  getProtocolUrl: (filePath: string) => string
+): string {
+  const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl);
+  
+  // SVGを組み立て（svg-structure.md仕様に準拠）
+  const svgContent = [
+    `<svg`,
+    `  id="komae-preview"`,
+    `  width="100%"`,
+    `  height="100%"`,
+    `  viewBox="0 0 ${project.canvas.width} ${project.canvas.height}"`,
+    `  xmlns="http://www.w3.org/2000/svg"`,
+    `  xmlns:xlink="http://www.w3.org/1999/xlink"`,
+    `  visibility="visible"`,
+    `>`,
+    `  <defs>`,
+    `    <!-- 存在するImageAssetにあるマスク情報をすべて宣言する -->`,
+    `    <!-- 将来的にマスク機能実装時に追加 -->`,
+    `  </defs>`,
+    ``,
+    `  <!-- 存在するImageAssetをすべて宣言する -->`,
+    `  <g id="assets">`,
+    `    <g visibility="hidden">`,
+    ...assetDefinitions.map(def => `      ${def}`),
+    `    </g>`,
+    `  </g>`,
+    ``,
+    `  <!-- JavaScriptで各pageの内容をid="draw"の中に描画する -->`,
+    `  <g id="draw">`,
+    ...useElements.map(use => `    ${use}`),
+    `  </g>`,
+    `</svg>`,
+  ].join('\n');
+  
+  return svgContent;
+}
+
+/**
  * ドキュメント仕様に従ったSVG構造を生成する
  * svg-structure.mdの仕様に準拠して、アセット定義と使用要素を分離
  */
@@ -81,13 +124,16 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   const transforms = [];
   
   // 位置調整（ImageAssetInstanceのみ対応）
-  if (instance.asset_id && 'override_pos_x' in instance) {
+  if ('override_pos_x' in instance || 'override_pos_y' in instance) {
     const imageInstance = instance as ImageAssetInstance;
     const posX = imageInstance.override_pos_x ?? asset.default_pos_x;
     const posY = imageInstance.override_pos_y ?? asset.default_pos_y;
-    if (posX !== asset.default_pos_x || posY !== asset.default_pos_y) {
-      const translateX = posX - asset.default_pos_x;
-      const translateY = posY - asset.default_pos_y;
+    
+    // アセットのデフォルト位置からの差分を計算してtranslateに追加
+    const translateX = posX - asset.default_pos_x;
+    const translateY = posY - asset.default_pos_y;
+    console.log(`Position override for ${asset.id}: default(${asset.default_pos_x},${asset.default_pos_y}) -> instance(${posX},${posY}) = translate(${translateX},${translateY})`);
+    if (translateX !== 0 || translateY !== 0) {
       transforms.push(`translate(${translateX},${translateY})`);
     }
   }
@@ -95,17 +141,33 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   // スケール調整
   if (instance.transform) {
     const { scale_x, scale_y, rotation } = instance.transform;
-    if (scale_x !== 1.0 || scale_y !== 1.0) {
-      transforms.push(`scale(${scale_x ?? 1.0},${scale_y ?? 1.0})`);
+    if (scale_x !== undefined && scale_y !== undefined && (scale_x !== 1.0 || scale_y !== 1.0)) {
+      console.log(`Scale transform for ${asset.id}: scale(${scale_x},${scale_y})`);
+      transforms.push(`scale(${scale_x},${scale_y})`);
     }
-    if (rotation !== 0) {
-      transforms.push(`rotate(${rotation ?? 0})`);
+    if (rotation !== undefined && rotation !== 0) {
+      // 回転の中心点を画像の中心に設定
+      const centerX = asset.default_pos_x + asset.original_width / 2;
+      const centerY = asset.default_pos_y + asset.original_height / 2;
+      console.log(`Rotation transform for ${asset.id}: rotate(${rotation} ${centerX} ${centerY})`);
+      transforms.push(`rotate(${rotation} ${centerX} ${centerY})`);
+    }
+  }
+  
+  // opacity調整（ImageAssetInstanceの override_opacity を優先）
+  let finalOpacity = instance.opacity;
+  if ('override_opacity' in instance) {
+    const imageInstance = instance as ImageAssetInstance;
+    if (imageInstance.override_opacity !== undefined) {
+      finalOpacity = imageInstance.override_opacity;
+      console.log(`Opacity override for ${asset.id}: ${finalOpacity}`);
     }
   }
   
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-  const opacityAttr = instance.opacity !== undefined ? ` opacity="${instance.opacity}"` : '';
+  const opacityAttr = finalOpacity !== undefined ? ` opacity="${finalOpacity}"` : '';
   
+  console.log(`Generated use element for ${asset.id}: <use href="#${asset.id}"${transformAttr}${opacityAttr} />`);
   return `<use href="#${asset.id}"${transformAttr}${opacityAttr} />`;
 }
 
