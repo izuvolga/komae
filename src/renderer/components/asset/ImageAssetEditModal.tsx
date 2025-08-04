@@ -185,6 +185,15 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     return editedAsset.default_mask[index];
   };
 
+  // プレビュー用の数値を取得（一時的な値も数値として扱う）
+  const getPreviewValue = (field: keyof ImageAsset): number => {
+    if (tempInputValues[field] !== undefined) {
+      const tempValue = tempInputValues[field];
+      return tempValue === '' ? 0 : (parseInt(tempValue) || 0);
+    }
+    return editedAsset[field] as number;
+  };
+
   // 絶対パスを生成する関数
   const getAbsoluteImagePath = (relativePath: string): string => {
     if (!currentProjectPath) {
@@ -228,10 +237,10 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     alt={editedAsset.name}
                     style={{
                       position: 'absolute',
-                      left: (editedAsset.default_pos_x * calculateCanvasPreviewScale()),
-                      top: (editedAsset.default_pos_y * calculateCanvasPreviewScale()),
-                      width: (editedAsset.default_width * calculateCanvasPreviewScale()),
-                      height: (editedAsset.default_height * calculateCanvasPreviewScale()),
+                      left: (getPreviewValue('default_pos_x') * calculateCanvasPreviewScale()),
+                      top: (getPreviewValue('default_pos_y') * calculateCanvasPreviewScale()),
+                      width: (getPreviewValue('default_width') * calculateCanvasPreviewScale()),
+                      height: (getPreviewValue('default_height') * calculateCanvasPreviewScale()),
                       opacity: editedAsset.default_opacity
                     }}
                   />
