@@ -6,9 +6,11 @@
 ## ImageAsset 関連
 - [x]: SpreadSheet 上の ImageAssetInstance のパラメータ値をプレビューに反映させる
 - [x]: ImageAsset 編集画面のDEFAULT SIZE の縦横比を固定するオプション
-- [ ]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
+- [x]: ImageAsset 編集画面のプレビュー上でマウスで編集できるようにする
+- [ ]: ImageAsset 編集画面のマスク範囲もマウスで編集できるようにする
+- [ ]: Assset Window 上で ImageAsset を右クリックしたら、メニューを表示して、そこから編集画面を開けるようにする
 - [ ]: スプレッドシートセルの編集機能
-- [ ]: スプレッドシートをダブルクリックして、モーダルを表示、ImageAssetInstance を編集できるようにする（サイズ、z-index、マスク）
+- [ ]: スプレッドシートをダブルクリックして、モーダルを表示、ImageAssetInstance を編集できるようにする（ImageAsset 編集画面と同様の画面だが、z-indexも追加で編集できるようになっている）
 - [ ]: Asset Window 上に画像ファイルをドラッグ＆ドロップすれば ImageAsset を追加できるようにする
 - [ ]: 画像アセットのみで正常な HTML のエクスポートをできるようにする
 
