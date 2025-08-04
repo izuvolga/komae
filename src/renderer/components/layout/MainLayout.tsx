@@ -266,7 +266,7 @@ export const MainLayout: React.FC = () => {
           default_pos_x: 50 + (i * 30),
           default_pos_y: 50 + (i * 20),
           default_opacity: 1.0,
-          default_mask: [0, 0, 300 + (i * 20), 400 + (i * 30)] as [number, number, number, number],
+          default_mask: [[0, 0], [300 + (i * 20), 0], [300 + (i * 20), 400 + (i * 30)], [0, 400 + (i * 30)]] as [[number, number], [number, number], [number, number], [number, number]],
         };
       } else {
         // テキストアセット10個

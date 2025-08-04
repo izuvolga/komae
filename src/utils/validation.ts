@@ -28,7 +28,7 @@ const ImageAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_pos_x: z.number().optional(),
   override_pos_y: z.number().optional(),
   override_opacity: z.number().min(0).max(1).optional(),
-  override_mask: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+  override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
 // TextAssetInstance スキーマ
@@ -60,7 +60,7 @@ const ImageAssetSchema = z.object({
   default_width: z.number().int().min(1),
   default_height: z.number().int().min(1),
   default_opacity: z.number().min(0).max(1),
-  default_mask: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+  default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]),
 });
 
 // TextAsset スキーマ

@@ -9,8 +9,10 @@ export const mockImageAsset: Asset = {
   original_height: 400,
   default_pos_x: 100,
   default_pos_y: 150,
+  default_width: 300,
+  default_height: 400,
   default_opacity: 1.0,
-  default_mask: [0, 0, 300, 400],
+  default_mask: [[0, 0], [300, 0], [300, 400], [0, 400]],
 };
 
 export const mockTextAsset: Asset = {

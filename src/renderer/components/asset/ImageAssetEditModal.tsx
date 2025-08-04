@@ -156,17 +156,21 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     }
   };
 
-  const handleMaskChange = (index: number, value: string) => {
+  const handleMaskChange = (pointIndex: number, coordIndex: number, value: string) => {
     setTempInputValues(prev => ({
       ...prev,
-      [`mask_${index}`]: value
+      [`mask_${pointIndex}_${coordIndex}`]: value
     }));
   };
 
-  const handleMaskBlur = (index: number, value: string) => {
+  const handleMaskBlur = (pointIndex: number, coordIndex: number, value: string) => {
     const numericValue = value === '' ? 0 : (parseInt(value) || 0);
-    const newMask = [...editedAsset.default_mask] as [number, number, number, number];
-    newMask[index] = numericValue;
+    const newMask = editedAsset.default_mask.map((point, i) => 
+      i === pointIndex ? 
+        point.map((coord, j) => j === coordIndex ? numericValue : coord) as [number, number] :
+        point
+    ) as [[number, number], [number, number], [number, number], [number, number]];
+    
     setEditedAsset(prev => ({
       ...prev,
       default_mask: newMask
@@ -174,7 +178,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     // 一時的な値をクリア
     setTempInputValues(prev => {
       const newTemp = { ...prev };
-      delete newTemp[`mask_${index}`];
+      delete newTemp[`mask_${pointIndex}_${coordIndex}`];
       return newTemp;
     });
   };
@@ -188,12 +192,12 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   };
 
   // マスク値の表示用の値を取得
-  const getMaskDisplayValue = (index: number): string | number => {
-    const tempKey = `mask_${index}`;
+  const getMaskDisplayValue = (pointIndex: number, coordIndex: number): string | number => {
+    const tempKey = `mask_${pointIndex}_${coordIndex}`;
     if (tempInputValues[tempKey] !== undefined) {
       return tempInputValues[tempKey];
     }
-    return editedAsset.default_mask[index];
+    return editedAsset.default_mask[pointIndex][coordIndex];
   };
 
   // プレビュー用の数値を取得（一時的な値も数値として扱う）
@@ -394,48 +398,92 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
 
               {/* Default Mask */}
               <div className="parameter-group">
-                <label>Default Mask</label>
+                <label>Default Mask (4点座標)</label>
                 <div className="mask-inputs">
                   <div className="mask-row">
                     <div className="input-with-label">
-                      <label>Left:</label>
+                      <label>P1 X:</label>
                       <input
                         type="number"
-                        value={getMaskDisplayValue(0)}
-                        onChange={(e) => handleMaskChange(0, e.target.value)}
-                        onBlur={(e) => handleMaskBlur(0, e.target.value)}
+                        value={getMaskDisplayValue(0, 0)}
+                        onChange={(e) => handleMaskChange(0, 0, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(0, 0, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
                     <div className="input-with-label">
-                      <label>Top:</label>
+                      <label>P1 Y:</label>
                       <input
                         type="number"
-                        value={getMaskDisplayValue(1)}
-                        onChange={(e) => handleMaskChange(1, e.target.value)}
-                        onBlur={(e) => handleMaskBlur(1, e.target.value)}
+                        value={getMaskDisplayValue(0, 1)}
+                        onChange={(e) => handleMaskChange(0, 1, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(0, 1, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
                   </div>
                   <div className="mask-row">
                     <div className="input-with-label">
-                      <label>Right:</label>
+                      <label>P2 X:</label>
                       <input
                         type="number"
-                        value={getMaskDisplayValue(2)}
-                        onChange={(e) => handleMaskChange(2, e.target.value)}
-                        onBlur={(e) => handleMaskBlur(2, e.target.value)}
+                        value={getMaskDisplayValue(1, 0)}
+                        onChange={(e) => handleMaskChange(1, 0, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(1, 0, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>
                     <div className="input-with-label">
-                      <label>Bottom:</label>
+                      <label>P2 Y:</label>
                       <input
                         type="number"
-                        value={getMaskDisplayValue(3)}
-                        onChange={(e) => handleMaskChange(3, e.target.value)}
-                        onBlur={(e) => handleMaskBlur(3, e.target.value)}
+                        value={getMaskDisplayValue(1, 1)}
+                        onChange={(e) => handleMaskChange(1, 1, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(1, 1, e.target.value)}
+                        className="parameter-input small"
+                      />
+                    </div>
+                  </div>
+                  <div className="mask-row">
+                    <div className="input-with-label">
+                      <label>P3 X:</label>
+                      <input
+                        type="number"
+                        value={getMaskDisplayValue(2, 0)}
+                        onChange={(e) => handleMaskChange(2, 0, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(2, 0, e.target.value)}
+                        className="parameter-input small"
+                      />
+                    </div>
+                    <div className="input-with-label">
+                      <label>P3 Y:</label>
+                      <input
+                        type="number"
+                        value={getMaskDisplayValue(2, 1)}
+                        onChange={(e) => handleMaskChange(2, 1, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(2, 1, e.target.value)}
+                        className="parameter-input small"
+                      />
+                    </div>
+                  </div>
+                  <div className="mask-row">
+                    <div className="input-with-label">
+                      <label>P4 X:</label>
+                      <input
+                        type="number"
+                        value={getMaskDisplayValue(3, 0)}
+                        onChange={(e) => handleMaskChange(3, 0, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(3, 0, e.target.value)}
+                        className="parameter-input small"
+                      />
+                    </div>
+                    <div className="input-with-label">
+                      <label>P4 Y:</label>
+                      <input
+                        type="number"
+                        value={getMaskDisplayValue(3, 1)}
+                        onChange={(e) => handleMaskChange(3, 1, e.target.value)}
+                        onBlur={(e) => handleMaskBlur(3, 1, e.target.value)}
                         className="parameter-input small"
                       />
                     </div>

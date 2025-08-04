@@ -54,7 +54,7 @@ original_height: 元画像の高さ
 default_pos_x: デフォルトのX座標
 default_pos_y: デフォルトのY座標
 default_opacity: デフォルトの不透明度（0.0〜1.0）
-default_mask: デフォルトのマスク情報で、4つの整数値（左、上、右、下）の配列
+default_mask: デフォルトのマスク情報で、4点の値の配列。それぞれの値は (x, y) 座標のタプル。4点を囲んだ矩形範囲が表示される。
 ```
 
 ### TextAsset

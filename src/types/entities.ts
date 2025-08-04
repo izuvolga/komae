@@ -43,7 +43,7 @@ export interface ImageAsset extends BaseAsset {
   default_width: number;
   default_height: number;
   default_opacity: number;
-  default_mask: [number, number, number, number]; // [left, top, right, bottom]
+  default_mask: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標
 }
 
 export interface TextAsset extends BaseAsset {
@@ -82,7 +82,7 @@ export interface ImageAssetInstance extends BaseAssetInstance {
   override_pos_x?: number;
   override_pos_y?: number;
   override_opacity?: number;
-  override_mask?: [number, number, number, number];
+  override_mask?: [[number, number], [number, number], [number, number], [number, number]];
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {

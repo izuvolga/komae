@@ -16,7 +16,7 @@ describe('HTML Export - 単一ファイル出力', () => {
     default_pos_x: 0,
     default_pos_y: 0,
     default_opacity: 1.0,
-    default_mask: [0, 0, 800, 600],
+    default_mask: [[0, 0], [800, 0], [800, 600], [0, 600]],
   };
 
   const mockImageAsset2: ImageAsset = {
@@ -29,7 +29,7 @@ describe('HTML Export - 単一ファイル出力', () => {
     default_pos_x: 300,
     default_pos_y: 200,
     default_opacity: 1.0,
-    default_mask: [0, 0, 200, 300],
+    default_mask: [[0, 0], [200, 0], [200, 300], [0, 300]],
   };
 
   const mockPage1: Page = {

@@ -45,7 +45,7 @@ describe('ExportService', () => {
           default_pos_x: 100,
           default_pos_y: 50,
           default_opacity: 1.0,
-          default_mask: [0, 0, 400, 300],
+          default_mask: [[0, 0], [400, 0], [400, 300], [0, 300]],
         },
         'test-text-1': {
           id: 'test-text-1',
