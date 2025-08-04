@@ -78,13 +78,13 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
       // 空白の場合は一時的に保持
       handleNumericInputChange(field, value);
     } else {
-      // 数値が入力された場合は自動調整
-      const numericValue = parseInt(value) || 0;
+      // 数値が入力された場合は自動調整（最小値1を保証）
+      const numericValue = Math.max(1, parseInt(value) || 1);
       const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
       
       if (field === 'default_width') {
         // 幅が変更された場合、高さを自動調整
-        const newHeight = Math.round(numericValue / originalAspectRatio);
+        const newHeight = Math.max(1, Math.round(numericValue / originalAspectRatio));
         setEditedAsset(prev => ({
           ...prev,
           default_width: numericValue,
@@ -99,7 +99,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
         });
       } else {
         // 高さが変更された場合、幅を自動調整
-        const newWidth = Math.round(numericValue * originalAspectRatio);
+        const newWidth = Math.max(1, Math.round(numericValue * originalAspectRatio));
         setEditedAsset(prev => ({
           ...prev,
           default_width: newWidth,
@@ -118,10 +118,21 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
 
   // 縦横比固定でのサイズフィールドのフォーカスアウト処理
   const handleSizeBlur = (field: 'default_width' | 'default_height', value: string) => {
-    const numericValue = value === '' ? 0 : (parseInt(value) || 0);
+    // サイズフィールドは最小値1を保証
+    const numericValue = Math.max(1, value === '' ? 1 : (parseInt(value) || 1));
     
     if (!aspectRatioLocked) {
-      handleNumericInputBlur(field, value);
+      // 縦横比固定が無効の場合は通常のblur処理だが、最小値1を保証
+      setEditedAsset(prev => ({
+        ...prev,
+        [field]: numericValue
+      }));
+      // 一時的な値をクリア
+      setTempInputValues(prev => {
+        const newTemp = { ...prev };
+        delete newTemp[field];
+        return newTemp;
+      });
       return;
     }
 
@@ -129,14 +140,14 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
     
     if (field === 'default_width') {
-      const newHeight = Math.round(numericValue / originalAspectRatio);
+      const newHeight = Math.max(1, Math.round(numericValue / originalAspectRatio));
       setEditedAsset(prev => ({
         ...prev,
         default_width: numericValue,
         default_height: newHeight
       }));
     } else {
-      const newWidth = Math.round(numericValue * originalAspectRatio);
+      const newWidth = Math.max(1, Math.round(numericValue * originalAspectRatio));
       setEditedAsset(prev => ({
         ...prev,
         default_width: newWidth,
@@ -189,7 +200,14 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   const getPreviewValue = (field: keyof ImageAsset): number => {
     if (tempInputValues[field] !== undefined) {
       const tempValue = tempInputValues[field];
-      return tempValue === '' ? 0 : (parseInt(tempValue) || 0);
+      const numericValue = tempValue === '' ? 0 : (parseInt(tempValue) || 0);
+      
+      // サイズフィールドは最小値1を保証
+      if (field === 'default_width' || field === 'default_height') {
+        return Math.max(1, numericValue);
+      }
+      
+      return numericValue;
     }
     return editedAsset[field] as number;
   };
@@ -336,6 +354,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>W:</label>
                     <input
                       type="number"
+                      min="1"
                       value={getDisplayValue('default_width')}
                       onChange={(e) => handleSizeChange('default_width', e.target.value)}
                       onBlur={(e) => handleSizeBlur('default_width', e.target.value)}
@@ -346,6 +365,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     <label>H:</label>
                     <input
                       type="number"
+                      min="1"
                       value={getDisplayValue('default_height')}
                       onChange={(e) => handleSizeChange('default_height', e.target.value)}
                       onBlur={(e) => handleSizeBlur('default_height', e.target.value)}
