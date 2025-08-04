@@ -50,6 +50,157 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     }
   };
 
+  // プレビュー上でのマウス操作関連の状態
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+
+  // マウスドラッグによる位置変更（画像内部のクリック）
+  const handleImageMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // キャンバスフレームの境界を取得
+    const canvasRect = document.querySelector('.canvas-frame')?.getBoundingClientRect();
+    if (!canvasRect) return;
+    
+    setIsDragging(true);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({
+      x: getPreviewValue('default_pos_x'),
+      y: getPreviewValue('default_pos_y'),
+      width: getPreviewValue('default_width'),
+      height: getPreviewValue('default_height')
+    });
+  };
+
+  // リサイズハンドルのマウスダウン
+  const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({
+      x: getPreviewValue('default_pos_x'),
+      y: getPreviewValue('default_pos_y'),
+      width: getPreviewValue('default_width'),
+      height: getPreviewValue('default_height')
+    });
+  };
+
+  // マウス移動処理
+  const handleMouseMove = (e: MouseEvent) => {
+    const scale = calculateCanvasPreviewScale();
+    
+    if (isDragging) {
+      // マウスの移動量をキャンバス座標系に変換
+      const deltaX = (e.clientX - dragStartPos.x) / scale;
+      const deltaY = (e.clientY - dragStartPos.y) / scale;
+      
+      // 新しい位置を計算（キャンバス境界内に制限）
+      const newX = Math.max(0, Math.min(project.canvas.width - dragStartValues.width, dragStartValues.x + deltaX));
+      const newY = Math.max(0, Math.min(project.canvas.height - dragStartValues.height, dragStartValues.y + deltaY));
+      
+      setEditedAsset(prev => ({
+        ...prev,
+        default_pos_x: Math.round(newX),
+        default_pos_y: Math.round(newY)
+      }));
+    } else if (isResizing && resizeHandle) {
+      const deltaX = (e.clientX - dragStartPos.x) / scale;
+      const deltaY = (e.clientY - dragStartPos.y) / scale;
+      
+      let newX = dragStartValues.x;
+      let newY = dragStartValues.y;
+      let newWidth = dragStartValues.width;
+      let newHeight = dragStartValues.height;
+      
+      // リサイズハンドルに応じた処理
+      switch (resizeHandle) {
+        case 'top-left':
+          newX = Math.max(0, dragStartValues.x + deltaX);
+          newY = Math.max(0, dragStartValues.y + deltaY);
+          newWidth = Math.max(1, dragStartValues.width - deltaX);
+          newHeight = Math.max(1, dragStartValues.height - deltaY);
+          break;
+        case 'top-right':
+          newY = Math.max(0, dragStartValues.y + deltaY);
+          newWidth = Math.max(1, dragStartValues.width + deltaX);
+          newHeight = Math.max(1, dragStartValues.height - deltaY);
+          break;
+        case 'bottom-left':
+          newX = Math.max(0, dragStartValues.x + deltaX);
+          newWidth = Math.max(1, dragStartValues.width - deltaX);
+          newHeight = Math.max(1, dragStartValues.height + deltaY);
+          break;
+        case 'bottom-right':
+          newWidth = Math.max(1, dragStartValues.width + deltaX);
+          newHeight = Math.max(1, dragStartValues.height + deltaY);
+          break;
+      }
+      
+      // キャンバス境界チェック
+      if (newX + newWidth > project.canvas.width) {
+        newWidth = project.canvas.width - newX;
+      }
+      if (newY + newHeight > project.canvas.height) {
+        newHeight = project.canvas.height - newY;
+      }
+      
+      if (aspectRatioLocked) {
+        const originalAspectRatio = editedAsset.original_width / editedAsset.original_height;
+        
+        if (resizeHandle === 'top-left' || resizeHandle === 'bottom-right') {
+          // 縦横比を保持してリサイズ
+          const newAspectWidth = Math.round(newHeight * originalAspectRatio);
+          const newAspectHeight = Math.round(newWidth / originalAspectRatio);
+          
+          if (Math.abs(newWidth - newAspectWidth) < Math.abs(newHeight - newAspectHeight)) {
+            newWidth = newAspectWidth;
+          } else {
+            newHeight = newAspectHeight;
+          }
+        }
+      }
+      
+      setEditedAsset(prev => ({
+        ...prev,
+        default_pos_x: Math.round(newX),
+        default_pos_y: Math.round(newY),
+        default_width: Math.max(1, Math.round(newWidth)),
+        default_height: Math.max(1, Math.round(newHeight))
+      }));
+    }
+  };
+
+  // マウスアップ処理
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
+  };
+
+  // グローバルマウスイベントの設定
+  React.useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = isDragging ? 'grabbing' : (isResizing ? `${resizeHandle?.replace('-', '')}-resize` : 'default');
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, aspectRatioLocked]);
+
   // 数値フィールドの入力変更処理（一時的に文字列を保持）
   const handleNumericInputChange = (field: keyof ImageAsset, value: string) => {
     setTempInputValues(prev => ({
@@ -262,18 +413,78 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     overflow: 'hidden'
                   }}
                 >
+                  {/* 画像 */}
                   <img
                     src={`komae-asset://${getAbsoluteImagePath(editedAsset.original_file_path)}`}
                     alt={editedAsset.name}
+                    onMouseDown={handleImageMouseDown}
                     style={{
                       position: 'absolute',
                       left: (getPreviewValue('default_pos_x') * calculateCanvasPreviewScale()),
                       top: (getPreviewValue('default_pos_y') * calculateCanvasPreviewScale()),
                       width: (getPreviewValue('default_width') * calculateCanvasPreviewScale()),
                       height: (getPreviewValue('default_height') * calculateCanvasPreviewScale()),
-                      opacity: editedAsset.default_opacity
+                      opacity: editedAsset.default_opacity,
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                      userSelect: 'none',
+                      zIndex: 1
                     }}
                   />
+                  
+                  {/* 選択矩形 */}
+                  <div
+                    onMouseDown={handleImageMouseDown}
+                    style={{
+                      position: 'absolute',
+                      left: (getPreviewValue('default_pos_x') * calculateCanvasPreviewScale()),
+                      top: (getPreviewValue('default_pos_y') * calculateCanvasPreviewScale()),
+                      width: (getPreviewValue('default_width') * calculateCanvasPreviewScale()),
+                      height: (getPreviewValue('default_height') * calculateCanvasPreviewScale()),
+                      border: '2px solid #007bff',
+                      pointerEvents: 'all',
+                      boxSizing: 'border-box',
+                      zIndex: 2,
+                      cursor: isDragging ? 'grabbing' : 'grab'
+                    }}
+                  />
+                  
+                  {/* リサイズハンドル */}
+                  {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((handle) => {
+                    const scale = calculateCanvasPreviewScale();
+                    const left = getPreviewValue('default_pos_x') * scale;
+                    const top = getPreviewValue('default_pos_y') * scale;
+                    const width = getPreviewValue('default_width') * scale;
+                    const height = getPreviewValue('default_height') * scale;
+                    
+                    let handleLeft = left;
+                    let handleTop = top;
+                    
+                    if (handle.includes('right')) {
+                      handleLeft = left + width;
+                    }
+                    if (handle.includes('bottom')) {
+                      handleTop = top + height;
+                    }
+                    
+                    return (
+                      <div
+                        key={handle}
+                        onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                        style={{
+                          position: 'absolute',
+                          left: handleLeft - 4,
+                          top: handleTop - 4,
+                          width: 8,
+                          height: 8,
+                          backgroundColor: '#007bff',
+                          border: '1px solid #fff',
+                          borderRadius: '50%',
+                          cursor: `${handle.replace('-', '')}-resize`,
+                          zIndex: 10
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             </div>
