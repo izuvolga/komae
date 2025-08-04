@@ -22,6 +22,8 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   // 一時的な入力値を保持（空文字列対応のため）
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
+  // マスク編集モード
+  const [maskEditMode, setMaskEditMode] = useState(false);
 
   useEffect(() => {
     setEditedAsset(asset);
@@ -57,8 +59,16 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
 
+  // マスク編集専用の状態
+  const [maskDragPointIndex, setMaskDragPointIndex] = useState<number | null>(null);
+  const [maskDragStartPos, setMaskDragStartPos] = useState({ x: 0, y: 0 });
+  const [maskDragStartValues, setMaskDragStartValues] = useState<[[number, number], [number, number], [number, number], [number, number]]>([[0, 0], [0, 0], [0, 0], [0, 0]]);
+
   // マウスドラッグによる位置変更（画像内部のクリック）
   const handleImageMouseDown = (e: React.MouseEvent) => {
+    // マスク編集モードでは無効化
+    if (maskEditMode) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -76,8 +86,21 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     });
   };
 
+  // マスク編集用：マスクポイントのマウスダウン
+  const handleMaskPointMouseDown = (e: React.MouseEvent, pointIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setMaskDragPointIndex(pointIndex);
+    setMaskDragStartPos({ x: e.clientX, y: e.clientY });
+    setMaskDragStartValues([...editedAsset.default_mask]);
+  };
+
   // リサイズハンドルのマウスダウン
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    // マスク編集モードでは無効化
+    if (maskEditMode) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -95,6 +118,24 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
   // マウス移動処理
   const handleMouseMove = (e: MouseEvent) => {
     const scale = calculateCanvasPreviewScale();
+    
+    // マスク編集モードでのマスクポイントドラッグ
+    if (maskDragPointIndex !== null) {
+      const deltaX = (e.clientX - maskDragStartPos.x) / scale;
+      const deltaY = (e.clientY - maskDragStartPos.y) / scale;
+      
+      const newMask = [...maskDragStartValues] as [[number, number], [number, number], [number, number], [number, number]];
+      const newX = Math.max(0, Math.min(project.canvas.width, maskDragStartValues[maskDragPointIndex][0] + deltaX));
+      const newY = Math.max(0, Math.min(project.canvas.height, maskDragStartValues[maskDragPointIndex][1] + deltaY));
+      
+      newMask[maskDragPointIndex] = [Math.round(newX), Math.round(newY)];
+      
+      setEditedAsset(prev => ({
+        ...prev,
+        default_mask: newMask
+      }));
+      return;
+    }
     
     if (isDragging) {
       // マウスの移動量をキャンバス座標系に変換
@@ -182,14 +223,21 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     setIsDragging(false);
     setIsResizing(false);
     setResizeHandle(null);
+    setMaskDragPointIndex(null);
   };
 
   // グローバルマウスイベントの設定
   React.useEffect(() => {
-    if (isDragging || isResizing) {
+    if (isDragging || isResizing || maskDragPointIndex !== null) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = isDragging ? 'grabbing' : (isResizing ? `${resizeHandle?.replace('-', '')}-resize` : 'default');
+      
+      let cursor = 'default';
+      if (isDragging) cursor = 'grabbing';
+      else if (isResizing) cursor = `${resizeHandle?.replace('-', '')}-resize`;
+      else if (maskDragPointIndex !== null) cursor = 'crosshair';
+      
+      document.body.style.cursor = cursor;
       document.body.style.userSelect = 'none';
       
       return () => {
@@ -199,7 +247,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
         document.body.style.userSelect = '';
       };
     }
-  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, aspectRatioLocked]);
+  }, [isDragging, isResizing, maskDragPointIndex, dragStartPos, dragStartValues, resizeHandle, aspectRatioLocked, maskDragStartPos, maskDragStartValues]);
 
   // 数値フィールドの入力変更処理（一時的に文字列を保持）
   const handleNumericInputChange = (field: keyof ImageAsset, value: string) => {
@@ -403,7 +451,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
             <div className="preview-section">
               <div className="image-preview-container">
                 <div 
-                  className="canvas-frame"
+                  className={`canvas-frame ${maskEditMode ? 'mask-edit-mode' : ''}`}
                   style={{
                     width: project.canvas.width * calculateCanvasPreviewScale(),
                     height: project.canvas.height * calculateCanvasPreviewScale(),
@@ -432,24 +480,27 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                   />
                   
                   {/* 選択矩形 */}
-                  <div
-                    onMouseDown={handleImageMouseDown}
-                    style={{
-                      position: 'absolute',
-                      left: (getPreviewValue('default_pos_x') * calculateCanvasPreviewScale()),
-                      top: (getPreviewValue('default_pos_y') * calculateCanvasPreviewScale()),
-                      width: (getPreviewValue('default_width') * calculateCanvasPreviewScale()),
-                      height: (getPreviewValue('default_height') * calculateCanvasPreviewScale()),
-                      border: '2px solid #007bff',
-                      pointerEvents: 'all',
-                      boxSizing: 'border-box',
-                      zIndex: 2,
-                      cursor: isDragging ? 'grabbing' : 'grab'
-                    }}
-                  />
+                  {!maskEditMode && (
+                    <div
+                      onMouseDown={handleImageMouseDown}
+                      className="selection-rect"
+                      style={{
+                        position: 'absolute',
+                        left: (getPreviewValue('default_pos_x') * calculateCanvasPreviewScale()),
+                        top: (getPreviewValue('default_pos_y') * calculateCanvasPreviewScale()),
+                        width: (getPreviewValue('default_width') * calculateCanvasPreviewScale()),
+                        height: (getPreviewValue('default_height') * calculateCanvasPreviewScale()),
+                        border: '2px solid #007bff',
+                        pointerEvents: 'all',
+                        boxSizing: 'border-box',
+                        zIndex: 2,
+                        cursor: isDragging ? 'grabbing' : 'grab'
+                      }}
+                    />
+                  )}
                   
                   {/* リサイズハンドル */}
-                  {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((handle) => {
+                  {!maskEditMode && ['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((handle) => {
                     const scale = calculateCanvasPreviewScale();
                     const left = getPreviewValue('default_pos_x') * scale;
                     const top = getPreviewValue('default_pos_y') * scale;
@@ -485,26 +536,80 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       />
                     );
                   })}
+                  
+                  {/* マスク編集モード時のマスクポイント */}
+                  {maskEditMode && editedAsset.default_mask.map((point, index) => {
+                    const scale = calculateCanvasPreviewScale();
+                    const pointX = point[0] * scale;
+                    const pointY = point[1] * scale;
+                    
+                    return (
+                      <div
+                        key={`mask-point-${index}`}
+                        onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
+                        style={{
+                          position: 'absolute',
+                          left: pointX - 6,
+                          top: pointY - 6,
+                          width: 12,
+                          height: 12,
+                          backgroundColor: '#ff6b6b',
+                          border: '2px solid #fff',
+                          borderRadius: '50%',
+                          cursor: 'crosshair',
+                          zIndex: 20
+                        }}
+                        title={`マスクポイント ${index + 1}: (${Math.round(point[0])}, ${Math.round(point[1])})`}
+                      />
+                    );
+                  })}
+                  
+                  {/* マスク編集モード時のマスク矩形表示 */}
+                  {maskEditMode && editedAsset.default_mask.length === 4 && (
+                    <svg
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 15
+                      }}
+                    >
+                      <polygon
+                        points={editedAsset.default_mask.map(point => 
+                          `${point[0] * calculateCanvasPreviewScale()},${point[1] * calculateCanvasPreviewScale()}`
+                        ).join(' ')}
+                        fill="rgba(255, 107, 107, 0.1)"
+                        stroke="#ff6b6b"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                    </svg>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* 右側：Parameters */}
             <div className="parameters-section">
-              {/* Asset Name */}
-              <div className="parameter-group">
-                <label>アセット名</label>
-                <input
-                  type="text"
-                  value={editedAsset.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="parameter-input"
-                />
-              </div>
+              {!maskEditMode && (
+                <>
+                  {/* Asset Name */}
+                  <div className="parameter-group">
+                    <label>アセット名</label>
+                    <input
+                      type="text"
+                      value={editedAsset.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="parameter-input"
+                    />
+                  </div>
 
-              {/* Default Position */}
-              <div className="parameter-group">
+                  {/* Default Position */}
+                  <div className="parameter-group">
                 <label>Default Position</label>
                 <div className="position-inputs">
                   <div className="input-with-label">
@@ -619,11 +724,37 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                   <span className="opacity-value">{editedAsset.default_opacity.toFixed(1)}</span>
                 </div>
               </div>
+                </>
+              )}
 
               {/* Default Mask */}
               <div className="parameter-group">
-                <label>Default Mask (4点座標)</label>
-                <div className="mask-inputs">
+                {!maskEditMode ? (
+                  <>
+                    <label>Default Mask</label>
+                    <button
+                      type="button"
+                      onClick={() => setMaskEditMode(true)}
+                      className="edit-mask-button"
+                    >
+                      Edit Mask 🖊️
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <label>Default Mask (4点座標)</label>
+                    <button
+                      type="button"
+                      onClick={() => setMaskEditMode(false)}
+                      className="back-button"
+                    >
+                      ← Back to Basic Edit
+                    </button>
+                  </>
+                )}
+                
+                {maskEditMode && (
+                  <div className="mask-inputs">
                   <div className="mask-row">
                     <div className="input-with-label">
                       <label>P1 X:</label>
@@ -721,6 +852,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                     </div>
                   </div>
                 </div>
+                )}
               </div>
             </div>
           </div>

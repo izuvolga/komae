@@ -247,6 +247,54 @@
   font-weight: 500;
 }
 
+/* Mask Edit Mode Styles */
+.edit-mask-button {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  margin-top: 8px;
+}
+
+.edit-mask-button:hover {
+  background-color: #218838;
+}
+
+.back-button {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  margin-top: 4px;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+}
+
+/* Mask edit mode specific preview styles */
+.canvas-frame.mask-edit-mode {
+  cursor: crosshair;
+}
+
+.canvas-frame.mask-edit-mode .selection-rect {
+  display: none;
+}
+
+.canvas-frame.mask-edit-mode .resize-handle {
+  display: none;
+}
+
 /* Mask Inputs */
 .mask-inputs {
   display: flex;
