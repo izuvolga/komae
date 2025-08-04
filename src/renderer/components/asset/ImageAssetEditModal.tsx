@@ -42,6 +42,14 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
     }));
   };
 
+  // Enterキーでフォーカスを外すハンドラー
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
   // 数値フィールドの入力変更処理（一時的に文字列を保持）
   const handleNumericInputChange = (field: keyof ImageAsset, value: string) => {
     setTempInputValues(prev => ({
@@ -279,6 +287,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                   type="text"
                   value={editedAsset.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="parameter-input"
                 />
               </div>
@@ -294,6 +303,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       value={getDisplayValue('default_pos_x')}
                       onChange={(e) => handleNumericInputChange('default_pos_x', e.target.value)}
                       onBlur={(e) => handleNumericInputBlur('default_pos_x', e.target.value)}
+                      onKeyDown={handleKeyDown}
                       className="parameter-input small"
                     />
                   </div>
@@ -304,6 +314,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       value={getDisplayValue('default_pos_y')}
                       onChange={(e) => handleNumericInputChange('default_pos_y', e.target.value)}
                       onBlur={(e) => handleNumericInputBlur('default_pos_y', e.target.value)}
+                      onKeyDown={handleKeyDown}
                       className="parameter-input small"
                     />
                   </div>
@@ -362,6 +373,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       value={getDisplayValue('default_width')}
                       onChange={(e) => handleSizeChange('default_width', e.target.value)}
                       onBlur={(e) => handleSizeBlur('default_width', e.target.value)}
+                      onKeyDown={handleKeyDown}
                       className="parameter-input small"
                     />
                   </div>
@@ -373,6 +385,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                       value={getDisplayValue('default_height')}
                       onChange={(e) => handleSizeChange('default_height', e.target.value)}
                       onBlur={(e) => handleSizeBlur('default_height', e.target.value)}
+                      onKeyDown={handleKeyDown}
                       className="parameter-input small"
                     />
                   </div>
@@ -408,6 +421,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(0, 0)}
                         onChange={(e) => handleMaskChange(0, 0, e.target.value)}
                         onBlur={(e) => handleMaskBlur(0, 0, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -418,6 +432,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(0, 1)}
                         onChange={(e) => handleMaskChange(0, 1, e.target.value)}
                         onBlur={(e) => handleMaskBlur(0, 1, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -430,6 +445,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(1, 0)}
                         onChange={(e) => handleMaskChange(1, 0, e.target.value)}
                         onBlur={(e) => handleMaskBlur(1, 0, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -440,6 +456,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(1, 1)}
                         onChange={(e) => handleMaskChange(1, 1, e.target.value)}
                         onBlur={(e) => handleMaskBlur(1, 1, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -452,6 +469,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(2, 0)}
                         onChange={(e) => handleMaskChange(2, 0, e.target.value)}
                         onBlur={(e) => handleMaskBlur(2, 0, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -462,6 +480,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(2, 1)}
                         onChange={(e) => handleMaskChange(2, 1, e.target.value)}
                         onBlur={(e) => handleMaskBlur(2, 1, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -474,6 +493,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(3, 0)}
                         onChange={(e) => handleMaskChange(3, 0, e.target.value)}
                         onBlur={(e) => handleMaskBlur(3, 0, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
@@ -484,6 +504,7 @@ export const ImageAssetEditModal: React.FC<ImageAssetEditModalProps> = ({
                         value={getMaskDisplayValue(3, 1)}
                         onChange={(e) => handleMaskChange(3, 1, e.target.value)}
                         onBlur={(e) => handleMaskBlur(3, 1, e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="parameter-input small"
                       />
                     </div>
