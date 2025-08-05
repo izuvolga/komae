@@ -178,6 +178,52 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     onClose();
   };
 
+  // 数値入力バリデーション関数
+  const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
+    // 数字、-、.のみを許可
+    let sanitized = value.replace(/[^0-9\-\.]/g, '');
+    
+    // 負数を許可しない場合は-を除去
+    if (!allowNegative) {
+      sanitized = sanitized.replace(/-/g, '');
+    }
+    
+    // 最初の文字以外の-を除去
+    if (sanitized.indexOf('-') > 0) {
+      sanitized = sanitized.replace(/-/g, '');
+      if (allowNegative && value.startsWith('-')) {
+        sanitized = '-' + sanitized;
+      }
+    }
+    
+    // 複数の.を除去（最初の.のみ残す）
+    const dotIndex = sanitized.indexOf('.');
+    if (dotIndex !== -1) {
+      const beforeDot = sanitized.substring(0, dotIndex);
+      const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
+      // 小数点以下2位まで制限
+      const limitedAfterDot = afterDot.substring(0, 2);
+      sanitized = beforeDot + '.' + limitedAfterDot;
+    }
+    
+    return sanitized;
+  };
+
+  // 数値バリデーション（フォーカスアウト時）
+  const validateAndSetValue = (value: string, minValue: number = 0, fallbackValue: number): number => {
+    if (value === '' || value === '-' || value === '.') {
+      return fallbackValue;
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < minValue) {
+      return fallbackValue;
+    }
+    
+    // 小数点以下2位まで丸める
+    return Math.round(numValue * 100) / 100;
+  };
+
   // Enterキーでフォーカスを外すハンドラー
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -464,8 +510,44 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div className="size-display">
                     <span>Original Width/Height</span>
                     <div className="size-inputs">
-                      <input type="number" value={asset.original_width} readOnly className="readonly-input" />
-                      <input type="number" value={asset.original_height} readOnly className="readonly-input" />
+                      <input 
+                        type="text" 
+                        value={tempInputValues.original_width ?? asset.original_width.toString()}
+                        onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, false);
+                          setTempInputValues(prev => ({ ...prev, original_width: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, 0.01, asset.original_width);
+                          setEditedAsset(prev => ({ ...prev, original_width: validated }));
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp.original_width;
+                            return newTemp;
+                          });
+                        }}
+                        onKeyDown={handleKeyDown}
+                        className="readonly-input"
+                      />
+                      <input 
+                        type="text" 
+                        value={tempInputValues.original_height ?? asset.original_height.toString()}
+                        onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, false);
+                          setTempInputValues(prev => ({ ...prev, original_height: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, 0.01, asset.original_height);
+                          setEditedAsset(prev => ({ ...prev, original_height: validated }));
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp.original_height;
+                            return newTemp;
+                          });
+                        }}
+                        onKeyDown={handleKeyDown}
+                        className="readonly-input"
+                      />
                     </div>
                   </div>
                 </div>
@@ -478,30 +560,58 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <span>{mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}</span>
                   <div className="size-inputs">
                     <input
-                      type="number"
-                      value={currentSize.width}
+                      type="text"
+                      value={tempInputValues.default_width ?? currentSize.width.toString()}
                       onChange={(e) => {
-                        const newWidth = parseFloat(e.target.value) || 0;
+                        const sanitized = validateNumericInput(e.target.value, true);
+                        setTempInputValues(prev => ({ ...prev, default_width: sanitized }));
+                      }}
+                      onBlur={(e) => {
+                        const currentValue = mode === 'instance' && editedInstance 
+                          ? (editedInstance.override_width ?? asset.default_width)
+                          : editedAsset.default_width;
+                        const validated = validateAndSetValue(e.target.value, 0.01, currentValue);
+                        
                         if (aspectRatioLocked) {
-                          const aspectRatio = currentSize.width / currentSize.height;
-                          updateSize(newWidth, newWidth / aspectRatio);
+                          const aspectRatio = asset.original_width / asset.original_height;
+                          updateSize(validated, validated / aspectRatio);
                         } else {
-                          updateSize(newWidth, currentSize.height);
+                          updateSize(validated, currentSize.height);
                         }
+                        
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.default_width;
+                          return newTemp;
+                        });
                       }}
                       onKeyDown={handleKeyDown}
                     />
                     <input
-                      type="number"
-                      value={currentSize.height}
+                      type="text"
+                      value={tempInputValues.default_height ?? currentSize.height.toString()}
                       onChange={(e) => {
-                        const newHeight = parseFloat(e.target.value) || 0;
+                        const sanitized = validateNumericInput(e.target.value, true);
+                        setTempInputValues(prev => ({ ...prev, default_height: sanitized }));
+                      }}
+                      onBlur={(e) => {
+                        const currentValue = mode === 'instance' && editedInstance 
+                          ? (editedInstance.override_height ?? asset.default_height)
+                          : editedAsset.default_height;
+                        const validated = validateAndSetValue(e.target.value, 0.01, currentValue);
+                        
                         if (aspectRatioLocked) {
-                          const aspectRatio = currentSize.width / currentSize.height;
-                          updateSize(newHeight * aspectRatio, newHeight);
+                          const aspectRatio = asset.original_width / asset.original_height;
+                          updateSize(validated * aspectRatio, validated);
                         } else {
-                          updateSize(currentSize.width, newHeight);
+                          updateSize(currentSize.width, validated);
                         }
+                        
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.default_height;
+                          return newTemp;
+                        });
                       }}
                       onKeyDown={handleKeyDown}
                     />
@@ -527,15 +637,45 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <span>{mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}</span>
                   <div className="size-inputs">
                     <input
-                      type="number"
-                      value={currentPos.x}
-                      onChange={(e) => updatePosition(parseFloat(e.target.value) || 0, currentPos.y)}
+                      type="text"
+                      value={tempInputValues.pos_x ?? currentPos.x.toString()}
+                      onChange={(e) => {
+                        const sanitized = validateNumericInput(e.target.value, true);
+                        setTempInputValues(prev => ({ ...prev, pos_x: sanitized }));
+                      }}
+                      onBlur={(e) => {
+                        const currentValue = mode === 'instance' && editedInstance 
+                          ? (editedInstance.override_pos_x ?? asset.default_pos_x)
+                          : editedAsset.default_pos_x;
+                        const validated = validateAndSetValue(e.target.value, -9999, currentValue);
+                        updatePosition(validated, currentPos.y);
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.pos_x;
+                          return newTemp;
+                        });
+                      }}
                       onKeyDown={handleKeyDown}
                     />
                     <input
-                      type="number"
-                      value={currentPos.y}
-                      onChange={(e) => updatePosition(currentPos.x, parseFloat(e.target.value) || 0)}
+                      type="text"
+                      value={tempInputValues.pos_y ?? currentPos.y.toString()}
+                      onChange={(e) => {
+                        const sanitized = validateNumericInput(e.target.value, true);
+                        setTempInputValues(prev => ({ ...prev, pos_y: sanitized }));
+                      }}
+                      onBlur={(e) => {
+                        const currentValue = mode === 'instance' && editedInstance 
+                          ? (editedInstance.override_pos_y ?? asset.default_pos_y)
+                          : editedAsset.default_pos_y;
+                        const validated = validateAndSetValue(e.target.value, -9999, currentValue);
+                        updatePosition(currentPos.x, validated);
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.pos_y;
+                          return newTemp;
+                        });
+                      }}
                       onKeyDown={handleKeyDown}
                     />
                   </div>
@@ -605,30 +745,61 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       <span>P{index + 1}:</span>
                       <label>x</label>
                       <input
-                        type="number"
-                        value={Math.round(point[0])}
+                        type="text"
+                        value={tempInputValues[`mask_${index}_x`] ?? point[0].toString()}
                         onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, true);
+                          setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, -9999, point[0]);
                           const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                          newMask[index] = [parseFloat(e.target.value) || 0, point[1]];
+                          newMask[index] = [validated, point[1]];
                           updateMask(newMask);
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp[`mask_${index}_x`];
+                            return newTemp;
+                          });
                         }}
                         onKeyDown={handleKeyDown}
                         className="mask-input"
                       />
                       <label>y</label>
                       <input
-                        type="number"
-                        value={Math.round(point[1])}
+                        type="text"
+                        value={tempInputValues[`mask_${index}_y`] ?? point[1].toString()}
                         onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, true);
+                          setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, -9999, point[1]);
                           const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                          newMask[index] = [point[0], parseFloat(e.target.value) || 0];
+                          newMask[index] = [point[0], validated];
                           updateMask(newMask);
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp[`mask_${index}_y`];
+                            return newTemp;
+                          });
                         }}
                         onKeyDown={handleKeyDown}
                         className="mask-input"
                       />
                     </div>
                   ))}
+                  
+                  {/* Exit Mask Editor ボタン */}
+                  <div className="mask-edit-toggle" style={{ marginTop: '16px' }}>
+                    <button
+                      type="button"
+                      className="back-button"
+                      onClick={() => setMaskEditMode(false)}
+                    >
+                      ← Exit Mask Editor
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
