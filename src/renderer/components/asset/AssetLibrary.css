@@ -220,3 +220,27 @@
 .context-menu-delete:hover {
   background-color: #ffebee;
 }
+
+/* ドラッグ&ドロップ用スタイル */
+.asset-library.drag-over {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+  position: relative;
+}
+
+.asset-library.drag-over::after {
+  content: "画像ファイルをここにドロップしてください";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 123, 255, 0.9);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+}

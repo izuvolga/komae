@@ -7,6 +7,11 @@ import { ImageEditModal } from './ImageEditModal';
 import type { Asset, ImageAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
+// ElectronのFile拡張インターフェース
+interface ElectronFile extends File {
+  path?: string;
+}
+
 export const AssetLibrary: React.FC = () => {
   const assets = useProjectStore((state) => state.project?.assets || {});
   const selectedAssets = useProjectStore((state) => state.ui.selectedAssets);
@@ -22,6 +27,7 @@ export const AssetLibrary: React.FC = () => {
     y: number;
     asset: Asset;
   } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
 
@@ -250,8 +256,113 @@ export const AssetLibrary: React.FC = () => {
     setDraggedAsset(null);
   };
 
+  // ファイルドラッグ&ドロップのハンドラー
+  const handleFileDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // ファイルがドラッグされている場合のみ処理
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleFileDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // ドラッグがAssetLibrary要素から完全に離れた場合のみ処理
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files) as ElectronFile[];
+    const imageFiles = files.filter(file => 
+      file.type.startsWith('image/') || 
+      /\.(png|jpg|jpeg|webp|gif|bmp)$/i.test(file.name)
+    );
+
+    if (imageFiles.length === 0) {
+      alert('画像ファイルをドロップしてください');
+      return;
+    }
+
+    await logger.logUserInteraction('asset_drag_drop_start', 'AssetLibrary', {
+      fileCount: imageFiles.length,
+      fileNames: imageFiles.map(f => f.name),
+    });
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of imageFiles) {
+      try {
+        console.log('Drag&Drop Debug:', {
+          fileName: file.name,
+          filePath: file.path,
+          finalPath: file.path || file.name,
+          fileSize: file.size,
+          fileType: file.type
+        });
+
+        // ファイルパスが取得できない場合は、FileReaderでファイル内容を読み取り
+        if (!file.path) {
+          // FileReaderを使用してファイル内容をArrayBufferとして読み取り
+          const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(file);
+          });
+
+          // ファイル内容をUint8Arrayに変換
+          const uint8Array = new Uint8Array(arrayBuffer);
+
+          // メインプロセスに一時ファイル作成を依頼
+          const tempFilePath = await window.electronAPI?.fileSystem?.createTempFile?.(file.name, uint8Array);
+          if (tempFilePath) {
+            await importAsset(tempFilePath);
+          } else {
+            throw new Error('一時ファイルの作成に失敗しました');
+          }
+        } else {
+          // ファイルパスが取得できる場合は直接インポート
+          await importAsset(file.path);
+        }
+        
+        successCount++;
+      } catch (error) {
+        errorCount++;
+        const message = error instanceof Error ? error.message : String(error);
+        await logger.logError('asset_drag_drop_file', error as Error, {
+          fileName: file.name,
+          component: 'AssetLibrary',
+        });
+        alert(`ファイル "${file.name}" のインポートに失敗しました:\n${message}`);
+      }
+    }
+
+    await logger.logUserInteraction('asset_drag_drop_complete', 'AssetLibrary', {
+      totalFiles: imageFiles.length,
+      successCount,
+      errorCount,
+      newAssetCount: assetList.length,
+    });
+  };
+
   return (
-    <div className="asset-library">
+    <div 
+      className={`asset-library ${isDragOver ? 'drag-over' : ''}`}
+      onDragOver={handleFileDragOver}
+      onDragLeave={handleFileDragLeave}
+      onDrop={handleFileDrop}
+    >
       <div className="asset-library-header">
         <div className="header-left">
           <button 
@@ -285,6 +396,9 @@ export const AssetLibrary: React.FC = () => {
             <button className="btn-small" onClick={handleImportClick}>
               アセットをインポート
             </button>
+            <p style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
+              または画像ファイルをここにドラッグ&ドロップ
+            </p>
           </div>
         ) : (
           assetList.map((asset) => (

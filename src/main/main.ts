@@ -360,6 +360,29 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('fileSystem:createTempFile', async (event, fileName: string, data: Uint8Array) => {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const os = await import('os');
+        
+        // 一時ディレクトリにファイルを作成
+        const tempDir = os.tmpdir();
+        const tempFileName = `komae_${Date.now()}_${fileName}`;
+        const tempFilePath = path.join(tempDir, tempFileName);
+        
+        // Uint8ArrayをBufferに変換してファイルに書き込み
+        const buffer = Buffer.from(data);
+        fs.writeFileSync(tempFilePath, buffer);
+        
+        console.debug('[Main IPC] Created temp file:', tempFilePath);
+        return tempFilePath;
+      } catch (error) {
+        console.error('Failed to create temp file:', error);
+        throw error;
+      }
+    });
+
     // Application Operations
     ipcMain.handle('app:getVersion', async () => {
       return app.getVersion();
