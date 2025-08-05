@@ -48,6 +48,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   // マスク編集専用の状態
   const [maskDragPointIndex, setMaskDragPointIndex] = useState<number | null>(null);
@@ -58,6 +59,29 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
+
+  // Shiftキーの状態を監視
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   if (!isOpen || !project) return null;
 
@@ -312,12 +336,32 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           newY = dragStartValues.y + deltaY;
         }
 
-        if (aspectRatioLocked) {
-          const aspectRatio = dragStartValues.width / dragStartValues.height;
-          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
-            newHeight = newWidth / aspectRatio;
-          } else {
-            newWidth = newHeight * aspectRatio;
+        // 縦横比維持: aspectRatioLockedまたはShiftキーが押されている場合
+        if (aspectRatioLocked || isShiftPressed) {
+          let aspectRatio;
+          
+          if (aspectRatioLocked) {
+            // aspectRatioLockedの場合は元画像の縦横比を使用
+            aspectRatio = asset.original_width / asset.original_height;
+          } else if (isShiftPressed) {
+            // Shiftキーの場合は現在のサイズの縦横比を使用
+            aspectRatio = dragStartValues.width / dragStartValues.height;
+          }
+          
+          if (aspectRatio) {
+            if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+              newHeight = newWidth / aspectRatio;
+              // 上端をドラッグしている場合は、位置も調整
+              if (resizeHandle.includes('top')) {
+                newY = dragStartValues.y + dragStartValues.height - newHeight;
+              }
+            } else {
+              newWidth = newHeight * aspectRatio;
+              // 左端をドラッグしている場合は、位置も調整
+              if (resizeHandle.includes('left')) {
+                newX = dragStartValues.x + dragStartValues.width - newWidth;
+              }
+            }
           }
         }
 
