@@ -136,6 +136,20 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
   }
   
+  // サイズ调整（ImageAssetInstanceのみ対応）
+  if ('override_width' in instance || 'override_height' in instance) {
+    const imageInstance = instance as ImageAssetInstance;
+    const width = imageInstance.override_width ?? asset.default_width;
+    const height = imageInstance.override_height ?? asset.default_height;
+    
+    // デフォルトサイズからの倍率を計算してscaleに追加
+    const scaleX = width / asset.default_width;
+    const scaleY = height / asset.default_height;
+    if (scaleX !== 1 || scaleY !== 1) {
+      transforms.push(`scale(${scaleX},${scaleY})`);
+    }
+  }
+  
   // opacity調整（ImageAssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
   let finalOpacity = asset.default_opacity;
   if ('override_opacity' in instance) {
@@ -158,17 +172,42 @@ function generateTextElement(asset: TextAsset, instance: AssetInstance): string 
   // Transform文字列を構築
   const transforms: string[] = [];
   
+  // 位置調整（TextAssetInstanceのみ対応）
+  let finalPosX = asset.default_pos_x;
+  let finalPosY = asset.default_pos_y;
+  if ('override_pos_x' in instance || 'override_pos_y' in instance) {
+    const textInstance = instance as any; // TextAssetInstance
+    if (textInstance.override_pos_x !== undefined) finalPosX = textInstance.override_pos_x;
+    if (textInstance.override_pos_y !== undefined) finalPosY = textInstance.override_pos_y;
+    
+    // デフォルト位置からの差分を計算してtranslateに追加
+    const translateX = finalPosX - asset.default_pos_x;
+    const translateY = finalPosY - asset.default_pos_y;
+    if (translateX !== 0 || translateY !== 0) {
+      transforms.push(`translate(${translateX},${translateY})`);
+    }
+  }
+  
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
   const opacityAttr = '';
   
   // テキストスタイルを構築
   const textStyle = `font-family: ${asset.font}; font-size: ${asset.font_size}px; fill: ${asset.color_in}; stroke: ${asset.color_ex}; stroke-width: ${asset.stroke_width}px;`;
   
+  // テキストコンテンツを取得（override_textがあればそれを使用）
+  let textContent = asset.default_text;
+  if ('override_text' in instance) {
+    const textInstance = instance as any; // TextAssetInstance
+    if (textInstance.override_text !== undefined) {
+      textContent = textInstance.override_text;  
+    }
+  }
+  
   if (asset.vertical) {
     // 縦書きテキストの処理
-    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}" writing-mode="tb"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
+    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}" writing-mode="tb"${transformAttr}${opacityAttr}>${textContent}</text>`;
   } else {
     // 横書きテキストの処理
-    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}"${transformAttr}${opacityAttr}>${asset.default_text}</text>`;
+    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}"${transformAttr}${opacityAttr}>${textContent}</text>`;
   }
 }

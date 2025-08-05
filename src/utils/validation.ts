@@ -5,35 +5,25 @@ import { ProjectData, Asset, Page } from '../types/entities';
 
 // 基本的なスキーマ定義
 
-// Transform スキーマ
-const TransformSchema = z.object({
-  scale_x: z.number().min(0),
-  scale_y: z.number().min(0),
-  rotation: z.number(),
-});
-
 // AssetInstance 基本スキーマ
 const BaseAssetInstanceSchema = z.object({
   id: z.string().min(1),
   asset_id: z.string().min(1),
   z_index: z.number().int().min(0),
-  transform: TransformSchema,
-  opacity: z.number().min(0).max(1),
 });
 
 // ImageAssetInstance スキーマ
 const ImageAssetInstanceSchema = BaseAssetInstanceSchema.extend({
-  position_attr_id: z.string().optional(),
-  size_attr_id: z.string().optional(),
   override_pos_x: z.number().optional(),
   override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
   override_opacity: z.number().min(0).max(1).optional(),
   override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
 // TextAssetInstance スキーマ
 const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
-  position_attr_id: z.string().optional(),
   override_text: z.string().optional(),
   override_pos_x: z.number().optional(),
   override_pos_y: z.number().optional(),
@@ -89,19 +79,7 @@ const PageSchema = z.object({
   asset_instances: z.record(z.string(), AssetInstanceSchema),
 });
 
-// PositionAssetAttr スキーマ
-const PositionAssetAttrSchema = z.object({
-  name: z.string().min(1),
-  pos_x: z.number(),
-  pos_y: z.number(),
-});
-
-// SizeAssetAttr スキーマ
-const SizeAssetAttrSchema = z.object({
-  name: z.string().min(1),
-  width: z.number().min(0),
-  height: z.number().min(0),
-});
+// AssetAttrスキーマは削除（ImageAssetInstanceに直接overrideフィールドを使用）
 
 // ProjectMetadata スキーマ
 const ProjectMetadataSchema = z.object({
@@ -121,10 +99,6 @@ const CanvasConfigSchema = z.object({
 const ProjectDataSchema = z.object({
   metadata: ProjectMetadataSchema,
   canvas: CanvasConfigSchema,
-  asset_attrs: z.object({
-    position_attrs: z.record(z.string(), PositionAssetAttrSchema),
-    size_attrs: z.record(z.string(), SizeAssetAttrSchema),
-  }),
   assets: z.record(z.string(), AssetSchema),
   pages: z.array(PageSchema),
 });

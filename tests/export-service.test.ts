@@ -30,10 +30,6 @@ describe('ExportService', () => {
         description: 'Test export project',
       },
       canvas: { width: 800, height: 600 },
-      asset_attrs: {
-        position_attrs: {},
-        size_attrs: {},
-      },
       assets: {
         'test-image-1': {
           id: 'test-image-1',
@@ -44,6 +40,8 @@ describe('ExportService', () => {
           original_height: 300,
           default_pos_x: 100,
           default_pos_y: 50,
+          default_width: 400,
+          default_height: 300,
           default_opacity: 1.0,
           default_mask: [[0, 0], [400, 0], [400, 300], [0, 300]],
         },
@@ -71,23 +69,11 @@ describe('ExportService', () => {
               id: 'instance-1',
               asset_id: 'test-image-1',
               z_index: 0,
-              transform: {
-                scale_x: 1.0,
-                scale_y: 1.0,
-                rotation: 0,
-              },
-              opacity: 1.0,
             },
             'instance-2': {
               id: 'instance-2',
               asset_id: 'test-text-1',
               z_index: 1,
-              transform: {
-                scale_x: 1.0,
-                scale_y: 1.0,
-                rotation: 0,
-              },
-              opacity: 0.9,
             },
           },
         },
@@ -99,12 +85,8 @@ describe('ExportService', () => {
               id: 'instance-3',
               asset_id: 'test-text-1',
               z_index: 0,
-              transform: {
-                scale_x: 1.2,
-                scale_y: 1.2,
-                rotation: 15,
-              },
-              opacity: 1.0,
+              override_pos_x: 250,
+              override_pos_y: 150,
             },
           },
         },
@@ -326,8 +308,6 @@ describe('ExportService', () => {
                 id: 'broken-instance',
                 asset_id: 'nonexistent-asset',
                 z_index: 0,
-                transform: { scale_x: 1.0, scale_y: 1.0, rotation: 0 },
-                opacity: 1.0,
               },
             },
           },
@@ -366,12 +346,12 @@ describe('ExportService', () => {
       expect(svgContent).toContain('Hello World'); // テキストコンテンツ
     });
 
-    it('should handle transforms correctly in SVG', async () => {
+    it('should handle position overrides correctly in SVG', async () => {
       const svgContent = await exportService.generatePageSVG(mockProject, mockProject.pages[1]);
 
-      expect(svgContent).toContain('transform');
-      expect(svgContent).toContain('scale(1.2'); // スケール変換
-      expect(svgContent).toContain('rotate(15'); // 回転変換
+      // 位置がオーバーライドされている場合、transformが生成される
+      expect(svgContent).toContain('translate'); // 位置変換
+      expect(svgContent).toContain('Hello World'); // テキストコンテンツ
     });
 
     it('should handle z-index ordering in SVG', async () => {

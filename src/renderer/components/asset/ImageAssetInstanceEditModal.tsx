@@ -50,8 +50,8 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
   });
 
   const getCurrentSize = () => ({
-    width: asset.default_width,
-    height: asset.default_height,
+    width: editedInstance.override_width ?? asset.default_width,
+    height: editedInstance.override_height ?? asset.default_height,
   });
 
   const currentPos = getCurrentPosition();
@@ -152,11 +152,29 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
                 <h4>サイズ</h4>
                 <div className="param-row">
                   <label>幅:</label>
-                  <span>{Math.round(currentSize.width)}px (固定)</span>
+                  <input
+                    type="number"
+                    value={currentSize.width}
+                    onChange={(e) => {
+                      setEditedInstance(prev => ({
+                        ...prev,
+                        override_width: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
                 </div>
                 <div className="param-row">
                   <label>高さ:</label>
-                  <span>{Math.round(currentSize.height)}px (固定)</span>
+                  <input
+                    type="number"
+                    value={currentSize.height}
+                    onChange={(e) => {
+                      setEditedInstance(prev => ({
+                        ...prev,
+                        override_height: parseFloat(e.target.value),
+                      }));
+                    }}
+                  />
                 </div>
               </div>
             </div>

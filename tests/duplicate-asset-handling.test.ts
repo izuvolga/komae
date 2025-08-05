@@ -35,10 +35,6 @@ describe('Duplicate Asset Handling', () => {
         width: 800,
         height: 600,
       },
-      asset_attrs: {
-        position_attrs: {},
-        size_attrs: {},
-      },
       assets: {
         'img-1': {
           id: 'img-1',
@@ -49,8 +45,10 @@ describe('Duplicate Asset Handling', () => {
           original_height: 600,
           default_pos_x: 0,
           default_pos_y: 0,
-          default_scale_x: 1,
-          default_scale_y: 1,
+          default_width: 800,
+          default_height: 600,
+          default_opacity: 1.0,
+          default_mask: [[0, 0], [800, 0], [800, 600], [0, 600]],
         },
         'img-2': {
           id: 'img-2',
@@ -61,8 +59,10 @@ describe('Duplicate Asset Handling', () => {
           original_height: 1080,
           default_pos_x: 0,
           default_pos_y: 0,
-          default_scale_x: 1,
-          default_scale_y: 1,
+          default_width: 1920,
+          default_height: 1080,
+          default_opacity: 1.0,
+          default_mask: [[0, 0], [1920, 0], [1920, 1080], [0, 1080]],
         },
       },
       pages: [],

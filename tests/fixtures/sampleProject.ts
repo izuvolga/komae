@@ -38,12 +38,6 @@ export const mockPage: Page = {
       id: 'instance-1',
       asset_id: 'test-image-1',
       z_index: 0,
-      transform: {
-        scale_x: 1.0,
-        scale_y: 1.0,
-        rotation: 0,
-      },
-      opacity: 1.0,
     },
   },
 };
@@ -58,22 +52,6 @@ export const mockProject: ProjectData = {
   canvas: {
     width: 800,
     height: 600,
-  },
-  asset_attrs: {
-    position_attrs: {
-      'pos-center': {
-        name: '中央位置',
-        pos_x: 400,
-        pos_y: 300,
-      },
-    },
-    size_attrs: {
-      'size-standard': {
-        name: '標準サイズ',
-        width: 320,
-        height: 440,
-      },
-    },
   },
   assets: {
     'test-image-1': mockImageAsset,

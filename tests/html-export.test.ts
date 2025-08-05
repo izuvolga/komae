@@ -15,6 +15,8 @@ describe('HTML Export - 単一ファイル出力', () => {
     original_height: 600,
     default_pos_x: 0,
     default_pos_y: 0,
+    default_width: 800,
+    default_height: 600,
     default_opacity: 1.0,
     default_mask: [[0, 0], [800, 0], [800, 600], [0, 600]],
   };
@@ -28,6 +30,8 @@ describe('HTML Export - 単一ファイル出力', () => {
     original_height: 300,
     default_pos_x: 300,
     default_pos_y: 200,
+    default_width: 200,
+    default_height: 300,
     default_opacity: 1.0,
     default_mask: [[0, 0], [200, 0], [200, 300], [0, 300]],
   };
@@ -40,15 +44,14 @@ describe('HTML Export - 単一ファイル出力', () => {
         id: 'bg-instance',
         asset_id: 'background-1',
         z_index: 0,
-        transform: { scale_x: 1.0, scale_y: 1.0, rotation: 0 },
-        opacity: 1.0
       },
       'char-instance': {
         id: 'char-instance',
         asset_id: 'character-1',
         z_index: 1,
-        transform: { scale_x: 1.2, scale_y: 1.2, rotation: 0 },
-        opacity: 0.9
+        override_width: 240,
+        override_height: 360,
+        override_opacity: 0.9
       }
     }
   };
@@ -61,8 +64,7 @@ describe('HTML Export - 単一ファイル出力', () => {
         id: 'bg-instance-2',
         asset_id: 'background-1',
         z_index: 0,
-        transform: { scale_x: 1.0, scale_y: 1.0, rotation: 0 },
-        opacity: 0.8
+        override_opacity: 0.8
       }
     }
   };
@@ -75,10 +77,6 @@ describe('HTML Export - 単一ファイル出力', () => {
       description: 'HTML出力テスト用プロジェクト',
     },
     canvas: { width: 800, height: 600 },
-    asset_attrs: {
-      position_attrs: {},
-      size_attrs: {},
-    },
     assets: {
       'background-1': mockImageAsset1,
       'character-1': mockImageAsset2

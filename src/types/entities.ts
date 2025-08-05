@@ -13,18 +13,7 @@ export interface CanvasConfig {
   height: number;
 }
 
-// AssetAttr定義
-export interface PositionAssetAttr {
-  name: string;
-  pos_x: number;
-  pos_y: number;
-}
-
-export interface SizeAssetAttr {
-  name: string;
-  width: number;
-  height: number;
-}
+// AssetAttr定義は削除 - ImageAssetInstanceに直接override_width, override_heightを追加
 
 // Asset定義（テンプレート）
 export interface BaseAsset {
@@ -69,16 +58,15 @@ export interface BaseAssetInstance {
 }
 
 export interface ImageAssetInstance extends BaseAssetInstance {
-  position_attr_id?: string;
-  size_attr_id?: string;
   override_pos_x?: number;
   override_pos_y?: number;
+  override_width?: number;
+  override_height?: number;
   override_opacity?: number;
   override_mask?: [[number, number], [number, number], [number, number], [number, number]];
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {
-  position_attr_id?: string;
   override_text?: string;
   override_pos_x?: number;
   override_pos_y?: number;
@@ -102,10 +90,6 @@ export interface Page {
 export interface ProjectData {
   metadata: ProjectMetadata;
   canvas: CanvasConfig;
-  asset_attrs: {
-    position_attrs: Record<string, PositionAssetAttr>;
-    size_attrs: Record<string, SizeAssetAttr>;
-  };
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
 }

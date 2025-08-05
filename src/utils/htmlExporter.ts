@@ -133,9 +133,37 @@ ${assetDefs}
             ? instance.override_opacity 
             : asset.default_opacity ?? 1.0;
           
-          // <use>要素でアセットを参照し、opacityを適用
-          const transformAttr = `translate(${asset.default_pos_x}, ${asset.default_pos_y})`;
-          return `<use href="#${asset.id}" transform="${transformAttr}" opacity="${opacity}" />`;
+          // Transform文字列を構築
+          const transforms: string[] = [];
+          
+          // 位置調整
+          if ('override_pos_x' in instance || 'override_pos_y' in instance) {
+            const imageInstance = instance as any; // ImageAssetInstance
+            const posX = imageInstance.override_pos_x ?? asset.default_pos_x;
+            const posY = imageInstance.override_pos_y ?? asset.default_pos_y;
+            
+            const translateX = posX - asset.default_pos_x;
+            const translateY = posY - asset.default_pos_y;
+            if (translateX !== 0 || translateY !== 0) {
+              transforms.push(`translate(${translateX},${translateY})`);
+            }
+          }
+          
+          // サイズ調整
+          if ('override_width' in instance || 'override_height' in instance) {
+            const imageInstance = instance as any; // ImageAssetInstance
+            const width = imageInstance.override_width ?? asset.default_width;
+            const height = imageInstance.override_height ?? asset.default_height;
+            
+            const scaleX = width / asset.default_width;
+            const scaleY = height / asset.default_height;
+            if (scaleX !== 1 || scaleY !== 1) {
+              transforms.push(`scale(${scaleX},${scaleY})`);
+            }
+          }
+          
+          const transformAttr = transforms.length > 0 ? `transform="${transforms.join(' ')}"` : '';
+          return `<use href="#${asset.id}" ${transformAttr} opacity="${opacity}" />`;
         })
         .join('');
       

@@ -106,10 +106,6 @@ export class ProjectManager {
         description: params.description,
       },
       canvas: params.canvas,
-      asset_attrs: {
-        position_attrs: {},
-        size_attrs: {},
-      },
       assets: {},
       pages: [],
     };

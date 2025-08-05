@@ -155,10 +155,6 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
           width: -100, // 負の値は無効
           height: 600
         },
-        asset_attrs: {
-          position_attrs: {},
-          size_attrs: {}
-        },
         assets: {},
         pages: []
       };
@@ -172,9 +168,6 @@ metadata:
 canvas:
   width: -100
   height: 600
-asset_attrs:
-  position_attrs: {}
-  size_attrs: {}
 assets: {}
 pages: []
 `;

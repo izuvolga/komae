@@ -338,10 +338,6 @@ export const MainLayout: React.FC = () => {
         description: 'アセット20個・ページ20個の大規模サンプルプロジェクト',
       },
       canvas: { width: 800, height: 600 },
-      asset_attrs: {
-        position_attrs: {},
-        size_attrs: {},
-      },
       assets,
       pages,
     };
