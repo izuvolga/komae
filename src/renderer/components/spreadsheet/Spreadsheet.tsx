@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { ImageAssetInstanceEditModal } from '../asset/ImageAssetInstanceEditModal';
+import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import './Spreadsheet.css';
 
 export const Spreadsheet: React.FC = () => {
@@ -7,6 +9,12 @@ export const Spreadsheet: React.FC = () => {
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const activeWindow = useProjectStore((state) => state.ui.activeWindow);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
+  const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
+  const [editingInstance, setEditingInstance] = useState<{
+    instance: ImageAssetInstance;
+    asset: ImageAsset;
+    page: Page;
+  } | null>(null);
 
   if (!project) return null;
 
@@ -20,6 +28,37 @@ export const Spreadsheet: React.FC = () => {
 
   const handleCellClick = (pageId: string, assetId: string) => {
     toggleAssetInstance(pageId, assetId);
+  };
+
+  const handleCellDoubleClick = (pageId: string, assetId: string) => {
+    const page = pages.find(p => p.id === pageId);
+    const asset = project.assets[assetId];
+    
+    if (!page || !asset || asset.type !== 'ImageAsset') return;
+    
+    // そのページでアセットインスタンスを検索
+    const instance = Object.values(page.asset_instances).find(
+      (inst: any) => inst.asset_id === assetId
+    ) as ImageAssetInstance;
+    
+    if (instance) {
+      setEditingInstance({
+        instance,
+        asset: asset as ImageAsset,
+        page,
+      });
+    }
+  };
+
+  const handleInstanceSave = (updatedInstance: ImageAssetInstance) => {
+    if (editingInstance) {
+      updateAssetInstance(editingInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingInstance(null);
+  };
+
+  const handleModalClose = () => {
+    setEditingInstance(null);
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
@@ -70,13 +109,29 @@ export const Spreadsheet: React.FC = () => {
                   className={`cell asset-cell ${
                     isAssetUsedInPage(page.id, asset.id) ? 'used' : 'unused'
                   }`}
-                  onClick={() => handleCellClick(page.id, asset.id)}
                 >
                   <div className="cell-content">
-                    {isAssetUsedInPage(page.id, asset.id) ? (
-                      <div className="usage-indicator active">●</div>
-                    ) : (
-                      <div className="usage-indicator inactive">○</div>
+                    <div 
+                      className="usage-indicator-area"
+                      onClick={() => handleCellClick(page.id, asset.id)}
+                    >
+                      {isAssetUsedInPage(page.id, asset.id) ? (
+                        <div className="usage-indicator active">●</div>
+                      ) : (
+                        <div className="usage-indicator inactive">○</div>
+                      )}
+                    </div>
+                    {isAssetUsedInPage(page.id, asset.id) && asset.type === 'ImageAsset' && (
+                      <button
+                        className="edit-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCellDoubleClick(page.id, asset.id);
+                        }}
+                        title="ImageAssetInstanceを編集"
+                      >
+                        ✏️
+                      </button>
                     )}
                   </div>
                 </div>
@@ -101,6 +156,18 @@ export const Spreadsheet: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ImageAssetInstance編集モーダル */}
+      {editingInstance && (
+        <ImageAssetInstanceEditModal
+          assetInstance={editingInstance.instance}
+          asset={editingInstance.asset}
+          page={editingInstance.page}
+          isOpen={!!editingInstance}
+          onClose={handleModalClose}
+          onSave={handleInstanceSave}
+        />
       )}
     </div>
   );

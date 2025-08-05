@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { PageThumbnail } from './PageThumbnail';
+import { ImageAssetInstanceEditModal } from '../asset/ImageAssetInstanceEditModal';
+import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 
@@ -10,6 +12,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const deletePage = useProjectStore((state) => state.deletePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
+  const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
@@ -17,6 +20,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
   
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
+  const [editingInstance, setEditingInstance] = useState<{
+    instance: ImageAssetInstance;
+    asset: ImageAsset;
+    page: Page;
+  } | null>(null);
   
   // パン機能用のstate
   const [isPanning, setIsPanning] = useState(false);
@@ -150,6 +158,37 @@ export const EnhancedSpreadsheet: React.FC = () => {
     toggleAssetInstance(pageId, assetId);
   };
 
+  const handleEditClick = (pageId: string, assetId: string) => {
+    const page = project.pages.find(p => p.id === pageId);
+    const asset = project.assets[assetId];
+    
+    if (!page || !asset || asset.type !== 'ImageAsset') return;
+    
+    // そのページでアセットインスタンスを検索
+    const instance = Object.values(page.asset_instances).find(
+      (inst: any) => inst.asset_id === assetId
+    ) as ImageAssetInstance;
+    
+    if (instance) {
+      setEditingInstance({
+        instance,
+        asset: asset as ImageAsset,
+        page,
+      });
+    }
+  };
+
+  const handleInstanceSave = (updatedInstance: ImageAssetInstance) => {
+    if (editingInstance) {
+      updateAssetInstance(editingInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingInstance(null);
+  };
+
+  const handleModalClose = () => {
+    setEditingInstance(null);
+  };
+
   const handlePreviewClick = (pageId: string) => {
     setCurrentPage(pageId);
   };
@@ -239,21 +278,32 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   className={`cell asset-cell ${
                     isAssetUsedInPage(page.id, asset.id) ? 'used' : 'unused'
                   }`}
-                  onClick={() => handleCellClick(page.id, asset.id)}
                 >
                   <div className="cell-content">
-                    <input
-                      type="checkbox"
-                      checked={isAssetUsedInPage(page.id, asset.id)}
-                      onChange={(e) => {
+                    <button
+                      className={`toggle-button ${
+                        isAssetUsedInPage(page.id, asset.id) ? 'active' : 'inactive'
+                      }`}
+                      onClick={(e) => {
                         e.stopPropagation();
                         handleCellClick(page.id, asset.id);
                       }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className="asset-checkbox"
-                    />
+                      title={`${asset.name}の表示を${isAssetUsedInPage(page.id, asset.id) ? 'OFF' : 'ON'}にする`}
+                    >
+                      {isAssetUsedInPage(page.id, asset.id) ? '✓' : '×'}
+                    </button>
+                    {isAssetUsedInPage(page.id, asset.id) && asset.type === 'ImageAsset' && (
+                      <button
+                        className="edit-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditClick(page.id, asset.id);
+                        }}
+                        title={`${asset.name}のインスタンスを編集`}
+                      >
+                        %
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -270,6 +320,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ImageAssetInstance編集モーダル */}
+      {editingInstance && (
+        <ImageAssetInstanceEditModal
+          assetInstance={editingInstance.instance}
+          asset={editingInstance.asset}
+          page={editingInstance.page}
+          isOpen={!!editingInstance}
+          onClose={handleModalClose}
+          onSave={handleInstanceSave}
+        />
+      )}
     </div>
   );
 };
