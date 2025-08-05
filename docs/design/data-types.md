@@ -30,15 +30,7 @@
   - 例えば、特定の ImageAsset に特定のキャラクターの画像を使っていても、微妙にキャラクターの位置を変更できる。
     - Page 1 では、キャラクターの位置を左に配置し、Page 2 では右に配置することができる。その際は、ImageAsset は同じでも、Page 1 と Page 2 では異なる AssetInstance が存在し、異なる座標を持つことになる。
 
-- AssetAttr
-  - Asset に付随する属性情報を複数のAssetInstanceで共有するための概念
-  - 例えば、複数のキャラクターを「立ち位置A」という同じPositionAssetAttrで参照することで、磁石のように同じ位置に配置することができる
-  - UI上では、ImageAssetTemplateの編集画面でドロップダウンメニュー`[v]`から選択可能
-  - 特定のAssetAttrを複数のAssetInstanceから参照することができる
-  - AssetAttrの名前は、対応するAssetTemplateの名前と同じになる
-  - 現時点では、以下の種類のAssetAttrが存在する:
-    - PositionAssetAttr ... pos_x, pos_yの組。座標情報を共有
-    - SizeAssetAttr ... width, heightの組。サイズ情報を共有
+**Note**: AssetAttr系は削除されました。以前はPositionAssetAttrとSizeAssetAttrでAssetInstance間で属性を共有する仕組みがありましたが、データ構造を簡略化するため、AssetInstanceに直接override_width/heightフィールドを追加する方式に変更されました。
 
 
 ### ImageAsset
@@ -53,6 +45,8 @@ original_width: 元画像の幅
 original_height: 元画像の高さ
 default_pos_x: デフォルトのX座標
 default_pos_y: デフォルトのY座標
+default_width: デフォルトの幅
+default_height: デフォルトの高さ
 default_opacity: デフォルトの不透明度（0.0〜1.0）
 default_mask: デフォルトのマスク情報で、4点の値の配列。それぞれの値は (x, y) 座標のタプル。4点を囲んだ矩形範囲が表示される。
 ```
@@ -84,59 +78,46 @@ AssetTemplateを実際のPageに配置する際のインスタンス。以下の
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するImageAssetのID
-page_id: 配置されるPageのID
 z_index: 描画順序（数値が大きいほど前面に表示）
-position_attr_id: 参照するPositionAssetAttrのID (optional)
-size_attr_id: 参照するSizeAssetAttrのID (optional)
-override_pos_x: AssetAttrやAssetのdefault値を上書きするX座標 (optional)
-override_pos_y: AssetAttrやAssetのdefault値を上書きするY座標 (optional)
-override_opacity: デフォルトの不透明度を上書き (optional)
-override_mask: デフォルトのマスク情報を上書き (optional)
-transform: 変形情報
-  scale_x: X軸スケール（1.0が等倍）
-  scale_y: Y軸スケール（1.0が等倍）
-  rotation: 回転角度（度数法）
+override_pos_x: ImageAssetのdefault_pos_xを上書きするX座標 (optional)
+override_pos_y: ImageAssetのdefault_pos_yを上書きするY座標 (optional)
+override_width: ImageAssetのdefault_widthを上書きする幅 (optional)
+override_height: ImageAssetのdefault_heightを上書きする高さ (optional)
+override_opacity: ImageAssetのdefault_opacityを上書きする不透明度 (optional)
+override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optional)
 ```
+
+**Note**: 以前のtransform（scale_x, scale_y, rotation）やAssetAttr参照（position_attr_id, size_attr_id）は削除され、より直接的なoverride方式に変更されました。サイズ変更はoverride_width/heightを使用し、SVG生成時にscale変換として処理されます。
 
 #### TextAssetInstance
 
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するTextAssetのID
-page_id: 配置されるPageのID
 z_index: 描画順序（数値が大きいほど前面に表示）
-position_attr_id: 参照するPositionAssetAttrのID (optional)
-override_text: Assetのdefault_textを上書きするテキスト内容 (optional)
-override_pos_x: AssetAttrやAssetのdefault値を上書きするX座標 (optional)
-override_pos_y: AssetAttrやAssetのdefault値を上書きするY座標 (optional)
+override_text: TextAssetのdefault_textを上書きするテキスト内容 (optional)
+override_pos_x: TextAssetのdefault_pos_xを上書きするX座標 (optional)
+override_pos_y: TextAssetのdefault_pos_yを上書きするY座標 (optional)
 font_override: フォント設定の上書き (optional)
   size: フォントサイズ
   color_ex: 縁取りの色
   color_in: 内部の色
-transform: 変形情報
-  scale_x: X軸スケール（1.0が等倍）
-  scale_y: Y軸スケール（1.0が等倍）
-  rotation: 回転角度（度数法）
 ```
 
-### PositionAssetAttr
+**Note**: 以前のtransform（scale_x, scale_y, rotation）やAssetAttr参照（position_attr_id）は削除されました。位置変更は直接override_pos_x/yを使用し、SVG生成時にtranslate変換として処理されます。
 
-位置情報を共有するための属性。
+## 削除されたエンティティ
 
-```
-id: 属性のID (ユーザーが指定する必要はない)
-name: 属性の名前（例: "立ち位置A", "セリフ位置"）
-pos_x: X座標
-pos_y: Y座標
-```
+以下のエンティティは、データ構造の簡略化のため削除されました：
 
-### SizeAssetAttr
+### ~~PositionAssetAttr~~（削除済み）
 
-サイズ情報を共有するための属性。
+~~位置情報を共有するための属性でしたが、AssetInstance間での属性共有の複雑性を避けるため削除されました。現在は、各AssetInstanceで直接override_pos_x/yを使用します。~~
 
-```
-id: 属性のID (ユーザーが指定する必要はない)
-name: 属性の名前（例: "標準サイズ", "拡大表示"）
-width: 幅
-height: 高さ
-```
+### ~~SizeAssetAttr~~（削除済み）
+
+~~サイズ情報を共有するための属性でしたが、AssetInstance間での属性共有の複雑性を避けるため削除されました。現在は、ImageAssetInstanceで直接override_width/heightを使用します。~~
+
+### ~~Transform~~（削除済み）
+
+~~以前はAssetInstanceでscale_x、scale_y、rotationによる変形情報を持っていましたが、シンプルな実装のため削除されました。サイズ変更はoverride_width/heightで、位置変更はoverride_pos_x/yで処理されます。~~
