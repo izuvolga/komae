@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import './ImageAssetEditModal.css';
 
@@ -313,9 +314,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   }, [isDragging, isResizing, maskDragPointIndex, dragStartPos, dragStartValues, maskDragStartPos, maskDragStartValues, resizeHandle, aspectRatioLocked, currentSize, project.canvas]);
 
-  const imagePath = currentProjectPath 
-    ? `komae-asset://${encodeURIComponent(currentProjectPath)}/${encodeURIComponent(asset.id)}`
-    : asset.original_file_path;
+  const imagePath = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
 
   const modalTitle = mode === 'instance' ? `ImageAssetInstance 編集: ${asset.name}` : `ImageAsset 編集: ${asset.name}`;
 
@@ -332,7 +331,16 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
             {/* 左側: プレビューエリア */}
             <div className="preview-section">
               <div className="image-preview-container">
-                <div className="canvas-frame" style={{ position: 'relative', width: '280px', height: '210px' }}>
+                <div className="canvas-frame" style={{ 
+                  position: 'relative', 
+                  width: `${project.canvas.width * 0.35}px`, 
+                  height: `${project.canvas.height * 0.35}px`,
+                  border: '2px solid #007bff',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  backgroundColor: '#f8f9fa'
+                }}>
                   <img
                     src={imagePath}
                     alt={asset.name}
@@ -388,7 +396,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           key={index}
                           cx={point[0] * 0.35}
                           cy={point[1] * 0.35}
-                          r="4"
+                          r="8"
                           fill="red"
                           stroke="white"
                           strokeWidth="1"
@@ -434,10 +442,24 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
             {/* 右側: パラメータ編集エリア */}
             <div className="params-section">
-              {/* UI仕様に従ったレイアウト */}
+              {/* Asset Name（上方に配置、マスク編集時は非表示） */}
+              {mode === 'asset' && !maskEditMode && (
+                <div className="param-group">
+                  <div className="name-section">
+                    <span>Asset Name</span>
+                    <input
+                      type="text"
+                      value={editedAsset.name}
+                      onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
+                      onKeyDown={handleKeyDown}
+                      className="name-input"
+                    />
+                  </div>
+                </div>
+              )}
               
-              {/* 元画像情報（Asset編集時のみ） */}
-              {mode === 'asset' && (
+              {/* 元画像情報（Asset編集時のみ、マスク編集時は非表示） */}
+              {mode === 'asset' && !maskEditMode && (
                 <div className="original-info">
                   <div className="size-display">
                     <span>Original Width/Height</span>
@@ -449,7 +471,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 </div>
               )}
 
-              {/* デフォルトサイズ */}
+              {/* デフォルトサイズ（マスク編集時は非表示） */}
+              {!maskEditMode && (
               <div className="param-group">
                 <div className="size-display">
                   <span>{mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}</span>
@@ -491,12 +514,14 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       checked={aspectRatioLocked}
                       onChange={(e) => setAspectRatioLocked(e.target.checked)}
                     />
-                    縦横比を固定
+                    縦横比を元画像にあわせる
                   </label>
                 </div>
               </div>
+              )}
 
-              {/* 位置 */}
+              {/* 位置（マスク編集時は非表示） */}
+              {!maskEditMode && (
               <div className="param-group">
                 <div className="size-display">
                   <span>{mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}</span>
@@ -516,8 +541,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   </div>
                 </div>
               </div>
+              )}
 
-              {/* 透明度 */}
+              {/* 透明度（マスク編集時は非表示） */}
+              {!maskEditMode && (
               <div className="param-group">
                 <div className="opacity-section">
                   <span>{mode === 'asset' ? 'Default Opacity' : 'Opacity'}</span>
@@ -535,9 +562,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   </div>
                 </div>
               </div>
+              )}
 
-              {/* Instance固有: Z-Index */}
-              {mode === 'instance' && editedInstance && (
+              {/* Instance固有: Z-Index（マスク編集時は非表示） */}
+              {mode === 'instance' && editedInstance && !maskEditMode && (
                 <div className="param-group">
                   <div className="z-index-section">
                     <span>Z-Index</span>
@@ -555,32 +583,18 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 </div>
               )}
 
-              {/* Asset編集時のみ名前編集 */}
-              {mode === 'asset' && (
-                <div className="param-group">
-                  <div className="name-section">
-                    <span>Asset Name</span>
-                    <input
-                      type="text"
-                      value={editedAsset.name}
-                      onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
-                      onKeyDown={handleKeyDown}
-                      className="name-input"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* マスク編集切り替えボタン */}
+              {/* マスク編集切り替えボタン（Asset編集時のみ、マスク編集時は非表示） */}
+              {mode === 'asset' && !maskEditMode && (
               <div className="mask-edit-toggle">
                 <button
                   type="button"
                   className={`mask-toggle-btn ${maskEditMode ? 'active' : ''}`}
                   onClick={() => setMaskEditMode(!maskEditMode)}
                 >
-                  ✏️ {maskEditMode ? 'Basic Edit Mode' : 'Mask Edit Mode'}
+                  ✏️ Mask Edit Mode
                 </button>
               </div>
+              )}
 
               {/* マスク編集パラメータ */}
               {maskEditMode && (
