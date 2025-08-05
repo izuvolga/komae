@@ -773,7 +773,24 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 <button
                   type="button"
                   className={`mask-toggle-btn ${maskEditMode ? 'active' : ''}`}
-                  onClick={() => setMaskEditMode(!maskEditMode)}
+                  onClick={() => {
+                    if (!maskEditMode) {
+                      // マスク編集モードに入る時、マスクが初期値（全て0）の場合、キャンバスサイズの4点に設定
+                      const isInitialMask = editedAsset.default_mask.every(point => point[0] === 0 && point[1] === 0);
+                      if (isInitialMask) {
+                        const canvasWidth = project.canvas.width;
+                        const canvasHeight = project.canvas.height;
+                        const newMask: [[number, number], [number, number], [number, number], [number, number]] = [
+                          [0, 0],                         // 左上
+                          [canvasWidth, 0],              // 右上
+                          [canvasWidth, canvasHeight],   // 右下
+                          [0, canvasHeight]              // 左下
+                        ];
+                        setEditedAsset(prev => ({ ...prev, default_mask: newMask }));
+                      }
+                    }
+                    setMaskEditMode(!maskEditMode);
+                  }}
                 >
                   ✏️ Mask Edit Mode
                 </button>
