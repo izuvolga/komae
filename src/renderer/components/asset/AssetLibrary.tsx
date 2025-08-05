@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
@@ -17,11 +17,34 @@ export const AssetLibrary: React.FC = () => {
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [editingAsset, setEditingAsset] = useState<ImageAsset | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    asset: Asset;
+  } | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
 
   const assetList = Object.values(assets);
 
+  // コンテキストメニューを閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+
+    if (contextMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [contextMenu]);
+
   const handleAssetClick = (assetId: string, ctrlKey: boolean) => {
+    // コンテキストメニューを閉じる
+    setContextMenu(null);
+    
     logger.logUserInteraction('asset_select', 'AssetLibrary', {
       assetId,
       ctrlKey,
@@ -41,6 +64,50 @@ export const AssetLibrary: React.FC = () => {
       // 単一選択
       selectAssets([assetId]);
     }
+  };
+
+  const handleAssetRightClick = (event: React.MouseEvent, asset: Asset) => {
+    event.preventDefault();
+    
+    logger.logUserInteraction('asset_right_click', 'AssetLibrary', {
+      assetId: asset.id,
+      assetType: asset.type,
+      assetName: asset.name,
+      mouseX: event.clientX,
+      mouseY: event.clientY,
+    });
+
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      asset: asset,
+    });
+  };
+
+  const handleContextMenuEdit = () => {
+    if (contextMenu && contextMenu.asset.type === 'ImageAsset') {
+      logger.logUserInteraction('asset_edit_open_context', 'AssetLibrary', {
+        assetId: contextMenu.asset.id,
+        assetName: contextMenu.asset.name,
+      });
+      setEditingAsset(contextMenu.asset as ImageAsset);
+    }
+    setContextMenu(null);
+  };
+
+  const handleContextMenuDelete = async () => {
+    if (contextMenu) {
+      const confirmed = confirm(`アセット "${contextMenu.asset.name}" を削除しますか？`);
+      if (confirmed) {
+        logger.logUserInteraction('asset_delete_context', 'AssetLibrary', {
+          assetId: contextMenu.asset.id,
+          assetName: contextMenu.asset.name,
+        });
+        await deleteAsset(contextMenu.asset.id);
+        selectAssets(selectedAssets.filter(id => id !== contextMenu.asset.id));
+      }
+    }
+    setContextMenu(null);
   };
 
   const handleAssetDoubleClick = (asset: Asset) => {
@@ -228,12 +295,42 @@ export const AssetLibrary: React.FC = () => {
               isDragged={draggedAsset === asset.id}
               onClick={handleAssetClick}
               onDoubleClick={handleAssetDoubleClick}
+              onRightClick={handleAssetRightClick}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             />
           ))
         )}
       </div>
+
+      {/* コンテキストメニュー */}
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="context-menu"
+          style={{
+            position: 'fixed',
+            left: contextMenu.x,
+            top: contextMenu.y,
+            zIndex: 1000,
+          }}
+        >
+          {contextMenu.asset.type === 'ImageAsset' && (
+            <button
+              className="context-menu-item"
+              onClick={handleContextMenuEdit}
+            >
+              編集
+            </button>
+          )}
+          <button
+            className="context-menu-item context-menu-delete"
+            onClick={handleContextMenuDelete}
+          >
+            削除
+          </button>
+        </div>
+      )}
 
       {/* ImageAsset編集モーダル */}
       {editingAsset && (
@@ -254,6 +351,7 @@ interface AssetItemProps {
   isDragged: boolean;
   onClick: (assetId: string, ctrlKey: boolean) => void;
   onDoubleClick: (asset: Asset) => void;
+  onRightClick: (event: React.MouseEvent, asset: Asset) => void;
   onDragStart: (assetId: string) => void;
   onDragEnd: () => void;
 }
@@ -264,6 +362,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
   isDragged,
   onClick,
   onDoubleClick,
+  onRightClick,
   onDragStart,
   onDragEnd,
 }) => {
@@ -273,6 +372,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
       draggable
       onClick={(e) => onClick(asset.id, e.ctrlKey || e.metaKey)}
       onDoubleClick={() => onDoubleClick(asset)}
+      onContextMenu={(e) => onRightClick(e, asset)}
       onDragStart={() => onDragStart(asset.id)}
       onDragEnd={onDragEnd}
     >
