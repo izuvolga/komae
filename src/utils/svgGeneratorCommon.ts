@@ -120,7 +120,7 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
  */
 function generateUseElement(asset: ImageAsset, instance: AssetInstance): string {
   // Transform文字列を構築
-  const transforms = [];
+  const transforms: string[] = [];
   
   // 位置調整（ImageAssetInstanceのみ対応）
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
@@ -136,22 +136,8 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
   }
   
-  // スケール調整
-  if (instance.transform) {
-    const { scale_x, scale_y, rotation } = instance.transform;
-    if (scale_x !== undefined && scale_y !== undefined && (scale_x !== 1.0 || scale_y !== 1.0)) {
-      transforms.push(`scale(${scale_x},${scale_y})`);
-    }
-    if (rotation !== undefined && rotation !== 0) {
-      // 回転の中心点を画像の中心に設定
-      const centerX = asset.default_pos_x + asset.default_width / 2;
-      const centerY = asset.default_pos_y + asset.default_height / 2;
-      transforms.push(`rotate(${rotation} ${centerX} ${centerY})`);
-    }
-  }
-  
-  // opacity調整（ImageAssetInstanceの override_opacity を優先）
-  let finalOpacity = instance.opacity;
+  // opacity調整（ImageAssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
+  let finalOpacity = asset.default_opacity;
   if ('override_opacity' in instance) {
     const imageInstance = instance as ImageAssetInstance;
     if (imageInstance.override_opacity !== undefined) {
@@ -170,21 +156,10 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
  */
 function generateTextElement(asset: TextAsset, instance: AssetInstance): string {
   // Transform文字列を構築
-  const transforms = [];
-  
-  // スケール調整
-  if (instance.transform) {
-    const { scale_x, scale_y, rotation } = instance.transform;
-    if (scale_x !== 1.0 || scale_y !== 1.0) {
-      transforms.push(`scale(${scale_x ?? 1.0},${scale_y ?? 1.0})`);
-    }
-    if (rotation !== 0) {
-      transforms.push(`rotate(${rotation ?? 0})`);
-    }
-  }
+  const transforms: string[] = [];
   
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-  const opacityAttr = instance.opacity !== undefined ? ` opacity="${instance.opacity}"` : '';
+  const opacityAttr = '';
   
   // テキストスタイルを構築
   const textStyle = `font-family: ${asset.font}; font-size: ${asset.font_size}px; fill: ${asset.color_in}; stroke: ${asset.color_ex}; stroke-width: ${asset.stroke_width}px;`;

@@ -301,12 +301,6 @@ export const useProjectStore = create<ProjectStore>()(
               id: instanceId,
               asset_id: assetId,
               z_index: Object.keys(page.asset_instances).length,
-              transform: {
-                scale_x: 1.0,
-                scale_y: 1.0,
-                rotation: 0,
-              },
-              opacity: 1.0,
             };
             page.asset_instances[instanceId] = newInstance;
           }

@@ -129,11 +129,12 @@ ${assetDefs}
         })
         .map(instance => {
           const asset = project.assets[instance.asset_id] as ImageAsset;
-          const transform = instance.transform || { scale_x: 1.0, scale_y: 1.0, rotation: 0 };
-          const opacity = instance.opacity ?? asset.default_opacity ?? 1.0;
+          const opacity = ('override_opacity' in instance && instance.override_opacity !== undefined) 
+            ? instance.override_opacity 
+            : asset.default_opacity ?? 1.0;
           
-          // <use>要素でアセットを参照し、transformとopacityを適用
-          const transformAttr = `translate(${asset.default_pos_x}, ${asset.default_pos_y}) scale(${transform.scale_x}, ${transform.scale_y}) rotate(${transform.rotation})`;
+          // <use>要素でアセットを参照し、opacityを適用
+          const transformAttr = `translate(${asset.default_pos_x}, ${asset.default_pos_y})`;
           return `<use href="#${asset.id}" transform="${transformAttr}" opacity="${opacity}" />`;
         })
         .join('');

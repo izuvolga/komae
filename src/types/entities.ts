@@ -62,18 +62,10 @@ export interface TextAsset extends BaseAsset {
 export type Asset = ImageAsset | TextAsset;
 
 // AssetInstance定義
-export interface Transform {
-  scale_x: number;
-  scale_y: number;
-  rotation: number;
-}
-
 export interface BaseAssetInstance {
   id: string;
   asset_id: string;
   z_index: number;
-  transform: Transform;
-  opacity: number;
 }
 
 export interface ImageAssetInstance extends BaseAssetInstance {

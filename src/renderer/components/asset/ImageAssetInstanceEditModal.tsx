@@ -50,8 +50,8 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
   });
 
   const getCurrentSize = () => ({
-    width: asset.default_width * editedInstance.transform.scale_x,
-    height: asset.default_height * editedInstance.transform.scale_y,
+    width: asset.default_width,
+    height: asset.default_height,
   });
 
   const currentPos = getCurrentPosition();
@@ -85,8 +85,7 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
                       top: `${currentPos.y * 0.35}px`,
                       width: `${currentSize.width * 0.35}px`,
                       height: `${currentSize.height * 0.35}px`,
-                      opacity: editedInstance.opacity,
-                      transform: `rotate(${editedInstance.transform.rotation}deg)`,
+                      opacity: editedInstance.override_opacity ?? asset.default_opacity,
                     }}
                   />
                 </div>
@@ -112,22 +111,10 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
                     min="0"
                     max="1"
                     step="0.01"
-                    value={editedInstance.opacity}
-                    onChange={(e) => handleInputChange('opacity', parseFloat(e.target.value))}
+                    value={editedInstance.override_opacity ?? asset.default_opacity}
+                    onChange={(e) => handleInputChange('override_opacity', parseFloat(e.target.value))}
                   />
-                  <span>{editedInstance.opacity.toFixed(2)}</span>
-                </div>
-                <div className="param-row">
-                  <label>回転角度:</label>
-                  <input
-                    type="number"
-                    value={editedInstance.transform.rotation}
-                    onChange={(e) => handleInputChange('transform', {
-                      ...editedInstance.transform,
-                      rotation: parseFloat(e.target.value)
-                    })}
-                  />
-                  <span>度</span>
+                  <span>{(editedInstance.override_opacity ?? asset.default_opacity).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -165,39 +152,11 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
                 <h4>サイズ</h4>
                 <div className="param-row">
                   <label>幅:</label>
-                  <input
-                    type="number"
-                    value={Math.round(currentSize.width)}
-                    onChange={(e) => {
-                      const newWidth = parseFloat(e.target.value);
-                      const scaleX = newWidth / asset.default_width;
-                      setEditedInstance(prev => ({
-                        ...prev,
-                        transform: {
-                          ...prev.transform,
-                          scale_x: scaleX,
-                        }
-                      }));
-                    }}
-                  />
+                  <span>{Math.round(currentSize.width)}px (固定)</span>
                 </div>
                 <div className="param-row">
                   <label>高さ:</label>
-                  <input
-                    type="number"
-                    value={Math.round(currentSize.height)}
-                    onChange={(e) => {
-                      const newHeight = parseFloat(e.target.value);
-                      const scaleY = newHeight / asset.default_height;
-                      setEditedInstance(prev => ({
-                        ...prev,
-                        transform: {
-                          ...prev.transform,
-                          scale_y: scaleY,
-                        }
-                      }));
-                    }}
-                  />
+                  <span>{Math.round(currentSize.height)}px (固定)</span>
                 </div>
               </div>
             </div>
