@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { PageThumbnail } from './PageThumbnail';
-import { ImageAssetInstanceEditModal } from '../asset/ImageAssetInstanceEditModal';
+import { ImageEditModal } from '../asset/ImageEditModal';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
@@ -323,13 +323,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
       {/* ImageAssetInstance編集モーダル */}
       {editingInstance && (
-        <ImageAssetInstanceEditModal
-          assetInstance={editingInstance.instance}
+        <ImageEditModal
+          mode="instance"
           asset={editingInstance.asset}
+          assetInstance={editingInstance.instance}
           page={editingInstance.page}
           isOpen={!!editingInstance}
           onClose={handleModalClose}
-          onSave={handleInstanceSave}
+          onSaveInstance={handleInstanceSave}
         />
       )}
     </div>

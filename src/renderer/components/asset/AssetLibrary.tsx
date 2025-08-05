@@ -3,7 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
-import { ImageAssetEditModal } from './ImageAssetEditModal';
+import { ImageEditModal } from './ImageEditModal';
 import type { Asset, ImageAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
@@ -334,11 +334,12 @@ export const AssetLibrary: React.FC = () => {
 
       {/* ImageAsset編集モーダル */}
       {editingAsset && (
-        <ImageAssetEditModal
+        <ImageEditModal
+          mode="asset"
           asset={editingAsset}
           isOpen={!!editingAsset}
           onClose={handleModalClose}
-          onSave={handleAssetSave}
+          onSaveAsset={handleAssetSave}
         />
       )}
     </div>

@@ -370,3 +370,272 @@
     flex: 1;
   }
 }
+
+/* New UI Specification Styles */
+.params-section {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+.param-group {
+  margin-bottom: 16px;
+}
+
+/* Original Info (Asset編集時のみ) */
+.original-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Size Display Components */
+.size-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.size-display > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.size-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.size-inputs input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.size-inputs input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.readonly-input {
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed;
+}
+
+/* Aspect Ratio Lock */
+.aspect-ratio-lock {
+  margin-top: 8px;
+}
+
+.aspect-ratio-lock label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #495057;
+  cursor: pointer;
+}
+
+.aspect-ratio-lock input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Opacity Section */
+.opacity-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opacity-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.opacity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opacity-slider {
+  flex: 1;
+  height: 4px;
+  background: #dee2e6;
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.opacity-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.opacity-value {
+  font-size: 12px;
+  color: #6c757d;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Z-Index Section */
+.z-index-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.z-index-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.z-index-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.z-index-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Name Section */
+.name-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.name-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.name-input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Mask Edit Toggle */
+.mask-edit-toggle {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.mask-toggle-btn {
+  padding: 10px 20px;
+  border: 2px solid #007bff;
+  background: transparent;
+  color: #007bff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mask-toggle-btn:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.mask-toggle-btn.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Mask Parameters */
+.mask-params {
+  border-top: 1px solid #e9ecef;
+  padding-top: 16px;
+}
+
+.mask-params > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 12px;
+}
+
+.mask-point-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mask-point-row > span {
+  flex: 0 0 28px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.mask-point-row label {
+  flex: 0 0 12px;
+  font-size: 11px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.mask-input {
+  width: 60px;
+  padding: 4px 6px;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.mask-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.25);
+}
