@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { getAbsoluteImagePath } from '../../utils/imageUtils';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import './ImageAssetEditModal.css';
 
@@ -57,9 +58,7 @@ export const ImageAssetInstanceEditModal: React.FC<ImageAssetInstanceEditModalPr
   const currentPos = getCurrentPosition();
   const currentSize = getCurrentSize();
 
-  const imagePath = currentProjectPath 
-    ? `komae-asset://${encodeURIComponent(currentProjectPath)}/${encodeURIComponent(asset.id)}`
-    : asset.original_file_path;
+  const imagePath = `komae-asset://${getAbsoluteImagePath(asset.original_file_path, currentProjectPath)}`;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
