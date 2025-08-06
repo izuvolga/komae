@@ -21,18 +21,19 @@
 - [x]: マスク編集時の初期値をキャンバスサイズの4点に設定
 - [x]: マスク編集画面をより ui-specification.md に近づける（マスクと、ImageAssetの表示）
 
-## Spread Sheet Window 関連
-- [ ]: レイアウトを
-
 ## Asset Library 関連
 - [x]: Asset Window 上に画像ファイルをドラッグ＆ドロップすれば ImageAsset を追加できるようにする
 
 ## TextAsset 関連
+- [ ]: TextAsset/TextAssetInstance のエンティティを docs/design/data-types.md にあわせる
 - [ ]: Asset Window の + ボタンをクリックしたときにプルダウンボックスを表示し、画像, テキストの2項目を表示
 - [ ]: TextAsset を追加できるようにする
 - [ ]: TextAsset の編集画面を作成する
 - [ ]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
 - [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
+
+## Spread Sheet Window 関連
+- [ ]: レイアウトを ui-specification.md に近づける
 
 ## HTML ファイル関連
 - [ ]: 画像アセットのみで正常な HTML のエクスポートをできるようにする
