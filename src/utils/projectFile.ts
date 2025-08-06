@@ -101,6 +101,10 @@ export async function loadProjectFile(filePath: string): Promise<ProjectData> {
     try {
       return validateProjectData(parsedData);
     } catch (validationError: any) {
+      console.error('Detailed validation error:', validationError);
+      if (validationError.issues) {
+        console.error('Validation issues:', JSON.stringify(validationError.issues, null, 2));
+      }
       throw new ProjectFileError(
         `Project validation failed: ${validationError.message}`,
         'VALIDATION_FAILED'

@@ -248,6 +248,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     return Math.round(numValue * 100) / 100;
   };
 
+  // 数値を小数点2位まで制限して表示する関数
+  const formatNumberForDisplay = (value: number): string => {
+    return value.toFixed(2).replace(/\.?0+$/, '');
+  };
+
   // Enterキーでフォーカスを外すハンドラー
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -556,7 +561,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     <div className="size-inputs">
                       <input 
                         type="text" 
-                        value={tempInputValues.original_width ?? asset.original_width.toString()}
+                        value={tempInputValues.original_width ?? formatNumberForDisplay(asset.original_width)}
                         onChange={(e) => {
                           const sanitized = validateNumericInput(e.target.value, false);
                           setTempInputValues(prev => ({ ...prev, original_width: sanitized }));
@@ -575,7 +580,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       />
                       <input 
                         type="text" 
-                        value={tempInputValues.original_height ?? asset.original_height.toString()}
+                        value={tempInputValues.original_height ?? formatNumberForDisplay(asset.original_height)}
                         onChange={(e) => {
                           const sanitized = validateNumericInput(e.target.value, false);
                           setTempInputValues(prev => ({ ...prev, original_height: sanitized }));
@@ -605,7 +610,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div className="size-inputs">
                     <input
                       type="text"
-                      value={tempInputValues.default_width ?? currentSize.width.toString()}
+                      value={tempInputValues.default_width ?? formatNumberForDisplay(currentSize.width)}
                       onChange={(e) => {
                         const sanitized = validateNumericInput(e.target.value, true);
                         setTempInputValues(prev => ({ ...prev, default_width: sanitized }));
@@ -633,7 +638,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     />
                     <input
                       type="text"
-                      value={tempInputValues.default_height ?? currentSize.height.toString()}
+                      value={tempInputValues.default_height ?? formatNumberForDisplay(currentSize.height)}
                       onChange={(e) => {
                         const sanitized = validateNumericInput(e.target.value, true);
                         setTempInputValues(prev => ({ ...prev, default_height: sanitized }));
@@ -682,7 +687,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div className="size-inputs">
                     <input
                       type="text"
-                      value={tempInputValues.pos_x ?? currentPos.x.toString()}
+                      value={tempInputValues.pos_x ?? formatNumberForDisplay(currentPos.x)}
                       onChange={(e) => {
                         const sanitized = validateNumericInput(e.target.value, true);
                         setTempInputValues(prev => ({ ...prev, pos_x: sanitized }));
@@ -703,7 +708,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     />
                     <input
                       type="text"
-                      value={tempInputValues.pos_y ?? currentPos.y.toString()}
+                      value={tempInputValues.pos_y ?? formatNumberForDisplay(currentPos.y)}
                       onChange={(e) => {
                         const sanitized = validateNumericInput(e.target.value, true);
                         setTempInputValues(prev => ({ ...prev, pos_y: sanitized }));
@@ -807,7 +812,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       <label>x</label>
                       <input
                         type="text"
-                        value={tempInputValues[`mask_${index}_x`] ?? point[0].toString()}
+                        value={tempInputValues[`mask_${index}_x`] ?? formatNumberForDisplay(point[0])}
                         onChange={(e) => {
                           const sanitized = validateNumericInput(e.target.value, true);
                           setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
@@ -829,7 +834,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       <label>y</label>
                       <input
                         type="text"
-                        value={tempInputValues[`mask_${index}_y`] ?? point[1].toString()}
+                        value={tempInputValues[`mask_${index}_y`] ?? formatNumberForDisplay(point[1])}
                         onChange={(e) => {
                           const sanitized = validateNumericInput(e.target.value, true);
                           setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
