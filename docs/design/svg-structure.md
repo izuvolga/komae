@@ -45,3 +45,94 @@
 <image id="image-background1" xlink:href="/path/to/file/background1.png" width="768" height="1024" x="0" y="0" clip-path="url(#mask-id-circle)" />
 ```
 
+### TextAssetInstance の表現
+
+`{...}` の部分は、アプリケーションにより置き換えられるテンプレート文字列で、実際の値が挿入される。
+詳細は data-types.md を参照。
+
+```
+<g opacity="{opacity}">
+  <text
+    stroke-width="{stroke_width}"
+    font-family={font}
+    font-size={font_size}
+    stroke="{color_ex}"
+    fill="{color_ex}"
+    x="{x}"
+    y="{y}"
+    dy="{dy}"
+    opacity="{opacity}"
+    transform="rotate({rotate} {rotate_x} {rotate_y})"
+  >
+  {msg}
+  </text>
+  <text
+    font-family={font}
+    font-size={font_size}
+    stroke="{color_in}"
+    fill="{color_in}"
+    x="{x}"
+    y="{y}"
+    dy="{dy}"
+    opacity="{opacity}"
+    transform="rotate({rotate} {rotate_x} {rotate_y})"
+  >
+  {msg}
+  </text>
+</g>
+```
+
+もし vertical が true の場合、一文字ずつ
+`<tspan>`要素で分割され、`dy`属性で行間を調整する。
+以下は、SVG を生成する擬似的な Python コードの例です。
+
+```python
+textbody = []
+for line in msg.rstrip().split("\n"):
+    line = self.convertText(line)
+    textbody.append('<tspan x="{x}" dy="{dy}">{msg}</tspan>'.format(x=x, dy=self.font_size + self.leading, msg=line))
+msgs.append("""
+<g opacity="{opacity}" class="{dom_class}">
+  <text
+    x="{x}"
+    y="{y}"
+    font-family="{font}"
+    font-size="{font_size}"
+    stroke="{color_ex}"
+    fill="{color_ex}"
+    stroke-width="{stroke_width}"
+    opacity="{opacity}"
+    transform="rotate({rotate} {rotate_x} {rotate_y})"
+  >
+  {msg}
+  </text>
+  <text
+    x="{x}"
+    y="{y}"
+    font-family="{font}"
+    font-size="{font_size}"
+    stroke="{color_in}"
+    fill="{color_in}"
+    opacity="{opacity}"
+    transform="rotate({rotate} {rotate_x} {rotate_y})"
+  >
+  {msg}
+  </text>
+</g>
+""".format(x=x,
+        y=y,
+        font=self.font,
+        font_size=self.font_size,
+        color_ex=self.color_ex,
+        color_in=self.color_in,
+        stroke_width=self.stroke_width,
+        opacity=opacity,
+        rotate_x=x,
+        rotate_y=y,
+        rotate=rotate,
+        dom_class=self.dom_class + with_class,
+        msg="\n".join(textbody)
+    )
+```
+
+

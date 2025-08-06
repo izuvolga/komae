@@ -66,6 +66,7 @@ color_ex: テキストの縁取りの色（RGBA形式の文字列、例: '#FF000
 color_in: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
 default_pos_x: デフォルトのX座標
 default_pos_y: デフォルトのY座標
+leading: テキストの行間。verticalがtrueの場合にのみ利用。それぞれの行の間隔を指定する。
 vertical: # true の場合、縦書き
 ```
 
