@@ -56,12 +56,8 @@ npm install
 npm run dev  # Start development server + Electron app
 ```
 
-**Development Workflow:**
-- User will run `npm run dev` command for testing
-- **IMPORTANT**: Never commit changes without explicit user permission
-- Always stop and wait for user instructions before committing
-- Commit changes only after user confirms functionality works correctly and explicitly asks for commit
-- **TASK COMPLETION**: Never mark tasks as completed in TodoWrite until user confirms functionality works correctly and gives explicit permission
+**Teesting:**
+- User will run `npm run test` command for testing
 
 **Architecture:**
 - Main Process: Electron main (Node.js environment)
