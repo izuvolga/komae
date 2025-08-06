@@ -29,7 +29,8 @@
 - [x]: Asset Window の + ボタンをクリックしたときにプルダウンボックスを表示し、画像, テキストの2項目を表示
 - [x]: TextAsset を追加できるようにする
 - [x]: TextAsset の編集画面を作成する
-- [ ]: TextAssetInstance の編集画面を作成する
+- [x]: TextAssetInstance の編集画面を作成する
+- [ ]: TextAsset/TextAssetInstance の SVG エクスポート機能を実装する
 - [ ]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
 - [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
 
