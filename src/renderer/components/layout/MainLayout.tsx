@@ -282,10 +282,12 @@ export const MainLayout: React.FC = () => {
           font: 'system-ui',
           stroke_width: 2.0,
           font_size: 20 + textIndex * 2,
-          color_ex: '#000000',
-          color_in: textIndex % 2 === 0 ? '#FFFFFF' : '#FFE4E1',
+          stroke_color: '#000000',
+          fill_color: textIndex % 2 === 0 ? '#FFFFFF' : '#FFE4E1',
           default_pos_x: 400 + (textIndex * 25),
           default_pos_y: 80 + (textIndex * 15),
+          opacity: 1.0,
+          leading: 0,
           vertical: textIndex % 3 === 0,
         };
       }

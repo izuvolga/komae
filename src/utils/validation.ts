@@ -27,11 +27,8 @@ const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_text: z.string().optional(),
   override_pos_x: z.number().optional(),
   override_pos_y: z.number().optional(),
-  font_override: z.object({
-    size: z.number().min(1).optional(),
-    color_ex: z.string().optional(),
-    color_in: z.string().optional(),
-  }).optional(),
+  override_font_size: z.number().min(1).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
 });
 
 // AssetInstance Union スキーマ
@@ -62,10 +59,12 @@ const TextAssetSchema = z.object({
   font: z.string().min(1),
   stroke_width: z.number().min(0),
   font_size: z.number().min(1),
-  color_ex: z.string().min(1),
-  color_in: z.string().min(1),
+  stroke_color: z.string().min(1),
+  fill_color: z.string().min(1),
   default_pos_x: z.number(),
   default_pos_y: z.number(),
+  opacity: z.number().min(0).max(1),
+  leading: z.number(),
   vertical: z.boolean(),
 });
 

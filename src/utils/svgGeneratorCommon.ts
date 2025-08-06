@@ -189,10 +189,28 @@ function generateTextElement(asset: TextAsset, instance: AssetInstance): string 
   }
   
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-  const opacityAttr = '';
+  
+  // font_size調整（TextAssetInstanceの override_font_size を優先）
+  let finalFontSize = asset.font_size;
+  if ('override_font_size' in instance) {
+    const textInstance = instance as any; // TextAssetInstance
+    if (textInstance.override_font_size !== undefined) {
+      finalFontSize = textInstance.override_font_size;
+    }
+  }
+  
+  // opacity調整（TextAssetInstanceの override_opacity を優先、なければTextAssetのopacity）
+  let finalOpacity = asset.opacity;
+  if ('override_opacity' in instance) {
+    const textInstance = instance as any; // TextAssetInstance
+    if (textInstance.override_opacity !== undefined) {
+      finalOpacity = textInstance.override_opacity;
+    }
+  }
+  const opacityAttr = finalOpacity !== 1 ? ` opacity="${finalOpacity}"` : '';
   
   // テキストスタイルを構築
-  const textStyle = `font-family: ${asset.font}; font-size: ${asset.font_size}px; fill: ${asset.color_in}; stroke: ${asset.color_ex}; stroke-width: ${asset.stroke_width}px;`;
+  const textStyle = `font-family: ${asset.font}; font-size: ${finalFontSize}px; fill: ${asset.fill_color}; stroke: ${asset.stroke_color}; stroke-width: ${asset.stroke_width}px;`;
   
   // テキストコンテンツを取得（override_textがあればそれを使用）
   let textContent = asset.default_text;

@@ -62,10 +62,11 @@ default_text: デフォルトのテキストの内容（TextAssetInstance で未
 font: フォントのファイルパス（絶対パス）
 stroke_width: テキストの縁取りの幅（0.0〜1.0）
 font_size: テキストのフォントサイズ（ピクセル単位）
-color_ex: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
-color_in: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
+stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
+fill_color: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
 default_pos_x: デフォルトのX座標
 default_pos_y: デフォルトのY座標
+opacity: デフォルトの不透明度（0.0〜1.0）
 leading: テキストの行間。verticalがtrueの場合にのみ利用。それぞれの行の間隔を指定する。
 vertical: # true の場合、縦書き
 ```
@@ -99,10 +100,8 @@ z_index: 描画順序（数値が大きいほど前面に表示）
 override_text: TextAssetのdefault_textを上書きするテキスト内容 (optional)
 override_pos_x: TextAssetのdefault_pos_xを上書きするX座標 (optional)
 override_pos_y: TextAssetのdefault_pos_yを上書きするY座標 (optional)
-font_override: フォント設定の上書き (optional)
-  size: フォントサイズ
-  color_ex: 縁取りの色
-  color_in: 内部の色
+override_font_size: TextAssetのfont_sizeを上書きするフォントサイズ (optional)
+override_opacity: TextAssetのopacityを上書きする不透明度 (optional)
 ```
 
 **Note**: 以前のtransform（scale_x, scale_y, rotation）やAssetAttr参照（position_attr_id）は削除されました。位置変更は直接override_pos_x/yを使用し、SVG生成時にtranslate変換として処理されます。

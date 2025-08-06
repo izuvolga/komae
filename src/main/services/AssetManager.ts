@@ -180,13 +180,15 @@ export class AssetManager {
       type: 'TextAsset',
       name: name,
       default_text: defaultText,
-      font: 'system-ui', // デフォルトフォント
+      font: 'system-ui', // デフォルトフォント（絶対パス）
       stroke_width: 2.0,
       font_size: 24,
-      color_ex: '#000000',
-      color_in: '#FFFFFF',
+      stroke_color: '#000000',
+      fill_color: '#FFFFFF',
       default_pos_x: 100,
       default_pos_y: 100,
+      opacity: 1.0,
+      leading: 0,
       vertical: false,
     };
 

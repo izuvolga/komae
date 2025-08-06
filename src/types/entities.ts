@@ -38,14 +38,16 @@ export interface ImageAsset extends BaseAsset {
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
   default_text: string;
-  font: string;
+  font: string; // フォントのファイルパス（絶対パス）
   stroke_width: number;
   font_size: number;
-  color_ex: string; // 縁取りの色
-  color_in: string; // 内部の色
+  stroke_color: string; // テキストの縁取りの色（RGBA形式の文字列）
+  fill_color: string; // テキストの内部の色（RGBA形式の文字列）
   default_pos_x: number;
   default_pos_y: number;
-  vertical: boolean; // 縦書きフラグ
+  opacity: number; // デフォルトの不透明度（0.0〜1.0）
+  leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
+  vertical: boolean; // true の場合、縦書き
 }
 
 export type Asset = ImageAsset | TextAsset;
@@ -70,11 +72,8 @@ export interface TextAssetInstance extends BaseAssetInstance {
   override_text?: string;
   override_pos_x?: number;
   override_pos_y?: number;
-  font_override?: {
-    size?: number;
-    color_ex?: string;
-    color_in?: string;
-  };
+  override_font_size?: number;
+  override_opacity?: number;
 }
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance;
