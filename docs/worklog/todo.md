@@ -25,10 +25,11 @@
 - [x]: Asset Window 上に画像ファイルをドラッグ＆ドロップすれば ImageAsset を追加できるようにする
 
 ## TextAsset 関連
-- [ ]: TextAsset/TextAssetInstance のエンティティを docs/design/data-types.md にあわせる
-- [ ]: Asset Window の + ボタンをクリックしたときにプルダウンボックスを表示し、画像, テキストの2項目を表示
-- [ ]: TextAsset を追加できるようにする
-- [ ]: TextAsset の編集画面を作成する
+- [x]: TextAsset/TextAssetInstance のエンティティを docs/design/data-types.md にあわせる
+- [x]: Asset Window の + ボタンをクリックしたときにプルダウンボックスを表示し、画像, テキストの2項目を表示
+- [x]: TextAsset を追加できるようにする
+- [x]: TextAsset の編集画面を作成する
+- [ ]: TextAssetInstance の編集画面を作成する
 - [ ]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
 - [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
 
