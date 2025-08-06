@@ -307,6 +307,16 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('asset:createTextAsset', async (event, name: string, defaultText: string) => {
+      try {
+        const asset = await this.assetManager.createTextAsset(name, defaultText);
+        return { success: true, asset };
+      } catch (error) {
+        console.error('Failed to create text asset:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
     // File System Operations
     ipcMain.handle('dialog:showOpen', async (event, options) => {
       try {

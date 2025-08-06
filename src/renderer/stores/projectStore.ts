@@ -155,7 +155,7 @@ export const useProjectStore = create<ProjectStore>()(
 
           try {
             // 物理ファイルを削除（ElectronAPI経由）
-            await window.electronAPI?.assets?.delete(assetId, state.project);
+            await window.electronAPI?.asset?.delete(assetId, state.project);
           } catch (error) {
             console.error('Failed to delete asset file:', error);
             // ファイル削除に失敗してもプロジェクトデータからは削除する
@@ -453,7 +453,7 @@ export const useProjectStore = create<ProjectStore>()(
           set((state) => { state.app.isLoading = true; });
           
           try {
-            const asset = await window.electronAPI.assets.import(filePath);
+            const asset = await window.electronAPI.asset.import(filePath);
             get().addAsset(asset);
             set((state) => { state.app.isLoading = false; });
             

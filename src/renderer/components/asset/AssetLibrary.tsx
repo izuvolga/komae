@@ -28,24 +28,29 @@ export const AssetLibrary: React.FC = () => {
     asset: Asset;
   } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const createMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
 
   const assetList = Object.values(assets);
 
-  // コンテキストメニューを閉じる
+  // コンテキストメニューと作成メニューを閉じる
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
         setContextMenu(null);
       }
+      if (createMenuRef.current && !createMenuRef.current.contains(event.target as Node)) {
+        setShowCreateMenu(false);
+      }
     };
 
-    if (contextMenu) {
+    if (contextMenu || showCreateMenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [contextMenu]);
+  }, [contextMenu, showCreateMenu]);
 
   const handleAssetClick = (assetId: string, ctrlKey: boolean) => {
     // コンテキストメニューを閉じる
@@ -145,7 +150,40 @@ export const AssetLibrary: React.FC = () => {
     });
   };
 
-  const handleImportClick = async () => {
+  const handleCreateMenuClick = () => {
+    setShowCreateMenu(!showCreateMenu);
+  };
+
+  const handleCreateTextAsset = async () => {
+    try {
+      await logger.logUserInteraction('text_asset_create', 'AssetLibrary', {
+        currentAssetCount: assetList.length,
+      });
+
+      // TextAssetを作成
+      const result = await window.electronAPI.asset.createTextAsset('New Text', 'テキスト');
+      
+      if (result.success && result.asset) {
+        await importAsset(result.asset);
+        await logger.logUserInteraction('text_asset_create_success', 'AssetLibrary', {
+          assetId: result.asset.id,
+          assetName: result.asset.name,
+        });
+      } else {
+        throw new Error(result.error || 'TextAssetの作成に失敗しました');
+      }
+    } catch (error) {
+      await logger.logUserInteraction('text_asset_create_error', 'AssetLibrary', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      console.error('TextAsset作成エラー:', error);
+    } finally {
+      setShowCreateMenu(false);
+    }
+  };
+
+  const handleImportImageAsset = async () => {
+    setShowCreateMenu(false); // メニューを閉じる
     const tracker = new UIPerformanceTracker('asset_import_dialog');
     
     try {
@@ -375,9 +413,21 @@ export const AssetLibrary: React.FC = () => {
           <h3>アセット</h3>
         </div>
         <div className="asset-actions">
-          <button className="btn-icon" onClick={handleImportClick} title="アセットをインポート">
-            +
-          </button>
+          <div className="create-asset-dropdown" ref={createMenuRef}>
+            <button className="btn-icon" onClick={handleCreateMenuClick} title="アセットを作成">
+              +
+            </button>
+            {showCreateMenu && (
+              <div className="create-menu">
+                <button className="create-menu-item" onClick={handleImportImageAsset}>
+                  💼 画像
+                </button>
+                <button className="create-menu-item" onClick={handleCreateTextAsset}>
+                  🔤 テキスト
+                </button>
+              </div>
+            )}
+          </div>
           <button 
             className="btn-icon" 
             onClick={handleDeleteClick}
@@ -393,8 +443,8 @@ export const AssetLibrary: React.FC = () => {
         {assetList.length === 0 ? (
           <div className="empty-state">
             <p>アセットがありません</p>
-            <button className="btn-small" onClick={handleImportClick}>
-              アセットをインポート
+            <button className="btn-small" onClick={handleImportImageAsset}>
+              画像アセットをインポート
             </button>
             <p style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
               または画像ファイルをここにドラッグ&ドロップ

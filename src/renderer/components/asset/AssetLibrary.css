@@ -244,3 +244,47 @@
   pointer-events: none;
   white-space: nowrap;
 }
+
+/* アセット作成ドロップダウンメニュー */
+.create-asset-dropdown {
+  position: relative;
+}
+
+.create-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 120px;
+}
+
+.create-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  color: #333;
+  white-space: nowrap;
+}
+
+.create-menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+.create-menu-item:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.create-menu-item:last-child {
+  border-radius: 0 0 4px 4px;
+}

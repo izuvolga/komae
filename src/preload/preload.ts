@@ -35,7 +35,7 @@ const electronAPI = {
   },
 
   // Asset Operations
-  assets: {
+  asset: {
     import: (filePath: string) => 
       ipcRenderer.invoke('asset:import', filePath),
     
@@ -44,6 +44,9 @@ const electronAPI = {
     
     optimize: (assetId: string) => 
       ipcRenderer.invoke('asset:optimize', assetId),
+    
+    createTextAsset: (name: string, defaultText: string) => 
+      ipcRenderer.invoke('asset:createTextAsset', name, defaultText),
   },
 
   // File System Operations
