@@ -5,8 +5,8 @@ Komaeプロジェクトはディレクトリベースで管理され、メイン
 ## ディレクトリ構造
 
 ```
-my_story.komae/                    # プロジェクトディレクトリ
-├── project.komae                  # メインプロジェクトファイル（YAML形式）
+my_story/                          # プロジェクトディレクトリ
+├── my_story.komae                 # メインプロジェクトファイル（YAML形式）
 ├── assets/                        # アセットファイル
 │   ├── images/                    # 画像ファイル（PNG, WEBP形式）
 │   └── fonts/                     # フォントファイル（TTF, OTF形式）
@@ -19,64 +19,18 @@ my_story.komae/                    # プロジェクトディレクトリ
 - **相対パス参照**: アセットファイルは `assets/` からの相対パス
 - **文字エンコーディング**: UTF-8
 
-## プラットフォーム対応とOS統合
-
-Komaeプロジェクトは、各プラットフォームの特性を活かしたOS統合機能を提供します。
-
-### macOS対応
-
-macOSでは、`.komae`ディレクトリを**アプリケーションバンドル**として扱います：
-
-```
-my_story.komae/                    # アプリケーションバンドルとして認識
-├── Contents/
-│   └── Info.plist                 # バンドル情報（自動生成）
-├── my_story.komae                 # 実際のプロジェクトファイル
-├── assets/
-│   ├── images/
-│   └── fonts/
-└── .komae/
-```
-
-**動作**:
-- Finderで**ファイルアイコン**として表示
-- ディレクトリをダブルクリック → Komaeアプリケーションが起動
-- 右クリック「パッケージの内容を表示」で内部ファイルにアクセス可能
-
-### Windows対応
-
-Windowsでは、プロジェクトディレクトリ内の`.komae`ファイルを直接開きます：
-
-```
-my_story.komae/                    # 通常のディレクトリ
-├── my_story.komae                 # このファイルをダブルクリック
-├── assets/
-│   ├── images/
-│   └── fonts/
-└── .komae/
-```
-
-**動作**:
-- エクスプローラーで`.komae`ファイルが**Komaeアイコン**で表示
-- `.komae`ファイルをダブルクリック → Komaeアプリケーションが起動
-- レジストリでファイル関連付けを設定
 
 ### クロスプラットフォーム対応
 
 #### ファイル検出ロジック
 アプリケーションは以下の順序でプロジェクトファイルを検出します：
 
-1. **ディレクトリが指定された場合**（macOS主要パターン）:
-   - `[ディレクトリ]/[ディレクトリ名].komae` を検索
-   - 見つからない場合は `[ディレクトリ]/project.komae` を検索
+1. **ディレクトリが指定された場合**
+   - `[ディレクトリ名]/[ディレクトリ名].komae` を検索
 
 2. **ファイルが指定された場合**（Windows主要パターン）:
    - 指定されたファイルを直接読み込み
    - 親ディレクトリを基準として相対パス解決
-
-#### プロジェクト作成時の最適化
-- **macOS**: `Info.plist`を自動生成してアプリケーションバンドル化
-- **Windows**: レジストリ設定用の情報を提供（インストーラーで設定）
 
 #### 開発・デバッグ時の配慮
 - 開発モードでは両方のパターンをサポート
@@ -95,33 +49,7 @@ canvas:
   width: 768                      # キャンバス幅
   height: 1024                    # キャンバス高さ
 
-# AssetAttr定義（共有属性）
-asset_attrs:
-  position_attrs:
-    pos-center:
-      name: "中央位置"
-      pos_x: 384
-      pos_y: 512
-    pos-left:
-      name: "左側立ち位置"
-      pos_x: 200
-      pos_y: 400
-    pos-speech:
-      name: "セリフ位置"
-      pos_x: 150
-      pos_y: 100
-  
-  size_attrs:
-    size-standard:
-      name: "標準サイズ"
-      width: 320
-      height: 440
-    size-small:
-      name: "小サイズ"
-      width: 240
-      height: 330
-
-# Asset定義（テンプレート）
+# Asset定義
 assets:
   # ImageAsset
   img-character-a:
@@ -314,32 +242,15 @@ pages:
 - **順序操作**: 挿入、移動、削除が直感的
 - **UI連携**: SpreadSheetの行順序と配列順序が一致
 
-### Asset/AssetInstance/AssetAttrの完全分離
+### Asset/AssetInstanceの分離
 
 - **Assets**: テンプレート定義（default値を持つ）
 - **AssetInstances**: 各ページでの具体的な配置情報
-- **AssetAttrs**: 複数のAssetInstanceで共有する属性
 
 ### 参照とオーバーライドの階層
 
 1. **Asset Default**: テンプレートのデフォルト値
-2. **AssetAttr参照**: `position_attr_id`, `size_attr_id`で共有属性を参照
 3. **Override**: `override_*`で個別オーバーライド
-
-### Transform情報の完全対応
-
-各AssetInstanceで以下を制御：
-- **位置**: AssetAttr参照またはオーバーライド
-- **スケール**: `transform.scale_x/scale_y`
-- **回転**: `transform.rotation`
-- **透明度**: `opacity`
-- **マスク**: `override_mask`
-
-### TextAssetの完全サポート
-
-- **縦書き/横書き**: `vertical`フラグ
-- **フォント設定**: `font`, `font_size`, `color_ex/in`, `stroke_width`
-- **個別オーバーライド**: `override_text`, `font_override`
 
 ### ID管理とページ操作
 
@@ -369,8 +280,5 @@ const createNewPage = (title: string): Page => ({
 3ページの完整な例で以下を実証：
 - 配列形式でのページ順序管理
 - 同じAssetの異なる設定での再利用
-- AssetAttrによる位置の共有
 - 個別オーバーライドによる細かな調整
 - z_indexによるレイヤー管理
-
-この構造により、UI設計書で定義された全機能が実現可能になります。
