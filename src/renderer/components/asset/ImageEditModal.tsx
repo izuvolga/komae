@@ -467,39 +467,79 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     onMouseDown={handleImageMouseDown}
                   />
 
-                  {/* マスクポリゴン表示 */}
+                  {/* マスク編集時のオーバーレイ表示 */}
                   {maskEditMode && (
-                    <svg
-                      style={{
-                        position: 'absolute',
-                        left: `${currentPos.x * 0.35}px`,
-                        top: `${currentPos.y * 0.35}px`,
-                        width: `${currentSize.width * 0.35}px`,
-                        height: `${currentSize.height * 0.35}px`,
-                        zIndex: 3,
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      <polygon
-                        points={currentMask.map(point => `${point[0] * 0.35},${point[1] * 0.35}`).join(' ')}
-                        fill="rgba(255, 0, 0, 0.2)"
-                        stroke="red"
-                        strokeWidth="1"
-                      />
-                      {currentMask.map((point, index) => (
-                        <circle
-                          key={index}
-                          cx={point[0] * 0.35}
-                          cy={point[1] * 0.35}
-                          r="8"
-                          fill="red"
-                          stroke="white"
-                          strokeWidth="1"
-                          style={{ cursor: 'pointer', pointerEvents: 'all' }}
-                          onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
+                    <>
+                      {/* マスク範囲外の薄い白色オーバーレイ */}
+                      <svg
+                        style={{
+                          position: 'absolute',
+                          left: '0px',
+                          top: '0px',
+                          width: `${project.canvas.width * 0.35}px`,
+                          height: `${project.canvas.height * 0.35}px`,
+                          zIndex: 2,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <defs>
+                          <mask id="maskOverlay">
+                            <rect
+                              x="0"
+                              y="0"
+                              width={project.canvas.width * 0.35}
+                              height={project.canvas.height * 0.35}
+                              fill="white"
+                            />
+                            <polygon
+                              points={currentMask.map(point => `${(currentPos.x + point[0]) * 0.35},${(currentPos.y + point[1]) * 0.35}`).join(' ')}
+                              fill="black"
+                            />
+                          </mask>
+                        </defs>
+                        <rect
+                          x="0"
+                          y="0"
+                          width={project.canvas.width * 0.35}
+                          height={project.canvas.height * 0.35}
+                          fill="rgba(255, 255, 255, 0.6)"
+                          mask="url(#maskOverlay)"
                         />
-                      ))}
-                    </svg>
+                      </svg>
+                      
+                      {/* マスクポリゴン表示 */}
+                      <svg
+                        style={{
+                          position: 'absolute',
+                          left: `${currentPos.x * 0.35}px`,
+                          top: `${currentPos.y * 0.35}px`,
+                          width: `${currentSize.width * 0.35}px`,
+                          height: `${currentSize.height * 0.35}px`,
+                          zIndex: 3,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <polygon
+                          points={currentMask.map(point => `${point[0] * 0.35},${point[1] * 0.35}`).join(' ')}
+                          fill="rgba(255, 0, 0, 0.2)"
+                          stroke="red"
+                          strokeWidth="1"
+                        />
+                        {currentMask.map((point, index) => (
+                          <circle
+                            key={index}
+                            cx={point[0] * 0.35}
+                            cy={point[1] * 0.35}
+                            r="8"
+                            fill="red"
+                            stroke="white"
+                            strokeWidth="1"
+                            style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                            onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
+                          />
+                        ))}
+                      </svg>
+                    </>
                   )}
 
                   {/* リサイズハンドル */}
