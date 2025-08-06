@@ -4,7 +4,8 @@ import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
 import { ImageEditModal } from './ImageEditModal';
-import type { Asset, ImageAsset } from '../../../types/entities';
+import { TextEditModal } from './TextEditModal';
+import type { Asset, ImageAsset, TextAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -17,11 +18,13 @@ export const AssetLibrary: React.FC = () => {
   const selectedAssets = useProjectStore((state) => state.ui.selectedAssets);
   const selectAssets = useProjectStore((state) => state.selectAssets);
   const importAsset = useProjectStore((state) => state.importAsset);
+  const addAsset = useProjectStore((state) => state.addAsset);
   const deleteAsset = useProjectStore((state) => state.deleteAsset);
   const updateAsset = useProjectStore((state) => state.updateAsset);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
-  const [editingAsset, setEditingAsset] = useState<ImageAsset | null>(null);
+  const [editingImageAsset, setEditingImageAsset] = useState<ImageAsset | null>(null);
+  const [editingTextAsset, setEditingTextAsset] = useState<TextAsset | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -96,12 +99,18 @@ export const AssetLibrary: React.FC = () => {
   };
 
   const handleContextMenuEdit = () => {
-    if (contextMenu && contextMenu.asset.type === 'ImageAsset') {
+    if (contextMenu) {
       logger.logUserInteraction('asset_edit_open_context', 'AssetLibrary', {
         assetId: contextMenu.asset.id,
         assetName: contextMenu.asset.name,
+        assetType: contextMenu.asset.type,
       });
-      setEditingAsset(contextMenu.asset as ImageAsset);
+      
+      if (contextMenu.asset.type === 'ImageAsset') {
+        setEditingImageAsset(contextMenu.asset as ImageAsset);
+      } else if (contextMenu.asset.type === 'TextAsset') {
+        setEditingTextAsset(contextMenu.asset as TextAsset);
+      }
     }
     setContextMenu(null);
   };
@@ -129,24 +138,43 @@ export const AssetLibrary: React.FC = () => {
     });
 
     if (asset.type === 'ImageAsset') {
-      let editingAsset = asset as ImageAsset;
       logger.logUserInteraction('asset_edit_open', 'ImageAsset', {
-        assetId: editingAsset.id,
-        assetName: editingAsset.name,
+        assetId: asset.id,
+        assetName: asset.name,
       });
-      setEditingAsset(editingAsset);
+      setEditingImageAsset(asset as ImageAsset);
+    } else if (asset.type === 'TextAsset') {
+      logger.logUserInteraction('asset_edit_open', 'TextAsset', {
+        assetId: asset.id,
+        assetName: asset.name,
+      });
+      setEditingTextAsset(asset as TextAsset);
     }
   };
 
-  const handleModalClose = () => {
-    setEditingAsset(null);
+  const handleImageModalClose = () => {
+    setEditingImageAsset(null);
   };
 
-  const handleAssetSave = (updatedAsset: ImageAsset) => {
+  const handleTextModalClose = () => {
+    setEditingTextAsset(null);
+  };
+
+  const handleImageAssetSave = (updatedAsset: ImageAsset) => {
     updateAsset(updatedAsset.id, updatedAsset);
     logger.logUserInteraction('asset_save', 'AssetLibrary', {
       assetId: updatedAsset.id,
       assetName: updatedAsset.name,
+      assetType: 'ImageAsset',
+    });
+  };
+
+  const handleTextAssetSave = (updatedAsset: TextAsset) => {
+    updateAsset(updatedAsset.id, updatedAsset);
+    logger.logUserInteraction('asset_save', 'AssetLibrary', {
+      assetId: updatedAsset.id,
+      assetName: updatedAsset.name,
+      assetType: 'TextAsset',
     });
   };
 
@@ -164,7 +192,8 @@ export const AssetLibrary: React.FC = () => {
       const result = await window.electronAPI.asset.createTextAsset('New Text', 'テキスト');
       
       if (result.success && result.asset) {
-        await importAsset(result.asset);
+        // TextAssetは直接プロジェクトに追加
+        addAsset(result.asset);
         await logger.logUserInteraction('text_asset_create_success', 'AssetLibrary', {
           assetId: result.asset.id,
           assetName: result.asset.name,
@@ -479,7 +508,7 @@ export const AssetLibrary: React.FC = () => {
             zIndex: 1000,
           }}
         >
-          {contextMenu.asset.type === 'ImageAsset' && (
+          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset') && (
             <button
               className="context-menu-item"
               onClick={handleContextMenuEdit}
@@ -497,13 +526,24 @@ export const AssetLibrary: React.FC = () => {
       )}
 
       {/* ImageAsset編集モーダル */}
-      {editingAsset && (
+      {editingImageAsset && (
         <ImageEditModal
           mode="asset"
-          asset={editingAsset}
-          isOpen={!!editingAsset}
-          onClose={handleModalClose}
-          onSaveAsset={handleAssetSave}
+          asset={editingImageAsset}
+          isOpen={!!editingImageAsset}
+          onClose={handleImageModalClose}
+          onSaveAsset={handleImageAssetSave}
+        />
+      )}
+
+      {/* TextAsset編集モーダル */}
+      {editingTextAsset && (
+        <TextEditModal
+          mode="asset"
+          asset={editingTextAsset}
+          isOpen={!!editingTextAsset}
+          onClose={handleTextModalClose}
+          onSaveAsset={handleTextAssetSave}
         />
       )}
     </div>
@@ -545,7 +585,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
         {asset.type === 'ImageAsset' ? (
           <AssetThumbnail asset={asset as ImageAsset} />
         ) : (
-          <div className="text-placeholder">TXT</div>
+          <div className="text-placeholder">T</div>
         )}
       </div>
       <div className="asset-info">

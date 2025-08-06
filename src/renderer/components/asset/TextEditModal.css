@@ -1,0 +1,244 @@
+/* テキスト編集モーダル */
+.text-edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.text-edit-modal {
+  background: white;
+  border-radius: 8px;
+  width: 800px;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.text-edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.text-edit-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: #e0e0e0;
+}
+
+.text-edit-modal-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.text-edit-form {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  border-right: 1px solid #e0e0e0;
+}
+
+.text-edit-preview {
+  flex: 0 0 300px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  overflow-y: auto;
+}
+
+.text-edit-preview h4 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.preview-container {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.text-preview {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 4px;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+
+.form-row-double {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row-double label {
+  flex: 1;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  gap: 4px;
+}
+
+.form-row input,
+.form-row textarea {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.form-row input:focus,
+.form-row textarea:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.form-row input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.form-row input[type="color"] {
+  width: 60px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.form-row textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.text-edit-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+}
+
+.cancel-button,
+.save-button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button {
+  background: white;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background-color: #f0f0f0;
+}
+
+.save-button {
+  background: #2196f3;
+  color: white;
+  border-color: #2196f3;
+}
+
+.save-button:hover {
+  background: #1976d2;
+  border-color: #1976d2;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 900px) {
+  .text-edit-modal {
+    width: 95vw;
+    height: 90vh;
+  }
+  
+  .text-edit-modal-content {
+    flex-direction: column;
+  }
+  
+  .text-edit-form {
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    flex: 0 0 auto;
+    max-height: 50%;
+  }
+  
+  .text-edit-preview {
+    flex: 1;
+  }
+  
+  .form-row-double {
+    flex-direction: column;
+  }
+}
