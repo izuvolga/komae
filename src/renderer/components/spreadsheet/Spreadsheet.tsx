@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { ImageEditModal } from '../asset/ImageEditModal';
-import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
+import { TextEditModal } from '../asset/TextEditModal';
+import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import './Spreadsheet.css';
 
 export const Spreadsheet: React.FC = () => {
@@ -10,9 +11,15 @@ export const Spreadsheet: React.FC = () => {
   const activeWindow = useProjectStore((state) => state.ui.activeWindow);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
   const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
-  const [editingInstance, setEditingInstance] = useState<{
+  const [editingImageInstance, setEditingImageInstance] = useState<{
     instance: ImageAssetInstance;
     asset: ImageAsset;
+    page: Page;
+  } | null>(null);
+
+  const [editingTextInstance, setEditingTextInstance] = useState<{
+    instance: TextAssetInstance;
+    asset: TextAsset;
     page: Page;
   } | null>(null);
 
@@ -34,31 +41,50 @@ export const Spreadsheet: React.FC = () => {
     const page = pages.find(p => p.id === pageId);
     const asset = project.assets[assetId];
     
-    if (!page || !asset || asset.type !== 'ImageAsset') return;
+    if (!page || !asset) return;
     
     // そのページでアセットインスタンスを検索
     const instance = Object.values(page.asset_instances).find(
-      (inst: any) => inst.asset_id === assetId
-    ) as ImageAssetInstance;
+      (inst: AssetInstance) => inst.asset_id === assetId
+    );
     
     if (instance) {
-      setEditingInstance({
-        instance,
-        asset: asset as ImageAsset,
-        page,
-      });
+      if (asset.type === 'ImageAsset') {
+        setEditingImageInstance({
+          instance: instance as ImageAssetInstance,
+          asset: asset as ImageAsset,
+          page,
+        });
+      } else if (asset.type === 'TextAsset') {
+        setEditingTextInstance({
+          instance: instance as TextAssetInstance,
+          asset: asset as TextAsset,
+          page,
+        });
+      }
     }
   };
 
-  const handleInstanceSave = (updatedInstance: ImageAssetInstance) => {
-    if (editingInstance) {
-      updateAssetInstance(editingInstance.page.id, updatedInstance.id, updatedInstance);
+  const handleImageInstanceSave = (updatedInstance: ImageAssetInstance) => {
+    if (editingImageInstance) {
+      updateAssetInstance(editingImageInstance.page.id, updatedInstance.id, updatedInstance);
     }
-    setEditingInstance(null);
+    setEditingImageInstance(null);
   };
 
-  const handleModalClose = () => {
-    setEditingInstance(null);
+  const handleTextInstanceSave = (updatedInstance: TextAssetInstance) => {
+    if (editingTextInstance) {
+      updateAssetInstance(editingTextInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingTextInstance(null);
+  };
+
+  const handleImageModalClose = () => {
+    setEditingImageInstance(null);
+  };
+
+  const handleTextModalClose = () => {
+    setEditingTextInstance(null);
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
@@ -121,14 +147,14 @@ export const Spreadsheet: React.FC = () => {
                         <div className="usage-indicator inactive">○</div>
                       )}
                     </div>
-                    {isAssetUsedInPage(page.id, asset.id) && asset.type === 'ImageAsset' && (
+                    {isAssetUsedInPage(page.id, asset.id) && (
                       <button
                         className="edit-button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleCellDoubleClick(page.id, asset.id);
                         }}
-                        title="ImageAssetInstanceを編集"
+                        title={`${asset.type === 'ImageAsset' ? 'ImageAssetInstance' : 'TextAssetInstance'}を編集`}
                       >
                         ✏️
                       </button>
@@ -159,15 +185,28 @@ export const Spreadsheet: React.FC = () => {
       )}
 
       {/* ImageAssetInstance編集モーダル */}
-      {editingInstance && (
+      {editingImageInstance && (
         <ImageEditModal
           mode="instance"
-          asset={editingInstance.asset}
-          assetInstance={editingInstance.instance}
-          page={editingInstance.page}
-          isOpen={!!editingInstance}
-          onClose={handleModalClose}
-          onSaveInstance={handleInstanceSave}
+          asset={editingImageInstance.asset}
+          assetInstance={editingImageInstance.instance}
+          page={editingImageInstance.page}
+          isOpen={!!editingImageInstance}
+          onClose={handleImageModalClose}
+          onSaveInstance={handleImageInstanceSave}
+        />
+      )}
+
+      {/* TextAssetInstance編集モーダル */}
+      {editingTextInstance && (
+        <TextEditModal
+          mode="instance"
+          asset={editingTextInstance.asset}
+          assetInstance={editingTextInstance.instance}
+          page={editingTextInstance.page}
+          isOpen={!!editingTextInstance}
+          onClose={handleTextModalClose}
+          onSaveInstance={handleTextInstanceSave}
         />
       )}
     </div>
