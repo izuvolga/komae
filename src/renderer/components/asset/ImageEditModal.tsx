@@ -121,9 +121,21 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   const getCurrentMask = () => {
     if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_mask ?? asset.default_mask;
+      return editedInstance.override_mask ?? asset.default_mask ?? null;
     }
-    return editedAsset.default_mask;
+    return editedAsset.default_mask ?? null;
+  };
+
+  // マスクがキャンバスサイズと同じかどうかを判定
+  const isCanvasSizeMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | null): boolean => {
+    if (!mask) return true;
+    const [p1, p2, p3, p4] = mask;
+    return (
+      p1[0] === 0 && p1[1] === 0 &&
+      p2[0] === project.canvas.width && p2[1] === 0 &&
+      p3[0] === project.canvas.width && p3[1] === project.canvas.height &&
+      p4[0] === 0 && p4[1] === project.canvas.height
+    );
   };
 
   const currentPos = getCurrentPosition();
@@ -179,15 +191,18 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   };
 
   const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]]) => {
+    // キャンバスサイズと同じマスクはundefiendとして扱う
+    const effectiveMask = isCanvasSizeMask(mask) ? undefined : mask;
+    
     if (mode === 'instance' && editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
-        override_mask: mask,
+        override_mask: effectiveMask,
       } : null);
     } else {
       setEditedAsset(prev => ({
         ...prev,
-        default_mask: mask,
+        default_mask: effectiveMask,
       }));
     }
   };
@@ -287,7 +302,9 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     
     setMaskDragPointIndex(pointIndex);
     setMaskDragStartPos({ x: e.clientX, y: e.clientY });
-    setMaskDragStartValues([...currentMask]);
+    if (currentMask) {
+      setMaskDragStartValues([...currentMask]);
+    }
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
@@ -377,15 +394,15 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
         updatePosition(newX, newY);
         updateSize(newWidth, newHeight);
-      } else if (maskDragPointIndex !== null) {
+      } else if (maskDragPointIndex !== null && currentMask) {
         const deltaX = (e.clientX - maskDragStartPos.x) / 0.35;
         const deltaY = (e.clientY - maskDragStartPos.y) / 0.35;
         
         const newMask = [...maskDragStartValues] as [[number, number], [number, number], [number, number], [number, number]];
         const originalPoint = maskDragStartValues[maskDragPointIndex];
         newMask[maskDragPointIndex] = [
-          Math.max(0, Math.min(currentSize.width, originalPoint[0] + deltaX)),
-          Math.max(0, Math.min(currentSize.height, originalPoint[1] + deltaY))
+          Math.max(0, Math.min(project.canvas.width, originalPoint[0] + deltaX)),
+          Math.max(0, Math.min(project.canvas.height, originalPoint[1] + deltaY))
         ];
         
         updateMask(newMask);
@@ -468,7 +485,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   />
 
                   {/* マスク編集時のオーバーレイ表示 */}
-                  {maskEditMode && (
+                  {maskEditMode && currentMask && (
                     <>
                       {/* マスク範囲外の薄い白色オーバーレイ */}
                       <svg
@@ -492,7 +509,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                               fill="white"
                             />
                             <polygon
-                              points={currentMask.map(point => `${(currentPos.x + point[0]) * 0.35},${(currentPos.y + point[1]) * 0.35}`).join(' ')}
+                              points={currentMask.map(point => `${point[0] * 0.35},${point[1] * 0.35}`).join(' ')}
                               fill="black"
                             />
                           </mask>
@@ -511,10 +528,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       <svg
                         style={{
                           position: 'absolute',
-                          left: `${currentPos.x * 0.35}px`,
-                          top: `${currentPos.y * 0.35}px`,
-                          width: `${currentSize.width * 0.35}px`,
-                          height: `${currentSize.height * 0.35}px`,
+                          left: '0px',
+                          top: '0px',
+                          width: `${project.canvas.width * 0.35}px`,
+                          height: `${project.canvas.height * 0.35}px`,
                           zIndex: 3,
                           pointerEvents: 'none',
                         }}
@@ -820,9 +837,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   className={`mask-toggle-btn ${maskEditMode ? 'active' : ''}`}
                   onClick={() => {
                     if (!maskEditMode) {
-                      // マスク編集モードに入る時、マスクが初期値（全て0）の場合、キャンバスサイズの4点に設定
-                      const isInitialMask = editedAsset.default_mask.every(point => point[0] === 0 && point[1] === 0);
-                      if (isInitialMask) {
+                      // マスク編集モードに入る時、マスクが未定義の場合、キャンバスサイズの4点に設定
+                      if (!editedAsset.default_mask) {
                         const canvasWidth = project.canvas.width;
                         const canvasHeight = project.canvas.height;
                         const newMask: [[number, number], [number, number], [number, number], [number, number]] = [
@@ -843,7 +859,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               )}
 
               {/* マスク編集パラメータ */}
-              {maskEditMode && (
+              {maskEditMode && currentMask && (
                 <div className="mask-params">
                   <span>Default Mask</span>
                   {currentMask.map((point, index) => (

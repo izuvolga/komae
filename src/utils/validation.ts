@@ -50,7 +50,7 @@ const ImageAssetSchema = z.object({
   default_width: z.number().min(0.01),
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),
-  default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]),
+  default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
 // TextAsset スキーマ

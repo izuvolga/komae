@@ -32,7 +32,7 @@ export interface ImageAsset extends BaseAsset {
   default_width: number;
   default_height: number;
   default_opacity: number;
-  default_mask: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標
+  default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
 }
 
 export interface TextAsset extends BaseAsset {
