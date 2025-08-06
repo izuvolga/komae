@@ -190,19 +190,16 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   };
 
-  const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]]) => {
-    // キャンバスサイズと同じマスクはundefiendとして扱う
-    const effectiveMask = isCanvasSizeMask(mask) ? undefined : mask;
-    
+  const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | undefined) => {
     if (mode === 'instance' && editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
-        override_mask: effectiveMask,
+        override_mask: mask,
       } : null);
     } else {
       setEditedAsset(prev => ({
         ...prev,
-        default_mask: effectiveMask,
+        default_mask: mask,
       }));
     }
   };
@@ -542,19 +539,46 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           stroke="red"
                           strokeWidth="1"
                         />
-                        {currentMask.map((point, index) => (
-                          <circle
-                            key={index}
-                            cx={point[0] * 0.35}
-                            cy={point[1] * 0.35}
-                            r="8"
-                            fill="red"
-                            stroke="white"
-                            strokeWidth="1"
-                            style={{ cursor: 'pointer', pointerEvents: 'all' }}
-                            onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
-                          />
-                        ))}
+                        {currentMask.map((point, index) => {
+                          const handleSize = 16; // ハンドルのサイズ
+                          const x = point[0] * 0.35;
+                          const y = point[1] * 0.35;
+                          // ハンドルを矩形の内側に配置するためのオフセット
+                          const offset = handleSize / 2;
+                          const offset_direction = [
+                            [ 1,  1], // 左上
+                            [-1,  1], // 右上
+                            [-1, -1], // 右下
+                            [ 1, -1]  // 左下
+                          ][index];
+
+                          return (
+                            <g key={index}>
+                              {/* 外側の白い枠 */}
+                              <rect
+                                x={x - handleSize / 2 + offset * offset_direction[0]}
+                                y={y - handleSize / 2 + offset * offset_direction[1]}
+                                width={handleSize}
+                                height={handleSize}
+                                fill="white"
+                                stroke="red"
+                                strokeWidth="2"
+                                style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                                onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
+                              />
+                              {/* 内側の赤い四角 */}
+                              <rect
+                                x={x - handleSize / 2 + 3 + offset * offset_direction[0]}
+                                y={y - handleSize / 2 + 3 + offset * offset_direction[1]}
+                                width={handleSize - 6}
+                                height={handleSize - 6}
+                                fill="red"
+                                stroke="none"
+                                style={{ pointerEvents: 'none' }}
+                              />
+                            </g>
+                          );
+                        })}
                       </svg>
                     </>
                   )}
@@ -917,7 +941,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     <button
                       type="button"
                       className="back-button"
-                      onClick={() => setMaskEditMode(false)}
+                      onClick={() => {
+                        const effectiveMask = isCanvasSizeMask(currentMask) ? undefined : currentMask;
+                        updateMask(effectiveMask);
+                        setMaskEditMode(false)
+                      }}
                     >
                       ← Exit Mask Editor
                     </button>

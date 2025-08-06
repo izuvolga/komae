@@ -22,6 +22,7 @@
 - [ ]: マスク編集画面をより ui-specification.md に近づける（マスクと、ImageAssetの表示）
 
 ## Spread Sheet Window 関連
+- [ ]: レイアウトを
 
 ## Asset Library 関連
 - [x]: Asset Window 上に画像ファイルをドラッグ＆ドロップすれば ImageAsset を追加できるようにする
