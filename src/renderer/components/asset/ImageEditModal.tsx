@@ -409,8 +409,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const modalTitle = mode === 'instance' ? `ImageAssetInstance 編集: ${asset.name}` : `ImageAsset 編集: ${asset.name}`;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="image-asset-edit-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="image-asset-edit-modal">
         <div className="modal-header">
           <h2>{modalTitle}</h2>
           <button className="close-button" onClick={onClose}>×</button>
