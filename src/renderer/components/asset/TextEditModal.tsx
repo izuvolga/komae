@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useProjectStore } from '../../stores/projectStore';
 import type { TextAsset } from '../../../types/entities';
 import './TextEditModal.css';
 
@@ -18,6 +19,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   onSaveAsset,
 }) => {
   const [editingAsset, setEditingAsset] = useState<TextAsset | null>(null);
+  const canvasConfig = useProjectStore((state) => state.project?.canvas);
 
   useEffect(() => {
     if (isOpen && asset) {
@@ -52,21 +54,42 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     onClose();
   };
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  // モーダル外側クリックでの閉じる処理を削除
 
   return (
-    <div className="text-edit-modal-overlay" onClick={handleOverlayClick}>
-      <div className="text-edit-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="text-edit-modal-overlay">
+      <div className="text-edit-modal">
         <div className="text-edit-modal-header">
           <h3>テキストアセット編集</h3>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         
         <div className="text-edit-modal-content">
+          <div className="text-edit-preview">
+            <h4>プレビュー</h4>
+            <div className="preview-container" style={{
+              width: canvasConfig?.width || 800,
+              height: canvasConfig?.height || 600,
+            }}>
+              <div
+                className="text-preview"
+                style={{
+                  fontSize: `${editingAsset.font_size}px`,
+                  color: editingAsset.fill_color,
+                  textShadow: editingAsset.stroke_width > 0 ? `0 0 ${editingAsset.stroke_width}px ${editingAsset.stroke_color}` : 'none',
+                  opacity: editingAsset.opacity,
+                  writingMode: editingAsset.vertical ? 'vertical-rl' : 'horizontal-tb',
+                  lineHeight: editingAsset.leading ? `${editingAsset.leading}px` : 'normal',
+                  position: 'absolute',
+                  left: `${editingAsset.default_pos_x}px`,
+                  top: `${editingAsset.default_pos_y}px`,
+                }}
+              >
+                {editingAsset.default_text}
+              </div>
+            </div>
+          </div>
+
           <div className="text-edit-form">
             {/* 基本情報 */}
             <div className="form-section">
@@ -216,25 +239,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     step="0.01"
                   />
                 </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-edit-preview">
-            <h4>プレビュー</h4>
-            <div className="preview-container">
-              <div
-                className="text-preview"
-                style={{
-                  fontSize: `${editingAsset.font_size}px`,
-                  color: editingAsset.fill_color,
-                  textShadow: editingAsset.stroke_width > 0 ? `0 0 ${editingAsset.stroke_width}px ${editingAsset.stroke_color}` : 'none',
-                  opacity: editingAsset.opacity,
-                  writingMode: editingAsset.vertical ? 'vertical-rl' : 'horizontal-tb',
-                  lineHeight: editingAsset.leading ? `${editingAsset.leading}px` : 'normal',
-                }}
-              >
-                {editingAsset.default_text}
               </div>
             </div>
           </div>
