@@ -19,6 +19,9 @@
 - [x]: マスク編集時にExit Mask Editorボタンを追加して元の編集画面に戻る機能
 - [x]: マスク座標のテキストボックスのバリデーション（数字、-、.のみ、小数点2位まで、フォーカスアウト時バリデーション）
 - [x]: マスク編集時の初期値をキャンバスサイズの4点に設定
+- [ ]: マスク編集画面をより ui-specification.md に近づける（マスクと、ImageAssetの表示）
+
+## Spread Sheet Window 関連
 
 ## Asset Library 関連
 - [x]: Asset Window 上に画像ファイルをドラッグ＆ドロップすれば ImageAsset を追加できるようにする
