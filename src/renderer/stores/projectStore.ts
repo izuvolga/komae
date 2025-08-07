@@ -29,6 +29,8 @@ interface ProjectStore {
   currentProjectPath: string | null;
   ui: UIState;
   app: AppState;
+  // 非表示にされたインスタンスの編集内容を一時保存
+  hiddenInstanceData: Record<string, Record<string, AssetInstance>>;
 
   // Project Actions
   setProject: (project: ProjectData) => void;
@@ -87,6 +89,7 @@ export const useProjectStore = create<ProjectStore>()(
         // Initial State
         project: null,
         currentProjectPath: null,
+        hiddenInstanceData: {},
         ui: {
           selectedAssets: [],
           selectedPages: [],
@@ -292,16 +295,35 @@ export const useProjectStore = create<ProjectStore>()(
           );
 
           if (existingInstance) {
-            // 既存のインスタンスを削除
+            // 既存のインスタンスを非表示にする前に、編集内容を保存
+            const storageKey = `${pageId}-${assetId}`;
+            if (!state.hiddenInstanceData[pageId]) {
+              state.hiddenInstanceData[pageId] = {};
+            }
+            // 編集済みの内容がある場合のみ保存
+            state.hiddenInstanceData[pageId][assetId] = { ...existingInstance };
             delete page.asset_instances[existingInstance.id];
           } else {
-            // 新しいインスタンスを作成
+            // 新しいインスタンスを作成、以前の編集内容があれば復元
             const instanceId = `instance-${Date.now()}`;
-            const newInstance: AssetInstance = {
+            let newInstance: AssetInstance = {
               id: instanceId,
               asset_id: assetId,
               z_index: Object.keys(page.asset_instances).length,
             };
+            
+            // 以前に保存された編集内容があるかチェック
+            if (state.hiddenInstanceData[pageId]?.[assetId]) {
+              const savedInstance = state.hiddenInstanceData[pageId][assetId];
+              newInstance = {
+                ...savedInstance,
+                id: instanceId, // 新しいIDを使用
+                z_index: Object.keys(page.asset_instances).length, // z-indexは再計算
+              };
+              // 復元済みなので保存データは削除
+              delete state.hiddenInstanceData[pageId][assetId];
+            }
+            
             page.asset_instances[instanceId] = newInstance;
           }
           
