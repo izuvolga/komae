@@ -242,8 +242,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       >
         {/* ヘッダー行 */}
         <div className="spreadsheet-header">
-          <div className="cell header-cell page-number-header">#</div>
-          <div className="cell header-cell delete-header">削除</div>
+          <div className="cell header-cell page-number-delete-header">#</div>
           <div className="cell header-cell preview-column-header">Preview</div>
           {assets.map((asset) => (
             <div key={asset.id} className="cell header-cell asset-header">
@@ -263,21 +262,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
         <div className="spreadsheet-body">
           {pages.map((page, pageIndex) => (
             <div key={page.id} className="spreadsheet-row">
-              {/* ページ番号セル */}
-              <div className="cell page-number-cell">
-                {pageIndex + 1}
-              </div>
-              
-              {/* 削除ボタンセル */}
-              <div className="cell delete-cell">
-                <button
-                  className="delete-page-btn"
-                  onClick={() => handleDeletePage(page.id)}
-                  disabled={pages.length <= 1}
-                  title="ページを削除"
-                >
-                  ×
-                </button>
+              {/* ページ番号＋削除ボタンセル */}
+              <div className="cell page-number-delete-cell">
+                <div className="page-number-delete-content">
+                  <button
+                    className="delete-page-btn"
+                    onClick={() => handleDeletePage(page.id)}
+                    disabled={pages.length <= 1}
+                    title="ページを削除"
+                  >
+                    ×
+                  </button>
+                  <span className="page-number">{pageIndex + 1}</span>
+                </div>
               </div>
               
               {/* プレビューセル */}
@@ -298,41 +295,62 @@ export const EnhancedSpreadsheet: React.FC = () => {
               </div>
               
               {/* アセットセル */}
-              {assets.map((asset) => (
-                <div
-                  key={`${page.id}-${asset.id}`}
-                  className={`cell asset-cell ${
-                    isAssetUsedInPage(page.id, asset.id) ? 'used' : 'unused'
-                  }`}
-                >
-                  <div className="cell-content">
-                    <button
-                      className={`toggle-button ${
-                        isAssetUsedInPage(page.id, asset.id) ? 'active' : 'inactive'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCellClick(page.id, asset.id);
-                      }}
-                      title={`${asset.name}の表示を${isAssetUsedInPage(page.id, asset.id) ? 'OFF' : 'ON'}にする`}
-                    >
-                      {isAssetUsedInPage(page.id, asset.id) ? '✓' : '×'}
-                    </button>
-                    {isAssetUsedInPage(page.id, asset.id) && (asset.type === 'ImageAsset' || asset.type === 'TextAsset') && (
+              {assets.map((asset) => {
+                const isUsed = isAssetUsedInPage(page.id, asset.id);
+                const instance = isUsed ? Object.values(page.asset_instances).find(
+                  (inst: any) => inst.asset_id === asset.id
+                ) : null;
+                
+                return (
+                  <div
+                    key={`${page.id}-${asset.id}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'}`}
+                  >
+                    {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
+                    <div className="cell-manage">
                       <button
-                        className="edit-button"
+                        className={`toggle-button ${isUsed ? 'active' : 'inactive'}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEditClick(page.id, asset.id);
+                          handleCellClick(page.id, asset.id);
                         }}
-                        title={`${asset.name}のインスタンスを編集`}
+                        title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
                       >
-                        ✏️
+                        {isUsed ? '✓' : '×'}
                       </button>
-                    )}
+                      {isUsed && (asset.type === 'ImageAsset' || asset.type === 'TextAsset') && (
+                        <button
+                          className="edit-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(page.id, asset.id);
+                          }}
+                          title={`${asset.name}のインスタンスを編集`}
+                        >
+                          ✏️
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* セル分割線 */}
+                    <div className="cell-divider"></div>
+                    
+                    {/* 右側：cell-content（コンテンツ表示） */}
+                    <div className="cell-content">
+                      {isUsed && asset.type === 'TextAsset' && instance && (
+                        <div className="text-content">
+                          {(instance as any).override_text || asset.default_text}
+                        </div>
+                      )}
+                      {isUsed && asset.type === 'ImageAsset' && (
+                        <div className="image-content">
+                          <div className="image-preview-small"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ))}
           

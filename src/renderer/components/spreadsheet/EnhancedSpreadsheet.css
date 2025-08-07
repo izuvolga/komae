@@ -42,16 +42,10 @@
   min-height: 40px;
 }
 
-.page-number-header {
+.page-number-delete-header {
   background-color: #e9ecef;
-  width: 40px;
-  min-width: 40px;
-}
-
-.delete-header {
-  background-color: #e9ecef;
-  width: 60px;
-  min-width: 60px;
+  width: 70px;
+  min-width: 70px;
 }
 
 .preview-column-header {
@@ -117,25 +111,30 @@
   padding: 4px;
 }
 
-/* ページ番号セル */
-.page-number-cell {
+/* ページ番号＋削除ボタンセル */
+.page-number-delete-cell {
   background-color: #f8f9fa;
-  font-weight: 600;
-  color: #666;
-  width: 40px;
-  min-width: 40px;
+  width: 70px;
+  min-width: 70px;
+  padding: 2px;
 }
 
-/* 削除ボタンセル */
-.delete-cell {
-  background-color: #f8f9fa;
-  width: 60px;
-  min-width: 60px;
+.page-number-delete-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.page-number {
+  font-weight: 600;
+  color: #666;
+  font-size: 12px;
 }
 
 .delete-page-btn {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border: 1px solid #dc3545;
   background-color: white;
   color: #dc3545;
@@ -144,9 +143,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 1;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .delete-page-btn:hover:not(:disabled) {
@@ -217,6 +217,11 @@
   transition: all 0.2s;
   width: 100px;
   min-width: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
+  position: relative;
 }
 
 .asset-cell:hover {
@@ -231,15 +236,35 @@
   background-color: #fff;
 }
 
-.cell-content {
+/* cell-manage: 左側のチェックボックス＋編集ボタン */
+.cell-manage {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  width: 30px;
+  min-width: 30px;
+  padding: 2px;
+  background-color: rgba(0, 0, 0, 0.02);
   gap: 2px;
+}
+
+/* セル分割線 */
+.cell-divider {
+  width: 1px;
+  background-color: #dee2e6;
+  margin: 2px 0;
+  flex-shrink: 0;
+}
+
+/* cell-content: 右側のコンテンツ表示 */
+.cell-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px;
+  min-height: 46px;
 }
 
 /* トグルボタン */
@@ -247,15 +272,16 @@
   background: none;
   border: 1px solid #ddd;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 10px;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 1px 3px;
   transition: all 0.2s;
-  min-width: 20px;
-  height: 20px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .toggle-button.active {
@@ -279,21 +305,57 @@
   background: rgba(0, 123, 255, 0.1);
   border: 1px solid rgba(0, 123, 255, 0.3);
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 8px;
   cursor: pointer;
-  padding: 1px 4px;
+  padding: 1px 2px;
   color: #007bff;
   transition: all 0.2s;
-  min-width: 16px;
-  height: 16px;
+  min-width: 14px;
+  height: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .edit-button:hover {
   background-color: rgba(0, 123, 255, 0.2);
   border-color: rgba(0, 123, 255, 0.5);
+}
+
+/* テキストコンテンツ */
+.text-content {
+  font-size: 10px;
+  color: #333;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* 画像コンテンツ */
+.image-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.image-preview-small {
+  width: 24px;
+  height: 24px;
+  background-color: #ddd;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23999" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5l4-8 2.5 3.01L14.5 11l4.5 8z"/></svg>');
+  background-size: 16px 16px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 
