@@ -133,6 +133,25 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     onClose();
   };
 
+  // プレビューサイズを計算
+  const previewDimensions = useMemo(() => {
+    const canvasWidth = canvasConfig?.width || 800;
+    const canvasHeight = canvasConfig?.height || 600;
+    const maxPreviewWidth = 360;
+    const maxPreviewHeight = 300;
+    
+    // 縦横比を保持しながら最大サイズ内に収める
+    const widthRatio = maxPreviewWidth / canvasWidth;
+    const heightRatio = maxPreviewHeight / canvasHeight;
+    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
+    
+    return {
+      width: Math.round(canvasWidth * scale),
+      height: Math.round(canvasHeight * scale),
+      scale,
+    };
+  }, [canvasConfig]);
+
   // プレビュー用SVGを生成
   const previewSVG = useMemo(() => {
     try {
@@ -165,8 +184,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           <div className="text-edit-preview">
             <h4>プレビュー</h4>
             <div className="preview-container" style={{
-              width: canvasConfig?.width || 800,
-              height: canvasConfig?.height || 600,
+              width: previewDimensions.width,
+              height: previewDimensions.height,
             }}>
               <div
                 className="svg-preview"
