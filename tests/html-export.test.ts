@@ -227,6 +227,106 @@ describe('HTML Export - 単一ファイル出力', () => {
     });
   });
 
+  describe('TextAsset SVGエクスポート', () => {
+    test('TextAssetが正しいSVG形式でエクスポートされること', () => {
+      // TextAssetを含むプロジェクトでテスト
+      const projectWithText = {
+        ...mockProject,
+        assets: {
+          ...mockProject.assets,
+          'test-text-1': {
+            id: 'test-text-1',
+            type: 'TextAsset',
+            name: 'テストテキスト',
+            default_text: 'こんにちは\n世界',
+            font: 'Arial',
+            stroke_width: 2.0,
+            stroke_color: '#000000',
+            fill_color: '#FFFFFF',
+            font_size: 24,
+            default_pos_x: 200,
+            default_pos_y: 300,
+            opacity: 1.0,
+            leading: 4.0,
+            vertical: true,
+          },
+        },
+        pages: [
+          {
+            id: 'page-1',
+            title: 'テキストページ',
+            asset_instances: {
+              'text-instance-1': {
+                id: 'text-instance-1',
+                asset_id: 'test-text-1',
+                z_index: 1,
+              },
+            },
+          },
+        ],
+      };
+
+      const html = generateHtmlExport(projectWithText);
+      
+      // TextAssetがSVG形式で含まれている
+      expect(html).toContain('font-family=\\\"Arial\\\"');
+      expect(html).toContain('こ'); // 縦書きで文字分割される
+      expect(html).toContain('ん');
+      expect(html).toContain('<text');
+      expect(html).toContain('writing-mode=\\\"vertical-rl\\\"'); // 縦書きテキスト
+    });
+
+    test('TextAssetInstanceのオーバーライド値が適用されること', () => {
+      const projectWithTextInstance = {
+        ...mockProject,
+        assets: {
+          ...mockProject.assets,
+          'test-text-1': {
+            id: 'test-text-1',
+            type: 'TextAsset',
+            name: 'テストテキスト',
+            default_text: 'こんにちは\n世界',
+            font: 'Arial',
+            stroke_width: 2.0,
+            stroke_color: '#000000',
+            fill_color: '#FFFFFF',
+            font_size: 24,
+            default_pos_x: 200,
+            default_pos_y: 300,
+            opacity: 1.0,
+            leading: 4.0,
+            vertical: true,
+          },
+        },
+        pages: [
+          {
+            id: 'page-1',
+            title: 'テキストページ',
+            asset_instances: {
+              'text-instance-1': {
+                id: 'text-instance-1',
+                asset_id: 'test-text-1',
+                z_index: 1,
+                override_text: 'オーバーライドテキスト',
+                override_font_size: 32,
+                override_opacity: 0.5,
+              },
+            },
+          },
+        ],
+      };
+
+      const html = generateHtmlExport(projectWithTextInstance);
+      
+      // オーバーライド値が適用されている
+      expect(html).toContain('オ'); // 縦書きで文字分割される
+      expect(html).toContain('ー');
+      expect(html).toContain('バ');
+      expect(html).toContain('font-size=\\\"32\\\"');
+      expect(html).toContain('opacity=\\\"0.5\\\"');
+    });
+  });
+
   describe('エラーハンドリング', () => {
     test('空のプロジェクトを適切に処理する', () => {
       const emptyProject: ProjectData = {

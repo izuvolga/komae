@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import type { TextAsset, TextAssetInstance, Page } from '../../../types/entities';
 import './TextEditModal.css';
 
@@ -86,6 +87,24 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     onClose();
   };
 
+  // プレビュー用SVGを生成
+  const previewSVG = useMemo(() => {
+    try {
+      return generateTextPreviewSVG(
+        editingAsset,
+        mode === 'instance' ? editingInstance : undefined,
+        {
+          width: canvasConfig?.width || 800,
+          height: canvasConfig?.height || 600,
+          backgroundColor: 'transparent',
+        }
+      );
+    } catch (error) {
+      console.error('Failed to generate preview SVG:', error);
+      return '<svg><text>プレビューエラー</text></svg>';
+    }
+  }, [editingAsset, editingInstance, mode, canvasConfig]);
+
   // モーダル外側クリックでの閉じる処理を削除
 
   return (
@@ -104,21 +123,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               height: canvasConfig?.height || 600,
             }}>
               <div
-                className="text-preview"
+                className="svg-preview"
+                dangerouslySetInnerHTML={{ __html: previewSVG }}
                 style={{
-                  fontSize: `${getCurrentValue('font_size', 'override_font_size')}px`,
-                  color: editingAsset.fill_color,
-                  textShadow: editingAsset.stroke_width > 0 ? `0 0 ${editingAsset.stroke_width}px ${editingAsset.stroke_color}` : 'none',
-                  opacity: getCurrentValue('opacity', 'override_opacity'),
-                  writingMode: editingAsset.vertical ? 'vertical-rl' : 'horizontal-tb',
-                  lineHeight: editingAsset.leading ? `${editingAsset.leading}px` : 'normal',
-                  position: 'absolute',
-                  left: `${getCurrentValue('default_pos_x', 'override_pos_x')}px`,
-                  top: `${getCurrentValue('default_pos_y', 'override_pos_y')}px`,
+                  width: '100%',
+                  height: '100%',
                 }}
-              >
-                {getCurrentValue('default_text', 'override_text')}
-              </div>
+              />
             </div>
           </div>
 

@@ -166,66 +166,159 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
 }
 
 /**
+ * XMLエスケープを行う
+ */
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
  * テキスト要素を生成する（直接描画用）
+ * svg-structure.md仕様に完全準拠
  */
 function generateTextElement(asset: TextAsset, instance: AssetInstance): string {
-  // Transform文字列を構築
+  // TextAssetInstanceからオーバーライド値を取得
+  const textInstance = instance as any; // TextAssetInstance型
+  
+  // 現在の値を取得（instanceのoverride値を優先）
+  const finalPosX = textInstance.override_pos_x ?? asset.default_pos_x;
+  const finalPosY = textInstance.override_pos_y ?? asset.default_pos_y;
+  const finalFontSize = textInstance.override_font_size ?? asset.font_size;
+  const finalOpacity = textInstance.override_opacity ?? asset.opacity ?? 1.0;
+  const textContent = textInstance.override_text ?? asset.default_text;
+  const font = asset.font || 'Arial';
+  const strokeWidth = asset.stroke_width || 0;
+  const strokeColor = asset.stroke_color || '#000000';
+  const fillColor = asset.fill_color || '#FFFFFF';
+  const leading = asset.leading || 0;
+  const vertical = asset.vertical || false;
+
+  // XMLエスケープを適用
+  const escapedText = escapeXml(textContent);
+
+  // Transform設定（位置調整）
   const transforms: string[] = [];
-  
-  // 位置調整（TextAssetInstanceのみ対応）
-  let finalPosX = asset.default_pos_x;
-  let finalPosY = asset.default_pos_y;
-  if ('override_pos_x' in instance || 'override_pos_y' in instance) {
-    const textInstance = instance as any; // TextAssetInstance
-    if (textInstance.override_pos_x !== undefined) finalPosX = textInstance.override_pos_x;
-    if (textInstance.override_pos_y !== undefined) finalPosY = textInstance.override_pos_y;
-    
-    // デフォルト位置からの差分を計算してtranslateに追加
-    const translateX = finalPosX - asset.default_pos_x;
-    const translateY = finalPosY - asset.default_pos_y;
-    if (translateX !== 0 || translateY !== 0) {
-      transforms.push(`translate(${translateX},${translateY})`);
-    }
+  const translateX = finalPosX - asset.default_pos_x;
+  const translateY = finalPosY - asset.default_pos_y;
+  if (translateX !== 0 || translateY !== 0) {
+    transforms.push(`translate(${translateX},${translateY})`);
   }
-  
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-  
-  // font_size調整（TextAssetInstanceの override_font_size を優先）
-  let finalFontSize = asset.font_size;
-  if ('override_font_size' in instance) {
-    const textInstance = instance as any; // TextAssetInstance
-    if (textInstance.override_font_size !== undefined) {
-      finalFontSize = textInstance.override_font_size;
-    }
-  }
-  
-  // opacity調整（TextAssetInstanceの override_opacity を優先、なければTextAssetのopacity）
-  let finalOpacity = asset.opacity;
-  if ('override_opacity' in instance) {
-    const textInstance = instance as any; // TextAssetInstance
-    if (textInstance.override_opacity !== undefined) {
-      finalOpacity = textInstance.override_opacity;
-    }
-  }
-  const opacityAttr = finalOpacity !== 1 ? ` opacity="${finalOpacity}"` : '';
-  
-  // テキストスタイルを構築
-  const textStyle = `font-family: ${asset.font}; font-size: ${finalFontSize}px; fill: ${asset.fill_color}; stroke: ${asset.stroke_color}; stroke-width: ${asset.stroke_width}px;`;
-  
-  // テキストコンテンツを取得（override_textがあればそれを使用）
-  let textContent = asset.default_text;
-  if ('override_text' in instance) {
-    const textInstance = instance as any; // TextAssetInstance
-    if (textInstance.override_text !== undefined) {
-      textContent = textInstance.override_text;  
-    }
-  }
-  
-  if (asset.vertical) {
-    // 縦書きテキストの処理
-    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}" writing-mode="tb"${transformAttr}${opacityAttr}>${textContent}</text>`;
+
+  if (vertical) {
+    // 縦書きテキスト：tspan要素で文字分割
+    const lines = escapedText.split('\n');
+    const textBody: string[] = [];
+    
+    lines.forEach((line, lineIndex) => {
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const dyValue = i === 0 && lineIndex === 0 ? 0 : finalFontSize + leading;
+        textBody.push(`    <tspan x="${asset.default_pos_x}" dy="${dyValue}">${char}</tspan>`);
+      }
+    });
+
+    return `<g opacity="${finalOpacity}">
+  <text
+    x="${asset.default_pos_x}"
+    y="${asset.default_pos_y}"
+    font-family="${font}"
+    font-size="${finalFontSize}"
+    stroke="${strokeColor}"
+    fill="${strokeColor}"
+    stroke-width="${strokeWidth}"
+    opacity="${finalOpacity}"
+    writing-mode="vertical-rl"${transformAttr}
+  >
+${textBody.join('\n')}
+  </text>
+  <text
+    x="${asset.default_pos_x}"
+    y="${asset.default_pos_y}"
+    font-family="${font}"
+    font-size="${finalFontSize}"
+    stroke="none"
+    fill="${fillColor}"
+    opacity="${finalOpacity}"
+    writing-mode="vertical-rl"${transformAttr}
+  >
+${textBody.join('\n')}
+  </text>
+</g>`;
   } else {
-    // 横書きテキストの処理
-    return `<text x="${asset.default_pos_x}" y="${asset.default_pos_y}" style="${textStyle}"${transformAttr}${opacityAttr}>${textContent}</text>`;
+    // 横書きテキスト：行ごとにtspan要素
+    const lines = escapedText.split('\n');
+    const textBody: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const dyValue = index === 0 ? 0 : finalFontSize + leading;
+      textBody.push(`    <tspan x="${asset.default_pos_x}" dy="${dyValue}">${line}</tspan>`);
+    });
+
+    return `<g opacity="${finalOpacity}">
+  <text
+    x="${asset.default_pos_x}"
+    y="${asset.default_pos_y}"
+    font-family="${font}"
+    font-size="${finalFontSize}"
+    stroke="${strokeColor}"
+    fill="${strokeColor}"
+    stroke-width="${strokeWidth}"
+    opacity="${finalOpacity}"${transformAttr}
+  >
+${textBody.join('\n')}
+  </text>
+  <text
+    x="${asset.default_pos_x}"
+    y="${asset.default_pos_y}"
+    font-family="${font}"
+    font-size="${finalFontSize}"
+    stroke="none"
+    fill="${fillColor}"
+    opacity="${finalOpacity}"${transformAttr}
+  >
+${textBody.join('\n')}
+  </text>
+</g>`;
   }
+}
+
+/**
+ * TextAsset/TextAssetInstanceのプレビュー用SVGを生成する
+ */
+export function generateTextPreviewSVG(
+  asset: TextAsset,
+  instance?: any, // TextAssetInstance型（anyで代用）
+  options: {
+    width?: number;
+    height?: number;
+    backgroundColor?: string;
+  } = {}
+): string {
+  const { width = 800, height = 600, backgroundColor = 'transparent' } = options;
+  
+  // 一時的なインスタンスオブジェクトを作成（instanceがない場合）
+  const tempInstance = instance || {
+    id: 'temp-preview',
+    asset_id: asset.id,
+    z_index: 0,
+  };
+  
+  // TextSVG要素を生成
+  const textElement = generateTextElement(asset, tempInstance);
+
+  return `<svg
+  width="${width}"
+  height="${height}"
+  viewBox="0 0 ${width} ${height}"
+  xmlns="http://www.w3.org/2000/svg"
+  style="background: ${backgroundColor === 'transparent' ? 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=)' : backgroundColor};"
+>
+  ${textElement}
+</svg>`;
 }

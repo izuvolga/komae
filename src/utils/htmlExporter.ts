@@ -1,4 +1,5 @@
-import type { ProjectData, ImageAsset } from '../types/entities';
+import type { ProjectData, ImageAsset, AssetInstance } from '../types/entities';
+import { generateSvgStructureCommon } from './svgGeneratorCommon';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -119,57 +120,32 @@ ${assetDefs}
   generateNavigationScript(project: ProjectData): string {
     const totalPages = project.pages.length;
     
+    // Base64エンコード関数（画像アセット用）
+    const getProtocolUrl = (filePath: string): string => {
+      return encodeImageToBase64(filePath);
+    };
+    
     // 各ページのアセット構成を配列で定義
     const pagesContent = project.pages.map(page => {
-      const instances = Object.values(page.asset_instances)
+      const instances: AssetInstance[] = Object.values(page.asset_instances)
         .sort((a, b) => a.z_index - b.z_index)
         .filter(instance => {
           const asset = project.assets[instance.asset_id];
-          return asset && asset.type === 'ImageAsset';
-        })
-        .map(instance => {
-          const asset = project.assets[instance.asset_id] as ImageAsset;
-          const opacity = ('override_opacity' in instance && instance.override_opacity !== undefined) 
-            ? instance.override_opacity 
-            : asset.default_opacity ?? 1.0;
-          
-          // Transform文字列を構築
-          const transforms: string[] = [];
-          
-          // 位置調整
-          if ('override_pos_x' in instance || 'override_pos_y' in instance) {
-            const imageInstance = instance as any; // ImageAssetInstance
-            const posX = imageInstance.override_pos_x ?? asset.default_pos_x;
-            const posY = imageInstance.override_pos_y ?? asset.default_pos_y;
-            
-            const translateX = posX - asset.default_pos_x;
-            const translateY = posY - asset.default_pos_y;
-            if (translateX !== 0 || translateY !== 0) {
-              transforms.push(`translate(${translateX},${translateY})`);
-            }
-          }
-          
-          // サイズ調整
-          if ('override_width' in instance || 'override_height' in instance) {
-            const imageInstance = instance as any; // ImageAssetInstance
-            const width = imageInstance.override_width ?? asset.default_width;
-            const height = imageInstance.override_height ?? asset.default_height;
-            
-            const scaleX = width / asset.default_width;
-            const scaleY = height / asset.default_height;
-            if (scaleX !== 1 || scaleY !== 1) {
-              transforms.push(`scale(${scaleX},${scaleY})`);
-            }
-          }
-          
-          const transformAttr = transforms.length > 0 ? `transform="${transforms.join(' ')}"` : '';
-          return `<use href="#${asset.id}" ${transformAttr} opacity="${opacity}" />`;
-        })
-        .join('');
+          return asset; // ImageAssetとTextAsset両方を含める
+        });
+      
+      // svgGeneratorCommonを使用してSVG要素を生成
+      const { assetDefinitions, useElements } = generateSvgStructureCommon(
+        project, 
+        instances, 
+        getProtocolUrl
+      );
+      
+      const svgContent = useElements.join('');
       
       // JavaScript文字列内でダブルクォートをエスケープ
-      const escapedInstances = instances.replace(/"/g, '\\"');
-      return `"${escapedInstances}"`;
+      const escapedContent = svgContent.replace(/"/g, '\\"');
+      return `"${escapedContent}"`;
     });
 
     return `    let currentPage = 0;

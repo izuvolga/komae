@@ -19,15 +19,29 @@ export const mockTextAsset: Asset = {
   id: 'test-text-1',
   type: 'TextAsset',
   name: 'テストテキスト',
-  default_text: 'こんにちは',
-  font: 'assets/fonts/test-font.ttf', // 相対パス
+  default_text: 'こんにちは\n世界',
+  font: 'Arial',
   stroke_width: 2.0,
+  stroke_color: '#000000',
+  fill_color: '#FFFFFF',
   font_size: 24,
-  color_ex: '#000000',
-  color_in: '#FFFFFF',
   default_pos_x: 200,
   default_pos_y: 300,
+  opacity: 1.0,
+  leading: 4.0,
   vertical: true,
+};
+
+// TextAssetInstanceのモックデータ
+export const mockTextAssetInstance = {
+  id: 'instance-text-1',
+  asset_id: 'test-text-1',
+  z_index: 1,
+  override_text: '上書きされたテキスト',
+  override_pos_x: 250,
+  override_pos_y: 350,
+  override_font_size: 28,
+  override_opacity: 0.8,
 };
 
 export const mockPage: Page = {
@@ -39,6 +53,7 @@ export const mockPage: Page = {
       asset_id: 'test-image-1',
       z_index: 0,
     },
+    'instance-text-1': mockTextAssetInstance,
   },
 };
 
