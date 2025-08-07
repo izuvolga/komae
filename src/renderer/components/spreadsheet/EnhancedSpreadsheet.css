@@ -358,6 +358,32 @@
   background-position: center;
 }
 
+/* Override表示の三角形 */
+.override-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 12px 12px 0;
+  border-color: transparent #007bff transparent transparent;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.override-indicator::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: -10px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 8px 8px 0;
+  border-color: transparent white transparent transparent;
+}
+
 
 /* 新規ページ追加行 */
 .add-page-row {

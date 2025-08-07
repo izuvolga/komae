@@ -34,10 +34,11 @@
 - [x]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
 
 ## Spread Sheet Window 関連
-- [ ]: Spread Sheetの列ヘッダーレイアウトを仕様に合わせる（#, Preview, アセット列の順番）
-- [ ]: 各行の削除ボタン[x]を左端の#列の横に配置する
-- [ ]: 各セルのレイアウトを仕様に合わせる（左側：チェックボックス+編集ボタン、右側：コンテンツ）
-- [ ]: TextAssetInstanceのcell-contentに実際のテキスト（default_textまたはoverride_text）を表示
+- [x]: Spread Sheetの列ヘッダーレイアウトを仕様に合わせる（#, Preview, アセット列の順番）
+- [x]: 各行の削除ボタン[x]を左端の#列の横に配置する
+- [x]: 各セルのレイアウトを仕様に合わせる（左側：チェックボックス+編集ボタン、右側：コンテンツ）
+- [x]: TextAssetInstanceのcell-contentに実際のテキスト（default_textまたはoverride_text）を表示
+- [x]: TextAssetInstanceのoverride_textバリデーション問題を修正（Zodスキーマ修正）
 - [ ]: override値がある場合にセルの右上に青い三角形のoverride表示を追加
 - [ ]: アセット列のヘッダークリックで列全体選択機能を実装
 - [ ]: アセット列の右クリックメニューで非表示機能を実装

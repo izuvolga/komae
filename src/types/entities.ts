@@ -78,6 +78,34 @@ export interface TextAssetInstance extends BaseAssetInstance {
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance;
 
+// AssetInstanceのoverride値チェック用ヘルパー関数
+export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
+  if (!instance) return false;
+  
+  if (assetType === 'TextAsset') {
+    const textInstance = instance as TextAssetInstance;
+    return !!(
+      textInstance.override_text ||
+      textInstance.override_pos_x !== undefined ||
+      textInstance.override_pos_y !== undefined ||
+      textInstance.override_font_size !== undefined ||
+      textInstance.override_opacity !== undefined
+    );
+  } else if (assetType === 'ImageAsset') {
+    const imageInstance = instance as ImageAssetInstance;
+    return !!(
+      imageInstance.override_pos_x !== undefined ||
+      imageInstance.override_pos_y !== undefined ||
+      imageInstance.override_width !== undefined ||
+      imageInstance.override_height !== undefined ||
+      imageInstance.override_opacity !== undefined ||
+      imageInstance.override_mask
+    );
+  }
+  
+  return false;
+}
+
 // Page定義
 export interface Page {
   id: string;

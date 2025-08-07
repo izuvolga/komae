@@ -4,6 +4,7 @@ import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
+import { hasAssetInstanceOverrides } from '../../../types/entities';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 
@@ -304,7 +305,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
-                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''}`}
                   >
                     {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
                     <div className="cell-manage">
@@ -334,6 +335,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     
                     {/* セル分割線 */}
                     <div className="cell-divider"></div>
+                    
+                    {/* Override表示の三角形 */}
+                    {isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) && (
+                      <div className="override-indicator"></div>
+                    )}
                     
                     {/* 右側：cell-content（コンテンツ表示） */}
                     <div className="cell-content">
