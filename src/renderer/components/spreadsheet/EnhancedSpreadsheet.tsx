@@ -407,7 +407,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       >
                         {isUsed ? '✓' : '×'}
                       </button>
-                      {isUsed && (asset.type === 'ImageAsset' || asset.type === 'TextAsset') && (
+                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset') && (
                         <button
                           className="edit-button"
                           onClick={(e) => {
