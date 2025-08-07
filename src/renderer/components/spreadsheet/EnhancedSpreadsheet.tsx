@@ -6,12 +6,14 @@ import { TextEditModal } from '../asset/TextEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
+import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
+  const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const addPage = useProjectStore((state) => state.addPage);
   const deletePage = useProjectStore((state) => state.deletePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
@@ -438,7 +440,15 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       )}
                       {isUsed && asset.type === 'ImageAsset' && (
                         <div className="image-content">
-                          <div className="image-preview-small"></div>
+                          <img 
+                            className="image-preview-small"
+                            src={getCustomProtocolUrl(asset.original_file_path, currentProjectPath)}
+                            alt={asset.name}
+                            onError={(e) => {
+                              // 画像読み込みエラー時のフォールバック
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                         </div>
                       )}
                     </div>
