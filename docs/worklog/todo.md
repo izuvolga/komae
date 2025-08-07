@@ -32,13 +32,13 @@
 - [x]: TextAssetInstance の編集画面を作成する
 - [x]: TextAsset/TextAssetInstance の SVG エクスポート機能を実装する
 - [x]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
-- [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
 
 ## Spread Sheet Window 関連
 - [ ]: レイアウトを ui-specification.md に近づける
 
 ## HTML ファイル関連
 - [ ]: 画像アセットのみで正常な HTML のエクスポートをできるようにする
+- [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
 
 
