@@ -345,20 +345,22 @@ o------------o
 左側を cell-manage と呼ぶ
 右側を cell-preview と呼ぶ。
 
-cell-manage にはチェックボックスと編集ボタンが縦に並んでいる。
-cell-content には、AssetInstance の種類ごとに内容が異なる領域。
-基本的にはその AssetInstance の概要が表示される。
+- cell-manage にはチェックボックスと編集ボタンが縦に並んでいる。
+- cell-content には、AssetInstance の種類ごとに内容が異なる領域。
+- 基本的にはその AssetInstance の概要が表示される。
+- セルの右上には右上のセルの頂点に内接する三角形が描画される `＼` は三角形の底辺を表す。実際の画面上は内接するように青い三角形が描画される。
+  - この三角形は、そのセルが表す Asset の内容が AssetInstance 側で override されていることを示す。もしひとつでも Asset の属性が AssetInstance 側でオーバーライドされている場合は、この三角形が表示される。
 
 ```
 cell-manage <- -> cell-content
         ┌────────────────┐
-        │ [✔] |          │
+        │ [✔] |        ＼│
         │ [%] |          │
         │     |          │
         └────────────────┘
 ```
 
-ImageAssetInstance の場合、cell-content にはその画像のプレビューが表示される。
+ImageAssetInstance の場合、cell-content にはその画像の小さなプレビューが表示される。
 
 ```
 ┌────────────────┐
@@ -368,7 +370,15 @@ ImageAssetInstance の場合、cell-content にはその画像のプレビュー
 └────────────────┘
 ```
 
-TextAssetInstance の場合、cell-content にはその画像のプレビューが表示される。
+TextAssetInstance の場合、cell-content にはその Asset のテキスト (default_text ないし override_text) が表示される。SVG ではなくプレーンテキストで表示される。
+
+```
+┌────────────────┐
+│ [✔] |HELLO     │
+│ [%] |WORLD     │
+│     |          │
+└────────────────┘
+```
 
 
 ### AssetInstance編集画面
