@@ -31,7 +31,7 @@
 - [x]: TextAsset の編集画面を作成する
 - [x]: TextAssetInstance の編集画面を作成する
 - [x]: TextAsset/TextAssetInstance の SVG エクスポート機能を実装する
-- [ ]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
+- [x]: スプレッドシートをダブルクリックして使える TextAssetInstance の編集画面を作成する
 - [ ]: 画像とテキストアセットを含めて正常な HTML のエクスポートをできるようにする
 
 ## Spread Sheet Window 関連
