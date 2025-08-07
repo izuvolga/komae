@@ -120,9 +120,11 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.isDirty = false;
           state.app.lastSaved = new Date();
           
-          // 最初のページを現在のページに設定
-          if (project.pages.length > 0 && !state.ui.currentPage) {
+          // 最初のページを現在のページに設定（常に新しいプロジェクトの最初のページに設定）
+          if (project.pages.length > 0) {
             state.ui.currentPage = project.pages[0].id;
+          } else {
+            state.ui.currentPage = null;
           }
         }),
 
