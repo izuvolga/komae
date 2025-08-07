@@ -97,6 +97,38 @@ describe('SVG Generator for TextAsset', () => {
       expect(textElement).toContain('dy="36"'); // 28 + 8 (font_size + leading)
     });
 
+    it('マイナス値のleadingが適用されること', () => {
+      // マイナス値leadingのTextAssetを作成
+      const negativeLeadingTextAsset = {
+        ...mockTextAsset,
+        default_text: '行間縮小\nテスト',
+        vertical: false, // 横書きでテスト
+        leading: -5.0, // マイナス値
+      };
+      
+      const negativeLeadingProject = {
+        ...mockProject,
+        assets: {
+          ...mockProject.assets,
+          'test-text-1': negativeLeadingTextAsset,
+        },
+      };
+
+      // マイナスleading用のインスタンス（横書き）
+      const negativeLeadingInstance = {
+        ...mockTextAssetInstance,
+        override_text: '行間縮小\nテスト',
+      };
+
+      const instances: AssetInstance[] = [negativeLeadingInstance];
+      
+      const result = generateSvgStructureCommon(negativeLeadingProject, instances, mockProtocolUrl);
+      const textElement = result.useElements[0];
+      
+      // マイナスleadingが適用された行間計算（font_size + leading）
+      expect(textElement).toContain('dy="23"'); // 28 + (-5) = 23 (font_size + leading)
+    });
+
     it('XMLエスケープが正しく適用されること', () => {
       const specialCharsInstance = {
         ...mockTextAssetInstance,

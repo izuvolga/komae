@@ -32,6 +32,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [editingInstance, setEditingInstance] = useState<TextAssetInstance | null>(
     assetInstance || null
   );
+  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
 
   useEffect(() => {
@@ -69,12 +70,57 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
+  // 数値入力バリデーション関数（ImageEditModalから流用）
+  const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
+    // 数字、-、.のみを許可
+    let sanitized = value.replace(/[^0-9\-\.]/g, '');
+    
+    // 負数を許可しない場合は-を除去
+    if (!allowNegative) {
+      sanitized = sanitized.replace(/-/g, '');
+    }
+    
+    // 最初の文字以外の-を除去
+    if (sanitized.indexOf('-') > 0) {
+      sanitized = sanitized.replace(/-/g, '');
+      if (allowNegative && value.startsWith('-')) {
+        sanitized = '-' + sanitized;
+      }
+    }
+    
+    // 複数の.を除去（最初の.のみ残す）
+    const dotIndex = sanitized.indexOf('.');
+    if (dotIndex !== -1) {
+      const beforeDot = sanitized.substring(0, dotIndex);
+      const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
+      sanitized = beforeDot + '.' + afterDot;
+    }
+    
+    return sanitized;
+  };
+
+  // 数値バリデーション（フォーカスアウト時）
+  const validateAndSetValue = (value: string, minValue: number = -9999, fallbackValue: number): number => {
+    if (value === '' || value === '-' || value === '.') {
+      return fallbackValue;
+    }
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue) || numValue < minValue) {
+      return fallbackValue;
+    }
+    
+    // 小数点以下2位まで丸める
+    return Math.round(numValue * 100) / 100;
+  };
+
   const formatNumberForDisplay = (value: number): string => {
     return value.toFixed(2).replace(/\.?0+$/, '');
   };
 
   const handleNumberInputChange = (field: keyof TextAsset, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    // 空文字列や無効な値の場合のみ0にする（マイナス値は許可）
+    const numValue = value === '' ? 0 : (parseFloat(value) || 0);
     handleInputChange(field, numValue);
   };
 
@@ -208,11 +254,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <label>
                       行間:
                       <input
-                        type="number"
-                        value={formatNumberForDisplay(editingAsset.leading)}
-                        onChange={(e) => handleNumberInputChange('leading', e.target.value)}
-                        min="0"
-                        step="0.01"
+                        type="text"
+                        value={tempInputValues.leading ?? formatNumberForDisplay(editingAsset.leading)}
+                        onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, true);
+                          setTempInputValues(prev => ({ ...prev, leading: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, -9999, editingAsset.leading);
+                          handleInputChange('leading', validated);
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp.leading;
+                            return newTemp;
+                          });
+                        }}
                       />
                     </label>
                   </div>
