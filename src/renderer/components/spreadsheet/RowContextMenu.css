@@ -97,3 +97,19 @@
   background-color: #e3f2fd !important;
   border: 2px solid #2196f3 !important;
 }
+
+.preview-cell.highlighted {
+  background-color: #e3f2fd !important;
+}
+
+.asset-cell.highlighted {
+  background-color: #e3f2fd !important;
+}
+
+.asset-cell.used.highlighted {
+  background-color: #e3f2fd !important;
+}
+
+.asset-cell.unused.highlighted {
+  background-color: #e3f2fd !important;
+}

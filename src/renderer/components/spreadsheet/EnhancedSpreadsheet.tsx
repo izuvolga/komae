@@ -483,7 +483,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
         {/* データ行 */}
         <div className="spreadsheet-body">
           {pages.map((page, pageIndex) => (
-            <div key={page.id} className="spreadsheet-row">
+            <div key={page.id} className={`spreadsheet-row ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}>
               {/* ページ番号＋削除ボタンセル */}
               <div 
                 className={`cell page-number-delete-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
@@ -504,7 +504,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
               
               {/* プレビューセル */}
               <div 
-                className="cell preview-cell"
+                className={`cell preview-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                 onClick={() => handlePreviewClick(page.id)}
               >
                 <div className="page-preview">
@@ -529,7 +529,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
-                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                   >
                     {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
                     <div className="cell-manage">
