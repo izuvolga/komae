@@ -44,6 +44,7 @@ interface ProjectStore {
   
   // Page Actions
   addPage: (page: Page) => void;
+  insertPageAt: (index: number, page: Page) => void;
   updatePage: (pageId: string, updates: Partial<Page>) => void;
   deletePage: (pageId: string) => void;
   reorderPages: (pageIds: string[]) => void;
@@ -189,6 +190,12 @@ export const useProjectStore = create<ProjectStore>()(
         addPage: (page) => set((state) => {
           if (!state.project) return;
           state.project.pages.push(page);
+          state.app.isDirty = true;
+        }),
+
+        insertPageAt: (index, page) => set((state) => {
+          if (!state.project) return;
+          state.project.pages.splice(index, 0, page);
           state.app.isDirty = true;
         }),
 

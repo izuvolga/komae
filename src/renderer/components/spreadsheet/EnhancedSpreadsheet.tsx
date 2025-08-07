@@ -6,15 +6,18 @@ import { TextEditModal } from '../asset/TextEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
+import { RowContextMenu } from './RowContextMenu';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
+import './RowContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const addPage = useProjectStore((state) => state.addPage);
+  const insertPageAt = useProjectStore((state) => state.insertPageAt);
   const deletePage = useProjectStore((state) => state.deletePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
@@ -47,6 +50,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
     isVisible: false,
     position: { x: 0, y: 0 },
     asset: null,
+  });
+
+  // 行の右クリックメニュー用のstate
+  const [rowContextMenu, setRowContextMenu] = useState<{
+    isVisible: boolean;
+    position: { x: number; y: number };
+    page: Page | null;
+    pageIndex: number;
+  }>({
+    isVisible: false,
+    position: { x: 0, y: 0 },
+    page: null,
+    pageIndex: -1,
   });
   
   // パン機能用のstate
@@ -249,6 +265,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
       position: { x: 0, y: 0 },
       asset: null,
     });
+    setRowContextMenu({
+      isVisible: false,
+      position: { x: 0, y: 0 },
+      page: null,
+      pageIndex: -1,
+    });
   };
 
   // 列全体の操作ハンドラー
@@ -300,6 +322,115 @@ export const EnhancedSpreadsheet: React.FC = () => {
         updateAssetInstance(page.id, existingInstance.id, resetUpdates);
       }
     });
+  };
+
+  // 行の右クリックメニュー関連のハンドラー
+  const handleRowContextMenu = (e: React.MouseEvent, page: Page, pageIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // 既存の列メニューを閉じる
+    setContextMenu({
+      isVisible: false,
+      position: { x: 0, y: 0 },
+      asset: null,
+    });
+    
+    setRowContextMenu({
+      isVisible: true,
+      position: { x: e.clientX, y: e.clientY },
+      page: page,
+      pageIndex: pageIndex,
+    });
+  };
+
+  // 行の操作ハンドラー
+  const handleShowAllInRow = () => {
+    if (!rowContextMenu.page) return;
+    
+    assets.forEach(asset => {
+      const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
+        (inst: any) => inst.asset_id === asset.id
+      );
+      
+      if (!existingInstance) {
+        // インスタンスが存在しない場合は作成
+        toggleAssetInstance(rowContextMenu.page!.id, asset.id);
+      }
+    });
+  };
+
+  const handleHideAllInRow = () => {
+    if (!rowContextMenu.page) return;
+    
+    assets.forEach(asset => {
+      const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
+        (inst: any) => inst.asset_id === asset.id
+      );
+      
+      if (existingInstance) {
+        // インスタンスが存在する場合は削除
+        toggleAssetInstance(rowContextMenu.page!.id, asset.id);
+      }
+    });
+  };
+
+  const handleResetAllInRow = () => {
+    if (!rowContextMenu.page) return;
+    
+    assets.forEach(asset => {
+      const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
+        (inst: any) => inst.asset_id === asset.id
+      );
+      
+      if (existingInstance) {
+        // entities.tsのヘルパー関数を使用してoverride値をリセット
+        const resetUpdates = resetAssetInstanceOverrides(
+          existingInstance as AssetInstance,
+          asset.type
+        );
+        
+        updateAssetInstance(rowContextMenu.page!.id, existingInstance.id, resetUpdates);
+      }
+    });
+  };
+
+  const handleInsertPageAbove = () => {
+    if (rowContextMenu.pageIndex < 0) return;
+    
+    const newPage = {
+      id: `page-${Date.now()}`,
+      title: `Page ${rowContextMenu.pageIndex + 1}`,
+      asset_instances: {},
+    };
+    
+    insertPageAt(rowContextMenu.pageIndex, newPage);
+  };
+
+  const handleInsertPageBelow = () => {
+    if (rowContextMenu.pageIndex < 0) return;
+    
+    const newPage = {
+      id: `page-${Date.now()}`,
+      title: `Page ${rowContextMenu.pageIndex + 2}`,
+      asset_instances: {},
+    };
+    
+    insertPageAt(rowContextMenu.pageIndex + 1, newPage);
+  };
+
+  const handleDeletePageFromMenu = () => {
+    if (!rowContextMenu.page) return;
+    
+    if (pages.length <= 1) {
+      alert('最後のページは削除できません');
+      return;
+    }
+    
+    const confirmed = confirm('このページを削除しますか？');
+    if (confirmed) {
+      deletePage(rowContextMenu.page.id);
+    }
   };
 
   const handlePreviewClick = (pageId: string) => {
@@ -354,7 +485,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
           {pages.map((page, pageIndex) => (
             <div key={page.id} className="spreadsheet-row">
               {/* ページ番号＋削除ボタンセル */}
-              <div className="cell page-number-delete-cell">
+              <div 
+                className={`cell page-number-delete-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                onContextMenu={(e) => handleRowContextMenu(e, page, pageIndex)}
+              >
                 <div className="page-number-delete-content">
                   <button
                     className="delete-page-btn"
@@ -505,6 +639,24 @@ export const EnhancedSpreadsheet: React.FC = () => {
           onShowAll={handleShowAllInColumn}
           onHideAll={handleHideAllInColumn}
           onResetAll={handleResetAllInColumn}
+        />
+      )}
+
+      {/* 行の右クリックメニュー */}
+      {rowContextMenu.page && (
+        <RowContextMenu
+          isVisible={rowContextMenu.isVisible}
+          position={rowContextMenu.position}
+          page={rowContextMenu.page}
+          pageIndex={rowContextMenu.pageIndex}
+          totalPages={pages.length}
+          onClose={handleContextMenuClose}
+          onShowAll={handleShowAllInRow}
+          onHideAll={handleHideAllInRow}
+          onResetAll={handleResetAllInRow}
+          onInsertAbove={handleInsertPageAbove}
+          onInsertBelow={handleInsertPageBelow}
+          onDelete={handleDeletePageFromMenu}
         />
       )}
     </div>

@@ -1,0 +1,99 @@
+/* Row Context Menu */
+.row-context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+  background: transparent;
+}
+
+.row-context-menu {
+  position: fixed;
+  z-index: 999;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.row-context-menu-header {
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row-context-menu-header .page-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.row-context-menu-header .page-subtitle {
+  font-size: 11px;
+  color: #666;
+}
+
+.row-context-menu-items {
+  padding: 4px 0;
+}
+
+.row-context-menu .menu-item {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.row-context-menu .menu-item:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+
+.row-context-menu .menu-item:disabled {
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.row-context-menu .menu-item.reset {
+  color: #dc3545;
+}
+
+.row-context-menu .menu-item.reset:hover:not(:disabled) {
+  background-color: #f8d7da;
+}
+
+.row-context-menu .menu-item.delete {
+  color: #dc3545;
+}
+
+.row-context-menu .menu-item.delete:hover:not(:disabled) {
+  background-color: #f8d7da;
+}
+
+.row-context-menu .menu-separator {
+  height: 1px;
+  background-color: #dee2e6;
+  margin: 4px 0;
+}
+
+/* 行のハイライト表示 */
+.spreadsheet-row.highlighted {
+  background-color: #e3f2fd !important;
+}
+
+.page-number-delete-cell.highlighted {
+  background-color: #e3f2fd !important;
+  border: 2px solid #2196f3 !important;
+}
