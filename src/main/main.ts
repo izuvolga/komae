@@ -227,8 +227,9 @@ class KomaeApp {
           throw new Error('No project data provided for export');
         }
 
-        // ExportServiceを使用してエクスポートを実行
-        const result = await this.exportService.exportProject(projectData, options);
+        // 現在のプロジェクトパスを取得してExportServiceに渡す
+        const currentProjectPath = this.projectManager.getCurrentProjectPath();
+        const result = await this.exportService.exportProject(projectData, options, currentProjectPath);
         
         if (result.success) {
           await this.logger.logDevelopment('export_success', 'Project export completed successfully', {

@@ -1,8 +1,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { getLogger } from '../../utils/logger';
+import { HtmlExporter } from '../../utils/htmlExporter';
 import { generateSvgStructureCommon } from '../../utils/svgGeneratorCommon';
-import type { ProjectData, ExportOptions, Page, Asset, AssetInstance } from '../../types/entities';
+import type { ProjectData, ExportOptions, Page } from '../../types/entities';
 
 export interface ExportResult {
   success: boolean;
@@ -13,11 +14,13 @@ export interface ExportResult {
 
 export class ExportService {
   private logger = getLogger();
+  private currentProjectPath: string | null = null;
 
   /**
    * プロジェクトをエクスポートする
    */
-  async exportProject(project: ProjectData, options: ExportOptions): Promise<ExportResult> {
+  async exportProject(project: ProjectData, options: ExportOptions, projectPath: string | null = null): Promise<ExportResult> {
+    this.currentProjectPath = projectPath;
     try {
       await this.logger.logDevelopment('export_start', 'Starting project export', {
         format: options.format,
@@ -123,15 +126,9 @@ export class ExportService {
    */
   private async exportToHTML(project: ProjectData, options: ExportOptions, outputPath: string): Promise<ExportResult> {
     try {
-      // すべてのページのSVGを生成
-      const pageSVGs: string[] = [];
-      for (const page of project.pages) {
-        const svgContent = await this.generatePageSVG(project, page);
-        pageSVGs.push(svgContent);
-      }
-
-      // HTMLコンテンツを生成
-      const htmlContent = this.generateHTMLContent(project, options, pageSVGs);
+      // HtmlExporterを使用してHTML生成
+      const htmlExporter = new HtmlExporter(this.currentProjectPath);
+      const htmlContent = await htmlExporter.exportToHTML(project, options);
 
       // HTMLファイルを書き込み
       await fs.writeFile(outputPath, htmlContent, 'utf-8');
@@ -185,9 +182,9 @@ export class ExportService {
   }
 
   /**
-   * ページのSVGコンテンツを生成
+   * PNG用のページSVGコンテンツを生成
    */
-  async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
+  private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
     
     // アセットインスタンスをz-index順にソート
@@ -199,8 +196,12 @@ export class ExportService {
       project, 
       sortedInstances, 
       (filePath: string) => {
-        // エクスポート時はfile://プロトコルを使用
-        return `file://${path.resolve(filePath)}`;
+        // PNG生成時もプロジェクトパス解決が必要
+        let absolutePath = filePath;
+        if (this.currentProjectPath && !path.isAbsolute(filePath)) {
+          absolutePath = path.join(this.currentProjectPath, filePath);
+        }
+        return `file://${path.resolve(absolutePath)}`;
       }
     );
 
@@ -221,191 +222,6 @@ export class ExportService {
     ].join('\n');
 
     return svgContent;
-  }
-
-
-  /**
-   * HTMLコンテンツを生成
-   */
-  private generateHTMLContent(project: ProjectData, options: ExportOptions, pageSVGs: string[]): string {
-    const { title } = options;
-    const { includeNavigation, autoPlay } = options.htmlOptions || {};
-
-    const navigationHTML = includeNavigation ? this.generateNavigationHTML(project.pages.length) : '';
-    const scriptHTML = includeNavigation ? this.generateNavigationScript(autoPlay || false) : '';
-
-    // ページコンテンツを生成
-    const pageContainers = pageSVGs.map((svg, index) => 
-      `<div class="page" id="page-${index + 1}" style="display: ${index === 0 ? 'block' : 'none'};">
-  ${svg}
-</div>`
-    ).join('\n');
-
-    return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .container {
-      max-width: ${project.canvas.width + 40}px;
-      width: 100%;
-    }
-    .page {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .navigation {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .nav-button {
-      padding: 8px 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .nav-button:hover {
-      background: #0056b3;
-    }
-    .nav-button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    .page-info {
-      text-align: center;
-      margin: 0 20px;
-      font-size: 14px;
-      color: #666;
-    }
-    svg {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    ${navigationHTML}
-    ${pageContainers}
-  </div>
-  ${scriptHTML}
-</body>
-</html>`;
-  }
-
-  /**
-   * ナビゲーションHTMLを生成
-   */
-  private generateNavigationHTML(pageCount: number): string {
-    return `<div class="navigation">
-  <button class="nav-button" id="prev-btn" onclick="previousPage()">◀ 前</button>
-  <div class="page-info">
-    <span id="current-page">1</span> / ${pageCount}
-  </div>
-  <button class="nav-button" id="next-btn" onclick="nextPage()">次 ▶</button>
-</div>`;
-  }
-
-  /**
-   * ナビゲーションスクリプトを生成
-   */
-  private generateNavigationScript(autoPlay: boolean): string {
-    return `<script>
-let currentPage = 1;
-const totalPages = ${autoPlay ? 'document.querySelectorAll(".page").length' : 'document.querySelectorAll(".page").length'};
-
-function showPage(pageNum) {
-  // すべてのページを非表示
-  document.querySelectorAll('.page').forEach(page => {
-    page.style.display = 'none';
-  });
-  
-  // 指定されたページを表示
-  const targetPage = document.getElementById(\`page-\${pageNum}\`);
-  if (targetPage) {
-    targetPage.style.display = 'block';
-    currentPage = pageNum;
-    
-    // ページ情報を更新
-    document.getElementById('current-page').textContent = pageNum;
-    
-    // ボタンの状態を更新
-    document.getElementById('prev-btn').disabled = pageNum === 1;
-    document.getElementById('next-btn').disabled = pageNum === totalPages;
-  }
-}
-
-function nextPage() {
-  if (currentPage < totalPages) {
-    showPage(currentPage + 1);
-  }
-}
-
-function previousPage() {
-  if (currentPage > 1) {
-    showPage(currentPage - 1);
-  }
-}
-
-// キーボードナビゲーション
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    previousPage();
-  } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    nextPage();
-  }
-});
-
-// 初期化
-showPage(1);
-
-${autoPlay ? `
-// オートプレイ機能
-let autoPlayInterval;
-function startAutoPlay() {
-  autoPlayInterval = setInterval(() => {
-    if (currentPage < totalPages) {
-      nextPage();
-    } else {
-      showPage(1); // 最初のページに戻る
-    }
-  }, 3000); // 3秒間隔
-}
-
-function stopAutoPlay() {
-  if (autoPlayInterval) {
-    clearInterval(autoPlayInterval);
-  }
-}
-
-// オートプレイの開始（必要に応じて）
-// startAutoPlay();
-` : ''}
-</script>`;
   }
 
   /**
