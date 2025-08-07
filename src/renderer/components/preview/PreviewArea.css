@@ -53,6 +53,30 @@
   color: #333;
 }
 
+/* 自動ズームトグル */
+.auto-zoom-control {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #666;
+}
+
+.auto-zoom-toggle {
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggle-text {
+  white-space: nowrap;
+}
+
 /* ズームコントロール */
 .zoom-control {
   display: flex;
@@ -64,6 +88,13 @@
 .zoom-control label {
   color: #666;
   white-space: nowrap;
+}
+
+/* ズーム表示（自動時） */
+.zoom-display {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
 }
 
 .zoom-slider {
@@ -108,8 +139,13 @@
   font-size: 11px;
 }
 
-.mode-btn:hover {
+.mode-btn:hover:not(:disabled) {
   background-color: #f0f0f0;
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ページ情報 */

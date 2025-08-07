@@ -150,6 +150,7 @@ export interface UIState {
   currentPage: string | null;
   activeWindow: 'asset' | 'spreadsheet' | 'preview';
   zoomLevel: number;
+  autoZoom: boolean;
   showAssetLibrary: boolean;
   showPreview: boolean;
   assetLibraryWidth: number;

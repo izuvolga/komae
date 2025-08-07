@@ -60,6 +60,7 @@ interface ProjectStore {
   setCurrentPage: (pageId: string | null) => void;
   setActiveWindow: (window: UIState['activeWindow']) => void;
   setZoomLevel: (level: number) => void;
+  setAutoZoom: (autoZoom: boolean) => void;
   toggleAssetLibrary: () => void;
   togglePreview: () => void;
   setAssetLibraryWidth: (width: number) => void;
@@ -96,6 +97,7 @@ export const useProjectStore = create<ProjectStore>()(
           currentPage: null,
           activeWindow: 'asset',
           zoomLevel: 1.0,
+          autoZoom: true,
           showAssetLibrary: true,
           showPreview: true,
           assetLibraryWidth: 280,
@@ -248,6 +250,10 @@ export const useProjectStore = create<ProjectStore>()(
 
         setZoomLevel: (level) => set((state) => {
           state.ui.zoomLevel = level;
+        }),
+
+        setAutoZoom: (autoZoom) => set((state) => {
+          state.ui.autoZoom = autoZoom;
         }),
 
         toggleAssetLibrary: () => set((state) => {
