@@ -66,15 +66,17 @@
 
 Created by [Ascii Flow](https://asciiflow.com/#/)
 
-さらに、OS 提供のメニューバーが存在し、そこから新規プロジェクトの作成や、プロジェクトの保存、エクスポートなどを行うことができる。
+## Menu Bar
+OS 提供のメニューバーが存在し、そこから新規プロジェクトの作成や、プロジェクトの保存、エクスポートなどを行うことができる。
 
+- Extension
+  - Custom Fonts
+  - Custom Assets (予定)
 - File
   - New Project
   - Open Project
   - Save Project
   - Export Project
-    - Export to PNG
-    - Export to HTML
 - Edit
   - Undo
   - Redo
@@ -82,9 +84,8 @@ Created by [Ascii Flow](https://asciiflow.com/#/)
   - Copy
   - Paste
 - Help
-  - About
   - Documentation
-  - Check for Updates
+  - Release Notes
 
 ## Panel Toggle System
 
