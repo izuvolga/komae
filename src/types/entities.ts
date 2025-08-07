@@ -106,6 +106,28 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
   return false;
 }
 
+// AssetInstanceのoverride値をリセットする関数
+export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): Partial<AssetInstance> {
+  const resetUpdates: any = {};
+  
+  if (assetType === 'TextAsset') {
+    resetUpdates.override_text = undefined;
+    resetUpdates.override_pos_x = undefined;
+    resetUpdates.override_pos_y = undefined;
+    resetUpdates.override_font_size = undefined;
+    resetUpdates.override_opacity = undefined;
+  } else if (assetType === 'ImageAsset') {
+    resetUpdates.override_pos_x = undefined;
+    resetUpdates.override_pos_y = undefined;
+    resetUpdates.override_width = undefined;
+    resetUpdates.override_height = undefined;
+    resetUpdates.override_opacity = undefined;
+    resetUpdates.override_mask = undefined;
+  }
+  
+  return resetUpdates;
+}
+
 // Page定義
 export interface Page {
   id: string;

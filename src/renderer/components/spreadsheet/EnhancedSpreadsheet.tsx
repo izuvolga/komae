@@ -4,9 +4,11 @@ import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
-import { hasAssetInstanceOverrides } from '../../../types/entities';
+import { hasAssetInstanceOverrides, resetAssetInstanceOverrides } from '../../../types/entities';
+import { ColumnContextMenu } from './ColumnContextMenu';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
+import './ColumnContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
@@ -33,6 +35,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
     asset: TextAsset;
     page: Page;
   } | null>(null);
+  
+  // 右クリックメニュー用のstate
+  const [contextMenu, setContextMenu] = useState<{
+    isVisible: boolean;
+    position: { x: number; y: number };
+    asset: any;
+  }>({
+    isVisible: false,
+    position: { x: 0, y: 0 },
+    asset: null,
+  });
   
   // パン機能用のstate
   const [isPanning, setIsPanning] = useState(false);
@@ -216,6 +229,77 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setEditingTextInstance(null);
   };
 
+  // 右クリックメニュー関連のハンドラー
+  const handleColumnContextMenu = (e: React.MouseEvent, asset: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setContextMenu({
+      isVisible: true,
+      position: { x: e.clientX, y: e.clientY },
+      asset: asset,
+    });
+  };
+
+  const handleContextMenuClose = () => {
+    setContextMenu({
+      isVisible: false,
+      position: { x: 0, y: 0 },
+      asset: null,
+    });
+  };
+
+  // 列全体の操作ハンドラー
+  const handleShowAllInColumn = () => {
+    if (!contextMenu.asset) return;
+    
+    pages.forEach(page => {
+      const existingInstance = Object.values(page.asset_instances).find(
+        (inst: any) => inst.asset_id === contextMenu.asset.id
+      );
+      
+      if (!existingInstance) {
+        // インスタンスが存在しない場合は作成
+        toggleAssetInstance(page.id, contextMenu.asset.id);
+      }
+    });
+  };
+
+  const handleHideAllInColumn = () => {
+    if (!contextMenu.asset) return;
+    
+    pages.forEach(page => {
+      const existingInstance = Object.values(page.asset_instances).find(
+        (inst: any) => inst.asset_id === contextMenu.asset.id
+      );
+      
+      if (existingInstance) {
+        // インスタンスが存在する場合は削除
+        toggleAssetInstance(page.id, contextMenu.asset.id);
+      }
+    });
+  };
+
+  const handleResetAllInColumn = () => {
+    if (!contextMenu.asset) return;
+    
+    pages.forEach(page => {
+      const existingInstance = Object.values(page.asset_instances).find(
+        (inst: any) => inst.asset_id === contextMenu.asset.id
+      );
+      
+      if (existingInstance) {
+        // entities.tsのヘルパー関数を使用してoverride値をリセット
+        const resetUpdates = resetAssetInstanceOverrides(
+          existingInstance as AssetInstance,
+          contextMenu.asset.type
+        );
+        
+        updateAssetInstance(page.id, existingInstance.id, resetUpdates);
+      }
+    });
+  };
+
   const handlePreviewClick = (pageId: string) => {
     setCurrentPage(pageId);
   };
@@ -246,7 +330,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
           <div className="cell header-cell page-number-delete-header">#</div>
           <div className="cell header-cell preview-column-header">Preview</div>
           {assets.map((asset) => (
-            <div key={asset.id} className="cell header-cell asset-header">
+            <div 
+              key={asset.id} 
+              className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
+              onContextMenu={(e) => handleColumnContextMenu(e, asset)}
+            >
               <div className="asset-header-content">
                 <span className="asset-name" title={asset.name}>
                   {asset.name}
@@ -305,7 +393,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
-                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
                   >
                     {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
                     <div className="cell-manage">
@@ -394,6 +482,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
           isOpen={!!editingTextInstance}
           onClose={handleTextModalClose}
           onSaveInstance={handleTextInstanceSave}
+        />
+      )}
+
+      {/* 列の右クリックメニュー */}
+      {contextMenu.asset && (
+        <ColumnContextMenu
+          isVisible={contextMenu.isVisible}
+          position={contextMenu.position}
+          asset={contextMenu.asset}
+          onClose={handleContextMenuClose}
+          onShowAll={handleShowAllInColumn}
+          onHideAll={handleHideAllInColumn}
+          onResetAll={handleResetAllInColumn}
         />
       )}
     </div>
