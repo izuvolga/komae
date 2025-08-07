@@ -160,15 +160,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
             </div>
           </div>
 
-          {/* プロジェクト名 */}
+          {/* ファイル名 */}
           <div className="form-group">
-            <label htmlFor="project-name">プロジェクト名</label>
+            <label htmlFor="project-name">ファイル名</label>
             <input
               id="project-name"
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              placeholder="プロジェクト名を入力"
+              placeholder="ファイル名を入力"
             />
           </div>
 
