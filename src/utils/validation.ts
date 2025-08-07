@@ -31,8 +31,19 @@ const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_opacity: z.number().min(0).max(1).optional(),
 });
 
-// AssetInstance Union スキーマ
-const AssetInstanceSchema = z.union([ImageAssetInstanceSchema, TextAssetInstanceSchema]);
+// AssetInstance Union スキーマ（判別子なし、全フィールドを許可）
+const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
+  // ImageAssetInstanceの追加フィールド
+  override_pos_x: z.number().optional(),
+  override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
+  // TextAssetInstanceの追加フィールド
+  override_text: z.string().optional(),
+  override_font_size: z.number().min(1).optional(),
+});
 
 // ImageAsset スキーマ
 const ImageAssetSchema = z.object({
