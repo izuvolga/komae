@@ -319,17 +319,9 @@ class KomaeApp {
     });
 
     // File System Operations
-    ipcMain.handle('dialog:showOpen', async (event, options) => {
+    ipcMain.handle('dialog:showOpen', async (event, options: Electron.OpenDialogOptions) => {
       try {
-        // プラットフォーム固有の設定をマージ
-        const platformOptions = this.getOpenDialogOptions();
-        const mergedOptions = {
-          ...platformOptions,
-          ...options,
-          // プラットフォーム固有のpropertiesを優先
-          properties: platformOptions.properties,
-        };
-        return await dialog.showOpenDialog(this.mainWindow!, mergedOptions);
+        return await dialog.showOpenDialog(this.mainWindow!, options);
       } catch (error) {
         console.error('Failed to show open dialog:', error);
         throw error;

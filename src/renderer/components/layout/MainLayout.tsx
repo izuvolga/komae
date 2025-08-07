@@ -222,11 +222,10 @@ export const MainLayout: React.FC = () => {
   // ファイルダイアログ経由でプロジェクトを開く
   const handleOpenProjectDialog = async () => {
     try {
-      // プラットフォーム固有の設定を使用（メインプロセス側で設定済み）
       const result = await window.electronAPI.fileSystem.showOpenDialog({
         title: 'プロジェクトを開く',
         filters: [{ name: 'Komae Project', extensions: ['komae'] }],
-        properties: [], // プラットフォーム固有の設定はメインプロセス側で適用
+        properties: ['openFile'],
       });
 
       if (!result.canceled && result.filePaths.length > 0) {
