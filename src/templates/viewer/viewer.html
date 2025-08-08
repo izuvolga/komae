@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <div class="container">
+    <div class="navigation" style="display: {{NAVIGATION_DISPLAY}};">
+      <button class="nav-button" id="prev-btn" onclick="previousPage()">◀ 前</button>
+      <div class="page-info">
+        <span id="current-page">1</span> / <span id="total-pages">{{TOTAL_PAGES}}</span>
+      </div>
+      <button class="nav-button" id="next-btn" onclick="nextPage()">次 ▶</button>
+    </div>
+    <div class="svg-container">
+      {{SVG_CONTENT}}
+    </div>
+  </div>
+  
+  <!-- 開発時にダミーデータとスクリプトを読み込み -->
+  <script src="sample-data.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>
