@@ -60,18 +60,14 @@ export class HtmlExporter {
   constructor(private projectPath: string | null = null) {}
 
   /**
-   * プロジェクトをHTMLファイルとして出力
+   * プロジェクトをHTMLファイルとして出力（新しい統合SVG構造）
    */
   async exportToHTML(project: ProjectData, options: ExportOptions): Promise<string> {
-    // すべてのページのSVGを生成
-    const pageSVGs: string[] = [];
-    for (const page of project.pages) {
-      const svgContent = await this.generatePageSVG(project, page);
-      pageSVGs.push(svgContent);
-    }
-
+    // 統合SVGコンテンツを生成
+    const unifiedSVG = await this.generateUnifiedSVG(project);
+    
     // HTMLコンテンツを生成
-    return this.generateHTMLContent(project, options, pageSVGs);
+    return this.generateHTMLContent(project, options, unifiedSVG);
   }
 
   /**
@@ -114,21 +110,118 @@ export class HtmlExporter {
   }
 
   /**
+   * 統合SVGコンテンツを生成
+   */
+  private async generateUnifiedSVG(project: ProjectData): Promise<string> {
+    const { width, height } = project.canvas;
+    
+    // 全ページで使用されるアセットを収集
+    const allAssetIds = new Set<string>();
+    const processedAssets = new Set<string>();
+    const assetDefinitions: string[] = [];
+    
+    // 全ページのアセットインスタンスを収集してユニークなアセットIDを抽出
+    for (const page of project.pages) {
+      for (const instance of Object.values(page.asset_instances)) {
+        allAssetIds.add(instance.asset_id);
+      }
+    }
+    
+    // アセット定義を生成
+    for (const assetId of allAssetIds) {
+      const asset = project.assets[assetId];
+      if (!asset || asset.type !== 'ImageAsset') continue;
+      
+      if (!processedAssets.has(assetId)) {
+        const imageAsset = asset as any; // ImageAsset型
+        const base64Data = encodeImageToBase64(imageAsset.original_file_path, this.projectPath);
+        const opacity = imageAsset.default_opacity ?? 1.0;
+        
+        const assetDef = [
+          `    <g id="${assetId}" opacity="${opacity}">`,
+          `      <image id="image-${assetId}" xlink:href="${base64Data}" width="${imageAsset.default_width}" height="${imageAsset.default_height}" x="${imageAsset.default_pos_x}" y="${imageAsset.default_pos_y}" />`,
+          `    </g>`
+        ].join('\n');
+        
+        assetDefinitions.push(assetDef);
+        processedAssets.add(assetId);
+      }
+    }
+    
+    // 各ページのコンテンツを生成
+    const pageContents: string[] = [];
+    
+    for (let i = 0; i < project.pages.length; i++) {
+      const page = project.pages[i];
+      const pageNumber = i + 1;
+      const isFirstPage = i === 0;
+      
+      // アセットインスタンスをz-index順にソート
+      const sortedInstances = Object.values(page.asset_instances)
+        .sort((a, b) => a.z_index - b.z_index);
+      
+      // 共通のSVG生成ロジックを使用して使用要素を生成
+      const { useElements } = generateSvgStructureCommon(
+        project,
+        sortedInstances,
+        (filePath: string) => {
+          // 統合SVGでは実際のbase64データは不要（アセット定義を参照）
+          return ''; // use要素では使用されない
+        }
+      );
+      
+      const pageContent = [
+        `  <!-- ページ${pageNumber}の描画内容 -->`,
+        `  <g id="page-${pageNumber}" style="display: ${isFirstPage ? 'block' : 'none'};">`,
+        ...useElements.map(use => `    ${use}`),
+        `  </g>`
+      ].join('\n');
+      
+      pageContents.push(pageContent);
+    }
+    
+    // 統合SVGを構築（svg-structure.md仕様に準拠）
+    const svgContent = [
+      `<svg`,
+      `  width="${width}"`,
+      `  height="${height}"`,
+      `  viewBox="0 0 ${width} ${height}"`,
+      `  xmlns="http://www.w3.org/2000/svg"`,
+      `  xmlns:xlink="http://www.w3.org/1999/xlink"`,
+      `>`,
+      `  <defs>`,
+      `    <!-- プロジェクト全体で使用される ImageAsset のマスク情報を宣言 -->`,
+      `    <!-- 将来的にマスク機能実装時に追加 -->`,
+      `  </defs>`,
+      ``,
+      `  <!-- プロジェクト全体で使用される全 ImageAsset を一度だけ定義 -->`,
+      `  <g id="assets">`,
+      `    <g visibility="hidden">`,
+      ...assetDefinitions,
+      `    </g>`,
+      `  </g>`,
+      ``,
+      ...pageContents,
+      `</svg>`
+    ].join('\n');
+    
+    return svgContent;
+  }
+
+  /**
    * HTMLコンテンツを生成
    */
-  private generateHTMLContent(project: ProjectData, options: ExportOptions, pageSVGs: string[]): string {
+  private generateHTMLContent(project: ProjectData, options: ExportOptions, unifiedSVG: string): string {
     const { title } = options;
     const { includeNavigation, autoPlay } = options.htmlOptions || {};
 
     const navigationHTML = includeNavigation ? this.generateNavigationHTML(project.pages.length) : '';
-    const scriptHTML = includeNavigation ? this.generateNavigationScriptPrivate(autoPlay || false) : '';
+    const scriptHTML = includeNavigation ? this.generateNavigationScriptForUnifiedSVG(autoPlay || false) : '';
 
-    // ページコンテンツを生成
-    const pageContainers = pageSVGs.map((svg, index) => 
-      `<div class="page" id="page-${index + 1}" style="display: ${index === 0 ? 'block' : 'none'};">
-  ${svg}
-</div>`
-    ).join('\n');
+    // 統合SVGコンテナを生成
+    const svgContainer = `<div class="svg-container">
+  ${unifiedSVG}
+</div>`;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -150,7 +243,7 @@ export class HtmlExporter {
       max-width: ${project.canvas.width + 40}px;
       width: 100%;
     }
-    .page {
+    .svg-container {
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -199,7 +292,7 @@ export class HtmlExporter {
 <body>
   <div class="container">
     ${navigationHTML}
-    ${pageContainers}
+    ${svgContainer}
   </div>
   ${scriptHTML}
 </body>
@@ -256,7 +349,7 @@ export class HtmlExporter {
   }
 
   generateNavigationScript(project: ProjectData): string {
-    return this.generateNavigationScriptPrivate(false);
+    return this.generateNavigationScriptForUnifiedSVG(false);
   }
 
   private generateSyncHTML(project: ProjectData): string {
@@ -294,34 +387,39 @@ ${this.generateSvgAssetDefinitions(project)}
   </div>
   
   <script>
-${this.generateNavigationScriptPrivate(false)}
+${this.generateNavigationScriptForUnifiedSVG(false)}
   </script>
 </body>
 </html>`;
   }
 
   /**
-   * ナビゲーションスクリプトを生成
+   * 統合SVG用のナビゲーションスクリプトを生成
    */
-  private generateNavigationScriptPrivate(autoPlay: boolean): string {
+  private generateNavigationScriptForUnifiedSVG(autoPlay: boolean): string {
     return `<script>
 let currentPage = 1;
-const totalPages = document.querySelectorAll('.page').length;
+const totalPages = document.querySelectorAll('[id^="page-"]').length;
 
 function showPage(pageNum) {
-  // すべてのページを非表示
-  document.querySelectorAll('.page').forEach(page => {
-    page.style.display = 'none';
+  // すべてのページグループを非表示
+  const svg = document.querySelector('svg');
+  if (!svg) return;
+  
+  const allPageGroups = svg.querySelectorAll('[id^="page-"]');
+  allPageGroups.forEach(pageGroup => {
+    pageGroup.style.display = 'none';
   });
   
-  // 指定されたページを表示
-  const targetPage = document.getElementById(\`page-\${pageNum}\`);
-  if (targetPage) {
-    targetPage.style.display = 'block';
+  // 指定されたページグループを表示
+  const targetPageGroup = svg.querySelector(\`#page-\${pageNum}\`);
+  if (targetPageGroup) {
+    targetPageGroup.style.display = 'block';
     currentPage = pageNum;
     
     // ページ情報を更新
-    document.getElementById('current-page').textContent = pageNum;
+    const currentPageSpan = document.getElementById('current-page');
+    if (currentPageSpan) currentPageSpan.textContent = pageNum;
     
     // ボタンの状態を更新
     const prevBtn = document.getElementById('prev-btn');
