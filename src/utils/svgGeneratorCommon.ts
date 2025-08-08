@@ -211,15 +211,25 @@ function generateTextElement(asset: TextAsset, instance: AssetInstance): string 
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
   if (vertical) {
-    // 縦書きテキスト：tspan要素で文字分割
+    // 縦書きテキスト：tspan要素で文字分割（複数行対応）
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
     
     lines.forEach((line, lineIndex) => {
+      // 各行のx座標を計算（右から左に配置）
+      const lineXPos = asset.default_pos_x - (lineIndex * finalFontSize);
+      
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        const dyValue = i === 0 && lineIndex === 0 ? 0 : finalFontSize + leading;
-        textBody.push(`    <tspan x="${asset.default_pos_x}" dy="${dyValue}">${char}</tspan>`);
+        
+        // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
+        if (i === 0) {
+          // 行の最初の文字：初期Y位置を設定
+          textBody.push(`    <tspan x="${lineXPos}" y="${asset.default_pos_y}">${char}</tspan>`);
+        } else {
+          // 行内の後続文字：下方向に移動
+          textBody.push(`    <tspan x="${lineXPos}" dy="${leading}">${char}</tspan>`);
+        }
       }
     });
 
