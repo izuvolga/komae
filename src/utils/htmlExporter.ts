@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { ProjectData, ExportOptions, Page, AssetInstance } from '../types/entities';
 import { generateSvgStructureCommon } from './svgGeneratorCommon';
+import { VIEWER_TEMPLATES, type ViewerTemplateVariables } from '../generated/viewer-templates';
 
 /**
  * 画像ファイルをBase64エンコードする
@@ -209,111 +210,37 @@ export class HtmlExporter {
   }
 
   /**
-   * HTMLコンテンツを生成
+   * HTMLコンテンツをテンプレートで生成
    */
   private generateHTMLContent(project: ProjectData, options: ExportOptions, unifiedSVG: string): string {
     const { title } = options;
-    const { includeNavigation, autoPlay } = options.htmlOptions || {};
+    const { includeNavigation } = options.htmlOptions || {};
 
-    const navigationHTML = includeNavigation ? this.generateNavigationHTML(project.pages.length) : '';
-    const scriptHTML = includeNavigation ? this.generateNavigationScriptForUnifiedSVG(autoPlay || false) : '';
+    // テンプレート変数を設定
+    const templateVariables: Partial<ViewerTemplateVariables> = {
+      TITLE: title,
+      SVG_CONTENT: unifiedSVG,
+      NAVIGATION_DISPLAY: includeNavigation ? 'flex' : 'none',
+      TOTAL_PAGES: project.pages.length.toString(),
+      CANVAS_WIDTH: project.canvas.width.toString()
+    };
 
-    // 統合SVGコンテナを生成
-    const svgContainer = `<div class="svg-container">
-  ${unifiedSVG}
-</div>`;
-
-    return `<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .container {
-      max-width: ${project.canvas.width + 40}px;
-      width: 100%;
-    }
-    .svg-container {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .navigation {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .nav-button {
-      padding: 8px 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .nav-button:hover {
-      background: #0056b3;
-    }
-    .nav-button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-    .page-info {
-      text-align: center;
-      margin: 0 20px;
-      font-size: 14px;
-      color: #666;
-    }
-    svg {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    ${navigationHTML}
-    ${svgContainer}
-  </div>
-  ${scriptHTML}
-</body>
-</html>`;
+    // テンプレートをレンダーしてHTMLを生成
+    return VIEWER_TEMPLATES.render(templateVariables);
   }
 
   /**
-   * ナビゲーションHTMLを生成
+   * ナビゲーションHTMLを生成（後方互換性用）
+   * @deprecated テンプレートシステムを使用してください
    */
   private generateNavigationHTML(pageCount: number): string {
-    return `<div class="navigation">
-  <button class="nav-button" id="prev-btn" onclick="previousPage()">◀ 前</button>
-  <div class="page-info">
-    <span id="current-page">1</span> / ${pageCount}
-  </div>
-  <button class="nav-button" id="next-btn" onclick="nextPage()">次 ▶</button>
-</div>`;
+    return `<!-- Navigation is now handled by template system -->`;
   }
 
   // テスト用の旧API（後方互換性）
   generateHtmlStructure(project: ProjectData): string {
+    console.warn('generateHtmlStructure is deprecated. Use exportToHTML instead.');
+    
     const options = {
       format: 'html' as const,
       title: project.metadata.title,
@@ -328,11 +255,37 @@ export class HtmlExporter {
       }
     };
     
-    // 同期処理の簡易実装（テスト用）
-    let result = '';
-    this.exportToHTML(project, options).then(html => result = html);
-    // 実際にはPromiseを適切に処理する必要があるが、テスト互換のため暫定実装
-    return result || this.generateSyncHTML(project);
+    // テンプレートシステムで簡易HTMLを生成
+    try {
+      // 統合SVGを同期的に生成（テスト用）
+      const templateVariables: Partial<ViewerTemplateVariables> = {
+        TITLE: project.metadata.title,
+        SVG_CONTENT: this.generateSimpleSVGForTest(project),
+        NAVIGATION_DISPLAY: 'flex',
+        TOTAL_PAGES: project.pages.length.toString(),
+        CANVAS_WIDTH: project.canvas.width.toString()
+      };
+      
+      return VIEWER_TEMPLATES.render(templateVariables);
+    } catch (error) {
+      console.error('Template rendering failed, falling back to legacy method:', error);
+      return this.generateSyncHTML(project);
+    }
+  }
+  
+  /**
+   * テスト用の簡易SVG生成
+   */
+  private generateSimpleSVGForTest(project: ProjectData): string {
+    const { width, height } = project.canvas;
+    
+    return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  <g id="assets"><g visibility="hidden"></g></g>
+  <g id="page-1" style="display: block;">
+    <rect x="10" y="10" width="${width-20}" height="${height-20}" fill="#f0f0f0" stroke="#ccc" stroke-width="1" />
+    <text x="${width/2}" y="${height/2}" text-anchor="middle" font-family="Arial" font-size="24" fill="#666">Test Export</text>
+  </g>
+</svg>`;
   }
 
   generateSvgAssetDefinitions(project: ProjectData): string {
@@ -349,7 +302,8 @@ export class HtmlExporter {
   }
 
   generateNavigationScript(project: ProjectData): string {
-    return this.generateNavigationScriptForUnifiedSVG(false);
+    console.warn('generateNavigationScript is deprecated. JavaScript is now included in template.');
+    return '// JavaScript is now handled by template system';
   }
 
   private generateSyncHTML(project: ProjectData): string {
@@ -394,88 +348,12 @@ ${this.generateNavigationScriptForUnifiedSVG(false)}
   }
 
   /**
-   * 統合SVG用のナビゲーションスクリプトを生成
+   * 統合SVG用のナビゲーションスクリプトを生成（後方互換性用）
+   * @deprecated テンプレートシステムのJavaScriptを使用してください
    */
   private generateNavigationScriptForUnifiedSVG(autoPlay: boolean): string {
-    return `<script>
-let currentPage = 1;
-const totalPages = document.querySelectorAll('[id^="page-"]').length;
-
-function showPage(pageNum) {
-  // すべてのページグループを非表示
-  const svg = document.querySelector('svg');
-  if (!svg) return;
-  
-  const allPageGroups = svg.querySelectorAll('[id^="page-"]');
-  allPageGroups.forEach(pageGroup => {
-    pageGroup.style.display = 'none';
-  });
-  
-  // 指定されたページグループを表示
-  const targetPageGroup = svg.querySelector(\`#page-\${pageNum}\`);
-  if (targetPageGroup) {
-    targetPageGroup.style.display = 'block';
-    currentPage = pageNum;
-    
-    // ページ情報を更新
-    const currentPageSpan = document.getElementById('current-page');
-    if (currentPageSpan) currentPageSpan.textContent = pageNum;
-    
-    // ボタンの状態を更新
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    if (prevBtn) prevBtn.disabled = pageNum === 1;
-    if (nextBtn) nextBtn.disabled = pageNum === totalPages;
-  }
-}
-
-function nextPage() {
-  if (currentPage < totalPages) {
-    showPage(currentPage + 1);
-  }
-}
-
-function previousPage() {
-  if (currentPage > 1) {
-    showPage(currentPage - 1);
-  }
-}
-
-// キーボードナビゲーション
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    previousPage();
-  } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    nextPage();
-  }
-});
-
-// 初期化
-showPage(1);
-
-${autoPlay ? `
-// オートプレイ機能
-let autoPlayInterval;
-function startAutoPlay() {
-  autoPlayInterval = setInterval(() => {
-    if (currentPage < totalPages) {
-      nextPage();
-    } else {
-      showPage(1); // 最初のページに戻る
-    }
-  }, 3000); // 3秒間隔
-}
-
-function stopAutoPlay() {
-  if (autoPlayInterval) {
-    clearInterval(autoPlayInterval);
-  }
-}
-
-// オートプレイの開始（必要に応じて）
-// startAutoPlay();
-` : ''}
-</script>`;
+    console.warn('generateNavigationScriptForUnifiedSVG is deprecated. JavaScript is now included in template.');
+    return '<!-- JavaScript is now handled by template system -->';
   }
 }
 

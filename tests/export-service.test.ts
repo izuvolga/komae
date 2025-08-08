@@ -143,8 +143,10 @@ describe('ExportService', () => {
       expect(htmlContent).toContain('<!DOCTYPE html>');
       expect(htmlContent).toContain('<title>Test Export</title>');
       expect(htmlContent).toContain('<svg'); // SVGコンテンツが含まれている
-      expect(htmlContent).toContain('Page 1'); // ページタイトルが含まれている
-      expect(htmlContent).toContain('Page 2');
+      expect(htmlContent).toContain('Hello World'); // TextAssetの内容が含まれている
+      expect(htmlContent).toContain('<g id="page-1"'); // ページグループが含まれている
+      expect(htmlContent).toContain('<g id="page-2"'); // ページグループが含まれている
+      expect(htmlContent).toContain('initializeViewer'); // JavaScriptが含まれている
     });
 
     it('should handle HTML export with navigation', async () => {

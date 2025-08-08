@@ -1,6 +1,6 @@
 /**
  * 自動生成ファイル - 編集禁止
- * Generated from src/templates/viewer/ at 2025-08-08T18:45:02.708Z
+ * Generated from src/templates/viewer/ at 2025-08-08T18:50:52.613Z
  * 
  * To modify templates, edit files in src/templates/viewer/ and run:
  * npm run build:templates
@@ -46,7 +46,7 @@ export const VIEWER_TEMPLATES = {
   <script src="sample-data.js"></script>
   <script src="viewer.js"></script>
 </body>
-</html>`,
+</html>` as string,
   
   css: `/* Komae HTML Export Viewer Styles */
 
@@ -177,7 +177,7 @@ svg {
   border: 1px solid #f5c6cb;
   margin: 20px 0;
   text-align: center;
-}`,
+}` as string,
   
   js: `/**
  * Komae HTML Export Viewer Script
@@ -396,7 +396,7 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeViewer);
 } else {
   initializeViewer();
-}`,
+}` as string,
   
   /**
    * HTMLテンプレートに変数を置換して完成したHTMLを生成
@@ -404,8 +404,8 @@ if (document.readyState === 'loading') {
    * @returns 完成したHTMLコンテンツ
    */
   render(variables: Partial<ViewerTemplateVariables>): string {
-    let html = this.html;
-    let css = this.css;
+    let html = this.html as string;
+    let css = this.css as string;
     
     // 変数を置換
     Object.entries(variables).forEach(([key, value]) => {
@@ -425,7 +425,7 @@ if (document.readyState === 'loading') {
     
     return html;
   }
-} as const;
+};
 
 /**
  * テンプレート変数の型定義

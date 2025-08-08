@@ -87,11 +87,11 @@ ${allVariables.map(variable => {
 }
 
 export const VIEWER_TEMPLATES = {
-  html: \`${escapeForTypeScript(htmlContent)}\`,
+  html: \`${escapeForTypeScript(htmlContent)}\` as string,
   
-  css: \`${escapeForTypeScript(cssContent)}\`,
+  css: \`${escapeForTypeScript(cssContent)}\` as string,
   
-  js: \`${escapeForTypeScript(jsContent)}\`,
+  js: \`${escapeForTypeScript(jsContent)}\` as string,
   
   /**
    * HTMLテンプレートに変数を置換して完成したHTMLを生成
@@ -99,8 +99,8 @@ export const VIEWER_TEMPLATES = {
    * @returns 完成したHTMLコンテンツ
    */
   render(variables: Partial<ViewerTemplateVariables>): string {
-    let html = this.html;
-    let css = this.css;
+    let html = this.html as string;
+    let css = this.css as string;
     
     // 変数を置換
     Object.entries(variables).forEach(([key, value]) => {
@@ -120,7 +120,7 @@ export const VIEWER_TEMPLATES = {
     
     return html;
   }
-} as const;
+};
 
 /**
  * テンプレート変数の型定義
