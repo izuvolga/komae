@@ -64,6 +64,7 @@
 - [ ]: Asset Library の Asset をソートする機能をほしい
 - [ ]: SpreadSheet Window の列のバルク操作に、列自体を非表示にする機能を追加
 - [ ]: ツールバーのメニューに、フォント管理の機能を追加。デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
+- [ ]: TextAsset に rotate を対応する
 
 
 # v0.1 リリースに向けてのTODO
