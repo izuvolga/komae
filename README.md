@@ -90,6 +90,47 @@ npm run build
 - `npm run build:dev` - Build for development
 - `npm run start:renderer` - Start only the React development server
 - `npm run start:electron` - Start only the Electron app
+- `npm run build:templates` - Build HTML viewer templates
+- `npm run build:templates:watch` - Watch and auto-rebuild templates
+
+## HTML Viewer Template System
+
+The project uses a template-based system for generating HTML exports, allowing for maintainable and testable viewer code.
+
+### Template Structure
+
+```
+src/templates/viewer/
+├── viewer.html          # HTML template with {{VARIABLES}}
+├── viewer.css           # Responsive styling
+├── viewer.js            # Navigation and keyboard controls
+└── sample-data.js       # Development/testing sample data
+```
+
+### Development Workflow
+
+**Standalone Testing:**
+```bash
+cd src/templates/viewer
+python3 -m http.server 8080
+# Open http://localhost:8080/viewer.html
+```
+
+**Auto-rebuild during development:**
+```bash
+npm run build:templates:watch
+```
+
+**Template Variables:**
+- `{{TITLE}}` - Page title
+- `{{SVG_CONTENT}}` - Main SVG content
+- `{{NAVIGATION_DISPLAY}}` - Navigation visibility (flex/none)
+- `{{TOTAL_PAGES}}` - Total page count
+- `{{CANVAS_WIDTH}}` - Canvas width for responsive layout
+
+### Integration
+
+Templates are automatically built into `src/generated/viewer-templates.ts` during the build process. The `htmlExporter.ts` uses these compiled templates for type-safe HTML generation.
 
 ## License
 
