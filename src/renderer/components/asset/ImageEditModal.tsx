@@ -40,6 +40,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
+  const [zIndexValidation, setZIndexValidation] = useState<{
+    isValid: boolean;
+    error?: string;
+    warning?: string;
+  }>({ isValid: true });
   const [maskEditMode, setMaskEditMode] = useState(false);
 
   // マウス操作関連の状態
@@ -210,6 +215,79 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         default_z_index: zIndex,
       }));
     }
+  };
+
+  // z_index専用のサニタイズ関数（整数のみ）
+  const sanitizeZIndexInput = (value: string): string => {
+    // 数字と-のみを許可（小数点は除外）
+    let sanitized = value.replace(/[^0-9\-]/g, '');
+    
+    // 最初の文字以外の-を除去
+    if (sanitized.indexOf('-') > 0) {
+      sanitized = sanitized.replace(/-/g, '');
+      if (value.startsWith('-')) {
+        sanitized = '-' + sanitized;
+      }
+    }
+    
+    return sanitized;
+  };
+
+  // z_indexバリデーション関数
+  const validateZIndexValue = (value: string): {
+    isValid: boolean;
+    error?: string;
+    warning?: string;
+  } => {
+    const numValue = parseInt(value.trim());
+    
+    // 空文字列または無効な数値
+    if (isNaN(numValue)) {
+      return {
+        isValid: false,
+        error: 'z-indexは数値である必要があります'
+      };
+    }
+    
+    // 範囲チェック（-9999 〜 9999）
+    if (numValue < -9999 || numValue > 9999) {
+      return {
+        isValid: false,
+        error: 'z-indexは-9999から9999の範囲で入力してください'
+      };
+    }
+    
+    // 競合チェック（同じページ内での重複）
+    let warning: string | undefined;
+    if (page && project) {
+      const conflicts: string[] = [];
+      
+      Object.values(page.asset_instances).forEach((instance) => {
+        // 自分自身は除外
+        if (instance.id === assetInstance?.id) return;
+        
+        const instanceAsset = project.assets[instance.asset_id];
+        if (!instanceAsset) return;
+        
+        const effectiveZIndex = instance.override_z_index !== undefined 
+          ? instance.override_z_index 
+          : instanceAsset.default_z_index;
+        
+        if (effectiveZIndex === numValue) {
+          const assetName = instanceAsset.name || instanceAsset.id;
+          conflicts.push(assetName);
+        }
+      });
+      
+      if (conflicts.length > 0) {
+        warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
+      }
+    }
+    
+    return {
+      isValid: true,
+      warning
+    };
   };
 
   const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | undefined) => {
@@ -866,8 +944,12 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                         type="text"
                         value={tempInputValues.z_index ?? currentZIndex.toString()}
                         onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, true);
+                          const sanitized = sanitizeZIndexInput(e.target.value);
                           setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
+                          
+                          // バリデーション実行
+                          const validation = validateZIndexValue(sanitized);
+                          setZIndexValidation(validation);
                         }}
                         onBlur={(e) => {
                           const validated = parseInt(e.target.value) || currentZIndex;
@@ -879,14 +961,24 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           });
                         }}
                         onKeyDown={handleKeyDown}
-                        className="z-index-input"
+                        className={`z-index-input ${
+                          !zIndexValidation.isValid ? 'error' : 
+                          zIndexValidation.warning ? 'warning' : ''
+                        }`}
                       />
-                      <span className="z-index-info">
-                        {mode === 'instance' && editedInstance?.override_z_index !== undefined 
-                          ? `(overriding default: ${asset.default_z_index})`
-                          : mode === 'instance' 
-                          ? `(using default: ${asset.default_z_index})`
-                          : '(layer order: lower = background)'
+                      <span className={`z-index-info ${
+                        !zIndexValidation.isValid ? 'error' : 
+                        zIndexValidation.warning ? 'warning' : ''
+                      }`}>
+                        {!zIndexValidation.isValid && zIndexValidation.error ? 
+                          zIndexValidation.error :
+                          zIndexValidation.warning ? 
+                          zIndexValidation.warning :
+                          mode === 'instance' && editedInstance?.override_z_index !== undefined 
+                            ? `(overriding default: ${asset.default_z_index})`
+                            : mode === 'instance' 
+                            ? `(using default: ${asset.default_z_index})`
+                            : '(layer order: lower = background)'
                         }
                       </span>
                     </div>

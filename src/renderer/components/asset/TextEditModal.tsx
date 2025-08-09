@@ -33,6 +33,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     assetInstance || null
   );
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
+  const [zIndexValidation, setZIndexValidation] = useState<{
+    isValid: boolean;
+    error?: string;
+    warning?: string;
+  }>({ isValid: true });
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
 
   useEffect(() => {
@@ -138,6 +143,82 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     } else {
       handleInstanceChange('override_z_index', value);
     }
+  };
+
+  // z_index専用のサニタイズ関数（整数のみ）
+  const sanitizeZIndexInput = (value: string): string => {
+    // 数字と-のみを許可（小数点は除外）
+    let sanitized = value.replace(/[^0-9\-]/g, '');
+    
+    // 最初の文字以外の-を除去
+    if (sanitized.indexOf('-') > 0) {
+      sanitized = sanitized.replace(/-/g, '');
+      if (value.startsWith('-')) {
+        sanitized = '-' + sanitized;
+      }
+    }
+    
+    return sanitized;
+  };
+
+  // z_indexバリデーション関数
+  const validateZIndexValue = (value: string): {
+    isValid: boolean;
+    error?: string;
+    warning?: string;
+  } => {
+    const numValue = parseInt(value.trim());
+    
+    // 空文字列または無効な数値
+    if (isNaN(numValue)) {
+      return {
+        isValid: false,
+        error: 'z-indexは数値である必要があります'
+      };
+    }
+    
+    // 範囲チェック（-9999 〜 9999）
+    if (numValue < -9999 || numValue > 9999) {
+      return {
+        isValid: false,
+        error: 'z-indexは-9999から9999の範囲で入力してください'
+      };
+    }
+    
+    // 競合チェック（同じページ内での重複）
+    let warning: string | undefined;
+    if (page) {
+      const project = useProjectStore.getState().project;
+      if (project) {
+        const conflicts: string[] = [];
+        
+        Object.values(page.asset_instances).forEach((instance) => {
+          // 自分自身は除外
+          if (instance.id === assetInstance?.id) return;
+          
+          const instanceAsset = project.assets[instance.asset_id];
+          if (!instanceAsset) return;
+          
+          const effectiveZIndex = instance.override_z_index !== undefined 
+            ? instance.override_z_index 
+            : instanceAsset.default_z_index;
+          
+          if (effectiveZIndex === numValue) {
+            const assetName = instanceAsset.name || instanceAsset.id;
+            conflicts.push(assetName);
+          }
+        });
+        
+        if (conflicts.length > 0) {
+          warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
+        }
+      }
+    }
+    
+    return {
+      isValid: true,
+      warning
+    };
   };
 
   const handleSave = () => {
@@ -425,23 +506,46 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   レイヤー順序 (z-index):
                   <div className="z-index-controls">
                     <input
-                      type="number"
-                      value={getCurrentZIndex()}
+                      type="text"
+                      value={tempInputValues.z_index ?? getCurrentZIndex().toString()}
                       onChange={(e) => {
-                        const numValue = parseInt(e.target.value) || 0;
-                        updateZIndex(numValue);
+                        const sanitized = sanitizeZIndexInput(e.target.value);
+                        setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
+                        
+                        // バリデーション実行
+                        const validation = validateZIndexValue(sanitized);
+                        setZIndexValidation(validation);
                       }}
-                      step="1"
-                      className="z-index-input"
+                      onBlur={(e) => {
+                        const validated = validateAndSetValue(e.target.value, -9999, getCurrentZIndex());
+                        updateZIndex(validated);
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.z_index;
+                          return newTemp;
+                        });
+                      }}
+                      className={`z-index-input ${
+                        !zIndexValidation.isValid ? 'error' : 
+                        zIndexValidation.warning ? 'warning' : ''
+                      }`}
+                      placeholder="0"
                     />
-                    {mode === 'instance' && (
-                      <span className="z-index-info">
-                        {editingInstance?.override_z_index !== undefined
-                          ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
-                          : `デフォルト値を使用中`
-                        }
-                      </span>
-                    )}
+                    <span className={`z-index-info ${
+                      !zIndexValidation.isValid ? 'error' : 
+                      zIndexValidation.warning ? 'warning' : ''
+                    }`}>
+                      {!zIndexValidation.isValid && zIndexValidation.error ? 
+                        zIndexValidation.error :
+                        zIndexValidation.warning ? 
+                        zIndexValidation.warning :
+                        mode === 'instance' 
+                          ? (editingInstance?.override_z_index !== undefined
+                            ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
+                            : `デフォルト値を使用中`)
+                          : '(レイヤー順序: 数値が小さいほど背面)'
+                      }
+                    </span>
                   </div>
                 </label>
               </div>

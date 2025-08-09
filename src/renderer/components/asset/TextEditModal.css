@@ -287,9 +287,27 @@
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.25) !important;
 }
 
+.z-index-input.error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+}
+
+.z-index-input.warning {
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25) !important;
+}
+
 .z-index-info {
   font-size: 11px;
   color: #6c757d;
   font-style: italic;
   flex: 1;
+}
+
+.z-index-info.error {
+  color: #dc3545;
+}
+
+.z-index-info.warning {
+  color: #856404;
 }
