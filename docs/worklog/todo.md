@@ -58,9 +58,8 @@
 - [x]: SpreadSheetWindow の行の先頭を右クリックしたら、列単位のバルク操作ができるようにしてほしい。内容は、既存の行単位のバルク操作と同様（ui-specification.md の Row 参照）
 - [x]: 上記にそれに加えてSpreadSheetWindow の行の先頭を右クリックしたら、「上に挿入」「下に挿入」「削除」のメニューも表示して、行の追加・削除ができるようにする（ui-specification.md の Row 参照）
 - [x]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
-- [ ]: z_index の値の値の管理がおかしい。SpreadSheet のバルク編集で「全て変更をリセット」を選択したときに、z_index の値がリセットされない。
-- [ ]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
-- [ ]: ImageAsset のプレビュー画面の矩形のデザインを改善
+- [x]: z_index の値の値の管理がおかしい。SpreadSheet のバルク編集で「全て変更をリセット」を選択したときに、z_index の値がリセットされない。
+- [x]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 - [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
 - [ ]: Asset/AssetInstance の編集画面の数値の入力フィールドに上下ボタンを追加して、数値を増減できるようにする。増減の単位は1ずつ。小数を含む場合でも1ずつ増減できるようにする。
 - [ ]: Preview Window の「自動ズーム」と「キャンバスをプレビュー画面に収める」を統合する
@@ -72,6 +71,16 @@
     - 「キャンバスをプレビュー画面に収める」のトグルスイッチの左側に移動する
     - 「自動ズーム」のボタンは削除する
   - Preview Window で倍率の変更やスクロールをしたら「キャンバスをプレビュー画面に収める」は OFF になる
+
+## フォント管理機能
+デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
+- [ ]: ツールバーのメニューに、フォント管理の機能を追加。
+- [ ]: TextAsset/TextAssetInstance 編集画面でフォントを選択できるようにする。
+
+## 多言語テキスト作成支援
+ui-specification.md の Project Creation / Project Header を参照
+- [ ]: Lang 対応のために ProjectData のエンティティを修正
+- [ ]: Lang 対応のために TextAsset / TextAssetInstance のエンティティを修正
 
 ## SpreadSheet での z_index 編集機能（将来実装）
 - [ ]: SpreadSheet のアセットセル内に小さな z_index 数値入力フィールドを追加
@@ -86,7 +95,6 @@
 - [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造をにするか...要検討）
 - [ ]: Asset Library の Asset をソートする機能をほしい
 - [ ]: SpreadSheet Window の列のバルク操作に、列自体を非表示にする機能を追加
-- [ ]: ツールバーのメニューに、フォント管理の機能を追加。デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
 - [ ]: TextAsset に rotate を対応する
 
 
