@@ -754,6 +754,9 @@ Sample Text はテキストボックスとなっており、ユーザが任意�
 また、ここに追加したフォントかつ、プロジェクト内で TextAsset/TextAssetInstance で利用されているフォントは、プロジェクトの保存時に font ディレクトリ内に一緒に保存される。
 加えて、HTML ファイルでのエクスポート時には、 CSS の箇所に　Base64 としてフォントが埋め込まれる（html-export.md参照）。
 
+ビルトインのフォントは、リポジトリの ./fonts ディレクトリ配下に存在する。
+いずれも断りなく商用・個人利用が可能なフォントに限定をしている。
+
 ## TextAsset Bulk Edit Screen
 
 Project Header にある `TextAsset Bulk Edit` ボタンをクリックすると、TextAsset の一括編集画面が表示される。
