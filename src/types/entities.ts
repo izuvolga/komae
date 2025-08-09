@@ -33,6 +33,7 @@ export interface ImageAsset extends BaseAsset {
   default_height: number;
   default_opacity: number;
   default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
+  default_z_index: number;
 }
 
 export interface TextAsset extends BaseAsset {
@@ -48,6 +49,7 @@ export interface TextAsset extends BaseAsset {
   opacity: number; // デフォルトの不透明度（0.0〜1.0）
   leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
   vertical: boolean; // true の場合、縦書き
+  default_z_index: number;
 }
 
 export type Asset = ImageAsset | TextAsset;
@@ -56,7 +58,6 @@ export type Asset = ImageAsset | TextAsset;
 export interface BaseAssetInstance {
   id: string;
   asset_id: string;
-  z_index: number;
 }
 
 export interface ImageAssetInstance extends BaseAssetInstance {
@@ -66,6 +67,7 @@ export interface ImageAssetInstance extends BaseAssetInstance {
   override_height?: number;
   override_opacity?: number;
   override_mask?: [[number, number], [number, number], [number, number], [number, number]];
+  override_z_index?: number;
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {
@@ -74,6 +76,7 @@ export interface TextAssetInstance extends BaseAssetInstance {
   override_pos_y?: number;
   override_font_size?: number;
   override_opacity?: number;
+  override_z_index?: number;
 }
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance;
@@ -89,7 +92,8 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
       textInstance.override_pos_x !== undefined ||
       textInstance.override_pos_y !== undefined ||
       textInstance.override_font_size !== undefined ||
-      textInstance.override_opacity !== undefined
+      textInstance.override_opacity !== undefined ||
+      textInstance.override_z_index !== undefined
     );
   } else if (assetType === 'ImageAsset') {
     const imageInstance = instance as ImageAssetInstance;
@@ -99,11 +103,20 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
       imageInstance.override_width !== undefined ||
       imageInstance.override_height !== undefined ||
       imageInstance.override_opacity !== undefined ||
-      imageInstance.override_mask
+      imageInstance.override_mask ||
+      imageInstance.override_z_index !== undefined
     );
   }
   
   return false;
+}
+
+/**
+ * AssetとAssetInstanceからz_indexを統合して取得
+ * AssetInstanceのoverride_z_indexが設定されていればそれを、なければAssetのdefault_z_indexを使用
+ */
+export function getEffectiveZIndex(asset: Asset, instance: AssetInstance): number {
+  return instance.override_z_index !== undefined ? instance.override_z_index : asset.default_z_index;
 }
 
 // AssetInstanceのoverride値をリセットする関数

@@ -43,6 +43,7 @@ describe('ExportService', () => {
           default_width: 400,
           default_height: 300,
           default_opacity: 1.0,
+          default_z_index: 0,
           default_mask: [[0, 0], [400, 0], [400, 300], [0, 300]],
         },
         'test-text-1': {
@@ -58,6 +59,7 @@ describe('ExportService', () => {
           default_pos_x: 200,
           default_pos_y: 100,
           vertical: false,
+          default_z_index: 1,
         },
       },
       pages: [
@@ -68,12 +70,10 @@ describe('ExportService', () => {
             'instance-1': {
               id: 'instance-1',
               asset_id: 'test-image-1',
-              z_index: 0,
             },
             'instance-2': {
               id: 'instance-2',
               asset_id: 'test-text-1',
-              z_index: 1,
             },
           },
         },
@@ -84,9 +84,9 @@ describe('ExportService', () => {
             'instance-3': {
               id: 'instance-3',
               asset_id: 'test-text-1',
-              z_index: 0,
               override_pos_x: 250,
               override_pos_y: 150,
+              override_z_index: 0,
             },
           },
         },
@@ -309,7 +309,6 @@ describe('ExportService', () => {
               'broken-instance': {
                 id: 'broken-instance',
                 asset_id: 'nonexistent-asset',
-                z_index: 0,
               },
             },
           },

@@ -168,6 +168,7 @@ export class AssetManager {
       default_width: imageInfo.width,
       default_height: imageInfo.height,
       default_opacity: 1.0,
+      default_z_index: 0, // デフォルトのz_index
       // default_maskは初期状態ではundefined（マスクなし）
     };
 
@@ -190,6 +191,7 @@ export class AssetManager {
       opacity: 1.0,
       leading: 0,
       vertical: false,
+      default_z_index: 0, // デフォルトのz_index
     };
 
     return asset;

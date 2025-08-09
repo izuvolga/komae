@@ -57,6 +57,8 @@
 - [x]: TextAsset の編集画面のプレビューの内容が大きすぎるので、キャンバスサイズの比率は保ちながら、表示ウィンドウのサイズに合わせて縮小して表示するようにする
 - [x]: SpreadSheetWindow の行の先頭を右クリックしたら、列単位のバルク操作ができるようにしてほしい。内容は、既存の行単位のバルク操作と同様（ui-specification.md の Row 参照）
 - [x]: 上記にそれに加えてSpreadSheetWindow の行の先頭を右クリックしたら、「上に挿入」「下に挿入」「削除」のメニューも表示して、行の追加・削除ができるようにする（ui-specification.md の Row 参照）
+- [ ]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
+- [ ]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 
 ## 大きめの改善
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする

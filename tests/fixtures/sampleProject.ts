@@ -12,6 +12,7 @@ export const mockImageAsset: Asset = {
   default_width: 300,
   default_height: 400,
   default_opacity: 1.0,
+  default_z_index: 0,
   default_mask: [[0, 0], [300, 0], [300, 400], [0, 400]],
 };
 
@@ -30,18 +31,19 @@ export const mockTextAsset: Asset = {
   opacity: 1.0,
   leading: 4.0,
   vertical: true,
+  default_z_index: 1,
 };
 
 // TextAssetInstanceのモックデータ
 export const mockTextAssetInstance = {
   id: 'instance-text-1',
   asset_id: 'test-text-1',
-  z_index: 1,
   override_text: '上書きされたテキスト',
   override_pos_x: 250,
   override_pos_y: 350,
   override_font_size: 28,
   override_opacity: 0.8,
+  override_z_index: 2,
 };
 
 export const mockPage: Page = {

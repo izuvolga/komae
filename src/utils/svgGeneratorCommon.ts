@@ -1,4 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance } from '../types/entities';
+import { getEffectiveZIndex } from '../types/entities';
 
 /**
  * 共通のSVG構造生成ロジック
@@ -65,8 +66,16 @@ export function generateSvgStructureCommon(
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
 
-  for (const instance of instances) {
-    const asset = project.assets[instance.asset_id];
+  // z_indexに基づいてインスタンスをソート
+  const sortedInstances = instances
+    .map(instance => {
+      const asset = project.assets[instance.asset_id];
+      return { instance, asset, zIndex: asset ? getEffectiveZIndex(asset, instance) : 0 };
+    })
+    .filter(item => item.asset) // Assetが存在するもののみ
+    .sort((a, b) => a.zIndex - b.zIndex);
+
+  for (const { instance, asset } of sortedInstances) {
     if (!asset) {
       continue;
     }
@@ -316,7 +325,6 @@ export function generateTextPreviewSVG(
   const tempInstance = instance || {
     id: 'temp-preview',
     asset_id: asset.id,
-    z_index: 0,
   };
   
   // TextSVG要素を生成

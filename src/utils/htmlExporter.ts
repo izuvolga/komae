@@ -77,14 +77,13 @@ export class HtmlExporter {
   private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
     
-    // アセットインスタンスをz-index順にソート
-    const sortedInstances = Object.values(page.asset_instances)
-      .sort((a, b) => a.z_index - b.z_index);
+    // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
+    const instances = Object.values(page.asset_instances);
 
     // 共通のSVG生成ロジックを使用
     const { assetDefinitions, useElements } = generateSvgStructureCommon(
       project, 
-      sortedInstances, 
+      instances, 
       (filePath: string) => {
         // HTMLエクスポート時は画像をbase64エンコードして埋め込む
         return encodeImageToBase64(filePath, this.projectPath);
@@ -157,14 +156,13 @@ export class HtmlExporter {
       const pageNumber = i + 1;
       const isFirstPage = i === 0;
       
-      // アセットインスタンスをz-index順にソート
-      const sortedInstances = Object.values(page.asset_instances)
-        .sort((a, b) => a.z_index - b.z_index);
+      // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
+      const instances = Object.values(page.asset_instances);
       
       // 共通のSVG生成ロジックを使用して使用要素を生成
       const { useElements } = generateSvgStructureCommon(
         project,
-        sortedInstances,
+        instances,
         (filePath: string) => {
           // 統合SVGでは実際のbase64データは不要（アセット定義を参照）
           return ''; // use要素では使用されない

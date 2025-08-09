@@ -187,14 +187,13 @@ export class ExportService {
   private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
     
-    // アセットインスタンスをz-index順にソート
-    const sortedInstances = Object.values(page.asset_instances)
-      .sort((a, b) => a.z_index - b.z_index);
+    // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
+    const instances = Object.values(page.asset_instances);
 
     // 共通のSVG生成ロジックを使用
     const { assetDefinitions, useElements } = generateSvgStructureCommon(
       project, 
-      sortedInstances, 
+      instances, 
       (filePath: string) => {
         // PNG生成時もプロジェクトパス解決が必要
         let absolutePath = filePath;
