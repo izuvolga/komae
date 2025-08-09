@@ -5,6 +5,7 @@ import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { ExportDialog } from '../export/ExportDialog';
 import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
 import { FontManagementModal } from '../font/FontManagementModal';
+import { BulkEditModal } from '../text/BulkEditModal';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
@@ -599,6 +600,12 @@ export const MainLayout: React.FC = () => {
       <FontManagementModal
         isOpen={showFontManagement}
         onClose={() => toggleFontManagement()}
+      />
+      
+      {/* TextAsset Bulk Edit ダイアログ */}
+      <BulkEditModal
+        isOpen={showBulkEditModal}
+        onClose={() => setShowBulkEditModal(false)}
       />
     </div>
   );
