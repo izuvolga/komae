@@ -123,6 +123,9 @@ export function getEffectiveZIndex(asset: Asset, instance: AssetInstance): numbe
 export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): Partial<AssetInstance> {
   const resetUpdates: any = {};
   
+  // 両方のアセットタイプで共通のz_indexをリセット
+  resetUpdates.override_z_index = undefined;
+  
   if (assetType === 'TextAsset') {
     resetUpdates.override_text = undefined;
     resetUpdates.override_pos_x = undefined;
@@ -244,4 +247,59 @@ export interface SaveDialogOptions {
   title?: string;
   defaultPath?: string;
   filters?: Array<{ name: string; extensions: string[] }>;
+}
+
+// Asset初期化用のヘルパー関数
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * ImageAssetの初期データを作成
+ */
+export function createImageAsset(params: {
+  name: string;
+  relativePath: string;
+  originalWidth: number;
+  originalHeight: number;
+}): ImageAsset {
+  return {
+    id: `img-${uuidv4()}`,
+    type: 'ImageAsset',
+    name: params.name,
+    original_file_path: params.relativePath,
+    original_width: params.originalWidth,
+    original_height: params.originalHeight,
+    default_pos_x: 0,
+    default_pos_y: 0,
+    default_width: params.originalWidth,
+    default_height: params.originalHeight,
+    default_opacity: 1.0,
+    default_z_index: 0,
+    // default_maskは初期状態ではundefined（マスクなし）
+  };
+}
+
+/**
+ * TextAssetの初期データを作成
+ */
+export function createTextAsset(params: {
+  name: string;
+  defaultText: string;
+}): TextAsset {
+  return {
+    id: `text-${uuidv4()}`,
+    type: 'TextAsset',
+    name: params.name,
+    default_text: params.defaultText,
+    font: 'system-ui', // デフォルトフォント
+    stroke_width: 2.0,
+    font_size: 24,
+    stroke_color: '#000000',
+    fill_color: '#FFFFFF',
+    default_pos_x: 100,
+    default_pos_y: 100,
+    opacity: 1.0,
+    leading: 0,
+    vertical: false,
+    default_z_index: 0,
+  };
 }

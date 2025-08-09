@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import imageSize from 'image-size';
 import { FileSystemService } from './FileSystemService';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
@@ -12,6 +11,7 @@ import {
   DuplicateResolutionStrategy 
 } from '../../utils/duplicateAssetHandler';
 import type { Asset, ImageAsset, TextAsset, ProjectData } from '../../types/entities';
+import { createImageAsset, createTextAsset } from '../../types/entities';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -156,43 +156,23 @@ export class AssetManager {
     // 画像の基本情報を取得（実際の実装では画像ライブラリを使用）
     const imageInfo = await this.getImageInfo(filePath);
     
-    const asset: ImageAsset = {
-      id: `img-${uuidv4()}`,
-      type: 'ImageAsset',
+    // entities.tsのヘルパー関数を使用してImageAssetを作成
+    const asset = createImageAsset({
       name: fileName,
-      original_file_path: relativePath, // 相対パスを使用
-      original_width: imageInfo.width,
-      original_height: imageInfo.height,
-      default_pos_x: 0,
-      default_pos_y: 0,
-      default_width: imageInfo.width,
-      default_height: imageInfo.height,
-      default_opacity: 1.0,
-      default_z_index: 0, // デフォルトのz_index
-      // default_maskは初期状態ではundefined（マスクなし）
-    };
+      relativePath: relativePath,
+      originalWidth: imageInfo.width,
+      originalHeight: imageInfo.height,
+    });
 
     return asset;
   }
 
   async createTextAsset(name: string, defaultText: string): Promise<TextAsset> {
-    const asset: TextAsset = {
-      id: `text-${uuidv4()}`,
-      type: 'TextAsset',
+    // entities.tsのヘルパー関数を使用してTextAssetを作成
+    const asset = createTextAsset({
       name: name,
-      default_text: defaultText,
-      font: 'system-ui', // デフォルトフォント（絶対パス）
-      stroke_width: 2.0,
-      font_size: 24,
-      stroke_color: '#000000',
-      fill_color: '#FFFFFF',
-      default_pos_x: 100,
-      default_pos_y: 100,
-      opacity: 1.0,
-      leading: 0,
-      vertical: false,
-      default_z_index: 0, // デフォルトのz_index
-    };
+      defaultText: defaultText,
+    });
 
     return asset;
   }
