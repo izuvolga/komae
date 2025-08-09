@@ -58,6 +58,7 @@
 - [x]: SpreadSheetWindow の行の先頭を右クリックしたら、列単位のバルク操作ができるようにしてほしい。内容は、既存の行単位のバルク操作と同様（ui-specification.md の Row 参照）
 - [x]: 上記にそれに加えてSpreadSheetWindow の行の先頭を右クリックしたら、「上に挿入」「下に挿入」「削除」のメニューも表示して、行の追加・削除ができるようにする（ui-specification.md の Row 参照）
 - [x]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
+- [ ]: z_index の値の値の管理がおかしい。SpreadSheet のバルク編集で「全て変更をリセット」を選択したときに、z_index の値がリセットされない。
 - [ ]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 
 ## SpreadSheet での z_index 編集機能（将来実装）
