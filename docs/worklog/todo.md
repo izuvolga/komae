@@ -74,13 +74,13 @@
 
 ## フォント管理機能
 デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
-- [ ]: ツールバーのメニューに、フォント管理の機能を追加。
-- [ ]: TextAsset/TextAssetInstance 編集画面でフォントを選択できるようにする。
+- [x]: ツールバーのメニューに、フォント管理の機能を追加。
+- [x]: TextAsset/TextAssetInstance 編集画面でフォントを選択できるようにする。
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
-- [ ]: Lang 対応のために ProjectData のエンティティを修正
-- [ ]: Lang 対応のために TextAsset / TextAssetInstance のエンティティを修正
+- [x]: Lang 対応のために ProjectData のエンティティを修正
+- [x]: Lang 対応のために TextAsset / TextAssetInstance のエンティティを修正
 
 ## SpreadSheet での z_index 編集機能（将来実装）
 - [ ]: SpreadSheet のアセットセル内に小さな z_index 数値入力フィールドを追加
