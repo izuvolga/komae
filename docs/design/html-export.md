@@ -13,11 +13,11 @@ Project を HTML として出力すると、おおむね以下のようなコー
   <style>
     /* フォントのBase64埋め込み */
     @font-face {
-      font-family: 'NotoSansJP';
+      font-family: 'Rounded-X M+ 1p';
       src: url(data:font/truetype;charset=utf-8;base64,AAEAAAATAQAAAB...);
     }
     @font-face {
-      font-family: 'CustomFont';
+      font-family: 'Mansalva';
       src: url(data:font/truetype;charset=utf-8;base64,AAEAAAATAQAAAB...);
     }
     
