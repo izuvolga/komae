@@ -222,3 +222,83 @@
   background-color: rgba(255, 255, 255, 0.3);
 }
 
+/* プロジェクト編集ボタン */
+.project-edit-btn,
+.bulk-edit-btn {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #666;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.project-edit-btn:hover,
+.bulk-edit-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+/* 言語選択ドロップダウン */
+.language-selector-container {
+  position: relative;
+  margin-right: 8px;
+}
+
+.language-dropdown-btn {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+.language-dropdown-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.language-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 140px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.language-dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.language-dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.language-dropdown-item.active {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+

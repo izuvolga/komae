@@ -8,6 +8,7 @@ import { FontManagementModal } from '../font/FontManagementModal';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
+import { getLanguageDisplayName } from '../../../constants/languages';
 import type { ExportOptions } from '../../../types/entities';
 import './MainLayout.css';
 
@@ -29,6 +30,11 @@ export const MainLayout: React.FC = () => {
   const saveProject = useProjectStore((state) => state.saveProject);
   const loadProject = useProjectStore((state) => state.loadProject);
   const addNotification = useProjectStore((state) => state.addNotification);
+  
+  // 多言語機能
+  const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
+  const getSupportedLanguages = useProjectStore((state) => state.getSupportedLanguages);
+  const setCurrentLanguage = useProjectStore((state) => state.setCurrentLanguage);
 
   // ドラッグリサイズの状態
   const [isDragging, setIsDragging] = useState<'asset' | 'preview' | null>(null);
@@ -38,6 +44,8 @@ export const MainLayout: React.FC = () => {
   // ダイアログの状態
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   // アセットライブラリのリサイズ開始
   const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {
@@ -196,6 +204,21 @@ export const MainLayout: React.FC = () => {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // 言語ドロップダウンの外側クリック処理
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.language-selector-container')) {
+        setShowLanguageDropdown(false);
+      }
+    };
+
+    if (showLanguageDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showLanguageDropdown]);
+
   // 旧式のプロジェクト作成（ウェルカム画面のボタン用）
   const handleCreateProjectLegacy = async () => {
     try {
@@ -213,7 +236,9 @@ export const MainLayout: React.FC = () => {
         const projectData = await window.electronAPI.project.create({
           title: 'プロジェクト',
           description: '',
-          canvas: { width: 800, height: 600 }
+          canvas: { width: 800, height: 600 },
+          supportedLanguages: ['ja'],
+          currentLanguage: 'ja',
         });
         
         // プロジェクトを保存
@@ -345,6 +370,8 @@ export const MainLayout: React.FC = () => {
         project_version: '1.0',
         title: '大規模サンプルプロジェクト',
         description: 'アセット20個・ページ20個の大規模サンプルプロジェクト',
+        supportedLanguages: ['ja'],
+        currentLanguage: 'ja',
       },
       canvas: { width: 800, height: 600 },
       assets,
@@ -447,6 +474,69 @@ export const MainLayout: React.FC = () => {
                   <PanelExpandLeftIcon />
                 </button>
               )}
+              
+              {/* プロジェクト編集ボタン */}
+              <button 
+                className="project-edit-btn"
+                onClick={() => {
+                  addNotification({
+                    type: 'info',
+                    title: 'プロジェクト設定',
+                    message: 'プロジェクト設定機能は現在開発中です',
+                    autoClose: true,
+                    duration: 3000,
+                  });
+                }}
+                title="プロジェクト設定を編集"
+              >
+                P:🖊️
+              </button>
+              
+              {/* 言語切り替えドロップダウン */}
+              <div className="language-selector-container">
+                <button
+                  className="language-dropdown-btn"
+                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                  title="表示言語を切り替え"
+                >
+                  [{getCurrentLanguage().toUpperCase()}|▼]
+                </button>
+                
+                {showLanguageDropdown && (
+                  <div className="language-dropdown">
+                    {getSupportedLanguages().map(langCode => (
+                      <div
+                        key={langCode}
+                        className={`language-dropdown-item ${
+                          langCode === getCurrentLanguage() ? 'active' : ''
+                        }`}
+                        onClick={() => {
+                          setCurrentLanguage(langCode);
+                          setShowLanguageDropdown(false);
+                          addNotification({
+                            type: 'info',
+                            title: '言語切り替え',
+                            message: `表示言語を${getLanguageDisplayName(langCode)}に変更しました`,
+                            autoClose: true,
+                            duration: 2000,
+                          });
+                        }}
+                      >
+                        {getLanguageDisplayName(langCode)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* TextAsset Bulk Edit ボタン */}
+              <button 
+                className="bulk-edit-btn"
+                onClick={() => setShowBulkEditModal(true)}
+                title="テキストアセット一括編集"
+              >
+                T:🖊️
+              </button>
               
               <span className="project-title">{project.metadata.title}</span>
             </div>

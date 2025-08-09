@@ -69,6 +69,13 @@ interface ProjectStore {
   setPreviewWidth: (width: number) => void;
   setPreviewScroll: (x: number, y: number) => void;
   
+  // Language Actions
+  getCurrentLanguage: () => string;
+  getSupportedLanguages: () => string[];
+  setCurrentLanguage: (languageCode: string) => void;
+  addSupportedLanguage: (languageCode: string) => void;
+  removeSupportedLanguage: (languageCode: string) => void;
+  
   // App Actions
   setLoading: (loading: boolean) => void;
   setDirty: (dirty: boolean) => void;
@@ -391,6 +398,60 @@ export const useProjectStore = create<ProjectStore>()(
         clearNotifications: () => set((state) => {
           state.app.notifications = [];
         }),
+
+        // Language Management
+        getCurrentLanguage: () => {
+          const { project } = get();
+          return project?.metadata.currentLanguage || 'ja';
+        },
+
+        getSupportedLanguages: () => {
+          const { project } = get();
+          return project?.metadata.supportedLanguages || ['ja'];
+        },
+
+        setCurrentLanguage: (languageCode: string) => {
+          set((state) => {
+            if (state.project) {
+              const supportedLanguages = state.project.metadata.supportedLanguages || ['ja'];
+              if (supportedLanguages.includes(languageCode)) {
+                state.project.metadata.currentLanguage = languageCode;
+                state.app.isDirty = true;
+              }
+            }
+          });
+        },
+
+        addSupportedLanguage: (languageCode: string) => {
+          set((state) => {
+            if (state.project) {
+              const currentSupported = state.project.metadata.supportedLanguages || ['ja'];
+              if (!currentSupported.includes(languageCode)) {
+                state.project.metadata.supportedLanguages = [...currentSupported, languageCode];
+                state.app.isDirty = true;
+              }
+            }
+          });
+        },
+
+        removeSupportedLanguage: (languageCode: string) => {
+          set((state) => {
+            if (state.project) {
+              const currentSupported = state.project.metadata.supportedLanguages || ['ja'];
+              if (currentSupported.length > 1 && currentSupported.includes(languageCode)) {
+                const newSupported = currentSupported.filter(lang => lang !== languageCode);
+                state.project.metadata.supportedLanguages = newSupported;
+                
+                // 削除した言語がcurrentLanguageの場合、最初の言語に変更
+                if (state.project.metadata.currentLanguage === languageCode) {
+                  state.project.metadata.currentLanguage = newSupported[0];
+                }
+                
+                state.app.isDirty = true;
+              }
+            }
+          });
+        },
 
         // Async Actions
         saveProject: async () => {

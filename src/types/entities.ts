@@ -6,6 +6,8 @@ export interface ProjectMetadata {
   project_version: string;
   title: string;
   description?: string;
+  supportedLanguages: string[]; // ISO 639-1言語コード ['ja', 'en', 'zh']
+  currentLanguage: string; // 現在の表示言語 'ja'
 }
 
 export interface CanvasConfig {
@@ -50,6 +52,8 @@ export interface TextAsset extends BaseAsset {
   leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
   vertical: boolean; // true の場合、縦書き
   default_z_index: number;
+  // 新機能：言語別デフォルト設定
+  multilingual_defaults?: Record<string, LanguageOverrides>;
 }
 
 export type Asset = ImageAsset | TextAsset;
@@ -93,12 +97,28 @@ export interface ImageAssetInstance extends BaseAssetInstance {
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {
+  // 既存override値は維持（後方互換性）
   override_text?: string;
   override_pos_x?: number;
   override_pos_y?: number;
   override_font_size?: number;
   override_opacity?: number;
   override_z_index?: number;
+  // 新機能：言語別完全オーバーライド
+  multilingual_overrides?: Record<string, LanguageOverrides>;
+}
+
+// 多言語対応のための言語別オーバーライド設定
+export interface LanguageOverrides {
+  override_text?: string;
+  override_font_size?: number;
+  override_pos_x?: number;
+  override_pos_y?: number;
+  override_font?: string; // 言語別フォント選択
+  override_opacity?: number;
+  override_z_index?: number;
+  override_leading?: number; // 言語別行間
+  override_vertical?: boolean; // 言語別縦書き設定
 }
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance;
@@ -232,6 +252,8 @@ export interface ProjectCreateParams {
   description?: string;
   canvas: CanvasConfig;
   template?: string;
+  supportedLanguages?: string[]; // 多言語対応
+  currentLanguage?: string; // 多言語対応
 }
 
 export type ExportFormat = 'html' | 'svg' | 'png';
@@ -300,6 +322,199 @@ export function createImageAsset(params: {
     default_z_index: 0,
     // default_maskは初期状態ではundefined（マスクなし）
   };
+}
+
+/**
+ * 多言語対応：現在言語の有効テキスト値を取得
+ * 優先順位: multilingual_overrides[currentLang] > 既存override_* > multilingual_defaults[currentLang] > asset default
+ */
+export function getEffectiveTextValue(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): string {
+  // 1. 言語別オーバーライドをチェック
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_text !== undefined) {
+    return langOverride.override_text;
+  }
+  
+  // 2. 既存のオーバーライドをチェック（後方互換性）
+  if (instance.override_text !== undefined) {
+    return instance.override_text;
+  }
+  
+  // 3. アセットの言語別デフォルトをチェック
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_text !== undefined) {
+    return assetLangDefault.override_text;
+  }
+  
+  // 4. アセットのデフォルト値を使用
+  return asset.default_text;
+}
+
+/**
+ * 多言語対応：現在言語の有効フォントサイズを取得
+ */
+export function getEffectiveFontSize(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): number {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_font_size !== undefined) {
+    return langOverride.override_font_size;
+  }
+  
+  if (instance.override_font_size !== undefined) {
+    return instance.override_font_size;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_font_size !== undefined) {
+    return assetLangDefault.override_font_size;
+  }
+  
+  return asset.font_size;
+}
+
+/**
+ * 多言語対応：現在言語の有効位置X座標を取得
+ */
+export function getEffectivePosX(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): number {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_pos_x !== undefined) {
+    return langOverride.override_pos_x;
+  }
+  
+  if (instance.override_pos_x !== undefined) {
+    return instance.override_pos_x;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_pos_x !== undefined) {
+    return assetLangDefault.override_pos_x;
+  }
+  
+  return asset.default_pos_x;
+}
+
+/**
+ * 多言語対応：現在言語の有効位置Y座標を取得
+ */
+export function getEffectivePosY(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): number {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_pos_y !== undefined) {
+    return langOverride.override_pos_y;
+  }
+  
+  if (instance.override_pos_y !== undefined) {
+    return instance.override_pos_y;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_pos_y !== undefined) {
+    return assetLangDefault.override_pos_y;
+  }
+  
+  return asset.default_pos_y;
+}
+
+/**
+ * 多言語対応：現在言語の有効不透明度を取得
+ */
+export function getEffectiveOpacity(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): number {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_opacity !== undefined) {
+    return langOverride.override_opacity;
+  }
+  
+  if (instance.override_opacity !== undefined) {
+    return instance.override_opacity;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_opacity !== undefined) {
+    return assetLangDefault.override_opacity;
+  }
+  
+  return asset.opacity;
+}
+
+/**
+ * 多言語対応：現在言語の有効フォントを取得
+ */
+export function getEffectiveFont(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): string {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_font !== undefined) {
+    return langOverride.override_font;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_font !== undefined) {
+    return assetLangDefault.override_font;
+  }
+  
+  return asset.font;
+}
+
+/**
+ * 多言語対応：現在言語の有効行間を取得
+ */
+export function getEffectiveLeading(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): number {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_leading !== undefined) {
+    return langOverride.override_leading;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_leading !== undefined) {
+    return assetLangDefault.override_leading;
+  }
+  
+  return asset.leading;
+}
+
+/**
+ * 多言語対応：現在言語の有効縦書き設定を取得
+ */
+export function getEffectiveVertical(
+  asset: TextAsset, 
+  instance: TextAssetInstance, 
+  currentLang: string
+): boolean {
+  const langOverride = instance.multilingual_overrides?.[currentLang];
+  if (langOverride?.override_vertical !== undefined) {
+    return langOverride.override_vertical;
+  }
+  
+  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
+  if (assetLangDefault?.override_vertical !== undefined) {
+    return assetLangDefault.override_vertical;
+  }
+  
+  return asset.vertical;
 }
 
 /**

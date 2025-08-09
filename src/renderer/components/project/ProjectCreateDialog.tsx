@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
+import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
 import './ProjectCreateDialog.css';
 
 interface ProjectCreateDialogProps {
@@ -31,6 +32,12 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   const [customWidth, setCustomWidth] = useState(800);
   const [customHeight, setCustomHeight] = useState(600);
   const [isCreating, setIsCreating] = useState(false);
+  
+  // 多言語対応状態
+  const [supportedLanguages, setSupportedLanguages] = useState<string[]>(DEFAULT_SUPPORTED_LANGUAGES);
+  const [currentLanguage, setCurrentLanguage] = useState(DEFAULT_CURRENT_LANGUAGE);
+  const [selectedLanguageForAdd, setSelectedLanguageForAdd] = useState('');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   // 現在のキャンバス設定を取得
   const getCurrentCanvas = (): CanvasConfig => {
@@ -65,6 +72,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         title: title.trim(),
         description: description.trim() || undefined,
         canvas,
+        supportedLanguages,
+        currentLanguage,
       };
 
       // プロジェクト保存先ディレクトリを選択するダイアログを表示
@@ -121,6 +130,10 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       setSelectedPreset('0');
       setCustomWidth(800);
       setCustomHeight(600);
+      setSupportedLanguages(DEFAULT_SUPPORTED_LANGUAGES);
+      setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
+      setSelectedLanguageForAdd('');
+      setShowLanguageDropdown(false);
       
       onClose();
     } catch (error) {
@@ -143,7 +156,54 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     setSelectedPreset('0');
     setCustomWidth(800);
     setCustomHeight(600);
+    setSupportedLanguages(DEFAULT_SUPPORTED_LANGUAGES);
+    setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
+    setSelectedLanguageForAdd('');
+    setShowLanguageDropdown(false);
     onClose();
+  };
+  
+  // 言語追加処理
+  const handleAddLanguage = () => {
+    if (selectedLanguageForAdd && !supportedLanguages.includes(selectedLanguageForAdd)) {
+      const newSupportedLanguages = [...supportedLanguages, selectedLanguageForAdd];
+      setSupportedLanguages(newSupportedLanguages);
+      
+      // 最初の言語を追加した場合、それをcurrentLanguageに設定
+      if (supportedLanguages.length === 0) {
+        setCurrentLanguage(selectedLanguageForAdd);
+      }
+      
+      setSelectedLanguageForAdd('');
+      setShowLanguageDropdown(false);
+    }
+  };
+  
+  // 言語削除処理
+  const handleRemoveLanguage = (langCode: string) => {
+    if (supportedLanguages.length <= 1) {
+      addNotification({
+        type: 'warning',
+        title: '言語削除エラー',
+        message: '最低1つの言語が必要です',
+        autoClose: true,
+        duration: 3000,
+      });
+      return;
+    }
+    
+    const newSupportedLanguages = supportedLanguages.filter(lang => lang !== langCode);
+    setSupportedLanguages(newSupportedLanguages);
+    
+    // 削除した言語がcurrentLanguageの場合、最初の言語に変更
+    if (currentLanguage === langCode) {
+      setCurrentLanguage(newSupportedLanguages[0]);
+    }
+  };
+  
+  // 利用可能な追加言語を取得
+  const getAvailableLanguagesForAdd = () => {
+    return AVAILABLE_LANGUAGES.filter(lang => !supportedLanguages.includes(lang.code));
   };
 
   const isCustomSelected = parseInt(selectedPreset) === CANVAS_PRESETS.length - 1;
@@ -190,6 +250,96 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                 rows={3}
                 disabled={isCreating}
               />
+            </div>
+
+            <div className="form-divider"></div>
+
+            {/* 多言語設定 */}
+            <div className="form-field">
+              <label className="form-label">対応言語</label>
+              
+              <div className="language-selector">
+                <div className="language-dropdown-container">
+                  <div 
+                    className="language-dropdown-trigger"
+                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                  >
+                    <span>{selectedLanguageForAdd || '言語を追加'}</span>
+                    <span className="dropdown-arrow">▼</span>
+                    <button 
+                      type="button"
+                      className="language-help-btn"
+                      title="多言語対応機能について"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addNotification({
+                          type: 'info',
+                          title: '多言語対応機能',
+                          message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
+                          autoClose: true,
+                          duration: 5000,
+                        });
+                      }}
+                    >
+                      ?
+                    </button>
+                  </div>
+                  
+                  {showLanguageDropdown && (
+                    <div className="language-dropdown-menu">
+                      {getAvailableLanguagesForAdd().map(lang => (
+                        <div
+                          key={lang.code}
+                          className="language-dropdown-item"
+                          onClick={() => {
+                            setSelectedLanguageForAdd(lang.code);
+                            handleAddLanguage();
+                          }}
+                        >
+                          {getLanguageDisplayName(lang.code)}
+                        </div>
+                      ))}
+                      {getAvailableLanguagesForAdd().length === 0 && (
+                        <div className="language-dropdown-item disabled">
+                          追加可能な言語がありません
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Lang Code Box */}
+              <div className="lang-code-box">
+                {supportedLanguages.map(langCode => (
+                  <div 
+                    key={langCode} 
+                    className={`lang-code-tag ${currentLanguage === langCode ? 'active' : ''}`}
+                    title={getLanguageDisplayName(langCode)}
+                  >
+                    <span 
+                      className="lang-code-text"
+                      onClick={() => setCurrentLanguage(langCode)}
+                    >
+                      {langCode.toUpperCase()}
+                    </span>
+                    {supportedLanguages.length > 1 && (
+                      <button
+                        type="button"
+                        className="lang-code-remove"
+                        onClick={() => handleRemoveLanguage(langCode)}
+                        title={`${langCode.toUpperCase()}を削除`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="language-info">
+                <small>現在の言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong></small>
+              </div>
             </div>
 
             <div className="form-divider"></div>

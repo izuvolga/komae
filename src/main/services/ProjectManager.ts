@@ -104,6 +104,8 @@ export class ProjectManager {
         project_version: '1.0',
         title: params.title,
         description: params.description,
+        supportedLanguages: params.supportedLanguages || ['ja'],
+        currentLanguage: params.currentLanguage || 'ja',
       },
       canvas: params.canvas,
       assets: {},
