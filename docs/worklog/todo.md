@@ -60,6 +60,9 @@
 - [x]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
 - [ ]: z_index の値の値の管理がおかしい。SpreadSheet のバルク編集で「全て変更をリセット」を選択したときに、z_index の値がリセットされない。
 - [ ]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
+- [ ]: ImageAsset のプレビュー画面の矩形のデザインを改善
+- [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
+- [ ]: Asset/AssetInstance の編集画面の数値の入力フィールドに上下ボタンを追加して、数値を増減できるようにする。増減の単位は1ずつ。小数を含む場合でも1ずつ増減できるようにする。
 
 ## SpreadSheet での z_index 編集機能（将来実装）
 - [ ]: SpreadSheet のアセットセル内に小さな z_index 数値入力フィールドを追加
