@@ -89,8 +89,6 @@ override_opacity: ImageAssetのdefault_opacityを上書きする不透明度 (op
 override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optional)
 ```
 
-**Note**: 以前のtransform（scale_x, scale_y, rotation）やAssetAttr参照（position_attr_id, size_attr_id）は削除され、より直接的なoverride方式に変更されました。サイズ変更はoverride_width/heightを使用し、SVG生成時にscale変換として処理されます。
-
 #### TextAssetInstance
 
 ```
@@ -103,21 +101,3 @@ override_pos_y: TextAssetのdefault_pos_yを上書きするY座標 (optional)
 override_font_size: TextAssetのfont_sizeを上書きするフォントサイズ (optional)
 override_opacity: TextAssetのopacityを上書きする不透明度 (optional)
 ```
-
-**Note**: 以前のtransform（scale_x, scale_y, rotation）やAssetAttr参照（position_attr_id）は削除されました。位置変更は直接override_pos_x/yを使用し、SVG生成時にtranslate変換として処理されます。
-
-## 削除されたエンティティ
-
-以下のエンティティは、データ構造の簡略化のため削除されました：
-
-### ~~PositionAssetAttr~~（削除済み）
-
-~~位置情報を共有するための属性でしたが、AssetInstance間での属性共有の複雑性を避けるため削除されました。現在は、各AssetInstanceで直接override_pos_x/yを使用します。~~
-
-### ~~SizeAssetAttr~~（削除済み）
-
-~~サイズ情報を共有するための属性でしたが、AssetInstance間での属性共有の複雑性を避けるため削除されました。現在は、ImageAssetInstanceで直接override_width/heightを使用します。~~
-
-### ~~Transform~~（削除済み）
-
-~~以前はAssetInstanceでscale_x、scale_y、rotationによる変形情報を持っていましたが、シンプルな実装のため削除されました。サイズ変更はoverride_width/heightで、位置変更はoverride_pos_x/yで処理されます。~~
