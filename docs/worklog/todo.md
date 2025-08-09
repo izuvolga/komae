@@ -57,8 +57,16 @@
 - [x]: TextAsset の編集画面のプレビューの内容が大きすぎるので、キャンバスサイズの比率は保ちながら、表示ウィンドウのサイズに合わせて縮小して表示するようにする
 - [x]: SpreadSheetWindow の行の先頭を右クリックしたら、列単位のバルク操作ができるようにしてほしい。内容は、既存の行単位のバルク操作と同様（ui-specification.md の Row 参照）
 - [x]: 上記にそれに加えてSpreadSheetWindow の行の先頭を右クリックしたら、「上に挿入」「下に挿入」「削除」のメニューも表示して、行の追加・削除ができるようにする（ui-specification.md の Row 参照）
-- [ ]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
+- [x]: z_index の値を、ImageAsset/TextAsset に設定し、AssetInstance 側でオーバーライドできるようにする
 - [ ]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
+
+## SpreadSheet での z_index 編集機能（将来実装）
+- [ ]: SpreadSheet のアセットセル内に小さな z_index 数値入力フィールドを追加
+  - 仕様: cell-manage部分（30px幅）に8-9pxフォントサイズの数値入力（20x12px程度）
+  - 表示: アセットインスタンス使用時のみ表示、getEffectiveZIndex()の値を表示
+  - 編集: 直接入力でoverride_z_indexを更新、デフォルト値と異なる場合は青背景でハイライト
+  - UI: ツールチップで詳細情報表示、右クリックで「デフォルトに戻す」メニュー
+  - レイアウト: チェックボックス、編集ボタン、z_index入力の縦並び配置
 
 ## 大きめの改善
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする

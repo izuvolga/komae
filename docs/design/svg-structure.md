@@ -28,50 +28,70 @@
     <!-- プロジェクト全体で使用される全 ImageAsset を一度だけ定義 -->
     <g id="assets">
         <g visibility="hidden">
-            <g id="background" opacity="1">
-                <image id="image-background" xlink:href="data:image/png;base64,ABCDEFG..." 
-                       width="768" height="1024" x="0" y="0" clip-path="url(#mask-id-circle)" />
+            <g id="img-background" opacity="1.0">
+                <image id="image-img-background" xlink:href="data:image/png;base64,ABCDEFG..." 
+                       width="768" height="1024" x="0" y="0" />
             </g>
-            <g id="character1" opacity="1">
-                <image id="image-character1" xlink:href="data:image/png;base64,HIJKLMN..." 
-                       width="400" height="600" x="0" y="0" />
+            <g id="img-character-a" opacity="1.0">
+                <image id="image-img-character-a" xlink:href="data:image/png;base64,HIJKLMN..." 
+                       width="320" height="440" x="200" y="300" />
             </g>
-            <g id="character2" opacity="1">
-                <image id="image-character2" xlink:href="data:image/png;base64,OPQRSTU..." 
-                       width="350" height="550" x="0" y="0" />
+            <g id="img-effect" opacity="0.8">
+                <image id="image-img-effect" xlink:href="data:image/png;base64,OPQRSTU..." 
+                       width="400" height="300" x="100" y="50" />
             </g>
         </g>
     </g>
 
-    <!-- ページ1の描画内容 -->
+    <!-- ページ1の描画内容 (z_index順: background=0, character=1, speech=15) -->
     <g id="page-1" style="display: block;">
-        <use href="#background" transform="translate(0,0)" opacity="1.0" />
-        <use href="#character1" transform="translate(100,200) scale(1.2,1.2)" opacity="0.9" />
-        <!-- TextAsset インライン要素 -->
+        <use href="#img-background" opacity="1.0" />
+        <use href="#img-character-a" transform="scale(1.2,1.2)" opacity="0.9" />
+        <!-- TextAsset インライン要素 (text-speech, z_index=15) -->
         <g opacity="1.0">
-            <text x="300" y="100" font-family="Arial" font-size="24" fill="#000000">
-                <tspan x="300" y="100">こんにちは</tspan>
+            <text x="150" y="100" font-family="Noto Sans JP" font-size="20" 
+                  stroke="#000000" fill="#FFFFFF" stroke-width="2" writing-mode="vertical-rl">
+                <tspan x="150" y="100">こ</tspan>
+                <tspan x="150" dy="28">ん</tspan>
+                <tspan x="150" dy="28">に</tspan>
+                <tspan x="150" dy="28">ち</tspan>
+                <tspan x="150" dy="28">は</tspan>
+                <tspan x="122" y="100">！</tspan>
+                <tspan x="94" y="100">お</tspan>
+                <tspan x="94" dy="28">元</tspan>
+                <tspan x="94" dy="28">気</tspan>
+                <!-- 以下省略 -->
             </text>
         </g>
     </g>
 
-    <!-- ページ2の描画内容 -->
+    <!-- ページ2の描画内容 (z_index順: background=0, character=1, speech=10) -->
     <g id="page-2" style="display: none;">
-        <use href="#background" transform="translate(0,0)" opacity="1.0" />
-        <use href="#character2" transform="translate(200,150)" opacity="1.0" />
-        <!-- TextAsset インライン要素 -->
+        <use href="#img-background" opacity="1.0" />
+        <use href="#img-character-a" transform="translate(300,400) scale(0.8,0.8)" opacity="1.0" />
+        <!-- TextAsset インライン要素 (text-speech, z_index=10) -->
         <g opacity="1.0">
-            <text x="400" y="80" font-family="Arial" font-size="20" fill="#333333">
-                <tspan x="400" y="80">さようなら</tspan>
+            <text x="400" y="200" font-family="Noto Sans JP" font-size="18" 
+                  stroke="#000000" fill="#FFFFFF" stroke-width="2" writing-mode="vertical-rl">
+                <tspan x="400" y="200">は</tspan>
+                <tspan x="400" dy="26">い</tspan>
+                <tspan x="400" dy="26">、</tspan>
+                <!-- 以下省略 -->
             </text>
         </g>
     </g>
 
-    <!-- ページ3の描画内容 -->
+    <!-- ページ3の描画内容 (z_index順: effect=0, character=1, title=5) -->
     <g id="page-3" style="display: none;">
-        <use href="#background" transform="translate(0,0)" opacity="0.8" />
-        <use href="#character1" transform="translate(50,100)" opacity="1.0" />
-        <use href="#character2" transform="translate(300,250) scale(0.8,0.8)" opacity="0.7" />
+        <use href="#img-effect" transform="scale(2.0,2.0)" opacity="0.5" />
+        <use href="#img-character-a" transform="translate(284,262) scale(1.5,1.5)" opacity="1.0" />
+        <!-- TextAsset インライン要素 (text-title, z_index=5) -->
+        <g opacity="1.0">
+            <text x="384" y="100" font-family="Custom Font Bold" font-size="32" 
+                  stroke="#000000" fill="#FF0000" stroke-width="3">
+                <tspan x="384" y="100">終わり</tspan>
+            </text>
+        </g>
     </g>
 </svg>
 ```
@@ -88,9 +108,10 @@
 - **表示制御**: CSS の `display` プロパティで表示/非表示を制御
 - **JavaScript切り替え**: 動的にページを切り替え可能
 
-### 3. 柔軟な配置
+### 3. 柔軟な配置とレイヤー管理
 - **Transform対応**: `use` 要素で位置、スケール、回転を個別調整
 - **Opacity制御**: ページごとに異なる透明度設定
+- **z_index順序**: Asset-level default_z_index と Instance-level override_z_index による柔軟なレイヤー順序管理
 - **インライン要素**: TextAsset は直接 SVG 要素として埋め込み
 
 ## JavaScript ページ切り替え

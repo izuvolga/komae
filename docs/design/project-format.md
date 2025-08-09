@@ -60,7 +60,10 @@ assets:
     original_height: 440
     default_pos_x: 200
     default_pos_y: 300
+    default_width: 320
+    default_height: 440
     default_opacity: 1.0
+    default_z_index: 1
     default_mask: [0, 0, 320, 440]   # [left, top, right, bottom]
   
   img-background:
@@ -71,7 +74,10 @@ assets:
     original_height: 1024
     default_pos_x: 0
     default_pos_y: 0
+    default_width: 768
+    default_height: 1024
     default_opacity: 1.0
+    default_z_index: 0
     default_mask: [0, 0, 768, 1024]
   
   img-effect:
@@ -82,7 +88,10 @@ assets:
     original_height: 300
     default_pos_x: 100
     default_pos_y: 50
+    default_width: 400
+    default_height: 300
     default_opacity: 0.8
+    default_z_index: 2
     default_mask: [0, 0, 400, 300]
   
   # TextAsset
@@ -93,11 +102,14 @@ assets:
     font: "assets/fonts/NotoSansJP-Regular.ttf"
     stroke_width: 2.0
     font_size: 24
-    color_ex: "#000000"              # 縁取りの色
-    color_in: "#FFFFFF"              # 内部の色
+    stroke_color: "#000000"          # 縁取りの色
+    fill_color: "#FFFFFF"            # 内部の色
     default_pos_x: 150
     default_pos_y: 100
+    opacity: 1.0
+    leading: 28
     vertical: true                   # 縦書き
+    default_z_index: 10
   
   text-title:
     type: "TextAsset"
@@ -106,11 +118,14 @@ assets:
     font: "assets/fonts/CustomFont-Bold.ttf"
     stroke_width: 3.0
     font_size: 32
-    color_ex: "#000000"
-    color_in: "#FF0000"
+    stroke_color: "#000000"
+    fill_color: "#FF0000"
     default_pos_x: 384
     default_pos_y: 100
+    opacity: 1.0
+    leading: 36
     vertical: false                  # 横書き
+    default_z_index: 5
 
 # ページ定義（配列形式 - 順序重要）
 pages:
@@ -120,41 +135,27 @@ pages:
       # 背景（最背面）
       instance-bg-001:
         asset_id: "img-background"
-        z_index: 0
-        # Asset Defaultを使用（参照なし）
-        transform:
-          scale_x: 1.0
-          scale_y: 1.0
-          rotation: 0
-        opacity: 1.0
+        # Asset のdefault_z_index (0) を使用
       
       # キャラクター
       instance-char-001:
         asset_id: "img-character-a"
-        z_index: 1
-        position_attr_id: "pos-left"    # PositionAssetAttr参照
-        size_attr_id: "size-standard"   # SizeAssetAttr参照
-        transform:
-          scale_x: 1.2
-          scale_y: 1.2
-          rotation: 0
-        opacity: 0.9
+        # Asset のdefault_z_index (1) を使用
+        override_pos_x: 200
+        override_pos_y: 300
+        override_width: 384            # 1.2倍にスケール
+        override_height: 528           # 1.2倍にスケール
+        override_opacity: 0.9
         override_mask: [10, 20, 310, 420]  # マスクをオーバーライド
       
       # セリフ
       instance-speech-001:
         asset_id: "text-speech"
-        z_index: 2
-        position_attr_id: "pos-speech"  # PositionAssetAttr参照
+        override_z_index: 15           # デフォルト(10)より前面に表示
+        override_pos_x: 150
+        override_pos_y: 100
         override_text: "こんにちは！\nお元気ですか？"  # テキストをオーバーライド
-        transform:
-          scale_x: 1.0
-          scale_y: 1.0
-          rotation: 0
-        opacity: 1.0
-        font_override:                  # フォント設定をオーバーライド
-          size: 20
-          color_in: "#FFFF00"
+        override_font_size: 20
   
   - id: "page-1753563500001-abvhjp7gy"
     title: "ページ2"
@@ -162,41 +163,25 @@ pages:
       # 背景（同じAssetを再利用）
       instance-bg-002:
         asset_id: "img-background"
-        z_index: 0
-        transform:
-          scale_x: 1.0
-          scale_y: 1.0
-          rotation: 0
-        opacity: 1.0
+        # Asset のdefault_z_index (0) を使用
       
       # キャラクター（位置とスケールを変更）
       instance-char-002:
         asset_id: "img-character-a"
-        z_index: 1
-        position_attr_id: "pos-center"  # 異なるPositionAssetAttrを参照
-        override_pos_x: 300             # さらに位置をオーバーライド
+        # Asset のdefault_z_index (1) を使用
+        override_pos_x: 300
         override_pos_y: 400
-        transform:
-          scale_x: 0.8
-          scale_y: 0.8
-          rotation: -5                  # 少し回転
-        opacity: 1.0
+        override_width: 256            # 0.8倍にスケール
+        override_height: 352           # 0.8倍にスケール
       
       # 返事のセリフ
       instance-reply-002:
         asset_id: "text-speech"
-        z_index: 2
+        # Asset のdefault_z_index (10) を使用
         override_pos_x: 400
         override_pos_y: 200
         override_text: "はい、元気です！"
-        transform:
-          scale_x: 1.0
-          scale_y: 1.0
-          rotation: 0
-        opacity: 1.0
-        font_override:
-          size: 18
-          color_ex: "#0000FF"
+        override_font_size: 18
   
   - id: "page-1753563500002-cdvhjp7gy"
     title: "ページ3"
@@ -204,34 +189,25 @@ pages:
       # エフェクト背景
       instance-effect-003:
         asset_id: "img-effect"
-        z_index: 0
-        transform:
-          scale_x: 2.0
-          scale_y: 2.0
-          rotation: 0
-        opacity: 0.5
+        override_z_index: 0           # デフォルト(2)より背面に表示
+        override_width: 800           # 2倍にスケール
+        override_height: 600          # 2倍にスケール
+        override_opacity: 0.5
       
       # キャラクター（大きく表示）
       instance-char-003:
         asset_id: "img-character-a"
-        z_index: 1
-        position_attr_id: "pos-center"
-        transform:
-          scale_x: 1.5
-          scale_y: 1.5
-          rotation: 10
-        opacity: 1.0
+        # Asset のdefault_z_index (1) を使用
+        override_pos_x: 284           # 中央配置調整
+        override_pos_y: 262           # 中央配置調整
+        override_width: 480           # 1.5倍にスケール
+        override_height: 660          # 1.5倍にスケール
       
       # タイトル（横書き）
       instance-title-003:
         asset_id: "text-title"
-        z_index: 2
+        # Asset のdefault_z_index (5) を使用
         override_text: "終わり"
-        transform:
-          scale_x: 1.0
-          scale_y: 1.0
-          rotation: 0
-        opacity: 1.0
 ```
 
 ## データ構造の特徴
@@ -249,8 +225,15 @@ pages:
 
 ### 参照とオーバーライドの階層
 
-1. **Asset Default**: テンプレートのデフォルト値
-3. **Override**: `override_*`で個別オーバーライド
+1. **Asset Default**: テンプレートのデフォルト値（`default_*`フィールド）
+2. **Override**: `override_*`で個別オーバーライド
+
+### z_index管理システム
+
+- **Asset Level**: 各Asset に`default_z_index`を設定（ImageAsset, TextAsset）
+- **Instance Level**: 必要に応じて`override_z_index`でオーバーライド可能
+- **有効値取得**: `getEffectiveZIndex(asset, instance)`で最終的なz_index値を計算
+- **レイヤー順序**: SVG生成時に有効z_index値でソートして描画順序を決定
 
 ### ID管理とページ操作
 
