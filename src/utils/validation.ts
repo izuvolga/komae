@@ -1,7 +1,7 @@
 // Zodスキーマによるプロジェクトデータバリデーション
 
 import { z } from 'zod';
-import { ProjectData, Asset, Page } from '../types/entities';
+import { ProjectData, Asset, Page, FontType } from '../types/entities';
 
 // 基本的なスキーマ定義
 
@@ -109,12 +109,22 @@ const CanvasConfigSchema = z.object({
   height: z.number().int().min(1),
 });
 
+// FontInfo スキーマ
+const FontInfoSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: z.nativeEnum(FontType),
+  path: z.string().min(1),
+  filename: z.string().optional(),
+});
+
 // ProjectData スキーマ
 const ProjectDataSchema = z.object({
   metadata: ProjectMetadataSchema,
   canvas: CanvasConfigSchema,
   assets: z.record(z.string(), AssetSchema),
   pages: z.array(PageSchema),
+  fonts: z.record(z.string(), FontInfoSchema),
 });
 
 /**

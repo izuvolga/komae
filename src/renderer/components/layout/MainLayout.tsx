@@ -4,6 +4,7 @@ import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { ExportDialog } from '../export/ExportDialog';
 import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
+import { FontManagementModal } from '../font/FontManagementModal';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
@@ -15,12 +16,14 @@ export const MainLayout: React.FC = () => {
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
+  const showFontManagement = useProjectStore((state) => state.ui.showFontManagement);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
   const setProject = useProjectStore((state) => state.setProject);
   const setCurrentProjectPath = useProjectStore((state) => state.setCurrentProjectPath);
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const togglePreview = useProjectStore((state) => state.togglePreview);
+  const toggleFontManagement = useProjectStore((state) => state.toggleFontManagement);
   const setAssetLibraryWidth = useProjectStore((state) => state.setAssetLibraryWidth);
   const setPreviewWidth = useProjectStore((state) => state.setPreviewWidth);
   const saveProject = useProjectStore((state) => state.saveProject);
@@ -163,11 +166,16 @@ export const MainLayout: React.FC = () => {
       setShowExportDialog(true);
     });
 
+    const unsubscribeCustomFonts = window.electronAPI.menu.onCustomFonts(() => {
+      toggleFontManagement();
+    });
+
     return () => {
       unsubscribeSave();
       unsubscribeOpen();
       unsubscribeNew();
       unsubscribeExportProject();
+      unsubscribeCustomFonts();
     };
   }, [handleSaveProject]);
 
@@ -341,6 +349,7 @@ export const MainLayout: React.FC = () => {
       canvas: { width: 800, height: 600 },
       assets,
       pages,
+      fonts: {},
     };
 
     setProject(sampleProject);
@@ -494,6 +503,12 @@ export const MainLayout: React.FC = () => {
       <ProjectCreateDialog
         isOpen={showProjectCreateDialog}
         onClose={() => setShowProjectCreateDialog(false)}
+      />
+
+      {/* フォント管理ダイアログ */}
+      <FontManagementModal
+        isOpen={showFontManagement}
+        onClose={() => toggleFontManagement()}
       />
     </div>
   );

@@ -64,6 +64,7 @@ interface ProjectStore {
   setAutoZoom: (autoZoom: boolean) => void;
   toggleAssetLibrary: () => void;
   togglePreview: () => void;
+  toggleFontManagement: () => void;
   setAssetLibraryWidth: (width: number) => void;
   setPreviewWidth: (width: number) => void;
   setPreviewScroll: (x: number, y: number) => void;
@@ -101,6 +102,7 @@ export const useProjectStore = create<ProjectStore>()(
           autoZoom: true,
           showAssetLibrary: true,
           showPreview: true,
+          showFontManagement: false,
           assetLibraryWidth: 280,
           previewWidth: 320,
           previewScrollX: 0,
@@ -271,6 +273,9 @@ export const useProjectStore = create<ProjectStore>()(
 
         togglePreview: () => set((state) => {
           state.ui.showPreview = !state.ui.showPreview;
+        }),
+        toggleFontManagement: () => set((state) => {
+          state.ui.showFontManagement = !state.ui.showFontManagement;
         }),
 
         setAssetLibraryWidth: (width) => set((state) => {

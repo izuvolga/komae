@@ -4,6 +4,7 @@ import * as os from 'os';
 import { ProjectManager } from './services/ProjectManager';
 import { FileSystemService } from './services/FileSystemService';
 import { AssetManager } from './services/AssetManager';
+import { FontManager } from './services/FontManager';
 import { ExportService } from './services/ExportService';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
@@ -13,6 +14,7 @@ class KomaeApp {
   private projectManager: ProjectManager;
   private fileSystemService: FileSystemService;
   private assetManager: AssetManager;
+  private fontManager: FontManager;
   private exportService: ExportService;
   private logger = getLogger();
 
@@ -20,6 +22,7 @@ class KomaeApp {
     this.projectManager = new ProjectManager();
     this.fileSystemService = new FileSystemService();
     this.assetManager = new AssetManager();
+    this.fontManager = new FontManager();
     this.exportService = new ExportService();
     
     this.setupEventHandlers();
@@ -168,6 +171,17 @@ class KomaeApp {
         ],
       },
       {
+        label: 'Extension',
+        submenu: [
+          {
+            label: 'Custom Fonts',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:custom-fonts');
+            },
+          },
+        ],
+      },
+      {
         label: 'Help',
         submenu: [
           {
@@ -198,9 +212,10 @@ class KomaeApp {
     ipcMain.handle('project:save', async (event, projectData, filePath?: string) => {
       try {
         const savedPath = await this.projectManager.saveProject(projectData, filePath);
-        // 保存したプロジェクトパスをAssetManagerに設定
+        // 保存したプロジェクトパスをAssetManagerとFontManagerに設定
         const projectDir = this.projectManager.getCurrentProjectPath();
         this.assetManager.setCurrentProjectPath(projectDir);
+        this.fontManager.setCurrentProjectPath(projectDir);
         return savedPath;
       } catch (error) {
         console.error('Failed to save project:', error);
@@ -211,9 +226,10 @@ class KomaeApp {
     ipcMain.handle('project:load', async (event, filePath: string) => {
       try {
         const projectData = await this.projectManager.loadProject(filePath);
-        // 読み込んだプロジェクトパスをAssetManagerに設定
+        // 読み込んだプロジェクトパスをAssetManagerとFontManagerに設定
         const projectDir = this.projectManager.getCurrentProjectPath();
         this.assetManager.setCurrentProjectPath(projectDir);
+        this.fontManager.setCurrentProjectPath(projectDir);
         return projectData;
       } catch (error) {
         console.error('Failed to load project:', error);
@@ -262,8 +278,9 @@ class KomaeApp {
     ipcMain.handle('project:createDirectory', async (event, projectPath: string) => {
       try {
         await this.projectManager.createProjectDirectory(projectPath);
-        // 作成したプロジェクトパスをAssetManagerに設定
+        // 作成したプロジェクトパスをAssetManagerとFontManagerに設定
         this.assetManager.setCurrentProjectPath(projectPath);
+        this.fontManager.setCurrentProjectPath(projectPath);
         return;
       } catch (error) {
         console.error('Failed to create project directory:', error);
@@ -315,6 +332,54 @@ class KomaeApp {
       } catch (error) {
         console.error('Failed to create text asset:', error);
         return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    // Font Operations
+    ipcMain.handle('font:loadBuiltinFonts', async () => {
+      try {
+        return await this.fontManager.loadBuiltinFonts();
+      } catch (error) {
+        console.error('Failed to load builtin fonts:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:addCustomFont', async (event, fontFilePath: string) => {
+      try {
+        return await this.fontManager.addCustomFont(fontFilePath);
+      } catch (error) {
+        console.error('Failed to add custom font:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:removeCustomFont', async (event, fontId: string) => {
+      try {
+        await this.fontManager.removeCustomFont(fontId);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to remove custom font:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:getAvailableFonts', async (event, project?: any) => {
+      try {
+        return await this.fontManager.getAvailableFonts(project);
+      } catch (error) {
+        console.error('Failed to get available fonts:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:getFontInfo', async (event, fontId: string) => {
+      try {
+        const fontInfo = this.fontManager.getFontInfo(fontId);
+        return fontInfo;
+      } catch (error) {
+        console.error('Failed to get font info:', error);
+        throw error;
       }
     });
 

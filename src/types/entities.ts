@@ -39,7 +39,7 @@ export interface ImageAsset extends BaseAsset {
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
   default_text: string;
-  font: string; // フォントのファイルパス（絶対パス）
+  font: string; // フォントID（FontInfoのidを参照）
   stroke_width: number;
   font_size: number;
   stroke_color: string; // テキストの縁取りの色（RGBA形式の文字列）
@@ -53,6 +53,28 @@ export interface TextAsset extends BaseAsset {
 }
 
 export type Asset = ImageAsset | TextAsset;
+
+// Font管理定義
+export enum FontType {
+  BUILTIN = 'builtin',
+  CUSTOM = 'custom'
+}
+
+export interface FontInfo {
+  id: string;
+  name: string;
+  type: FontType;
+  path: string; // ビルトインの場合は相対パス、カスタムの場合はプロジェクト内の相対パス
+  filename?: string; // ファイル名（表示用）
+}
+
+export interface FontManagerState {
+  availableFonts: Record<string, FontInfo>;
+  defaultFontId: string;
+}
+
+// フォント定数
+export const DEFAULT_FONT_ID = 'system-ui';
 
 // AssetInstance定義
 export interface BaseAssetInstance {
@@ -157,6 +179,7 @@ export interface ProjectData {
   canvas: CanvasConfig;
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
+  fonts: Record<string, FontInfo>; // フォント管理
 }
 
 // UI状態
@@ -169,6 +192,7 @@ export interface UIState {
   autoZoom: boolean;
   showAssetLibrary: boolean;
   showPreview: boolean;
+  showFontManagement: boolean;
   assetLibraryWidth: number;
   previewWidth: number;
   previewScrollX: number;
@@ -290,7 +314,7 @@ export function createTextAsset(params: {
     type: 'TextAsset',
     name: params.name,
     default_text: params.defaultText,
-    font: 'system-ui', // デフォルトフォント
+    font: DEFAULT_FONT_ID, // デフォルトフォントID
     stroke_width: 2.0,
     font_size: 24,
     stroke_color: '#000000',

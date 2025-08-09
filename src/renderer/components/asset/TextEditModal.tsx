@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
-import type { TextAsset, TextAssetInstance, Page } from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, Page, FontInfo } from '../../../types/entities';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -38,7 +38,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     error?: string;
     warning?: string;
   }>({ isValid: true });
+  const [availableFonts, setAvailableFonts] = useState<Record<string, FontInfo>>({});
+  const [fontsLoading, setFontsLoading] = useState(false);
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
+  const project = useProjectStore((state) => state.project);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,6 +49,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       setEditingInstance(assetInstance ? { ...assetInstance } : null);
     }
   }, [isOpen, asset, assetInstance]);
+
+  // フォント一覧を読み込み
+  useEffect(() => {
+    const loadFonts = async () => {
+      if (!isOpen) return;
+      
+      setFontsLoading(true);
+      try {
+        const fonts = await window.electronAPI.font.getAvailableFonts(project);
+        setAvailableFonts(fonts);
+      } catch (error) {
+        console.error('Failed to load available fonts:', error);
+        setAvailableFonts({});
+      } finally {
+        setFontsLoading(false);
+      }
+    };
+
+    loadFonts();
+  }, [isOpen, project]);
 
   if (!isOpen || !editingAsset) return null;
 
@@ -335,13 +358,29 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               {mode === 'asset' && (
                 <div className="form-row">
                   <label>
-                    フォントパス:
-                    <input
-                      type="text"
-                      value={editingAsset.font}
-                      onChange={(e) => handleInputChange('font', e.target.value)}
-                      placeholder="フォントファイルのパス"
-                    />
+                    フォント:
+                    {fontsLoading ? (
+                      <select disabled>
+                        <option>フォント読み込み中...</option>
+                      </select>
+                    ) : (
+                      <select
+                        value={editingAsset.font}
+                        onChange={(e) => handleInputChange('font', e.target.value)}
+                      >
+                        {Object.values(availableFonts).map((font) => (
+                          <option key={font.id} value={font.id}>
+                            {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                          </option>
+                        ))}
+                        {/* 現在のフォントが一覧にない場合の対応 */}
+                        {editingAsset.font && !availableFonts[editingAsset.font] && (
+                          <option value={editingAsset.font}>
+                            {editingAsset.font} (未定義)
+                          </option>
+                        )}
+                      </select>
+                    )}
                   </label>
                 </div>
               )}

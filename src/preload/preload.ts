@@ -49,6 +49,24 @@ const electronAPI = {
       ipcRenderer.invoke('asset:createTextAsset', name, defaultText),
   },
 
+  // Font Operations
+  font: {
+    loadBuiltinFonts: () => 
+      ipcRenderer.invoke('font:loadBuiltinFonts'),
+    
+    addCustomFont: (fontFilePath: string) => 
+      ipcRenderer.invoke('font:addCustomFont', fontFilePath),
+    
+    removeCustomFont: (fontId: string) => 
+      ipcRenderer.invoke('font:removeCustomFont', fontId),
+    
+    getAvailableFonts: (project?: any) => 
+      ipcRenderer.invoke('font:getAvailableFonts', project),
+    
+    getFontInfo: (fontId: string) => 
+      ipcRenderer.invoke('font:getFontInfo', fontId),
+  },
+
   // File System Operations
   fileSystem: {
     showOpenDialog: (options: OpenDialogOptions) => 
@@ -137,6 +155,12 @@ const electronAPI = {
       const handler = () => callback();
       ipcRenderer.on('menu:about', handler);
       return () => ipcRenderer.removeListener('menu:about', handler);
+    },
+    
+    onCustomFonts: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('menu:custom-fonts', handler);
+      return () => ipcRenderer.removeListener('menu:custom-fonts', handler);
     },
   },
 };
