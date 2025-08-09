@@ -688,22 +688,51 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     <>
                       {/* 角のハンドル */}
                       {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
-                        const isTopLeft = handle === 'top-left';
-                        const isTopRight = handle === 'top-right';
-                        const isBottomLeft = handle === 'bottom-left';
-                        const isBottomRight = handle === 'bottom-right';
-                        
+                        // ハンドルの位置を計算: 矩形の内側にハンドルが存在
+                        // +-----------------+
+                        // |  |           |  |
+                        // |--+           +--|
+                        // |                 |
+                        // |--+           +--|
+                        // |  |           |  |
+                        // +-----------------+
+                        const handleSize = 16;
+                        let x = 0
+                        let y = 0;
+                        let cursor = 'nw-resize';
+                        switch (handle) {
+                          case 'top-left':
+                            x = (currentPos.x) * 0.35;
+                            y = (currentPos.y) * 0.35;
+                            cursor = 'nw-resize';
+                            break;
+                          case 'top-right':
+                            x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                            y = (currentPos.y) * 0.35;
+                            cursor = 'ne-resize';
+                            break;
+                          case 'bottom-left':
+                            x = (currentPos.x) * 0.35;
+                            y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
+                            cursor = 'sw-resize';
+                            break;
+                          case 'bottom-right':
+                            x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                            y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
+                            cursor = 'se-resize';
+                            break;
+                        }
                         return (
                           <div
                             key={handle}
                             style={{
                               position: 'absolute',
-                              left: isTopLeft || isBottomLeft ? `${(currentPos.x - 4) * 0.35}px` : `${(currentPos.x + currentSize.width - 4) * 0.35}px`,
-                              top: isTopLeft || isTopRight ? `${(currentPos.y - 4) * 0.35}px` : `${(currentPos.y + currentSize.height - 4) * 0.35}px`,
-                              width: '8px',
-                              height: '8px',
+                              left: `${x}px`,
+                              top: `${y}px`,
+                              width: `${handleSize}px`,
+                              height: `${handleSize}px`,
                               backgroundColor: '#007acc',
-                              cursor: isTopLeft || isBottomRight ? 'nw-resize' : 'ne-resize',
+                              cursor: cursor,
                               zIndex: 4,
                             }}
                             onMouseDown={(e) => handleResizeMouseDown(e, handle)}
