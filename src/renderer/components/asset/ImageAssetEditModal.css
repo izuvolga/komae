@@ -531,6 +531,19 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.z-index-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.z-index-info {
+  font-size: 11px;
+  color: #6c757d;
+  font-style: italic;
+  flex: 1;
+}
+
 /* Name Section */
 .name-section {
   display: flex;

@@ -119,6 +119,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     return editedAsset.default_opacity;
   };
 
+  const getCurrentZIndex = () => {
+    if (mode === 'instance' && editedInstance) {
+      return editedInstance.override_z_index ?? asset.default_z_index;
+    }
+    return editedAsset.default_z_index;
+  };
+
   const getCurrentMask = () => {
     if (mode === 'instance' && editedInstance) {
       return editedInstance.override_mask ?? asset.default_mask ?? null;
@@ -141,6 +148,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const currentPos = getCurrentPosition();
   const currentSize = getCurrentSize();
   const currentOpacity = getCurrentOpacity();
+  const currentZIndex = getCurrentZIndex();
   const currentMask = getCurrentMask();
 
   // 値の更新（Asset vs Instance）
@@ -186,6 +194,20 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       setEditedAsset(prev => ({
         ...prev,
         default_opacity: opacity,
+      }));
+    }
+  };
+
+  const updateZIndex = (zIndex: number) => {
+    if (mode === 'instance' && editedInstance) {
+      setEditedInstance(prev => prev ? {
+        ...prev,
+        override_z_index: zIndex,
+      } : null);
+    } else {
+      setEditedAsset(prev => ({
+        ...prev,
+        default_z_index: zIndex,
       }));
     }
   };
@@ -834,21 +856,40 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               </div>
               )}
 
-              {/* Instance固有: Z-Index（マスク編集時は非表示） */}
-              {mode === 'instance' && editedInstance && !maskEditMode && (
+              {/* Z-Index（マスク編集時は非表示） */}
+              {!maskEditMode && (
                 <div className="param-group">
                   <div className="z-index-section">
-                    <span>Z-Index</span>
-                    <input
-                      type="number"
-                      value={editedInstance.z_index}
-                      onChange={(e) => setEditedInstance(prev => prev ? {
-                        ...prev,
-                        z_index: parseInt(e.target.value) || 0
-                      } : null)}
-                      onKeyDown={handleKeyDown}
-                      className="z-index-input"
-                    />
+                    <span>{mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}</span>
+                    <div className="z-index-controls">
+                      <input
+                        type="text"
+                        value={tempInputValues.z_index ?? currentZIndex.toString()}
+                        onChange={(e) => {
+                          const sanitized = validateNumericInput(e.target.value, true);
+                          setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
+                        }}
+                        onBlur={(e) => {
+                          const validated = parseInt(e.target.value) || currentZIndex;
+                          updateZIndex(validated);
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp.z_index;
+                            return newTemp;
+                          });
+                        }}
+                        onKeyDown={handleKeyDown}
+                        className="z-index-input"
+                      />
+                      <span className="z-index-info">
+                        {mode === 'instance' && editedInstance?.override_z_index !== undefined 
+                          ? `(overriding default: ${asset.default_z_index})`
+                          : mode === 'instance' 
+                          ? `(using default: ${asset.default_z_index})`
+                          : '(layer order: lower = background)'
+                        }
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

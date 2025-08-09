@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { generateSvgStructureCommon } from '../../../utils/svgGeneratorCommon';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
+import { getEffectiveZIndex } from '../../../types/entities';
 import type { ProjectData, Page } from '../../../types/entities';
 
 interface PageThumbnailProps {
@@ -60,8 +61,15 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         setIsLoading(true);
         setError(null);
 
-        // 共通のSVG生成ユーティリティを使用
-        const instances = Object.values(page.asset_instances).sort((a, b) => a.z_index - b.z_index);
+        // 共通のSVG生成ユーティリティを使用（新しいAsset-levelシステムを使用）
+        const instances = Object.values(page.asset_instances).sort((a, b) => {
+          const assetA = project.assets[a.asset_id];
+          const assetB = project.assets[b.asset_id];
+          if (!assetA || !assetB) return 0;
+          const zIndexA = getEffectiveZIndex(assetA, a);
+          const zIndexB = getEffectiveZIndex(assetB, b);
+          return zIndexA - zIndexB;
+        });
         const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, (filePath: string) => {
           return getCustomProtocolUrl(filePath, currentProjectPath);
         });

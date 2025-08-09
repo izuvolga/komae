@@ -124,6 +124,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     handleInputChange(field, numValue);
   };
 
+  // z_index関連のヘルパー関数
+  const getCurrentZIndex = () => {
+    if (mode === 'instance' && editingInstance) {
+      return editingInstance.override_z_index ?? editingAsset.default_z_index;
+    }
+    return editingAsset.default_z_index;
+  };
+
+  const updateZIndex = (value: number) => {
+    if (mode === 'asset') {
+      handleInputChange('default_z_index', value);
+    } else {
+      handleInstanceChange('override_z_index', value);
+    }
+  };
+
   const handleSave = () => {
     if (mode === 'asset' && onSaveAsset) {
       onSaveAsset(editingAsset);
@@ -403,24 +419,32 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </label>
               </div>
 
-              {/* z_index設定 - instanceモードのみ */}
-              {mode === 'instance' && editingInstance && (
-                <div className="form-row">
-                  <label>
-                    レイヤー順序 (z-index):
+              {/* z_index設定 */}
+              <div className="form-row">
+                <label>
+                  レイヤー順序 (z-index):
+                  <div className="z-index-controls">
                     <input
                       type="number"
-                      value={editingInstance.z_index}
+                      value={getCurrentZIndex()}
                       onChange={(e) => {
                         const numValue = parseInt(e.target.value) || 0;
-                        handleInstanceChange('z_index', numValue);
+                        updateZIndex(numValue);
                       }}
-                      min="0"
                       step="1"
+                      className="z-index-input"
                     />
-                  </label>
-                </div>
-              )}
+                    {mode === 'instance' && (
+                      <span className="z-index-info">
+                        {editingInstance?.override_z_index !== undefined
+                          ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
+                          : `デフォルト値を使用中`
+                        }
+                      </span>
+                    )}
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         </div>

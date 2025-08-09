@@ -324,7 +324,6 @@ export const useProjectStore = create<ProjectStore>()(
             let newInstance: AssetInstance = {
               id: instanceId,
               asset_id: assetId,
-              z_index: Object.keys(page.asset_instances).length,
             };
             
             // 以前に保存された編集内容があるかチェック
@@ -333,7 +332,6 @@ export const useProjectStore = create<ProjectStore>()(
               newInstance = {
                 ...savedInstance,
                 id: instanceId, // 新しいIDを使用
-                z_index: Object.keys(page.asset_instances).length, // z-indexは再計算
               };
               // 復元済みなので保存データは削除
               delete state.hiddenInstanceData[pageId][assetId];
