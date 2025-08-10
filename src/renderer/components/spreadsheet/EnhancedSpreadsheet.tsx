@@ -4,7 +4,7 @@ import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
-import { hasAssetInstanceOverrides, resetAssetInstanceOverrides } from '../../../types/entities';
+import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
@@ -26,6 +26,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
+  
+  // 多言語機能
+  const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
+  const currentLanguage = getCurrentLanguage(); // 言語変更時の再レンダリング用
   
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
@@ -569,7 +573,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     <div className="cell-content">
                       {isUsed && asset.type === 'TextAsset' && instance && (
                         <div className="text-content">
-                          {(instance as any).override_text || asset.default_text}
+                          {getEffectiveTextValue(
+                            asset as TextAsset, 
+                            instance as TextAssetInstance, 
+                            getCurrentLanguage()
+                          )}
                         </div>
                       )}
                       {isUsed && asset.type === 'ImageAsset' && (

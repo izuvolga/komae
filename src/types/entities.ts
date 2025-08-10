@@ -52,8 +52,6 @@ export interface TextAsset extends BaseAsset {
   leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
   vertical: boolean; // true の場合、縦書き
   default_z_index: number;
-  // 新機能：言語別デフォルト設定
-  multilingual_defaults?: Record<string, LanguageOverrides>;
 }
 
 export type Asset = ImageAsset | TextAsset;
@@ -97,13 +95,6 @@ export interface ImageAssetInstance extends BaseAssetInstance {
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {
-  // 既存override値は維持（後方互換性）
-  override_text?: string;
-  override_pos_x?: number;
-  override_pos_y?: number;
-  override_font_size?: number;
-  override_opacity?: number;
-  override_z_index?: number;
   // 新機能：言語別完全オーバーライド
   multilingual_overrides?: Record<string, LanguageOverrides>;
 }
@@ -129,14 +120,7 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
   
   if (assetType === 'TextAsset') {
     const textInstance = instance as TextAssetInstance;
-    return !!(
-      textInstance.override_text ||
-      textInstance.override_pos_x !== undefined ||
-      textInstance.override_pos_y !== undefined ||
-      textInstance.override_font_size !== undefined ||
-      textInstance.override_opacity !== undefined ||
-      textInstance.override_z_index !== undefined
-    );
+    return !!(textInstance.multilingual_overrides && Object.keys(textInstance.multilingual_overrides).length > 0);
   } else if (assetType === 'ImageAsset') {
     const imageInstance = instance as ImageAssetInstance;
     return !!(
@@ -155,31 +139,40 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
 
 /**
  * AssetとAssetInstanceからz_indexを統合して取得
- * AssetInstanceのoverride_z_indexが設定されていればそれを、なければAssetのdefault_z_indexを使用
+ * TextAssetInstanceの場合は多言語overrideを確認、ImageAssetInstanceの場合は既存のoverride_z_indexを使用
  */
-export function getEffectiveZIndex(asset: Asset, instance: AssetInstance): number {
-  return instance.override_z_index !== undefined ? instance.override_z_index : asset.default_z_index;
+export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, currentLang?: string): number {
+  if (asset.type === 'TextAsset' && currentLang) {
+    const textInstance = instance as TextAssetInstance;
+    const langOverride = textInstance.multilingual_overrides?.[currentLang];
+    if (langOverride?.override_z_index !== undefined) {
+      return langOverride.override_z_index;
+    }
+  } else if (asset.type === 'ImageAsset') {
+    const imageInstance = instance as ImageAssetInstance;
+    if (imageInstance.override_z_index !== undefined) {
+      return imageInstance.override_z_index;
+    }
+  }
+  
+  return asset.default_z_index;
 }
 
 // AssetInstanceのoverride値をリセットする関数
 export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): Partial<AssetInstance> {
   const resetUpdates: any = {};
   
-  // 両方のアセットタイプで共通のz_indexをリセット
-  resetUpdates.override_z_index = undefined;
-  
   if (assetType === 'TextAsset') {
-    resetUpdates.override_text = undefined;
-    resetUpdates.override_pos_x = undefined;
-    resetUpdates.override_pos_y = undefined;
-    resetUpdates.override_font_size = undefined;
-    resetUpdates.override_opacity = undefined;
+    // TextAssetInstanceは多言語オーバーライドのみ
+    resetUpdates.multilingual_overrides = undefined;
   } else if (assetType === 'ImageAsset') {
+    // ImageAssetInstanceは既存のoverride項目をリセット
     resetUpdates.override_pos_x = undefined;
     resetUpdates.override_pos_y = undefined;
     resetUpdates.override_width = undefined;
     resetUpdates.override_height = undefined;
     resetUpdates.override_opacity = undefined;
+    resetUpdates.override_z_index = undefined;
     resetUpdates.override_mask = undefined;
   }
   
@@ -339,18 +332,7 @@ export function getEffectiveTextValue(
     return langOverride.override_text;
   }
   
-  // 2. 既存のオーバーライドをチェック（後方互換性）
-  if (instance.override_text !== undefined) {
-    return instance.override_text;
-  }
-  
-  // 3. アセットの言語別デフォルトをチェック
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_text !== undefined) {
-    return assetLangDefault.override_text;
-  }
-  
-  // 4. アセットのデフォルト値を使用
+  // 2. アセットのデフォルト値を使用
   return asset.default_text;
 }
 
@@ -365,15 +347,6 @@ export function getEffectiveFontSize(
   const langOverride = instance.multilingual_overrides?.[currentLang];
   if (langOverride?.override_font_size !== undefined) {
     return langOverride.override_font_size;
-  }
-  
-  if (instance.override_font_size !== undefined) {
-    return instance.override_font_size;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_font_size !== undefined) {
-    return assetLangDefault.override_font_size;
   }
   
   return asset.font_size;
@@ -392,15 +365,6 @@ export function getEffectivePosX(
     return langOverride.override_pos_x;
   }
   
-  if (instance.override_pos_x !== undefined) {
-    return instance.override_pos_x;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_pos_x !== undefined) {
-    return assetLangDefault.override_pos_x;
-  }
-  
   return asset.default_pos_x;
 }
 
@@ -415,15 +379,6 @@ export function getEffectivePosY(
   const langOverride = instance.multilingual_overrides?.[currentLang];
   if (langOverride?.override_pos_y !== undefined) {
     return langOverride.override_pos_y;
-  }
-  
-  if (instance.override_pos_y !== undefined) {
-    return instance.override_pos_y;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_pos_y !== undefined) {
-    return assetLangDefault.override_pos_y;
   }
   
   return asset.default_pos_y;
@@ -442,15 +397,6 @@ export function getEffectiveOpacity(
     return langOverride.override_opacity;
   }
   
-  if (instance.override_opacity !== undefined) {
-    return instance.override_opacity;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_opacity !== undefined) {
-    return assetLangDefault.override_opacity;
-  }
-  
   return asset.opacity;
 }
 
@@ -465,11 +411,6 @@ export function getEffectiveFont(
   const langOverride = instance.multilingual_overrides?.[currentLang];
   if (langOverride?.override_font !== undefined) {
     return langOverride.override_font;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_font !== undefined) {
-    return assetLangDefault.override_font;
   }
   
   return asset.font;
@@ -488,11 +429,6 @@ export function getEffectiveLeading(
     return langOverride.override_leading;
   }
   
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_leading !== undefined) {
-    return assetLangDefault.override_leading;
-  }
-  
   return asset.leading;
 }
 
@@ -507,11 +443,6 @@ export function getEffectiveVertical(
   const langOverride = instance.multilingual_overrides?.[currentLang];
   if (langOverride?.override_vertical !== undefined) {
     return langOverride.override_vertical;
-  }
-  
-  const assetLangDefault = asset.multilingual_defaults?.[currentLang];
-  if (assetLangDefault?.override_vertical !== undefined) {
-    return assetLangDefault.override_vertical;
   }
   
   return asset.vertical;

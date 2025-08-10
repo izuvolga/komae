@@ -1,5 +1,5 @@
-import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance } from '../types/entities';
-import { getEffectiveZIndex } from '../types/entities';
+import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance, TextAssetInstance } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity } from '../types/entities';
 
 /**
  * 共通のSVG構造生成ロジック
@@ -16,9 +16,10 @@ export interface SvgStructureResult {
 export function generateCompleteSvg(
   project: ProjectData, 
   instances: AssetInstance[], 
-  getProtocolUrl: (filePath: string) => string
+  getProtocolUrl: (filePath: string) => string,
+  currentLanguage?: string
 ): string {
-  const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl);
+  const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl, currentLanguage);
   
   // SVGを組み立て（svg-structure.md仕様に準拠）
   const svgContent = [
@@ -60,7 +61,8 @@ export function generateCompleteSvg(
 export function generateSvgStructureCommon(
   project: ProjectData, 
   instances: AssetInstance[], 
-  getProtocolUrl: (filePath: string) => string
+  getProtocolUrl: (filePath: string) => string,
+  currentLanguage?: string
 ): SvgStructureResult {
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
@@ -99,7 +101,7 @@ export function generateSvgStructureCommon(
       const textAsset = asset as TextAsset;
       
       // テキストアセットは直接インライン要素として追加
-      const textElement = generateTextElement(textAsset, instance);
+      const textElement = generateTextElement(textAsset, instance, currentLanguage || 'ja');
       useElements.push(textElement);
     }
   }
@@ -190,16 +192,16 @@ function escapeXml(text: string): string {
  * テキスト要素を生成する（直接描画用）
  * svg-structure.md仕様に完全準拠
  */
-function generateTextElement(asset: TextAsset, instance: AssetInstance): string {
+function generateTextElement(asset: TextAsset, instance: AssetInstance, currentLanguage: string): string {
   // TextAssetInstanceからオーバーライド値を取得
-  const textInstance = instance as any; // TextAssetInstance型
+  const textInstance = instance as TextAssetInstance;
   
-  // 現在の値を取得（instanceのoverride値を優先）
-  const finalPosX = textInstance.override_pos_x ?? asset.default_pos_x;
-  const finalPosY = textInstance.override_pos_y ?? asset.default_pos_y;
-  const finalFontSize = textInstance.override_font_size ?? asset.font_size;
-  const finalOpacity = textInstance.override_opacity ?? asset.opacity ?? 1.0;
-  const textContent = textInstance.override_text ?? asset.default_text;
+  // 多言語対応ヘルパー関数を使用して現在の値を取得
+  const finalPosX = getEffectivePosX(asset, textInstance, currentLanguage);
+  const finalPosY = getEffectivePosY(asset, textInstance, currentLanguage);
+  const finalFontSize = getEffectiveFontSize(asset, textInstance, currentLanguage);
+  const finalOpacity = getEffectiveOpacity(asset, textInstance, currentLanguage);
+  const textContent = getEffectiveTextValue(asset, textInstance, currentLanguage);
   const font = asset.font || 'Arial';
   const strokeWidth = asset.stroke_width || 0;
   const strokeColor = asset.stroke_color || '#000000';
@@ -313,6 +315,7 @@ ${textBody.join('\n')}
 export function generateTextPreviewSVG(
   asset: TextAsset,
   instance?: any, // TextAssetInstance型（anyで代用）
+  currentLanguage: string = 'ja',
   options: {
     width?: number;
     height?: number;
@@ -328,7 +331,7 @@ export function generateTextPreviewSVG(
   };
   
   // TextSVG要素を生成
-  const textElement = generateTextElement(asset, tempInstance);
+  const textElement = generateTextElement(asset, tempInstance, currentLanguage);
 
   return `<svg
   width="${width}"

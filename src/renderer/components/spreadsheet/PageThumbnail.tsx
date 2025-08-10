@@ -23,6 +23,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
   onClick
 }) => {
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
+  const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
   const [svgContent, setSvgContent] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         });
         const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, (filePath: string) => {
           return getCustomProtocolUrl(filePath, currentProjectPath);
-        });
+        }, getCurrentLanguage());
 
         // サムネイル用のSVGを組み立て（最適なサイズを使用）
         const svgContent = [
@@ -114,7 +115,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [project, page, width, height, currentProjectPath, optimalSize.width, optimalSize.height]);
+  }, [project, page, width, height, currentProjectPath, optimalSize.width, optimalSize.height, getCurrentLanguage()]);
 
   if (isLoading) {
     return (

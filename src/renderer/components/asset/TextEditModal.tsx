@@ -42,6 +42,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [fontsLoading, setFontsLoading] = useState(false);
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
+  const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
 
   useEffect(() => {
     if (isOpen) {
@@ -278,6 +279,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       return generateTextPreviewSVG(
         editingAsset,
         mode === 'instance' ? editingInstance : undefined,
+        getCurrentLanguage(),
         {
           width: canvasConfig?.width || 800,
           height: canvasConfig?.height || 600,
@@ -288,7 +290,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       console.error('Failed to generate preview SVG:', error);
       return '<svg><text>プレビューエラー</text></svg>';
     }
-  }, [editingAsset, editingInstance, mode, canvasConfig]);
+  }, [editingAsset, editingInstance, mode, canvasConfig, getCurrentLanguage()]);
 
   // モーダル外側クリックでの閉じる処理を削除
 

@@ -201,7 +201,8 @@ export class ExportService {
           absolutePath = path.join(this.currentProjectPath, filePath);
         }
         return `file://${path.resolve(absolutePath)}`;
-      }
+      },
+      project.metadata.currentLanguage || 'ja'
     );
 
     // SVGコンテンツを構築（ドキュメント仕様に準拠）

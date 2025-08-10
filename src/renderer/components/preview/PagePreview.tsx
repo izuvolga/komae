@@ -16,6 +16,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
+  const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
 
   useEffect(() => {
     let isMounted = true;
@@ -38,7 +39,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
         // 完全なSVG文字列を生成
         const svgContent = generateCompleteSvg(project, instances, (filePath: string) => {
           return getCustomProtocolUrl(filePath, currentProjectPath);
-        });
+        }, getCurrentLanguage());
         
         if (isMounted) {
           setSvgContent(svgContent);
@@ -58,7 +59,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
     return () => {
       isMounted = false;
     };
-  }, [project, page, currentProjectPath]);
+  }, [project, page, currentProjectPath, getCurrentLanguage()]);
 
   if (isLoading) {
     return (

@@ -87,7 +87,8 @@ export class HtmlExporter {
       (filePath: string) => {
         // HTMLエクスポート時は画像をbase64エンコードして埋め込む
         return encodeImageToBase64(filePath, this.projectPath);
-      }
+      },
+      project.metadata.currentLanguage || 'ja'  // 現在言語を使用
     );
 
     // SVGコンテンツを構築（ドキュメント仕様に準拠）
@@ -166,7 +167,8 @@ export class HtmlExporter {
         (filePath: string) => {
           // 統合SVGでは実際のbase64データは不要（アセット定義を参照）
           return ''; // use要素では使用されない
-        }
+        },
+        project.metadata.currentLanguage || 'ja'  // 現在言語を使用
       );
       
       const pageContent = [

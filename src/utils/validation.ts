@@ -37,13 +37,6 @@ const ImageAssetInstanceSchema = BaseAssetInstanceSchema.extend({
 
 // TextAssetInstance スキーマ
 const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
-  // 既存override値（後方互換性）
-  override_text: z.string().optional(),
-  override_pos_x: z.number().optional(),
-  override_pos_y: z.number().optional(),
-  override_font_size: z.number().min(1).optional(),
-  override_opacity: z.number().min(0).max(1).optional(),
-  override_z_index: z.number().optional(),
   // 新機能：言語別完全オーバーライド
   multilingual_overrides: z.record(z.string(), LanguageOverridesSchema).optional(),
 });
@@ -58,9 +51,6 @@ const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_opacity: z.number().min(0).max(1).optional(),
   override_z_index: z.number().optional(),
   override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
-  // TextAssetInstanceの追加フィールド
-  override_text: z.string().optional(),
-  override_font_size: z.number().min(1).optional(),
   // 多言語対応フィールド
   multilingual_overrides: z.record(z.string(), LanguageOverridesSchema).optional(),
 });
@@ -99,8 +89,6 @@ const TextAssetSchema = z.object({
   leading: z.number(),
   vertical: z.boolean(),
   default_z_index: z.number(),
-  // 新機能：言語別デフォルト設定
-  multilingual_defaults: z.record(z.string(), LanguageOverridesSchema).optional(),
 });
 
 // Asset Union スキーマ
