@@ -71,6 +71,27 @@
     - 「キャンバスをプレビュー画面に収める」のトグルスイッチの左側に移動する
     - 「自動ズーム」のボタンは削除する
   - Preview Window で倍率の変更やスクロールをしたら「キャンバスをプレビュー画面に収める」は OFF になる
+- [ ]: Spread Sheet のセルを右クリックしたら「変更をリセット」を表示するようにする
+- [ ]: Spread Sheet 上で TextAssetInstance のセルのcell-contentの箇所を左クリックしたら、直接表示中の override_text を編集できるようにする。
+- [ ]: Spread Sheet 上にカーソルの概念を追加する。セルをクリックしたときに、カーソルがそのセルの位置に表示されるようにする。
+  - UI: カーソルは線で表示し、カーソルの色は青色
+  - キーボードの矢印キーでカーソルを移動できるようにする
+  - Enterキーでそのセルの編集画面を開く
+    - ImageAssetInstance の場合は ImageAsset 編集画面を開く
+    - TextAssetInstance の場合は cell-content が小さなテキストボックスとなり、カーソルがそのテキストボックス内に表示される
+  - Backspaceキーでカーソルの位置のセルの「変更をリセット」を行う
+  - Ctrl+C あるいは Cmd+C でカーソル位置のセルの値をコピー
+    - クリップボードには、その AssetInstance の情報がコピーされる
+    - ペースト先のセルにペーストすると、AssetInstance の情報がペーストされる
+      - 同じタイプの AssetInstance の場合は、同じ AssetInstance がペーストされる
+      - 異なるタイプの AssetInstance の場合は、エラーメッセージを表示してペーストをしない
+- [ ]: Project Header のプルダウンメニューのデザインがダサいので改善する
+- [ ]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする
+- [ ]: Asset に追加する画像として SVG も対応する
+  - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
+- [ ]: ImageAsset のマスクの処理がうまくいってないので修正する
+  - エクスポートしてもマスクが適用されていない
+  - Preview Window でのプレビューもマスクが適用されていない
 
 ## フォント管理機能
 デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
@@ -96,6 +117,12 @@ ui-specification.md の Project Creation / Project Header を参照
 - [ ]: Asset Library の Asset をソートする機能をほしい
 - [ ]: SpreadSheet Window の列のバルク操作に、列自体を非表示にする機能を追加
 - [ ]: TextAsset に rotate を対応する
+- [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
+  - 行番号表示
+  - 編集をしたら、編集がされた行の背景色を変更する
+  - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
+- [ ]: 新規アセット: スクリプト生成できる SVG
+- [ ]: 新規アセット: ラベル
 
 
 # v0.1 リリースに向けてのTODO
