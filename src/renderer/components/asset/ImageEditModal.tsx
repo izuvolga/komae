@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
+import { NumericInput } from '../common/NumericInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex } from '../../../types/entities';
 import './ImageAssetEditModal.css';
@@ -768,43 +769,23 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div className="size-display">
                     <span>Original Width/Height</span>
                     <div className="size-inputs">
-                      <input 
-                        type="text" 
-                        value={tempInputValues.original_width ?? formatNumberForDisplay(asset.original_width)}
-                        onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, false);
-                          setTempInputValues(prev => ({ ...prev, original_width: sanitized }));
+                      <NumericInput
+                        value={asset.original_width}
+                        onChange={(value) => {
+                          setEditedAsset(prev => ({ ...prev, original_width: value }));
                         }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, 0.01, asset.original_width);
-                          setEditedAsset(prev => ({ ...prev, original_width: validated }));
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp.original_width;
-                            return newTemp;
-                          });
-                        }}
-                        onKeyDown={handleKeyDown}
-                        className="readonly-input"
+                        min={0.01}
+                        decimals={2}
+                        className="small"
                       />
-                      <input 
-                        type="text" 
-                        value={tempInputValues.original_height ?? formatNumberForDisplay(asset.original_height)}
-                        onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, false);
-                          setTempInputValues(prev => ({ ...prev, original_height: sanitized }));
+                      <NumericInput
+                        value={asset.original_height}
+                        onChange={(value) => {
+                          setEditedAsset(prev => ({ ...prev, original_height: value }));
                         }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, 0.01, asset.original_height);
-                          setEditedAsset(prev => ({ ...prev, original_height: validated }));
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp.original_height;
-                            return newTemp;
-                          });
-                        }}
-                        onKeyDown={handleKeyDown}
-                        className="readonly-input"
+                        min={0.01}
+                        decimals={2}
+                        className="small"
                       />
                     </div>
                   </div>
@@ -817,61 +798,33 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 <div className="size-display">
                   <span>{mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}</span>
                   <div className="size-inputs">
-                    <input
-                      type="text"
-                      value={tempInputValues.default_width ?? formatNumberForDisplay(currentSize.width)}
-                      onChange={(e) => {
-                        const sanitized = validateNumericInput(e.target.value, true);
-                        setTempInputValues(prev => ({ ...prev, default_width: sanitized }));
-                      }}
-                      onBlur={(e) => {
-                        const currentValue = mode === 'instance' && editedInstance 
-                          ? (editedInstance.override_width ?? asset.default_width)
-                          : editedAsset.default_width;
-                        const validated = validateAndSetValue(e.target.value, 0.01, currentValue);
-                        
+                    <NumericInput
+                      value={currentSize.width}
+                      onChange={(value) => {
                         if (aspectRatioLocked) {
                           const aspectRatio = asset.original_width / asset.original_height;
-                          updateSize(validated, validated / aspectRatio);
+                          updateSize(value, value / aspectRatio);
                         } else {
-                          updateSize(validated, currentSize.height);
+                          updateSize(value, currentSize.height);
                         }
-                        
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.default_width;
-                          return newTemp;
-                        });
                       }}
-                      onKeyDown={handleKeyDown}
+                      min={0.01}
+                      decimals={2}
+                      className="small"
                     />
-                    <input
-                      type="text"
-                      value={tempInputValues.default_height ?? formatNumberForDisplay(currentSize.height)}
-                      onChange={(e) => {
-                        const sanitized = validateNumericInput(e.target.value, true);
-                        setTempInputValues(prev => ({ ...prev, default_height: sanitized }));
-                      }}
-                      onBlur={(e) => {
-                        const currentValue = mode === 'instance' && editedInstance 
-                          ? (editedInstance.override_height ?? asset.default_height)
-                          : editedAsset.default_height;
-                        const validated = validateAndSetValue(e.target.value, 0.01, currentValue);
-                        
+                    <NumericInput
+                      value={currentSize.height}
+                      onChange={(value) => {
                         if (aspectRatioLocked) {
                           const aspectRatio = asset.original_width / asset.original_height;
-                          updateSize(validated * aspectRatio, validated);
+                          updateSize(value * aspectRatio, value);
                         } else {
-                          updateSize(currentSize.width, validated);
+                          updateSize(currentSize.width, value);
                         }
-                        
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.default_height;
-                          return newTemp;
-                        });
                       }}
-                      onKeyDown={handleKeyDown}
+                      min={0.01}
+                      decimals={2}
+                      className="small"
                     />
                   </div>
                 </div>
@@ -894,47 +847,25 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 <div className="size-display">
                   <span>{mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}</span>
                   <div className="size-inputs">
-                    <input
-                      type="text"
-                      value={tempInputValues.pos_x ?? formatNumberForDisplay(currentPos.x)}
-                      onChange={(e) => {
-                        const sanitized = validateNumericInput(e.target.value, true);
-                        setTempInputValues(prev => ({ ...prev, pos_x: sanitized }));
+                    <NumericInput
+                      value={currentPos.x}
+                      onChange={(value) => {
+                        updatePosition(value, currentPos.y);
                       }}
-                      onBlur={(e) => {
-                        const currentValue = mode === 'instance' && editedInstance 
-                          ? (editedInstance.override_pos_x ?? asset.default_pos_x)
-                          : editedAsset.default_pos_x;
-                        const validated = validateAndSetValue(e.target.value, -9999, currentValue);
-                        updatePosition(validated, currentPos.y);
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.pos_x;
-                          return newTemp;
-                        });
-                      }}
-                      onKeyDown={handleKeyDown}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
                     />
-                    <input
-                      type="text"
-                      value={tempInputValues.pos_y ?? formatNumberForDisplay(currentPos.y)}
-                      onChange={(e) => {
-                        const sanitized = validateNumericInput(e.target.value, true);
-                        setTempInputValues(prev => ({ ...prev, pos_y: sanitized }));
+                    <NumericInput
+                      value={currentPos.y}
+                      onChange={(value) => {
+                        updatePosition(currentPos.x, value);
                       }}
-                      onBlur={(e) => {
-                        const currentValue = mode === 'instance' && editedInstance 
-                          ? (editedInstance.override_pos_y ?? asset.default_pos_y)
-                          : editedAsset.default_pos_y;
-                        const validated = validateAndSetValue(e.target.value, -9999, currentValue);
-                        updatePosition(currentPos.x, validated);
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.pos_y;
-                          return newTemp;
-                        });
-                      }}
-                      onKeyDown={handleKeyDown}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
                     />
                   </div>
                 </div>

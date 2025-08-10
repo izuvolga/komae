@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
+import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageOverrides } from '../../../types/entities';
 import { getEffectiveZIndex } from '../../../types/entities';
 import './TextEditModal.css';
@@ -404,19 +405,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-row">
                 <label>
                   フォントサイズ:
-                  <input
-                    type="number"
-                    value={formatNumberForDisplay(getCurrentValue('font_size', 'override_font_size'))}
-                    onChange={(e) => {
-                      const numValue = parseFloat(e.target.value) || 0;
+                  <NumericInput
+                    value={getCurrentValue('font_size', 'override_font_size')}
+                    onChange={(value) => {
                       if (mode === 'asset') {
-                        handleInputChange('font_size', numValue);
+                        handleInputChange('font_size', value);
                       } else {
-                        handleInstanceChange('override_font_size', numValue);
+                        handleInstanceChange('override_font_size', value);
                       }
                     }}
-                    min="0.01"
-                    step="0.01"
+                    min={0.01}
+                    decimals={2}
+                    className="small"
                   />
                 </label>
               </div>
@@ -485,13 +485,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-row">
                   <label>
                     縁取り幅:
-                    <input
-                      type="number"
-                      value={formatNumberForDisplay(editingAsset.stroke_width)}
-                      onChange={(e) => handleNumberInputChange('stroke_width', e.target.value)}
-                      min="0"
-                      max="1"
-                      step="0.01"
+                    <NumericInput
+                      value={editingAsset.stroke_width}
+                      onChange={(value) => handleNumberInputChange('stroke_width', value.toString())}
+                      min={0}
+                      max={1}
+                      decimals={2}
+                      className="small"
                     />
                   </label>
                 </div>
@@ -504,34 +504,36 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-row form-row-double">
                 <label>
                   X座標:
-                  <input
-                    type="number"
-                    value={formatNumberForDisplay(getCurrentValue('default_pos_x', 'override_pos_x'))}
-                    onChange={(e) => {
-                      const numValue = parseFloat(e.target.value) || 0;
+                  <NumericInput
+                    value={getCurrentValue('default_pos_x', 'override_pos_x')}
+                    onChange={(value) => {
                       if (mode === 'asset') {
-                        handleInputChange('default_pos_x', numValue);
+                        handleInputChange('default_pos_x', value);
                       } else {
-                        handleInstanceChange('override_pos_x', numValue);
+                        handleInstanceChange('override_pos_x', value);
                       }
                     }}
-                    step="0.01"
+                    min={-9999}
+                    max={9999}
+                    decimals={2}
+                    className="small"
                   />
                 </label>
                 <label>
                   Y座標:
-                  <input
-                    type="number"
-                    value={formatNumberForDisplay(getCurrentValue('default_pos_y', 'override_pos_y'))}
-                    onChange={(e) => {
-                      const numValue = parseFloat(e.target.value) || 0;
+                  <NumericInput
+                    value={getCurrentValue('default_pos_y', 'override_pos_y')}
+                    onChange={(value) => {
                       if (mode === 'asset') {
-                        handleInputChange('default_pos_y', numValue);
+                        handleInputChange('default_pos_y', value);
                       } else {
-                        handleInstanceChange('override_pos_y', numValue);
+                        handleInstanceChange('override_pos_y', value);
                       }
                     }}
-                    step="0.01"
+                    min={-9999}
+                    max={9999}
+                    decimals={2}
+                    className="small"
                   />
                 </label>
               </div>
