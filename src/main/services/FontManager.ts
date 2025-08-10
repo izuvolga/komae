@@ -106,7 +106,6 @@ export class FontManager {
                 path: httpPath, // 例: "fonts/07やさしさゴシックボールド.ttf"
                 filename: item,
               });
-              console.log(`Found builtin font: id=${fontId}, name=${fontName}, path=${httpPath}`);
             }
           }
         }

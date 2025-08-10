@@ -40,7 +40,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     error?: string;
     warning?: string;
   }>({ isValid: true });
-  const [availableFonts, setAvailableFonts] = useState<Record<string, FontInfo>>({});
+  const [availableFonts, setAvailableFonts] = useState<FontInfo[]>([]);
   const [fontsLoading, setFontsLoading] = useState(false);
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
@@ -61,10 +61,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       setFontsLoading(true);
       try {
         const fonts = await window.electronAPI.font.getAvailableFonts(project);
-        setAvailableFonts(fonts);
+        setAvailableFonts(fonts || []);
       } catch (error) {
         console.error('Failed to load available fonts:', error);
-        setAvailableFonts({});
+        setAvailableFonts([]);
       } finally {
         setFontsLoading(false);
       }
@@ -386,13 +386,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         value={editingAsset.font}
                         onChange={(e) => handleInputChange('font', e.target.value)}
                       >
-                        {Object.values(availableFonts).map((font) => (
+                        {availableFonts.map((font) => (
                           <option key={font.id} value={font.id}>
                             {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
                           </option>
                         ))}
                         {/* 現在のフォントが一覧にない場合の対応 */}
-                        {editingAsset.font && !availableFonts[editingAsset.font] && (
+                        {editingAsset.font && !availableFonts.find(f => f.id === editingAsset.font) && (
                           <option value={editingAsset.font}>
                             {editingAsset.font} (未定義)
                           </option>
