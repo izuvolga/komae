@@ -1,6 +1,6 @@
 # Project Format Specification
 
-Komaeプロジェクトはディレクトリベースで管理され、メインプロジェクトファイル（project.komae）にはYAML形式でプロジェクト情報を保存します。
+Komaeプロジェクトはディレクトリベースで管理され、メインプロジェクトファイル（project.komae）にはYAML形式でプロジェクト情報を保存。
 
 ## ディレクトリ構造
 

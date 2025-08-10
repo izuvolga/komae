@@ -1,6 +1,6 @@
 # Technical Architecture
 
-Komaeは**Electron + React + TypeScript**をベースとした、セキュアで拡張性の高いデスクトップアプリケーションとして設計されています。
+Komaeは**Electron + React + TypeScript**をベースとした、セキュアで拡張性の高いデスクトップアプリケーションとして設計。
 
 ## アーキテクチャ概要
 
