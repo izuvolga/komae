@@ -1,0 +1,591 @@
+==> ./ReadMe_Mac.txt <==
+07 やさしさゴシック
+Copyright (C) 2002-2012 M+ FONTS PROJECT
+Copyright(c) Information-technology Promotion Agency, Japan (IPA), 
+2003-2012.
+Copyright (C) 2012 Fontna.com
+
+使用に当たって
+-----------
+フォントをインストールして頂くと、ワープロ、グラフィックソフトなどの
+アプリケーションでこのフォントを使って自由にデザイン、印刷することができます。やさしさ溢れる文字デザインのフォントです。
+
+
+概要
+-----------
+
+07 YasashisaGothic（やさしさゴシック）は、以下の2種類を合成したフォント
+にオリジナルの文字を加え加工したOpenTypeフォントです。
+
+* M+（エムプラス）フォント
+* IPA（アイピーエー）ゴシック
+
+ひらがな、カタカナをオリジナルで制作し、残りの部分をM+FONTで補いました。
+またM+FONTで不足している漢字をIPAゴシックで補っています。
+全体的なデザイン処理として、わずかに文字の角を丸く加工処理しています。
+M+FONTおよびIPAゴシックの派生プログラムにあたります。
+
+
+インストール
+-----------
+1.フォントをダウンロードしたら圧縮されたファイルを解凍します。
+まず+Lhaca、StuffIt Expander、WinRAR、Lhaplus等の解凍ソフトを使用し
+解凍してフォントファイルにして下さい。
+2.フォントをパソコンにインストールします。
+以下からお使いのパソコンのインストール方法に従ってください。
+ 
+Windows7でのフォントのインストール
+http://www.fontna.com/?page_id=106
+ 
+WindowsXP〜7でのフォントのインストール
+http://www.fontna.com/?page_id=157
+ 
+Mac OS Xでのフォントのインストール
+http://www.fontna.com/?page_id=181
+ 
+
+ライセンス
+----------
+このフォントのライセンスは、
+M+と、IPAフォントのライセンスに準じます。
+
+M+のライセンスは、配布物に含まれる
+「mplus-TESTFLIGHT-043」フォルダ内の書類をご覧ください。
+
+IPAフォントのライセンスは、配布物に含まれる「ipag00303」フォルダの
+IPA_Font_License_Agreement_v1.0.txtをご覧ください。
+
+このフォントをIPAフォントに置き換える場合は、
+以下のWebサイトで「IPAゴシック（Ver.003.03）」を入手してください。
+http://ossipedia.ipa.go.jp/ipafont/
+
+
+IPAフォントへの置き換え方（戻し方）
+-----------
+1.「07 YasashisaGothic」フォントのアンインストールを行ってください。
+2.　http://ossipedia.ipa.go.jp/ipafont/　よりフォントをダウンロードしてください。または「IPAfont00303」フォルダ内のIPAゴシックを選択してください。
+3.　IPAゴシックを必要に応じてインストールしてください。
+詳しくは　http://www.fontna.com/?page_id=248
+
+
+詳細
+-----------
+
+フォントの詳細、お問い合わせなどは以下の URL からお願いします。
+
+フォントな
+http://www.fontna.com/==> ./ReadMe_unix.txt <==
+07 やさしさゴシック
+Copyright (C) 2002-2012 M+ FONTS PROJECT
+Copyright(c) Information-technology Promotion Agency, Japan (IPA), 
+2003-2012.
+Copyright (C) 2012 Fontna.com
+
+使用に当たって
+-----------
+フォントをインストールして頂くと、ワープロ、グラフィックソフトなどの
+アプリケーションでこのフォントを使って自由にデザイン、印刷することができます。やさしさ溢れる文字デザインのフォントです。
+
+
+概要
+-----------
+
+07 YasashisaGothic（やさしさゴシック）は、以下の2種類を合成したフォント
+にオリジナルの文字を加え加工したOpenTypeフォントです。
+
+* M+（エムプラス）フォント
+* IPA（アイピーエー）ゴシック
+
+ひらがな、カタカナをオリジナルで制作し、残りの部分をM+FONTで補いました。
+またM+FONTで不足している漢字をIPAゴシックで補っています。
+全体的なデザイン処理として、わずかに文字の角を丸く加工処理しています。
+M+FONTおよびIPAゴシックの派生プログラムにあたります。
+
+
+インストール
+-----------
+1.フォントをダウンロードしたら圧縮されたファイルを解凍します。
+まず+Lhaca、StuffIt Expander、WinRAR、Lhaplus等の解凍ソフトを使用し
+解凍してフォントファイルにして下さい。
+2.フォントをパソコンにインストールします。
+以下からお使いのパソコンのインストール方法に従ってください。
+ 
+Windows7でのフォントのインストール
+http://www.fontna.com/?page_id=106
+ 
+WindowsXP〜7でのフォントのインストール
+http://www.fontna.com/?page_id=157
+ 
+Mac OS Xでのフォントのインストール
+http://www.fontna.com/?page_id=181
+ 
+
+ライセンス
+----------
+このフォントのライセンスは、
+M+と、IPAフォントのライセンスに準じます。
+
+M+のライセンスは、配布物に含まれる
+「mplus-TESTFLIGHT-043」フォルダ内の書類をご覧ください。
+
+IPAフォントのライセンスは、配布物に含まれる「ipag00303」フォルダの
+IPA_Font_License_Agreement_v1.0.txtをご覧ください。
+
+このフォントをIPAフォントに置き換える場合は、
+以下のWebサイトで「IPAゴシック（Ver.003.03）」を入手してください。
+http://ossipedia.ipa.go.jp/ipafont/
+
+
+IPAフォントへの置き換え方（戻し方）
+-----------
+1.「07 YasashisaGothic」フォントのアンインストールを行ってください。
+2.　http://ossipedia.ipa.go.jp/ipafont/　よりフォントをダウンロードしてください。または「IPAfont00303」フォルダ内のIPAゴシックを選択してください。
+3.　IPAゴシックを必要に応じてインストールしてください。
+詳しくは　http://www.fontna.com/?page_id=248
+
+
+詳細
+-----------
+
+フォントの詳細、お問い合わせなどは以下の URL からお願いします。
+
+フォントな
+http://www.fontna.com/==> ./ReadMe_windows.txt <==
+07 やさしさゴシック
+Copyright (C) 2002-2012 M+ FONTS PROJECT
+Copyright(c) Information-technology Promotion Agency, Japan (IPA), 
+2003-2012.
+Copyright (C) 2012 Fontna.com
+
+使用に当たって
+-----------
+フォントをインストールして頂くと、ワープロ、グラフィックソフトなどの
+アプリケーションでこのフォントを使って自由にデザイン、印刷することができます。やさしさ溢れる文字デザインのフォントです。
+
+
+概要
+-----------
+
+07 YasashisaGothic（やさしさゴシック）は、以下の2種類を合成したフォント
+にオリジナルの文字を加え加工したOpenTypeフォントです。
+
+* M+（エムプラス）フォント
+* IPA（アイピーエー）ゴシック
+
+ひらがな、カタカナをオリジナルで制作し、残りの部分をM+FONTで補いました。
+またM+FONTで不足している漢字をIPAゴシックで補っています。
+全体的なデザイン処理として、わずかに文字の角を丸く加工処理しています。
+M+FONTおよびIPAゴシックの派生プログラムにあたります。
+
+
+インストール
+-----------
+1.フォントをダウンロードしたら圧縮されたファイルを解凍します。
+まず+Lhaca、StuffIt Expander、WinRAR、Lhaplus等の解凍ソフトを使用し
+解凍してフォントファイルにして下さい。
+2.フォントをパソコンにインストールします。
+以下からお使いのパソコンのインストール方法に従ってください。
+ 
+Windows7でのフォントのインストール
+http://www.fontna.com/?page_id=106
+ 
+WindowsXP〜7でのフォントのインストール
+http://www.fontna.com/?page_id=157
+ 
+
+ライセンス
+----------
+このフォントのライセンスは、
+M+と、IPAフォントのライセンスに準じます。
+
+M+のライセンスは、配布物に含まれる
+「mplus-TESTFLIGHT-043」フォルダ内の書類をご覧ください。
+
+IPAフォントのライセンスは、配布物に含まれる「ipag00303」フォルダの
+IPA_Font_License_Agreement_v1.0.txtをご覧ください。
+
+このフォントをIPAフォントに置き換える場合は、
+以下のWebサイトで「IPAゴシック（Ver.003.03）」を入手してください。
+http://ossipedia.ipa.go.jp/ipafont/
+
+
+IPAフォントへの置き換え方（戻し方）
+-----------
+1.「07 YasashisaGothic」フォントのアンインストールを行ってください。
+2.　http://ossipedia.ipa.go.jp/ipafont/　よりフォントをダウンロードしてください。または「IPAfont00303」フォルダ内のIPAゴシックを選択してください。
+3.　IPAゴシックを必要に応じてインストールしてください。
+詳しくは　http://www.fontna.com/?page_id=248
+
+
+詳細
+-----------
+
+フォントの詳細、お問い合わせなどは以下の URL からお願いします。
+
+フォントな
+http://www.fontna.com/==> ./IPAfont00303/IPA_Font_License_Agreement_v1.0.txt <==
+--------------------------------------------------
+IPA Font License Agreement v1.0 <Japanese/English>
+--------------------------------------------------
+
+IPAフォントライセンスv1.0
+
+許諾者は、この使用許諾（以下「本契約」といいます。）に定める条件の下で、許諾プログラム（1条に定義するところによります。）を提供します。受領者（1条に定義するところによります。）が、許諾プログラムを使用し、複製し、または頒布する行為、その他、本契約に定める権利の利用を行った場合、受領者は本契約に同意したものと見なします。
+
+
+第1条　用語の定義
+
+本契約において、次の各号に掲げる用語は、当該各号に定めるところによります。
+
+1.「デジタル・フォント・プログラム」とは、フォントを含み、レンダリングしまたは表示するために用いられるコンピュータ・プログラムをいいます。
+2.「許諾プログラム」とは、許諾者が本契約の下で許諾するデジタル・フォント・プログラムをいいます。
+3.「派生プログラム」とは、許諾プログラムの一部または全部を、改変し、加除修正等し、入れ替え、その他翻案したデジタル・フォント・プログラムをいい、許諾プログラムの一部もしくは全部から文字情報を取り出し、またはデジタル・ドキュメント・ファイルからエンベッドされたフォントを取り出し、取り出された文字情報をそのまま、または改変をなして新たなデジタル・フォント・プログラムとして製作されたものを含みます。
+4.「デジタル・コンテンツ」とは、デジタル・データ形式によってエンド・ユーザに提供される制作物のことをいい、動画・静止画等の映像コンテンツおよびテレビ番組等の放送コンテンツ、ならびに文字テキスト、画像、図形等を含んで構成された制作物を含みます。
+5.「デジタル・ドキュメント・ファイル」とは、PDFファイルその他、各種ソフトウェア・プログラムによって製作されたデジタル・コンテンツであって、その中にフォントを表示するために許諾プログラムの全部または一部が埋め込まれた（エンベッドされた）ものをいいます。フォントが「エンベッドされた」とは、当該フォントが埋め込まれた特定の「デジタル・ドキュメント・ファイル」においてのみ表示されるために使用されている状態を指し、その特定の「デジタル・ドキュメント・ファイル」以外でフォントを表示するために使用できるデジタル・フォント・プログラムに含まれている場合と区別されます。
+6.「コンピュータ」とは、本契約においては、サーバを含みます。
+7.「複製その他の利用」とは、複製、譲渡、頒布、貸与、公衆送信、上映、展示、翻案その他の利用をいいます。
+8.「受領者」とは、許諾プログラムを本契約の下で受領した人をいい、受領者から許諾プログラムを受領した人を含みます。
+
+第２条 使用許諾の付与
+
+許諾者は受領者に対し、本契約の条項に従い、すべての国で、許諾プログラムを使用することを許諾します。ただし、許諾プログラムに存在する一切の権利はすべて許諾者が保有しています。本契約は、本契約で明示的に定められている場合を除き、いかなる意味においても、許諾者が保有する許諾プログラムに関する一切の権利および、いかなる商標、商号、もしくはサービス・マークに関する権利をも受領者に移転するものではありません。
+
+1.受領者は本契約に定める条件に従い、許諾プログラムを任意の数のコンピュータにインストールし、当該コンピュータで使用することができます。
+2.受領者はコンピュータにインストールされた許諾プログラムをそのまま、または改変を行ったうえで、印刷物およびデジタル・コンテンツにおいて、文字テキスト表現等として使用することができます。
+3.受領者は前項の定めに従い作成した印刷物およびデジタル・コンテンツにつき、その商用・非商用の別、および放送、通信、各種記録メディアなどの媒体の形式を問わず、複製その他の利用をすることができます。
+4.受領者がデジタル・ドキュメント・ファイルからエンベッドされたフォントを取り出して派生プログラムを作成した場合には、かかる派生プログラムは本契約に定める条件に従う必要があります。
+5.許諾プログラムのエンベッドされたフォントがデジタル・ドキュメント・ファイル内のデジタル・コンテンツをレンダリングするためにのみ使用される場合において、受領者が当該デジタル・ドキュメント・ファイルを複製その他の利用をする場合には、受領者はかかる行為に関しては本契約の下ではいかなる義務をも負いません。
+6.受領者は、3条2項の定めに従い、商用・非商用を問わず、許諾プログラムをそのままの状態で改変することなく複製して第三者への譲渡し、公衆送信し、その他の方法で再配布することができます(以下、「再配布」といいます。)。
+7.受領者は、上記の許諾プログラムについて定められた条件と同様の条件に従って、派生プログラムを作成し、使用し、複製し、再配布することができます。ただし、受領者が派生プログラムを再配布する場合には、3条1項の定めに従うものとします。
+
+第３条　制限
+
+前条により付与された使用許諾は、以下の制限に服します。
+
+1.派生プログラムが前条4項及び7項に基づき再配布される場合には、以下の全ての条件を満たさなければなりません。
+　(1)派生プログラムを再配布する際には、下記もまた、当該派生プログラムと一緒に再配布され、オンラインで提供され、または、郵送費・媒体及び取扱手数料の合計を超えない実費と引き換えに媒体を郵送する方法により提供されなければなりません。
+　　(a)派生プログラムの写し; および
+　　(b)派生プログラムを作成する過程でフォント開発プログラムによって作成された追加のファイルであって派生プログラムをさらに加工するにあたって利用できるファイルが存在すれば、当該ファイル
+　(2)派生プログラムの受領者が、派生プログラムを、このライセンスの下で最初にリリースされた許諾プログラム（以下、「オリジナル・プログラム」といいます。）に置き換えることができる方法を再配布するものとします。かかる方法は、オリジナル・ファイルからの差分ファイルの提供、または、派生プログラムをオリジナル・プログラムに置き換える方法を示す指示の提供などが考えられます。
+　(3)派生プログラムを、本契約書に定められた条件の下でライセンスしなければなりません。
+　(4)派生プログラムのプログラム名、フォント名またはファイル名として、許諾プログラムが用いているのと同一の名称、またはこれを含む名称を使用してはなりません。
+　(5)本項の要件を満たすためにオンラインで提供し、または媒体を郵送する方法で提供されるものは、その提供を希望するいかなる者によっても提供が可能です。
+2.受領者が前条6項に基づき許諾プログラムを再配布する場合には、以下の全ての条件を満たさなければなりません。
+　(1)許諾プログラムの名称を変更してはなりません。
+　(2)許諾プログラムに加工その他の改変を加えてはなりません。
+　(3)本契約の写しを許諾プログラムに添付しなければなりません。
+3.許諾プログラムは、現状有姿で提供されており、許諾プログラムまたは派生プログラムについて、許諾者は一切の明示または黙示の保証（権利の所在、非侵害、商品性、特定目的への適合性を含むがこれに限られません）を行いません。いかなる場合にも、その原因を問わず、契約上の責任か厳格責任か過失その他の不法行為責任かにかかわらず、また事前に通知されたか否かにかかわらず、許諾者は、許諾プログラムまたは派生プログラムのインストール、使用、複製その他の利用または本契約上の権利の行使によって生じた一切の損害（直接・間接・付随的・特別・拡大・懲罰的または結果的損害）（商品またはサービスの代替品の調達、システム障害から生じた損害、現存するデータまたはプログラムの紛失または破損、逸失利益を含むがこれに限られません）について責任を負いません。
+4.許諾プログラムまたは派生プログラムのインストール、使用、複製その他の利用に関して、許諾者は技術的な質問や問い合わせ等に対する対応その他、いかなるユーザ・サポートをも行う義務を負いません。
+
+第４条　契約の終了
+
+1.本契約の有効期間は、受領者が許諾プログラムを受領した時に開始し、受領者が許諾プログラムを何らかの方法で保持する限り続くものとします。
+2.前項の定めにかかわらず、受領者が本契約に定める各条項に違反したときは、本契約は、何らの催告を要することなく、自動的に終了し、当該受領者はそれ以後、許諾プログラムおよび派生プログラムを一切使用しまたは複製その他の利用をすることができないものとします。ただし、かかる契約の終了は、当該違反した受領者から許諾プログラムまたは派生プログラムの配布を受けた受領者の権利に影響を及ぼすものではありません。
+
+第５条　準拠法
+
+1.IPAは、本契約の変更バージョンまたは新しいバージョンを公表することができます。その場合には、受領者は、許諾プログラムまたは派生プログラムの使用、複製その他の利用または再配布にあたり、本契約または変更後の契約のいずれかを選択することができます。その他、上記に記載されていない条項に関しては日本の著作権法および関連法規に従うものとします。
+2.本契約は、日本法に基づき解釈されます。
+
+
+----------
+
+IPA Font License Agreement v1.0
+
+The Licensor provides the Licensed Program (as defined in Article 1 below) under the terms of this license agreement (“Agreement”).  Any use, reproduction or distribution of the Licensed Program, or any exercise of rights under this Agreement by a Recipient (as defined in Article 1 below) constitutes the Recipient's acceptance of this Agreement. 
+
+Article 1 (Definitions)
+1.“Digital Font Program” shall mean a computer program containing, or used to render or display fonts.
+2.“Licensed Program” shall mean a Digital Font Program licensed by the Licensor under this Agreement.
+3.“Derived Program” shall mean a Digital Font Program created as a result of a modification, addition, deletion, replacement or any other adaptation to or of a part or all of the Licensed Program, and includes a case where a Digital Font Program newly created by retrieving font information from a part or all of the Licensed Program or Embedded Fonts from a Digital Document File with or without modification of the retrieved font information. 
+4.“Digital Content” shall mean products provided to end users in the form of digital data, including video content, motion and/or still pictures, TV programs or other broadcasting content and products consisting of character text, pictures, photographic images, graphic symbols and/or the like.
+5.“Digital Document File” shall mean a PDF file or other Digital Content created by various software programs in which a part or all of the Licensed Program becomes embedded or contained in the file for the display of the font (“Embedded Fonts”).  Embedded Fonts are used only in the display of characters in the particular Digital Document File within which they are embedded, and shall be distinguished from those in any Digital Font Program, which may be used for display of characters outside that particular Digital Document File.
+6.“Computer” shall include a server in this Agreement.
+7.“Reproduction and Other Exploitation” shall mean reproduction, transfer, distribution, lease, public transmission, presentation, exhibition, adaptation and any other exploitation.
+8.“Recipient” shall mean anyone who receives the Licensed Program under this Agreement, including one that receives the Licensed Program from a Recipient.
+
+Article 2 (Grant of License)
+The Licensor grants to the Recipient a license to use the Licensed Program in any and all countries in accordance with each of the provisions set forth in this Agreement. However, any and all rights underlying in the Licensed Program shall be held by the Licensor. In no sense is this Agreement intended to transfer any right relating to the Licensed Program held by the Licensor except as specifically set forth herein or any right relating to any trademark, trade name, or service mark to the Recipient.
+
+1.The Recipient may install the Licensed Program on any number of Computers and use the same in accordance with the provisions set forth in this Agreement.
+2.The Recipient may use the Licensed Program, with or without modification in printed materials or in Digital Content as an expression of character texts or the like.
+3.The Recipient may conduct Reproduction and Other Exploitation of the printed materials and Digital Content created in accordance with the preceding Paragraph, for commercial or non-commercial purposes and in any form of media including but not limited to broadcasting, communication and various recording media.
+4.If any Recipient extracts Embedded Fonts from a Digital Document File to create a Derived Program, such Derived Program shall be subject to the terms of this agreement.
+5.If any Recipient performs Reproduction or Other Exploitation of a Digital Document File in which Embedded Fonts of the Licensed Program are used only for rendering the Digital Content within such Digital Document File then such Recipient shall have no further obligations under this Agreement in relation to such actions.
+6.The Recipient may reproduce the Licensed Program as is without modification and transfer such copies, publicly transmit or otherwise redistribute the Licensed Program to a third party for commercial or non-commercial purposes (“Redistribute”), in accordance with the provisions set forth in Article 3 Paragraph 2.
+7.The Recipient may create, use, reproduce and/or Redistribute a Derived Program under the terms stated above for the Licensed Program: provided, that the Recipient shall follow the provisions set forth in Article 3 Paragraph 1 when Redistributing the Derived Program. 
+
+Article 3 (Restriction)
+The license granted in the preceding Article shall be subject to the following restrictions:
+
+1.If a Derived Program is Redistributed pursuant to Paragraph 4 and 7 of the preceding Article, the following conditions must be met :
+　(1)The following must be also Redistributed together with the Derived Program, or be made available online or by means of mailing mechanisms in exchange for a cost which does not exceed the total costs of postage, storage medium and handling fees:
+　　(a)a copy of the Derived Program; and
+　　(b)any additional file created by the font developing program in the course of creating the Derived Program that can be used for further modification of the Derived Program, if any. 
+　(2)It is required to also Redistribute means to enable recipients of the Derived Program to replace the Derived Program with the Licensed Program first released under this License (the “Original Program”).  Such means may be to provide a difference file from the Original Program, or instructions setting out a method to replace the Derived Program with the Original Program. 
+　(3)The Recipient must license the Derived Program under the terms and conditions of this Agreement.
+　(4)No one may use or include the name of the Licensed Program as a program name, font name or file name of the Derived Program. 
+　(5)Any material to be made available online or by means of mailing a medium to satisfy the requirements of this paragraph may be provided, verbatim, by any party wishing to do so.
+2.If the Recipient Redistributes the Licensed Program pursuant to Paragraph 6 of the preceding Article, the Recipient shall meet all of the following conditions:
+　(1)The Recipient may not change the name of the Licensed Program.
+　(2)The Recipient may not alter or otherwise modify the Licensed Program.
+　(3)The Recipient must attach a copy of this Agreement to the Licensed Program.
+3.THIS LICENSED PROGRAM IS PROVIDED BY THE LICENSOR “AS IS” AND ANY EXPRESSED OR IMPLIED WARRANTY AS TO THE LICENSED PROGRAM OR ANY DERIVED PROGRAM, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.  IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXTENDED, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO; PROCUREMENT OF SUBSTITUTED GOODS OR SERVICE; DAMAGES ARISING FROM SYSTEM FAILURE; LOSS OR CORRUPTION OF EXISTING DATA OR PROGRAM; LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE INSTALLATION, USE, THE REPRODUCTION OR OTHER EXPLOITATION OF THE LICENSED PROGRAM OR ANY DERIVED PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+4.The Licensor is under no obligation to respond to any technical questions or inquiries, or provide any other user support in connection with the installation, use or the Reproduction and Other Exploitation of the Licensed Program or Derived Programs thereof.
+
+Article 4 (Termination of Agreement)
+1.The term of this Agreement shall begin from the time of receipt of the Licensed Program by the Recipient and shall continue as long as the Recipient retains any such Licensed Program in any way.
+2.Notwithstanding the provision set forth in the preceding Paragraph, in the event of the breach of any of the provisions set forth in this Agreement by the Recipient, this Agreement shall automatically terminate without any notice. In the case of such termination, the Recipient may not use or conduct Reproduction and Other Exploitation of the Licensed Program or a Derived Program: provided that such termination shall not affect any rights of any other Recipient receiving the Licensed Program or the Derived Program from such Recipient who breached this Agreement.
+
+Article 5 (Governing Law)
+1.IPA may publish revised and/or new versions of this License.  In such an event, the Recipient may select either this Agreement or any subsequent version of the Agreement in using, conducting the Reproduction and Other Exploitation of, or Redistributing the Licensed Program or a Derived Program. Other matters not specified above shall be subject to the Copyright Law of Japan and other related laws and regulations of Japan.
+2.This Agreement shall be construed under the laws of Japan.
+
+==> ./IPAfont00303/Readme_IPAfont00303.txt <==
+IPAフォント（IPAフォント4書体パック）
+— はじめにお読みください —
+
+IPAフォント(Ver.3)は、JIS X 0213:2004に準拠したTrueTypeアウトラインベースのOpenTypeフォントです。
+
+IPAフォント(Ver.3)の使用または利用に当たっては、添付の「IPAフォントライセンスv1.0」に定める条件に従ってください。
+IPAフォント(Ver.3)を使用し、複製し、または頒布する行為、その他、「IPAフォントライセンスv1.0」に定める権利の利用を行った場合、受領者は「IPAフォントライセンスv1.0」に同意したものと見なします。
+
+
+IPAフォント（IPAフォント4書体パック）   IPAfont00303.zip
+|--はじめにお読みください   Readme_IPAfont00303.txt
+|--IPAフォントライセンスv1.0   IPA_Font_License_Agreement_v1.0.txt
+|--IPA ゴシック   ipag.ttf
+|--IPA Pゴシック   ipagp.ttf
+|--IPA明朝   ipam.ttf
+|--IPA P明朝   ipamp.ttf
+
+
+「IPAフォント」は、IPAの登録商標です。
+
+=========================
+IPA Font (IPA Fonts 4 fonts package)
+-- Readme --
+
+IPA Fonts are JIS X 0213:2004 compliant OpenType fonts based on TrueType outlines.
+
+In using IPA fonts, please comply with the terms and conditions set out in "IPA Font License Agreement v1.0" included in this package.
+Any use, reproduction or distribution of the IPA Font or any exercise of rights under "IPA Font License Agreement v1.0" by a Recipient constitutes the Recipient's acceptance of the License Agreement.
+
+
+IPA Font (IPA Fonts 4 fonts package)   IPAfont00303.zip
+|--Readme   Readme_IPAfont00303.txt
+|--IPA Font License Agreement v1.0   IPA_Font_License_Agreement_v1.0.txt
+|--IPAGothic   ipag.ttf
+|--IPAPGothic   ipagp.ttf
+|--IPAMincho   ipam.ttf
+|--IPAPMincho   ipamp.ttf
+
+
+"IPA Font" is a registered trademark of IPA in Japan.
+==> ./mplus-TESTFLIGHT-043/LICENSE_E <==
+M+ FONTS                                Copyright (C) 2002-2011 M+ FONTS PROJECT
+
+-
+
+LICENSE_E
+
+
+
+
+These fonts are free softwares.
+Unlimited permission is granted to use, copy, and distribute it, with
+or without modification, either commercially and noncommercially.
+THESE FONTS ARE PROVIDED "AS IS" WITHOUT WARRANTY.
+
+
+http://mplus-fonts.sourceforge.jp/mplus-outline-fonts/
+==> ./mplus-TESTFLIGHT-043/LICENSE_J <==
+M+ FONTS                                Copyright (C) 2002-2011 M+ FONTS PROJECT
+
+-
+
+LICENSE_J
+
+
+
+
+これらのフォントはフリー（自由な）ソフトウエアです。
+あらゆる改変の有無に関わらず、また商業的な利用であっても、自由にご利用、
+複製、再配布することができますが、全て無保証とさせていただきます。
+
+
+http://mplus-fonts.sourceforge.jp/
+==> ./mplus-TESTFLIGHT-043/README_E <==
+M+ FONTS                                Copyright (C) 2002-2011 M+ FONTS PROJECT
+
+-
+
+README_E
+
+
+
+
+M+ TESTFLIGHT
+
+The M+ OUTLINE FONTS are distributed with proportional Latin (4 variations), fixed-halfwidth Latin (3 variations) and fixed-fullwidth Japanese (2 Kana variations) character set. 7 weights from Thin to Black are included, but fixed-halfwidth Latin with 5 weights from Thin to Bold.
+
+
+PROPORTIONAL FONTS (proportional Latin and fixed-fullwidth Japanese)
+
+M+ 1P     mplus-1p-thin.ttf
+          mplus-1p-light.ttf
+          mplus-1p-regular.ttf
+          mplus-1p-medium.ttf
+          mplus-1p-bold.ttf
+          mplus-1p-heavy.ttf
+          mplus-1p-black.ttf
+          
+M+ 2P     mplus-2p-thin.ttf
+          mplus-2p-light.ttf
+          mplus-2p-regular.ttf
+          mplus-2p-medium.ttf
+          mplus-2p-bold.ttf
+          mplus-2p-heavy.ttf
+          mplus-2p-black.ttf
+          
+M+ 1C     mplus-1c-thin.ttf
+          mplus-1c-light.ttf
+          mplus-1c-regular.ttf
+          mplus-1c-medium.ttf
+          mplus-1c-bold.ttf
+          mplus-1c-heavy.ttf
+          mplus-1c-black.ttf
+          
+M+ 2C     mplus-2c-thin.ttf
+          mplus-2c-light.ttf
+          mplus-2c-regular.ttf
+          mplus-2c-medium.ttf
+          mplus-2c-bold.ttf
+          mplus-2c-heavy.ttf
+          mplus-2c-black.ttf
+
+
+FIXED-WIDTH FONTS (fixed-halfwidth Latin and fixed-fullwidth Japanese)
+
+M+ 1M     mplus-1m-thin.ttf
+          mplus-1m-light.ttf
+          mplus-1m-regular.ttf
+          mplus-1m-medium.ttf
+          mplus-1m-bold.ttf
+          
+M+ 2M     mplus-2m-thin.ttf
+          mplus-2m-light.ttf
+          mplus-2m-regular.ttf
+          mplus-2m-medium.ttf
+          mplus-2m-bold.ttf
+
+M+ 1MN    mplus-1mn-thin.ttf
+          mplus-1mn-light.ttf
+          mplus-1mn-regular.ttf
+          mplus-1mn-medium.ttf
+          mplus-1mn-bold.ttf
+
+          
+
+
+-
+
+M+ OUTLINE FONTS
+http://mplus-fonts.sourceforge.jp/mplus-outline-fonts/
+
+mplus-fonts-dev ML
+http://lists.sourceforge.jp/mailman/listinfo/mplus-fonts-dev
+
+M+ FONTS open forum
+http://sourceforge.jp/forum/forum.php?forum_id=3403
+==> ./mplus-TESTFLIGHT-043/README_J <==
+M+ FONTS                                Copyright (C) 2002-2011 M+ FONTS PROJECT
+
+-
+
+README_J
+
+
+
+
+M+ TESTFLIGHT
+
+M+ OUTLINE FONTS は 2 種類のかな文字を持つ固定幅和文フォントと 4 種類の
+プロポーショナル欧文フォント、3 種類の半角固定幅欧文フォントの組み合わせから
+構成され、それぞれ Thin から Black まで 7 種類（半角固定幅フォントは Bold
+まで 5 種類）のウエイトバリエーションがあります。
+
+
+プロポーショナルフォント（和文は全角固定幅、欧文・数字はプロポーショナル）
+
+M+ 1P     mplus-1p-thin.ttf
+          mplus-1p-light.ttf
+          mplus-1p-regular.ttf
+          mplus-1p-medium.ttf
+          mplus-1p-bold.ttf
+          mplus-1p-heavy.ttf
+          mplus-1p-black.ttf
+          
+M+ 2P     mplus-2p-thin.ttf
+          mplus-2p-light.ttf
+          mplus-2p-regular.ttf
+          mplus-2p-medium.ttf
+          mplus-2p-bold.ttf
+          mplus-2p-heavy.ttf
+          mplus-2p-black.ttf
+          
+M+ 1C     mplus-1c-thin.ttf
+          mplus-1c-light.ttf
+          mplus-1c-regular.ttf
+          mplus-1c-medium.ttf
+          mplus-1c-bold.ttf
+          mplus-1c-heavy.ttf
+          mplus-1c-black.ttf
+          
+M+ 2C     mplus-2c-thin.ttf
+          mplus-2c-light.ttf
+          mplus-2c-regular.ttf
+          mplus-2c-medium.ttf
+          mplus-2c-bold.ttf
+          mplus-2c-heavy.ttf
+          mplus-2c-black.ttf
+
+
+固定幅フォント（和文は全角、欧文・数字は半角の固定幅）
+
+M+ 1M     mplus-1m-thin.ttf
+          mplus-1m-light.ttf
+          mplus-1m-regular.ttf
+          mplus-1m-medium.ttf
+          mplus-1m-bold.ttf
+          
+M+ 2M     mplus-2m-thin.ttf
+          mplus-2m-light.ttf
+          mplus-2m-regular.ttf
+          mplus-2m-medium.ttf
+          mplus-2m-bold.ttf
+
+M+ 1MN    mplus-1mn-thin.ttf
+          mplus-1mn-light.ttf
+          mplus-1mn-regular.ttf
+          mplus-1mn-medium.ttf
+          mplus-1mn-bold.ttf
+
+          
+
+
+かな文字と常用漢字、基本的な欧文グリフが揃い、一般的な文章の大半の文字を表示
+できるようになりました。不足している文字は他のフォントからの自動補完、
+IPAG フォントとの合成などで補うことができます。
+M+ OUTLINE FONTS の詳細、お問い合わせなどは以下の URL からお願いします。
+
+-
+
+M+ OUTLINE FONTS
+http://mplus-fonts.sourceforge.jp/mplus-outline-fonts/
+
+mplus-fonts-dev ML
+http://lists.sourceforge.jp/mailman/listinfo/mplus-fonts-dev
+
+M+ FONTS open forum
+http://sourceforge.jp/forum/forum.php?forum_id=3403
