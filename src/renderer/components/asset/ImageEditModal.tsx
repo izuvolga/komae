@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
+import { getEffectiveZIndex } from '../../../types/entities';
 import './ImageAssetEditModal.css';
 
 // 編集モードの種類
@@ -269,9 +270,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         const instanceAsset = project.assets[instance.asset_id];
         if (!instanceAsset) return;
         
-        const effectiveZIndex = instance.override_z_index !== undefined 
-          ? instance.override_z_index 
-          : instanceAsset.default_z_index;
+        const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance);
         
         if (effectiveZIndex === numValue) {
           const assetName = instanceAsset.name || instanceAsset.id;

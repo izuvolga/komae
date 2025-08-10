@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
-import type { TextAsset, TextAssetInstance, Page, FontInfo } from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageOverrides } from '../../../types/entities';
+import { getEffectiveZIndex } from '../../../types/entities';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -73,10 +74,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   if (!isOpen || !editingAsset) return null;
 
-  // 現在の値を取得する（instanceモードではoverride値を優先）
-  const getCurrentValue = (assetField: keyof TextAsset, instanceField?: keyof TextAssetInstance): any => {
-    if (mode === 'instance' && editingInstance && instanceField && editingInstance[instanceField] !== undefined) {
-      return editingInstance[instanceField];
+  // 現在の値を取得する（instanceモードでは多言語overrideを確認）
+  const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: keyof LanguageOverrides): any => {
+    if (mode === 'instance' && editingInstance && langOverrideKey) {
+      const currentLang = getCurrentLanguage();
+      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      if (langOverride && langOverride[langOverrideKey] !== undefined) {
+        return langOverride[langOverrideKey];
+      }
     }
     return editingAsset[assetField];
   };
@@ -90,11 +95,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  const handleInstanceChange = (field: keyof TextAssetInstance, value: any) => {
+  const handleInstanceChange = (langOverrideKey: keyof LanguageOverrides, value: any) => {
     if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      const currentOverrides = editingInstance.multilingual_overrides || {};
+      const langOverride = currentOverrides[currentLang] || {};
+      
       setEditingInstance({
         ...editingInstance,
-        [field]: value,
+        multilingual_overrides: {
+          ...currentOverrides,
+          [currentLang]: {
+            ...langOverride,
+            [langOverrideKey]: value,
+          },
+        },
       });
     }
   };
@@ -156,7 +171,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // z_index関連のヘルパー関数
   const getCurrentZIndex = () => {
     if (mode === 'instance' && editingInstance) {
-      return editingInstance.override_z_index ?? editingAsset.default_z_index;
+      const currentLang = getCurrentLanguage();
+      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      return langOverride?.override_z_index ?? editingAsset.default_z_index;
     }
     return editingAsset.default_z_index;
   };
@@ -223,9 +240,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           const instanceAsset = project.assets[instance.asset_id];
           if (!instanceAsset) return;
           
-          const effectiveZIndex = instance.override_z_index !== undefined 
-            ? instance.override_z_index 
-            : instanceAsset.default_z_index;
+          const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance, getCurrentLanguage());
           
           if (effectiveZIndex === numValue) {
             const assetName = instanceAsset.name || instanceAsset.id;
@@ -581,9 +596,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         zIndexValidation.warning ? 
                         zIndexValidation.warning :
                         mode === 'instance' 
-                          ? (editingInstance?.override_z_index !== undefined
-                            ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
-                            : `デフォルト値を使用中`)
+                          ? (() => {
+                            const currentLang = getCurrentLanguage();
+                            const langOverride = editingInstance?.multilingual_overrides?.[currentLang];
+                            return langOverride?.override_z_index !== undefined
+                              ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
+                              : `デフォルト値を使用中`;
+                          })()
                           : '(レイヤー順序: 数値が小さいほど背面)'
                       }
                     </span>
