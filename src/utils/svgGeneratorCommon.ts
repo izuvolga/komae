@@ -19,7 +19,8 @@ export function generateCompleteSvg(
   getProtocolUrl: (filePath: string) => string,
   currentLanguage?: string
 ): string {
-  const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl, currentLanguage);
+  const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
+  const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl, availableLanguages, currentLanguage || 'ja');
   
   // SVGを組み立て（svg-structure.md仕様に準拠）
   const svgContent = [
@@ -62,7 +63,8 @@ export function generateSvgStructureCommon(
   project: ProjectData, 
   instances: AssetInstance[], 
   getProtocolUrl: (filePath: string) => string,
-  currentLanguage?: string
+  availableLanguages: string[],
+  currentLanguage: string
 ): SvgStructureResult {
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
@@ -100,8 +102,8 @@ export function generateSvgStructureCommon(
     } else if (asset.type === 'TextAsset') {
       const textAsset = asset as TextAsset;
       
-      // テキストアセットは直接インライン要素として追加
-      const textElement = generateTextElement(textAsset, instance, currentLanguage || 'ja');
+      // テキストアセットは多言語対応インライン要素として追加
+      const textElement = generateMultilingualTextElement(textAsset, instance, availableLanguages, currentLanguage);
       useElements.push(textElement);
     }
   }
@@ -189,19 +191,45 @@ function escapeXml(text: string): string {
 }
 
 /**
- * テキスト要素を生成する（直接描画用）
+ * 多言語対応テキスト要素を生成する（直接描画用）
+ * 全ての利用可能言語についてlang-{languageCode}クラス付きでテキスト要素を生成
  * svg-structure.md仕様に完全準拠
  */
-function generateTextElement(asset: TextAsset, instance: AssetInstance, currentLanguage: string): string {
-  // TextAssetInstanceからオーバーライド値を取得
+export function generateMultilingualTextElement(asset: TextAsset, instance: AssetInstance, availableLanguages: string[], currentLanguage: string): string {
   const textInstance = instance as TextAssetInstance;
+  const results: string[] = [];
   
-  // 多言語対応ヘルパー関数を使用して現在の値を取得
-  const finalPosX = getEffectivePosX(asset, textInstance, currentLanguage);
-  const finalPosY = getEffectivePosY(asset, textInstance, currentLanguage);
-  const finalFontSize = getEffectiveFontSize(asset, textInstance, currentLanguage);
-  const finalOpacity = getEffectiveOpacity(asset, textInstance, currentLanguage);
-  const textContent = getEffectiveTextValue(asset, textInstance, currentLanguage);
+  // 各言語について個別にテキスト要素を生成
+  for (const lang of availableLanguages) {
+    const isCurrentLanguage = lang === currentLanguage;
+    const displayStyle = isCurrentLanguage ? '' : ' style="display: none;"';
+    
+    // 多言語対応ヘルパー関数を使用して各言語の値を取得
+    const finalPosX = getEffectivePosX(asset, textInstance, lang);
+    const finalPosY = getEffectivePosY(asset, textInstance, lang);
+    const finalFontSize = getEffectiveFontSize(asset, textInstance, lang);
+    const finalOpacity = getEffectiveOpacity(asset, textInstance, lang);
+    const textContent = getEffectiveTextValue(asset, textInstance, lang);
+    
+    // テキスト内容が空の場合はスキップ
+    if (!textContent || textContent.trim() === '') {
+      continue;
+    }
+    
+    const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
+    
+    // lang-{languageCode}クラスを追加
+    const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}>${textElement}</g>`;
+    results.push(languageElement);
+  }
+  
+  return results.join('\n');
+}
+
+/**
+ * 単一言語のテキスト要素を生成する（内部ヘルパー関数）
+ */
+function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
   const font = asset.font || 'Arial';
   const strokeWidth = asset.stroke_width || 0;
   const strokeColor = asset.stroke_color || '#000000';
@@ -244,8 +272,7 @@ function generateTextElement(asset: TextAsset, instance: AssetInstance, currentL
       }
     });
 
-    return `<g opacity="${finalOpacity}">
-  <text
+    return `<text
     x="${asset.default_pos_x}"
     y="${asset.default_pos_y}"
     font-family="${font}"
@@ -253,7 +280,6 @@ function generateTextElement(asset: TextAsset, instance: AssetInstance, currentL
     stroke="${strokeColor}"
     fill="${strokeColor}"
     stroke-width="${strokeWidth}"
-    opacity="${finalOpacity}"
     writing-mode="vertical-rl"${transformAttr}
   >
 ${textBody.join('\n')}
@@ -265,12 +291,10 @@ ${textBody.join('\n')}
     font-size="${finalFontSize}"
     stroke="none"
     fill="${fillColor}"
-    opacity="${finalOpacity}"
     writing-mode="vertical-rl"${transformAttr}
   >
 ${textBody.join('\n')}
-  </text>
-</g>`;
+  </text>`;
   } else {
     // 横書きテキスト：行ごとにtspan要素
     const lines = escapedText.split('\n');
@@ -281,16 +305,14 @@ ${textBody.join('\n')}
       textBody.push(`    <tspan x="${asset.default_pos_x}" dy="${dyValue}">${line}</tspan>`);
     });
 
-    return `<g opacity="${finalOpacity}">
-  <text
+    return `<text
     x="${asset.default_pos_x}"
     y="${asset.default_pos_y}"
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="${strokeColor}"
     fill="${strokeColor}"
-    stroke-width="${strokeWidth}"
-    opacity="${finalOpacity}"${transformAttr}
+    stroke-width="${strokeWidth}"${transformAttr}
   >
 ${textBody.join('\n')}
   </text>
@@ -300,12 +322,10 @@ ${textBody.join('\n')}
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="none"
-    fill="${fillColor}"
-    opacity="${finalOpacity}"${transformAttr}
+    fill="${fillColor}"${transformAttr}
   >
 ${textBody.join('\n')}
-  </text>
-</g>`;
+  </text>`;
   }
 }
 
@@ -330,8 +350,9 @@ export function generateTextPreviewSVG(
     asset_id: asset.id,
   };
   
-  // TextSVG要素を生成
-  const textElement = generateTextElement(asset, tempInstance, currentLanguage);
+  // TextSVG要素を生成（プレビュー用は単一言語）
+  const availableLanguages = [currentLanguage];
+  const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage);
 
   return `<svg
   width="${width}"

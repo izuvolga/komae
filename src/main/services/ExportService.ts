@@ -191,6 +191,8 @@ export class ExportService {
     const instances = Object.values(page.asset_instances);
 
     // 共通のSVG生成ロジックを使用
+    const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
+    const currentLanguage = project.metadata?.currentLanguage || 'ja';
     const { assetDefinitions, useElements } = generateSvgStructureCommon(
       project, 
       instances, 
@@ -202,7 +204,8 @@ export class ExportService {
         }
         return `file://${path.resolve(absolutePath)}`;
       },
-      project.metadata.currentLanguage || 'ja'
+      availableLanguages,
+      currentLanguage
     );
 
     // SVGコンテンツを構築（ドキュメント仕様に準拠）

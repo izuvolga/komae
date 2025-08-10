@@ -154,29 +154,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ## TextAsset の表現
 
-TextAssetは直接インライン要素として各ページグループ内に配置される：
+TextAssetは直接インライン要素として各ページグループ内に配置される。多言語対応のため、各テキスト要素には言語別クラス（`lang-{languageCode}`）が付与される：
 
-### 横書きテキストの例
+### 多言語対応テキストの例
 ```html
 <g id="page-1" style="display: block;">
     <use href="#background" />
-    <!-- 横書きTextAsset -->
-    <g opacity="1.0">
+    <!-- 多言語TextAsset：日本語版 -->
+    <g class="lang-ja" opacity="1.0">
+        <text x="100" y="150" font-family="Noto Sans CJK JP" font-size="24" 
+              stroke="#000000" fill="#000000" stroke-width="1">
+            <tspan x="100" y="150">こんにちは</tspan>
+            <tspan x="100" dy="28">世界！</tspan>
+        </text>
+    </g>
+    
+    <!-- 多言語TextAsset：英語版 -->
+    <g class="lang-en" opacity="1.0" style="display: none;">
         <text x="100" y="150" font-family="Arial" font-size="24" 
               stroke="#000000" fill="#000000" stroke-width="1">
-            <tspan x="100" y="150">第一行テキスト</tspan>
-            <tspan x="100" dy="28">第二行テキスト</tspan>
+            <tspan x="100" y="150">Hello</tspan>
+            <tspan x="100" dy="28">World!</tspan>
+        </text>
+    </g>
+    
+    <!-- 多言語TextAsset：中国語版 -->
+    <g class="lang-zh" opacity="1.0" style="display: none;">
+        <text x="100" y="150" font-family="Noto Sans CJK SC" font-size="24" 
+              stroke="#000000" fill="#000000" stroke-width="1">
+            <tspan x="100" y="150">你好</tspan>
+            <tspan x="100" dy="28">世界！</tspan>
         </text>
     </g>
 </g>
 ```
 
-### 縦書きテキストの例  
+### 縦書きテキストの多言語対応例  
 ```html
 <g id="page-2" style="display: none;">
     <use href="#character1" />
-    <!-- 縦書きTextAsset（複数行対応） -->
-    <g opacity="1.0">
+    <!-- 縦書きTextAsset：日本語版（複数行対応） -->
+    <g class="lang-ja" opacity="1.0">
         <text x="400" y="100" font-family="Noto Sans CJK JP" font-size="24" 
               writing-mode="vertical-rl" stroke="#333333" fill="#333333">
             <!-- 1行目：右から左へ -->
@@ -187,6 +205,15 @@ TextAssetは直接インライン要素として各ページグループ内に�
             <tspan x="376" y="100">第</tspan>
             <tspan x="376" dy="28">二</tspan>
             <tspan x="376" dy="28">行</tspan>
+        </text>
+    </g>
+    
+    <!-- 縦書きTextAsset：英語版（横書きに変換） -->
+    <g class="lang-en" opacity="1.0" style="display: none;">
+        <text x="350" y="120" font-family="Arial" font-size="24" 
+              stroke="#333333" fill="#333333">
+            <tspan x="350" y="120">First Line</tspan>
+            <tspan x="350" dy="28">Second Line</tspan>
         </text>
     </g>
 </g>

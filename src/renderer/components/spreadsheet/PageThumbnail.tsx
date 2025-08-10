@@ -71,9 +71,11 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           const zIndexB = getEffectiveZIndex(assetB, b);
           return zIndexA - zIndexB;
         });
+        const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
+        const currentLanguage = getCurrentLanguage();
         const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, (filePath: string) => {
           return getCustomProtocolUrl(filePath, currentProjectPath);
-        }, getCurrentLanguage());
+        }, availableLanguages, currentLanguage);
 
         // サムネイル用のSVGを組み立て（最適なサイズを使用）
         const svgContent = [
