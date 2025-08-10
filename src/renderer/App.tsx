@@ -1,13 +1,75 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { NotificationDisplay } from './components/notification/NotificationDisplay';
 import { useProjectStore } from './stores/projectStore';
+import type { FontInfo } from '../types/entities';
 import './App.css';
 
 const App: React.FC = () => {
   const isLoading = useProjectStore((state) => state.app.isLoading);
   const errors = useProjectStore((state) => state.app.errors);
   const clearErrors = useProjectStore((state) => state.clearErrors);
+
+  // アプリ起動時にビルトインフォントを初期化
+  useEffect(() => {
+    const initializeFonts = async () => {
+      try {
+        console.log('[App] Initializing builtin fonts...');
+        const fonts: FontInfo[] = await window.electronAPI.font.loadBuiltinFonts();
+        console.log(`[App] Loaded ${fonts.length} builtin fonts`);
+        
+        // フォントをCSSに登録
+        registerFontsInCSS(fonts);
+      } catch (error) {
+        console.error('Failed to initialize builtin fonts:', error);
+      }
+    };
+
+    initializeFonts();
+  }, []);
+
+  // フォントをCSSに動的登録
+  const registerFontsInCSS = (fonts: FontInfo[]) => {
+    // 既存のフォントスタイルタグを削除
+    const existingStyle = document.getElementById('komae-font-faces');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    // 新しいスタイルタグを作成
+    const style = document.createElement('style');
+    style.id = 'komae-font-faces';
+    
+    const fontFaceRules: string[] = [];
+    
+    fonts.forEach(font => {
+      if (font.type === 'builtin' && font.path !== 'system-ui') {
+        // ビルトインフォントをkomae-assetプロトコルで登録
+        const fontUrl = `komae-asset://${font.path}`;
+        const fontFamily = font.id; // IDを使用してSVGと一致させる
+        
+        // ファイル拡張子からフォーマットを決定
+        const extension = font.filename?.split('.').pop()?.toLowerCase() || 'ttf';
+        let format = 'truetype';
+        if (extension === 'otf') format = 'opentype';
+        else if (extension === 'woff') format = 'woff';
+        else if (extension === 'woff2') format = 'woff2';
+        
+        fontFaceRules.push(`
+          @font-face {
+            font-family: "${fontFamily}";
+            src: url("${fontUrl}") format("${format}");
+            font-display: swap;
+          }
+        `);
+      }
+    });
+    
+    style.textContent = fontFaceRules.join('\n');
+    document.head.appendChild(style);
+    
+    console.log(`[App] Registered ${fontFaceRules.length} font faces in CSS`);
+  };
 
   return (
     <div className="app">

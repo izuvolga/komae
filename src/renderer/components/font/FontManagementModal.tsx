@@ -23,56 +23,8 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     }
   }, [isOpen]);
 
-  // フォントをCSSに動的登録
-  useEffect(() => {
-    const registerFontsInCSS = () => {
-      // 既存のフォントスタイルタグを削除
-      const existingStyle = document.getElementById('komae-font-faces');
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-
-      // 新しいスタイルタグを作成
-      const style = document.createElement('style');
-      style.id = 'komae-font-faces';
-      
-      const fontFaceRules: string[] = [];
-      
-      fonts.forEach(font => {
-        if (font.type === 'builtin' && font.path !== 'system-ui') {
-          // ビルトインフォントをHTTP URLで登録（開発サーバー経由）
-          const fontUrl = `http://localhost:3000/${font.path}`;
-          const fontFamily = font.id; // IDを使用してSVGと一致させる
-          
-          // ファイル拡張子からフォーマットを決定
-          const extension = font.filename?.split('.').pop()?.toLowerCase() || 'ttf';
-          let format = 'truetype';
-          if (extension === 'otf') format = 'opentype';
-          else if (extension === 'woff') format = 'woff';
-          else if (extension === 'woff2') format = 'woff2';
-          
-          fontFaceRules.push(`
-            @font-face {
-              font-family: "${fontFamily}";
-              src: url("${fontUrl}") format("${format}");
-              font-display: swap;
-            }
-          `);
-        }
-        // カスタムフォント処理は後で追加
-      });
-      
-      style.textContent = fontFaceRules.join('\n');
-      document.head.appendChild(style);
-      
-      console.log('[FontManager] Registered font faces:', fontFaceRules.length);
-      console.log('[FontManager] CSS rules:', style.textContent);
-    };
-
-    if (fonts.length > 0) {
-      registerFontsInCSS();
-    }
-  }, [fonts]);
+  // フォントはApp.tsx で既に初期化済みのため、ここでは登録しない
+  // カスタムフォント追加時は別途処理が必要
 
   const loadFonts = async () => {
     try {

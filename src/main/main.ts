@@ -507,24 +507,40 @@ class KomaeApp {
     app.whenReady().then(() => {
       protocol.registerFileProtocol('komae-asset', (request, callback) => {
         try {
-          // URLをデコードして正しいパスを取得
-          let filePath = decodeURIComponent(request.url.substr(13)); // 'komae-asset://' を除去
+          // komae-asset://の後の部分を取得（プロトコル長13文字）
+          let filePath = request.url.substring(13);
           
           // 余分なスラッシュを除去
           if (filePath.startsWith('//')) {
             filePath = filePath.substr(1);
           }
-          console.debug('[Custom Protocol] Requested file path:', filePath);
-          // セキュリティ: プロジェクトディレクトリ内のファイルのみアクセス許可
+          
+          let resolvedPath: string;
+          
+          // ビルトインアセット（/fonts/で始まる）の処理
+          if (filePath.startsWith('/fonts/')) {
+            // 先頭のスラッシュを除去して正規化
+            const normalizedPath = filePath.substring(1);
+            const isDev = process.env.NODE_ENV === 'development';
+            
+            if (isDev) {
+              // 開発環境: public/fonts ディレクトリ
+              resolvedPath = path.join(process.cwd(), 'public', normalizedPath);
+            } else {
+              // プロダクション環境: アプリリソース内の public/fonts ディレクトリ
+              resolvedPath = path.join(app.getAppPath(), 'public', normalizedPath);
+            }
+            
+            callback({ path: resolvedPath });
+            return;
+          }
+          
+          // プロジェクト内ファイルの処理（従来の動作）
           const currentProjectPath = this.projectManager.getCurrentProjectPath();
-          console.debug('[Custom Protocol] Current project path:', currentProjectPath);
           
           if (currentProjectPath && filePath.startsWith(currentProjectPath)) {
-            console.debug('[Custom Protocol] Allowing access to:', filePath);
             callback({ path: filePath });
           } else {
-            console.warn('[Custom Protocol] Access denied to:', filePath);
-            console.warn('[Custom Protocol] Project path:', currentProjectPath);
             callback({ error: -3 }); // ERROR_ABORTED
           }
         } catch (error) {
@@ -532,7 +548,6 @@ class KomaeApp {
           callback({ error: -2 }); // ERROR_FAILED
         }
       });
-      console.log('[Custom Protocol] komae-asset:// protocol registered successfully');
     });
   }
 }
