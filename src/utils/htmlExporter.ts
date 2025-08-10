@@ -223,12 +223,16 @@ export class HtmlExporter {
     const { includeNavigation } = options.htmlOptions || {};
 
     // テンプレート変数を設定
+    const currentLanguage = project.metadata?.currentLanguage || 'ja';
+    const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
     const templateVariables: Partial<ViewerTemplateVariables> = {
       TITLE: title,
       SVG_CONTENT: unifiedSVG,
       NAVIGATION_DISPLAY: includeNavigation ? 'flex' : 'none',
       TOTAL_PAGES: project.pages.length.toString(),
-      CANVAS_WIDTH: project.canvas.width.toString()
+      CANVAS_WIDTH: project.canvas.width.toString(),
+      CURRENT_LANGUAGE: currentLanguage,
+      AVAILABLE_LANGUAGES_JSON: JSON.stringify(availableLanguages)
     };
 
     // テンプレートをレンダーしてHTMLを生成
@@ -264,12 +268,16 @@ export class HtmlExporter {
     // テンプレートシステムで簡易HTMLを生成
     try {
       // 統合SVGを同期的に生成（テスト用）
+      const currentLanguage = project.metadata?.currentLanguage || 'ja';
+      const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
       const templateVariables: Partial<ViewerTemplateVariables> = {
         TITLE: project.metadata.title,
         SVG_CONTENT: this.generateSimpleSVGForTest(project),
         NAVIGATION_DISPLAY: 'flex',
         TOTAL_PAGES: project.pages.length.toString(),
-        CANVAS_WIDTH: project.canvas.width.toString()
+        CANVAS_WIDTH: project.canvas.width.toString(),
+        CURRENT_LANGUAGE: currentLanguage,
+        AVAILABLE_LANGUAGES_JSON: JSON.stringify(availableLanguages)
       };
       
       return VIEWER_TEMPLATES.render(templateVariables);

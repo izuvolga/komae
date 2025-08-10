@@ -6,6 +6,8 @@
 let currentPage = 1;
 let totalPages = 1;
 let autoPlayInterval = null;
+let currentLanguage = (window.komaeProject && window.komaeProject.currentLanguage) || 'ja';
+let availableLanguages = (window.komaeProject && window.komaeProject.availableLanguages) || ['ja'];
 
 /**
  * ページ切り替え機能を初期化
@@ -32,6 +34,9 @@ function initializeViewer() {
   
   // キーボードイベントリスナーを追加
   setupKeyboardNavigation();
+  
+  // 言語機能を初期化
+  initializeLanguageSelector();
   
   console.log(`Komae Viewer initialized: ${totalPages} pages`);
 }
@@ -208,6 +213,124 @@ function toggleFullscreen() {
   } else {
     document.exitFullscreen();
   }
+}
+
+/**
+ * 言語選択機能を初期化
+ */
+function initializeLanguageSelector() {
+  const svg = document.querySelector('svg');
+  if (!svg) return;
+  
+  // SVG内の利用可能言語を検出
+  const languageElements = svg.querySelectorAll('[class^="lang-"]');
+  const detectedLanguages = new Set();
+  
+  languageElements.forEach(element => {
+    const classNames = element.className.baseVal || element.className;
+    if (typeof classNames === 'string') {
+      const langMatch = classNames.match(/lang-([a-z]{2})/);
+      if (langMatch) {
+        detectedLanguages.add(langMatch[1]);
+      }
+    }
+  });
+  
+  availableLanguages = Array.from(detectedLanguages).sort();
+  
+  // 利用可能言語が1つの場合は言語選択UIを非表示
+  const languageSelector = document.querySelector('.language-selector');
+  if (availableLanguages.length <= 1) {
+    if (languageSelector) {
+      languageSelector.style.display = 'none';
+    }
+    return;
+  }
+  
+  // 言語選択UIを表示して選択肢を生成
+  if (languageSelector) {
+    languageSelector.style.display = 'flex';
+  }
+  
+  const select = document.getElementById('language-select');
+  if (select) {
+    // 既存のオプションをクリア
+    select.innerHTML = '';
+    
+    // 言語オプションを生成
+    availableLanguages.forEach(lang => {
+      const option = document.createElement('option');
+      option.value = lang;
+      option.textContent = getLanguageDisplayName(lang);
+      if (lang === currentLanguage) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+  }
+  
+  // 現在の言語に基づいて表示を更新
+  switchLanguage(currentLanguage);
+  
+  console.log(`Language selector initialized: ${availableLanguages.join(', ')}`);
+}
+
+/**
+ * 言語表示名を取得
+ * @param {string} langCode - 言語コード
+ * @returns {string} 表示名
+ */
+function getLanguageDisplayName(langCode) {
+  const languageNames = {
+    'ja': '日本語',
+    'en': 'English',
+    'zh': '中文',
+    'ko': '한국어',
+    'es': 'Español',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'ar': 'العربية'
+  };
+  
+  return languageNames[langCode] || langCode.toUpperCase();
+}
+
+/**
+ * 言語を切り替え
+ * @param {string} newLanguage - 切り替え先の言語コード
+ */
+function switchLanguage(newLanguage) {
+  if (!availableLanguages.includes(newLanguage)) {
+    console.warn(`Language ${newLanguage} is not available`);
+    return;
+  }
+  
+  const svg = document.querySelector('svg');
+  if (!svg) return;
+  
+  // すべての言語要素を非表示
+  const allLanguageElements = svg.querySelectorAll('[class^="lang-"]');
+  allLanguageElements.forEach(element => {
+    element.style.display = 'none';
+  });
+  
+  // 指定された言語の要素のみを表示
+  const targetLanguageElements = svg.querySelectorAll(`.lang-${newLanguage}`);
+  targetLanguageElements.forEach(element => {
+    element.style.display = 'block';
+  });
+  
+  currentLanguage = newLanguage;
+  
+  // 選択状態を更新
+  const select = document.getElementById('language-select');
+  if (select) {
+    select.value = newLanguage;
+  }
+  
+  console.log(`Language switched to: ${newLanguage}`);
 }
 
 // ページ読み込み完了時に初期化

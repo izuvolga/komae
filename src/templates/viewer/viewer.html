@@ -14,11 +14,26 @@
         <span id="current-page">1</span> / <span id="total-pages">{{TOTAL_PAGES}}</span>
       </div>
       <button class="nav-button" id="next-btn" onclick="nextPage()">次 ▶</button>
+      <div class="language-selector">
+        <label for="language-select">言語:</label>
+        <select id="language-select" onchange="switchLanguage(this.value)">
+          <!-- 言語オプションは動的に生成されます -->
+        </select>
+      </div>
     </div>
     <div class="svg-container">
       {{SVG_CONTENT}}
     </div>
   </div>
+  
+  <!-- 言語データの設定 -->
+  <script>
+    // プロジェクトの言語情報をJavaScriptに渡す
+    window.komaeProject = {
+      currentLanguage: '{{CURRENT_LANGUAGE}}',
+      availableLanguages: {{AVAILABLE_LANGUAGES_JSON}}
+    };
+  </script>
   
   <!-- 開発時にダミーデータとスクリプトを読み込み -->
   <script src="sample-data.js"></script>
