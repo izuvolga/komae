@@ -1,15 +1,6 @@
-
 ## Entity
 
 このアプリケーションには以下のエンティティが存在する
-
-### 多言語対応について
-
-テキスト要素に対する包括的な多言語対応機能を実装。
-- プロジェクトごとに現在言語（currentLanguage）を設定
-- TextAssetInstanceは言語別オーバーライド（multilingual_overrides）をサポート
-- 各言語に対して、テキスト内容、位置、フォント、サイズなどを個別設定可能
-- 言語切り替え時に動的にテキスト表示が更新される
 
 - Project
   - アプリケーションが開く成果物のまとまり。Photosshopでいう psd ファイルに相当するもの。
@@ -40,10 +31,6 @@
   - なぜ Asset が存在するのかというと、AssetInstance はその Page 固有の情報を持つため、同じ Asset を使っていても、Page ごとに異なる AssetInstance が存在することができる。
   - 例えば、特定の ImageAsset に特定のキャラクターの画像を使っていても、微妙にキャラクターの位置を変更できる。
     - Page 1 では、キャラクターの位置を左に配置し、Page 2 では右に配置することができる。その際は、ImageAsset は同じでも、Page 1 と Page 2 では異なる AssetInstance が存在し、異なる座標を持つことになる。
-
-**Note**: AssetAttr系は削除されました。以前はPositionAssetAttrとSizeAssetAttrでAssetInstance間で属性を共有する仕組みがありましたが、データ構造を簡略化するため、AssetInstanceに直接override_width/heightフィールドを追加する方式に変更されました。
-
-**多言語対応に伴うTextAssetInstance構造の変更**: TextAssetInstanceの既存override_*フィールド（override_text、override_pos_x、override_pos_y、override_font_size、override_opacity、override_z_index）は削除され、multilingual_overridesフィールドのみに統合されました。これにより、言語ごとに個別のオーバーライド設定が可能になり、よりクリーンで拡張性の高いデータ構造を実現しています。
 
 
 ### ImageAsset
@@ -86,11 +73,20 @@ vertical: 縦書き設定（true の場合、縦書き）
 default_z_index: デフォルトのレイヤー順序
 ```
 
-### AssetInstance
+## DynamicSvgAsset
 
-AssetTemplateを実際のPageに配置する際のインスタンス。以下の属性をもつ。
+```
+id: テンプレートのID (ユーザーが指定する必要はない)
+name: テキストの名前 (デフォルトは "Text")
+script: SVGを生成するためのスクリプト
+arguments: スクリプトに渡す引数のリスト
+```
 
-#### ImageAssetInstance
+## AssetInstance
+
+Assetを実際のPageに配置する際のインスタンス。以下の属性をもつ。
+
+### ImageAssetInstance
 
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
@@ -104,7 +100,7 @@ override_z_index: ImageAssetのdefault_z_indexを上書きするレイヤー順�
 override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optional)
 ```
 
-#### TextAssetInstance
+### TextAssetInstance
 
 **多言語対応の簡素化された構造**
 
@@ -117,7 +113,14 @@ multilingual_overrides: 言語別オーバーライド設定 (optional)
   - 値はLanguageOverridesオブジェクト
 ```
 
-#### LanguageOverrides
+上記構造で、テキスト要素に対する包括的な多言語対応機能を実装している。
+- プロジェクトごとに現在言語（currentLanguage）を設定
+- TextAssetInstanceは言語別オーバーライド（multilingual_overrides）あり
+- 各言語に対して、テキスト内容、位置、フォント、サイズなどを個別設定可能
+- 言語切り替え時に動的にテキスト表示が更新される
+
+
+### LanguageOverrides
 
 言語別のオーバーライド設定で、以下の属性をもつ：
 
@@ -132,3 +135,7 @@ override_font: 言語別フォント選択 (optional)
 override_leading: 言語別行間設定 (optional)
 override_vertical: 言語別縦書き設定 (optional)
 ```
+
+## DynamicSvgAssetInstance
+
+TODO

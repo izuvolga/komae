@@ -1,0 +1,98 @@
+## Image
+
+エンティティ: ImageAsset
+インスタンス: ImageAssetInstance
+
+ImageAssetは、画像ファイル（PNG, WEBP形式）を表すアセット。
+
+## Text
+
+エンティティ: TextAsset
+インスタンス: TextAssetInstance
+
+テキストを表すアセット。
+文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。
+`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。
+
+## Vector
+
+エンティティ: VectorAsset
+インスタンス: VectorAssetInstance
+
+SVG形式のベクター画像を表すアセット。
+
+## Value
+
+エンティティ: ValueAsset
+インスタンス: ValueAssetInstance
+
+それぞれのページに何らかの値を紐づけるためのアセット。
+このアセット単体ではキャンバス上には何も変化は与えない。
+ページの他の要素に値を紐づけるために利用される。
+以下のような値を登録できる。
+
+- 値
+  - 文字列
+  - 数値
+- 数式
+
+値は内部的には JavaScript の値として扱われ、動的型付けがされる。
+ただし、明示的にどの値を結果値として登録するかを指定することもできる。
+
+「数式」を登録すると、他のValueAssetの値を参照して、計算結果を得ることができる。
+例えば `value1` と `value2` というValueAssetがあるときに、`%{value1} + %{value2}` という数式を登録すると、これらの値の合計を得ることができる。
+
+数式の例:
+```
+%{value1} + %{value2} + 1
+```
+
+数式がエラーとなると、`#ERROR` という文字列が返される。
+
+
+## Dynamic SVG
+
+エンティティ: DynamicSvgAsset
+インスタンス: DynamicSvgAssetInstance
+
+「SVGのXML文字列を出力するスクリプト」をアセットして登録できる。
+ページによって、動的に内容が変化する画像を実現するためのアセット。
+このアセットは、普通のSVG画像の様に振る舞うが、ページ内部の他の要素の情報によって内容が変えられる。
+
+例えばこんな感じのスクリプトを登録する。
+
+```
+
+function createSquareSVG(x, y, sideLength) {
+  // SVGの文字列を構築
+  const svgString = `<rect x="${x}" y="${y}" width="${sideLength}" height="${sideLength}" stroke="black" fill="transparent" />`;
+  // 例: <rect x="50" y="50" width="100" height="100" stroke="black" fill="transparent" />
+  return svgString;
+}
+```
+
+引数となる値（上記の例だとx, y, sideLength）は、 Dynamic SVG の AssetInstance 側で指定できる。
+AssetInstance 側では、引数名と、ValueAsset のIDを紐づけることで、ページ内の他の要素の値を引数として渡すことができる。
+スクリプトは vm （Node.jsのvmモジュール）のサンドボックス環境で実行される。
+
+## Script
+
+エンティティ: ScriptAsset
+インスタンス: ScriptAssetInstance
+
+ScriptAssetは、ページの動作を制御するためのスクリプトを表すアセット。
+JavaScript のコードを指定すると、そのページ上でそのスクリプトが実行される。
+HTMLでのエクスポート後にしか動作確認はできない。
+
+## Jump
+
+エンティティ: JumpAsset
+インスタンス: JumpAssetInstance
+
+別のページにジャンプする選択肢を読者に提供するためのアセット
+JumpAssetを設定したページに、ユーザに選択肢を表示する画面が描画される。
+JumpAssetInstance には、選択肢の文言と、選択肢を選んだときに遷移するページのIDを紐づける。
+選択肢を選んだときに遷移するページのIDだけでなく、ValueAssetのIDと、期待する値も紐づけることができる。
+多言語対応となっているため、TextAssetInstance 同様の構造を持っている。
+HTMLでのエクスポート時には押下できるボタンが表示される
+PNGの場合には、「→ XX page」という文言が小さく表示される。
