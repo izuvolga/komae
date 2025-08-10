@@ -79,8 +79,8 @@
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
-- [ ]: Lang 対応のために ProjectData のエンティティを修正
-- [ ]: Lang 対応のために TextAsset / TextAssetInstance のエンティティを修正
+- [x]: Lang 対応のために ProjectData のエンティティを修正
+- [x]: Lang 対応のために TextAsset / TextAssetInstance のエンティティを修正
 
 ## SpreadSheet での z_index 編集機能（将来実装）
 - [ ]: SpreadSheet のアセットセル内に小さな z_index 数値入力フィールドを追加
