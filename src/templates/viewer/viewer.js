@@ -216,6 +216,48 @@ function toggleFullscreen() {
 }
 
 /**
+ * ブラウザの言語設定から最適な言語を自動検出
+ * @param {string[]} availableLanguages - 利用可能な言語リスト
+ * @returns {string} 検出された言語コード
+ */
+function detectBrowserLanguage(availableLanguages) {
+  if (availableLanguages.length === 0) {
+    return 'ja';
+  }
+  
+  // ブラウザの言語設定をチェック
+  if (navigator.languages && navigator.languages.length > 0) {
+    // ブラウザの優先言語順でチェック
+    for (const browserLang of navigator.languages) {
+      // 完全一致をチェック（例: 'ja' === 'ja'）
+      if (availableLanguages.includes(browserLang)) {
+        console.log(`Browser language exact match found: ${browserLang}`);
+        return browserLang;
+      }
+      
+      // 前方一致をチェック（例: 'ja-JP' -> 'ja'）
+      const langCode = browserLang.split('-')[0];
+      if (availableLanguages.includes(langCode)) {
+        console.log(`Browser language prefix match found: ${browserLang} -> ${langCode}`);
+        return langCode;
+      }
+    }
+  }
+  
+  // ブラウザ言語にマッチしない場合のフォールバック
+  if (availableLanguages.includes('en')) {
+    console.log('No browser language match, falling back to English');
+    return 'en';
+  } else if (availableLanguages.includes('ja')) {
+    console.log('No browser language match, falling back to Japanese');
+    return 'ja';
+  } else {
+    console.log(`No browser language match, using first available: ${availableLanguages[0]}`);
+    return availableLanguages[0];
+  }
+}
+
+/**
  * 言語選択機能を初期化
  */
 function initializeLanguageSelector() {
@@ -237,6 +279,13 @@ function initializeLanguageSelector() {
   });
   
   availableLanguages = Array.from(detectedLanguages).sort();
+  
+  // ブラウザ言語設定に基づいてデフォルト言語を決定
+  const browserDetectedLanguage = detectBrowserLanguage(availableLanguages);
+  if (browserDetectedLanguage) {
+    currentLanguage = browserDetectedLanguage;
+    console.log(`Default language set to: ${currentLanguage}`);
+  }
   
   // 利用可能言語が1つの場合は言語選択UIを非表示
   const languageSelector = document.querySelector('.language-selector');
