@@ -61,7 +61,7 @@
 - [x]: z_index の値の値の管理がおかしい。SpreadSheet のバルク編集で「全て変更をリセット」を選択したときに、z_index の値がリセットされない。
 - [x]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 - [x]: Asset/AssetInstance の編集画面の数値の入力フィールドに上下ボタンを追加して、数値を増減できるようにする。増減の単位は1ずつ。小数を含む場合でも1ずつ増減できるようにする。
-- [ ]: システムのビルトインのフォントが、一旦 Custom Font 画面を開かないと利用できるようにならない。アプリ起動直後に利用できるようにしたい。
+- [x]: システムのビルトインのフォントが、一旦 Custom Font 画面を開かないと利用できるようにならない。アプリ起動直後に利用できるようにしたい。
 - [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
 - [ ]: Preview Window の「自動ズーム」と「キャンバスをプレビュー画面に収める」を統合する
   - 事実上「キャンバスをプレビュー画面に収める」と「自動ズーム」は同じ挙動をする機能なので、統合する。
@@ -101,6 +101,9 @@
 デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
 - [x]: ツールバーのメニューに、フォント管理の機能を追加。
 - [x]: TextAsset/TextAssetInstance 編集画面でフォントを選択できるようにする。
+- [ ]: ui-specification.md の "Font management" に従うようにして、フォント管理の機能を実装する。
+  - `?` をクリックしてLICENSE の表示（データ構造上、LICENSEの情報を持たせる必要がある）
+- [ ]: ui-specification.md に従ったフォントのインポート機能を実装する
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
