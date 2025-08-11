@@ -345,13 +345,13 @@ export class FontManager {
     try {
       const fonts: FontInfo[] = [];
       
+      // グローバルカスタムフォントを取得（カスタムフォントを先頭に配置）
+      const globalFonts = await this.loadGlobalFonts();
+      fonts.push(...globalFonts);
+
       // ビルトインフォントを取得
       const builtinFonts = await this.loadBuiltinFonts();
       fonts.push(...builtinFonts);
-
-      // グローバルカスタムフォントを取得
-      const globalFonts = await this.loadGlobalFonts();
-      fonts.push(...globalFonts);
 
       return fonts;
 

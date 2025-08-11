@@ -49,8 +49,14 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
       // TODO: FontManagerにライセンス情報を含めたフォント追加機能を実装する必要がある
       const newFont = await window.electronAPI.font.addCustomFont(fontPath, licensePath);
       
-      // フォント一覧を再読み込み
-      await loadFonts();
+      // CSS @font-faceルールを更新してフォント一覧も再読み込み
+      const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
+      if (refreshedFonts) {
+        setFonts(refreshedFonts);
+      } else {
+        // フォールバック：通常の再読み込み
+        await loadFonts();
+      }
       
       console.log('Font added successfully:', newFont.name);
     } catch (error) {
@@ -87,8 +93,14 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
       setIsLoading(true);
       await window.electronAPI.font.removeCustomFont(selectedFont);
       
-      // フォント一覧を再読み込み
-      await loadFonts();
+      // CSS @font-faceルールを更新してフォント一覧も再読み込み
+      const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
+      if (refreshedFonts) {
+        setFonts(refreshedFonts);
+      } else {
+        // フォールバック：通常の再読み込み
+        await loadFonts();
+      }
       setSelectedFont(null);
       
       console.log('Font deleted successfully:', fontToDelete.name);

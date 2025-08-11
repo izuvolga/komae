@@ -71,6 +71,21 @@ const App: React.FC = () => {
     console.log(`[App] Registered ${fontFaceRules.length} font faces in CSS`);
   };
 
+  // グローバルに公開してFontManagementModalから使用できるようにする
+  useEffect(() => {
+    (window as any).komaeApp = {
+      refreshFonts: async () => {
+        const fonts: FontInfo[] = await window.electronAPI.font.getAvailableFonts();
+        registerFontsInCSS(fonts);
+        return fonts;
+      }
+    };
+
+    return () => {
+      delete (window as any).komaeApp;
+    };
+  }, []);
+
   return (
     <div className="app">
       {isLoading && (
