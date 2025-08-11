@@ -99,12 +99,38 @@ export class FontManager {
               const relativePath = path.relative(path.join(process.cwd(), 'public'), itemPath);
               const httpPath = relativePath.replace(/\\/g, '/'); // Windows対応
               
+              // ライセンスファイルを探す
+              let license: string | undefined;
+              let licenseFile: string | undefined;
+              const possibleLicenseFiles = [
+                path.join(directory, `${fontName}.txt`),
+                path.join(directory, `${fontName}.license`),
+                path.join(directory, `${fontName}_LICENSE.txt`),
+                path.join(directory, 'LICENSE.txt'),
+                path.join(directory, 'license.txt'),
+              ];
+              
+              for (const licenseFilePath of possibleLicenseFiles) {
+                if (fs.existsSync(licenseFilePath)) {
+                  try {
+                    license = fs.readFileSync(licenseFilePath, 'utf-8');
+                    const licensePubPath = path.relative(path.join(process.cwd(), 'public'), licenseFilePath);
+                    licenseFile = licensePubPath.replace(/\\/g, '/');
+                    break;
+                  } catch (error) {
+                    // ライセンス読み込みエラーは無視して続行
+                  }
+                }
+              }
+              
               builtinFonts.push({
                 id: fontId,
                 name: fontName,
                 type: FontTypeEnum.BUILTIN,
                 path: httpPath, // 例: "fonts/07やさしさゴシックボールド.ttf"
                 filename: item,
+                license,
+                licenseFile,
               });
             }
           }
@@ -139,7 +165,7 @@ export class FontManager {
   /**
    * カスタムフォントを追加
    */
-  async addCustomFont(fontFilePath: string): Promise<FontInfo> {
+  async addCustomFont(fontFilePath: string, licenseFilePath?: string): Promise<FontInfo> {
     const tracker = new PerformanceTracker('add_custom_font');
 
     try {
@@ -172,6 +198,34 @@ export class FontManager {
 
       fs.copyFileSync(fontFilePath, destinationPath);
 
+      // ライセンス情報の処理
+      let license: string | undefined;
+      let licenseFileRelativePath: string | undefined;
+      
+      if (licenseFilePath && fs.existsSync(licenseFilePath)) {
+        try {
+          // ライセンスファイルをプロジェクトにコピー
+          const licenseFileName = path.basename(licenseFilePath);
+          const licenseDestinationPath = path.join(projectFontsDir, licenseFileName);
+          fs.copyFileSync(licenseFilePath, licenseDestinationPath);
+          
+          // ライセンスファイルの内容を読み込み
+          license = fs.readFileSync(licenseFilePath, 'utf-8');
+          licenseFileRelativePath = path.relative(this.currentProjectPath, licenseDestinationPath);
+          
+          await this.logger.logDevelopment('license_file_processed', 'License file processed', {
+            license_file: licenseFilePath,
+            license_length: license.length,
+          });
+        } catch (licenseError) {
+          // ライセンス処理エラーは警告として扱い、フォント追加は続行
+          await this.logger.logDevelopment('license_file_warning', 'License file processing failed', {
+            license_file: licenseFilePath,
+            error: licenseError instanceof Error ? licenseError.message : String(licenseError),
+          });
+        }
+      }
+
       // FontInfo作成
       const fontName = path.basename(fileName, path.extname(fileName));
       const fontId = `custom-${uuidv4()}`;
@@ -183,6 +237,8 @@ export class FontManager {
         type: FontTypeEnum.CUSTOM,
         path: relativePath,
         filename: fileName,
+        license,
+        licenseFile: licenseFileRelativePath,
       };
 
       // キャッシュに保存

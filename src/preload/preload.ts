@@ -54,8 +54,8 @@ const electronAPI = {
     loadBuiltinFonts: () => 
       ipcRenderer.invoke('font:loadBuiltinFonts'),
     
-    addCustomFont: (fontFilePath: string) => 
-      ipcRenderer.invoke('font:addCustomFont', fontFilePath),
+    addCustomFont: (fontFilePath: string, licenseFilePath?: string) => 
+      ipcRenderer.invoke('font:addCustomFont', fontFilePath, licenseFilePath),
     
     removeCustomFont: (fontId: string) => 
       ipcRenderer.invoke('font:removeCustomFont', fontId),

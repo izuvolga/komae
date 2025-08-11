@@ -345,9 +345,9 @@ class KomaeApp {
       }
     });
 
-    ipcMain.handle('font:addCustomFont', async (event, fontFilePath: string) => {
+    ipcMain.handle('font:addCustomFont', async (event, fontFilePath: string, licenseFilePath?: string) => {
       try {
-        return await this.fontManager.addCustomFont(fontFilePath);
+        return await this.fontManager.addCustomFont(fontFilePath, licenseFilePath);
       } catch (error) {
         console.error('Failed to add custom font:', error);
         throw error;

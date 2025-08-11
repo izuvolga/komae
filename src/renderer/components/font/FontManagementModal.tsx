@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { FontInfo } from '../../../types/entities';
+import { FontAddModal } from './FontAddModal';
+import { FontLicenseModal } from './FontLicenseModal';
 import './FontManagementModal.css';
 
 interface FontManagementModalProps {
@@ -15,6 +17,9 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   const [fonts, setFonts] = useState<FontInfo[]>([]);
   const [selectedFont, setSelectedFont] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showLicenseModal, setShowLicenseModal] = useState(false);
+  const [licenseFont, setLicenseFont] = useState<FontInfo | null>(null);
 
   // フォント一覧を読み込み
   useEffect(() => {
@@ -38,31 +43,19 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     }
   };
 
-  const handleAddFont = async () => {
+  const handleAddFont = async (fontPath: string, licensePath?: string) => {
+    setIsLoading(true);
     try {
-      const result = await window.electronAPI.fileSystem.showOpenDialog({
-        title: 'Add Font',
-        filters: [
-          { 
-            name: 'Font Files', 
-            extensions: ['ttf', 'otf', 'woff', 'woff2'] 
-          }
-        ],
-        properties: ['openFile']
-      });
-
-      if (!result.canceled && result.filePaths.length > 0) {
-        setIsLoading(true);
-        const newFont = await window.electronAPI.font.addCustomFont(result.filePaths[0]);
-        
-        // フォント一覧を再読み込み
-        await loadFonts();
-        
-        console.log('Font added successfully:', newFont.name);
-      }
+      // TODO: FontManagerにライセンス情報を含めたフォント追加機能を実装する必要がある
+      const newFont = await window.electronAPI.font.addCustomFont(fontPath, licensePath);
+      
+      // フォント一覧を再読み込み
+      await loadFonts();
+      
+      console.log('Font added successfully:', newFont.name);
     } catch (error) {
       console.error('Failed to add font:', error);
-      alert('Failed to add font: ' + (error instanceof Error ? error.message : String(error)));
+      throw error; // FontAddModalでエラーハンドリングされる
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +110,11 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     return `"${font.id}", system-ui, sans-serif`;
   };
 
+  const handleShowLicense = (font: FontInfo) => {
+    setLicenseFont(font);
+    setShowLicenseModal(true);
+  };
+
   if (!isOpen) {
     return null;
   }
@@ -154,16 +152,26 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                 {fonts.map((font) => (
                   <div
                     key={font.id}
-                    className={`font-item ${selectedFont === font.id ? 'selected' : ''}`}
+                    className={`font-card ${selectedFont === font.id ? 'selected' : ''}`}
                     onClick={() => setSelectedFont(font.id)}
                   >
                     <div className="font-header">
-                      <span className="font-name">
-                        {font.name}
+                      <div className="font-info">
+                        <span className="font-name">{font.name}</span>
                         {font.type === 'builtin' && (
                           <span className="builtin-badge">Built-in</span>
                         )}
-                      </span>
+                      </div>
+                      <button
+                        className="license-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowLicense(font);
+                        }}
+                        title="View license information"
+                      >
+                        LICENSE
+                      </button>
                     </div>
                     <div 
                       className="font-preview"
@@ -198,13 +206,26 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
             </button>
             <button
               className="add-font-button"
-              onClick={handleAddFont}
+              onClick={() => setShowAddModal(true)}
               disabled={isLoading}
             >
               Add Font
             </button>
           </div>
         </div>
+
+        {/* サブモーダル */}
+        <FontAddModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onAdd={handleAddFont}
+        />
+        
+        <FontLicenseModal
+          isOpen={showLicenseModal}
+          onClose={() => setShowLicenseModal(false)}
+          font={licenseFont}
+        />
       </div>
     </div>
   );

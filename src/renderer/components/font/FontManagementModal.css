@@ -107,7 +107,7 @@
   background: #fafafa;
 }
 
-.font-item {
+.font-card {
   background: white;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
@@ -117,18 +117,18 @@
   transition: all 0.2s;
 }
 
-.font-item:hover {
+.font-card:hover {
   border-color: #007bff;
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
 }
 
-.font-item.selected {
+.font-card.selected {
   border-color: #007bff;
   background-color: #f8f9ff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
-.font-item:last-child {
+.font-card:last-child {
   margin-bottom: 0;
 }
 
@@ -139,12 +139,15 @@
   margin-bottom: 8px;
 }
 
-.font-name {
-  font-weight: 600;
-  color: #333;
+.font-info {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.font-name {
+  font-weight: 600;
+  color: #333;
 }
 
 .builtin-badge {
@@ -154,6 +157,26 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
+}
+
+.license-button {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.license-button:hover {
+  background: #138496;
+}
+
+.license-button:active {
+  background: #0f6674;
 }
 
 .font-preview {

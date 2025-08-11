@@ -1,0 +1,194 @@
+.font-add-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.font-add-modal {
+  background: white;
+  border-radius: 8px;
+  width: 450px;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.font-add-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.font-add-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.close-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.font-add-modal-content {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section label {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.help-button {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  cursor: pointer;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.help-button:hover {
+  background: #0056b3;
+}
+
+.file-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.file-path-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #f9f9f9;
+  color: #666;
+}
+
+.file-path-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.file-select-button {
+  padding: 8px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-select-button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.file-select-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.font-add-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.cancel-button,
+.add-button {
+  padding: 8px 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.cancel-button {
+  background: white;
+  color: #666;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.add-button {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.add-button:hover:not(:disabled) {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.add-button:disabled {
+  background: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-button:disabled {
+  color: #999;
+  cursor: not-allowed;
+}

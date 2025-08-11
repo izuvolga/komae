@@ -68,6 +68,8 @@ export interface FontInfo {
   type: FontType;
   path: string; // ビルトインの場合は相対パス、カスタムの場合はプロジェクト内の相対パス
   filename?: string; // ファイル名（表示用）
+  license?: string; // ライセンステキスト全文（表示・エクスポート用）
+  licenseFile?: string; // ライセンスファイルパス（参照・管理用）
 }
 
 export interface FontManagerState {
