@@ -1,9 +1,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import { app } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
-import type { FontInfo, FontType, FontManagerState, ProjectData } from '../../types/entities';
+import type { FontInfo, FontType, FontManagerState, ProjectData, FontRegistry, FontRegistryEntry } from '../../types/entities';
 import { FontType as FontTypeEnum, DEFAULT_FONT_ID } from '../../types/entities';
 
 export class FontManager {
@@ -11,6 +12,11 @@ export class FontManager {
   private currentProjectPath: string | null = null;
   private logger = getLogger();
   private fontCache: Map<string, FontInfo> = new Map();
+  
+  // グローバルフォント管理
+  private globalFontsDir: string;
+  private registryFile: string;
+  private globalFontCache: Map<string, FontInfo> = new Map();
 
   // ビルトインフォントディレクトリ（アプリリソースから取得）
   private static readonly BUILTIN_FONTS_DIR = this.getBuiltinFontsDir();
@@ -37,6 +43,11 @@ export class FontManager {
 
   constructor() {
     this.fileSystemService = new FileSystemService();
+    
+    // グローバルフォント管理の初期化
+    this.globalFontsDir = path.join(app.getPath('userData'), 'fonts');
+    this.registryFile = path.join(this.globalFontsDir, 'fonts-registry.json');
+    this.ensureGlobalDirectories();
   }
 
   /**
@@ -127,7 +138,7 @@ export class FontManager {
                 id: fontId,
                 name: fontName,
                 type: FontTypeEnum.BUILTIN,
-                path: httpPath, // 例: "fonts/07やさしさゴシックボールド.ttf"
+                path: `builtin/fonts/${item}`, // komae-asset://builtin/fonts/用のパス
                 filename: item,
                 license,
                 licenseFile,
@@ -163,33 +174,26 @@ export class FontManager {
   }
 
   /**
-   * カスタムフォントを追加
+   * カスタムフォントを追加（グローバル保存）
    */
   async addCustomFont(fontFilePath: string, licenseFilePath?: string): Promise<FontInfo> {
     const tracker = new PerformanceTracker('add_custom_font');
 
     try {
-      if (!this.currentProjectPath) {
-        throw new Error('No project is currently open. Please open or create a project first.');
-      }
-
-      await this.logger.logDevelopment('add_custom_font_start', 'Adding custom font', {
+      await this.logger.logDevelopment('add_custom_font_start', 'Adding global custom font', {
         font_file: fontFilePath,
-        project_path: this.currentProjectPath,
+        global_fonts_dir: this.globalFontsDir,
       });
 
       // フォントファイルのバリデーション
       await this.validateFontFile(fontFilePath);
 
-      // プロジェクト内のフォントディレクトリを作成
-      const projectFontsDir = path.join(this.currentProjectPath, 'fonts');
-      if (!fs.existsSync(projectFontsDir)) {
-        fs.mkdirSync(projectFontsDir, { recursive: true });
-      }
+      // グローバルフォントディレクトリを確保
+      this.ensureGlobalDirectories();
 
-      // フォントファイルをプロジェクトにコピー
+      // フォントファイルをグローバルディレクトリにコピー
       const fileName = path.basename(fontFilePath);
-      const destinationPath = path.join(projectFontsDir, fileName);
+      const destinationPath = path.join(this.globalFontsDir, fileName);
       
       // 既存ファイルのチェック
       if (fs.existsSync(destinationPath)) {
@@ -204,14 +208,14 @@ export class FontManager {
       
       if (licenseFilePath && fs.existsSync(licenseFilePath)) {
         try {
-          // ライセンスファイルをプロジェクトにコピー
+          // ライセンスファイルをグローバルディレクトリにコピー
           const licenseFileName = path.basename(licenseFilePath);
-          const licenseDestinationPath = path.join(projectFontsDir, licenseFileName);
+          const licenseDestinationPath = path.join(this.globalFontsDir, licenseFileName);
           fs.copyFileSync(licenseFilePath, licenseDestinationPath);
           
           // ライセンスファイルの内容を読み込み
           license = fs.readFileSync(licenseFilePath, 'utf-8');
-          licenseFileRelativePath = path.relative(this.currentProjectPath, licenseDestinationPath);
+          licenseFileRelativePath = `global/fonts/${licenseFileName}`;
           
           await this.logger.logDevelopment('license_file_processed', 'License file processed', {
             license_file: licenseFilePath,
@@ -228,26 +232,39 @@ export class FontManager {
 
       // FontInfo作成
       const fontName = path.basename(fileName, path.extname(fileName));
-      const fontId = `custom-${uuidv4()}`;
-      const relativePath = path.relative(this.currentProjectPath, destinationPath);
+      const fontId = `global-${uuidv4()}`;
 
       const fontInfo: FontInfo = {
         id: fontId,
         name: fontName,
         type: FontTypeEnum.CUSTOM,
-        path: relativePath,
+        path: `global/fonts/${fileName}`,
         filename: fileName,
         license,
         licenseFile: licenseFileRelativePath,
       };
 
-      // キャッシュに保存
-      this.fontCache.set(fontId, fontInfo);
+      // レジストリを更新
+      const registry = await this.loadGlobalRegistry();
+      const registryEntry: FontRegistryEntry = {
+        id: fontId,
+        name: fontName,
+        filename: fileName,
+        licenseFile: licenseFileRelativePath,
+        license,
+        addedAt: new Date().toISOString(),
+      };
+      
+      registry.fonts.push(registryEntry);
+      await this.saveGlobalRegistry(registry);
 
-      await this.logger.logDevelopment('custom_font_added', 'Custom font added successfully', {
+      // キャッシュに保存
+      this.globalFontCache.set(fontId, fontInfo);
+
+      await this.logger.logDevelopment('global_font_added', 'Global custom font added successfully', {
         font_id: fontId,
         font_name: fontName,
-        destination: relativePath,
+        destination: destinationPath,
       });
 
       await tracker.end({ success: true, font_id: fontId });
@@ -256,7 +273,7 @@ export class FontManager {
     } catch (error) {
       await this.logger.logError('add_custom_font', error as Error, {
         font_file: fontFilePath,
-        project_path: this.currentProjectPath,
+        global_fonts_dir: this.globalFontsDir,
       });
 
       await tracker.end({ success: false, error: (error as Error).message });
@@ -265,36 +282,45 @@ export class FontManager {
   }
 
   /**
-   * カスタムフォントを削除
+   * カスタムフォントを削除（グローバルから）
    */
   async removeCustomFont(fontId: string): Promise<void> {
     const tracker = new PerformanceTracker('remove_custom_font');
 
     try {
-      if (!this.currentProjectPath) {
-        throw new Error('No project is currently open. Please open or create a project first.');
-      }
-
-      const fontInfo = this.fontCache.get(fontId);
+      const fontInfo = this.globalFontCache.get(fontId);
       if (!fontInfo || fontInfo.type !== FontTypeEnum.CUSTOM) {
-        throw new Error(`Custom font not found: ${fontId}`);
+        throw new Error(`Global custom font not found: ${fontId}`);
       }
 
-      await this.logger.logDevelopment('remove_custom_font_start', 'Removing custom font', {
+      await this.logger.logDevelopment('remove_custom_font_start', 'Removing global custom font', {
         font_id: fontId,
         font_name: fontInfo.name,
       });
 
-      // フォントファイルを削除
-      const fontFilePath = path.join(this.currentProjectPath, fontInfo.path);
+      // グローバルフォントファイルを削除
+      const fontFilePath = path.join(this.globalFontsDir, fontInfo.filename!);
       if (fs.existsSync(fontFilePath)) {
         fs.unlinkSync(fontFilePath);
       }
 
-      // キャッシュから削除
-      this.fontCache.delete(fontId);
+      // ライセンスファイルも削除
+      if (fontInfo.licenseFile) {
+        const licenseFilePath = path.join(this.globalFontsDir, path.basename(fontInfo.licenseFile));
+        if (fs.existsSync(licenseFilePath)) {
+          fs.unlinkSync(licenseFilePath);
+        }
+      }
 
-      await this.logger.logDevelopment('custom_font_removed', 'Custom font removed successfully', {
+      // レジストリから削除
+      const registry = await this.loadGlobalRegistry();
+      registry.fonts = registry.fonts.filter(f => f.id !== fontId);
+      await this.saveGlobalRegistry(registry);
+
+      // キャッシュから削除
+      this.globalFontCache.delete(fontId);
+
+      await this.logger.logDevelopment('global_font_removed', 'Global custom font removed successfully', {
         font_id: fontId,
         font_name: fontInfo.name,
       });
@@ -304,6 +330,7 @@ export class FontManager {
     } catch (error) {
       await this.logger.logError('remove_custom_font', error as Error, {
         font_id: fontId,
+        global_fonts_dir: this.globalFontsDir,
       });
 
       await tracker.end({ success: false, error: (error as Error).message });
@@ -312,7 +339,7 @@ export class FontManager {
   }
 
   /**
-   * 利用可能なフォント一覧を取得
+   * 利用可能なフォント一覧を取得（ビルトイン + グローバルカスタム）
    */
   async getAvailableFonts(project?: ProjectData): Promise<FontInfo[]> {
     try {
@@ -322,16 +349,9 @@ export class FontManager {
       const builtinFonts = await this.loadBuiltinFonts();
       fonts.push(...builtinFonts);
 
-      // プロジェクトのカスタムフォントを取得
-      if (project && project.fonts) {
-        const customFonts = Object.values(project.fonts);
-        fonts.push(...customFonts);
-        
-        // キャッシュにも保存
-        customFonts.forEach(font => {
-          this.fontCache.set(font.id, font);
-        });
-      }
+      // グローバルカスタムフォントを取得
+      const globalFonts = await this.loadGlobalFonts();
+      fonts.push(...globalFonts);
 
       return fonts;
 
@@ -345,7 +365,7 @@ export class FontManager {
    * フォント情報を取得
    */
   getFontInfo(fontId: string): FontInfo | null {
-    return this.fontCache.get(fontId) || null;
+    return this.fontCache.get(fontId) || this.globalFontCache.get(fontId) || null;
   }
 
   /**
@@ -394,5 +414,102 @@ export class FontManager {
    */
   clearCache(): void {
     this.fontCache.clear();
+    this.globalFontCache.clear();
+  }
+
+  /**
+   * グローバルフォントディレクトリを確保
+   */
+  private ensureGlobalDirectories(): void {
+    if (!fs.existsSync(this.globalFontsDir)) {
+      fs.mkdirSync(this.globalFontsDir, { recursive: true });
+    }
+  }
+
+  /**
+   * グローバルフォントレジストリを読み込み
+   */
+  private async loadGlobalRegistry(): Promise<FontRegistry> {
+    try {
+      if (fs.existsSync(this.registryFile)) {
+        const data = fs.readFileSync(this.registryFile, 'utf-8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      await this.logger.logError('load_global_registry', error as Error, {
+        registry_file: this.registryFile,
+      });
+    }
+    
+    // デフォルトレジストリを返す
+    return {
+      version: '1.0',
+      fonts: []
+    };
+  }
+
+  /**
+   * グローバルフォントレジストリを保存
+   */
+  private async saveGlobalRegistry(registry: FontRegistry): Promise<void> {
+    try {
+      fs.writeFileSync(this.registryFile, JSON.stringify(registry, null, 2), 'utf-8');
+      
+      await this.logger.logDevelopment('save_global_registry', 'Global font registry saved', {
+        registry_file: this.registryFile,
+        font_count: registry.fonts.length,
+      });
+    } catch (error) {
+      await this.logger.logError('save_global_registry', error as Error, {
+        registry_file: this.registryFile,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * グローバルフォントを読み込み
+   */
+  private async loadGlobalFonts(): Promise<FontInfo[]> {
+    try {
+      const registry = await this.loadGlobalRegistry();
+      const fonts: FontInfo[] = [];
+
+      for (const entry of registry.fonts) {
+        const fontPath = path.join(this.globalFontsDir, entry.filename);
+        
+        if (fs.existsSync(fontPath)) {
+          const fontInfo: FontInfo = {
+            id: entry.id,
+            name: entry.name,
+            type: FontTypeEnum.CUSTOM,
+            path: `global/fonts/${entry.filename}`, // komae-asset://global/fonts/用のパス
+            filename: entry.filename,
+            license: entry.license,
+            licenseFile: entry.licenseFile,
+          };
+          
+          fonts.push(fontInfo);
+          this.globalFontCache.set(entry.id, fontInfo);
+        } else {
+          // ファイルが存在しない場合は警告ログ
+          await this.logger.logDevelopment('global_font_missing', 'Global font file missing', {
+            font_id: entry.id,
+            expected_path: fontPath,
+          });
+        }
+      }
+
+      await this.logger.logDevelopment('load_global_fonts', 'Global fonts loaded', {
+        font_count: fonts.length,
+      });
+
+      return fonts;
+    } catch (error) {
+      await this.logger.logError('load_global_fonts', error as Error, {
+        global_fonts_dir: this.globalFontsDir,
+      });
+      return [];
+    }
   }
 }

@@ -10,18 +10,18 @@ const App: React.FC = () => {
   const errors = useProjectStore((state) => state.app.errors);
   const clearErrors = useProjectStore((state) => state.clearErrors);
 
-  // アプリ起動時にビルトインフォントを初期化
+  // アプリ起動時に全フォントを初期化
   useEffect(() => {
     const initializeFonts = async () => {
       try {
-        console.log('[App] Initializing builtin fonts...');
-        const fonts: FontInfo[] = await window.electronAPI.font.loadBuiltinFonts();
-        console.log(`[App] Loaded ${fonts.length} builtin fonts`);
+        console.log('[App] Initializing all fonts...');
+        const fonts: FontInfo[] = await window.electronAPI.font.getAvailableFonts();
+        console.log(`[App] Loaded ${fonts.length} fonts (builtin + global custom)`);
         
         // フォントをCSSに登録
         registerFontsInCSS(fonts);
       } catch (error) {
-        console.error('Failed to initialize builtin fonts:', error);
+        console.error('Failed to initialize fonts:', error);
       }
     };
 
@@ -43,8 +43,8 @@ const App: React.FC = () => {
     const fontFaceRules: string[] = [];
     
     fonts.forEach(font => {
-      if (font.type === 'builtin' && font.path !== 'system-ui') {
-        // ビルトインフォントをkomae-assetプロトコルで登録
+      if (font.path !== 'system-ui') {
+        // ビルトインフォントとグローバルカスタムフォントをkomae-assetプロトコルで登録
         const fontUrl = `komae-asset://${font.path}`;
         const fontFamily = font.id; // IDを使用してSVGと一致させる
         

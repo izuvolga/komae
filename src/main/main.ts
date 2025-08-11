@@ -517,7 +517,36 @@ class KomaeApp {
           
           let resolvedPath: string;
           
-          // ビルトインアセット（/fonts/で始まる）の処理
+          // ビルトインアセット（builtin/fonts/で始まる）の処理
+          if (filePath.startsWith('/builtin/fonts/')) {
+            // builtin/fonts/部分を除去
+            const fontFileName = filePath.substring('/builtin/fonts/'.length);
+            const isDev = process.env.NODE_ENV === 'development';
+            
+            if (isDev) {
+              // 開発環境: public/fonts ディレクトリ
+              resolvedPath = path.join(process.cwd(), 'public', 'fonts', fontFileName);
+            } else {
+              // プロダクション環境: アプリリソース内の public/fonts ディレクトリ
+              resolvedPath = path.join(app.getAppPath(), 'public', 'fonts', fontFileName);
+            }
+            
+            callback({ path: resolvedPath });
+            return;
+          }
+
+          // グローバルカスタムフォント（global/fonts/で始まる）の処理
+          if (filePath.startsWith('/global/fonts/')) {
+            // global/fonts/部分を除去
+            const fontFileName = filePath.substring('/global/fonts/'.length);
+            const globalFontsDir = path.join(app.getPath('userData'), 'fonts');
+            resolvedPath = path.join(globalFontsDir, fontFileName);
+            
+            callback({ path: resolvedPath });
+            return;
+          }
+
+          // 下位互換性: 従来の /fonts/ パターン（ビルトインフォントとして処理）
           if (filePath.startsWith('/fonts/')) {
             // 先頭のスラッシュを除去して正規化
             const normalizedPath = filePath.substring(1);

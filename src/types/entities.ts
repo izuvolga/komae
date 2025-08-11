@@ -77,6 +77,20 @@ export interface FontManagerState {
   defaultFontId: string;
 }
 
+export interface FontRegistry {
+  version: string;
+  fonts: FontRegistryEntry[];
+}
+
+export interface FontRegistryEntry {
+  id: string;
+  name: string;
+  filename: string;
+  licenseFile?: string;
+  license?: string;
+  addedAt: string;
+}
+
 // フォント定数
 export const DEFAULT_FONT_ID = 'system-ui';
 
@@ -194,7 +208,6 @@ export interface ProjectData {
   canvas: CanvasConfig;
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
-  fonts: Record<string, FontInfo>; // フォント管理
 }
 
 // UI状態

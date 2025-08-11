@@ -110,7 +110,6 @@ export class ProjectManager {
       canvas: params.canvas,
       assets: {},
       pages: [],
-      fonts: {},
     };
 
     // デフォルトページを作成
