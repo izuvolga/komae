@@ -101,9 +101,15 @@
 デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
 - [x]: ツールバーのメニューに、フォント管理の機能を追加。
 - [x]: TextAsset/TextAssetInstance 編集画面でフォントを選択できるようにする。
-- [ ]: ui-specification.md の "Font management" に従うようにして、フォント管理の機能を実装する。
+- [x]: ui-specification.md の "Font management" に従うようにして、フォント管理の機能を実装する。
   - `?` をクリックしてLICENSE の表示（データ構造上、LICENSEの情報を持たせる必要がある）
-- [ ]: ui-specification.md に従ったフォントのインポート機能を実装する
+- [x]: ui-specification.md に従ったフォントのインポート機能を実装する
+- [ ]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加した直後に Sample Text で内容をプレビューする画面があるが、追加された直後にフォントのプレビューが更新されないので、更新するようにする
+- [ ]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加するとき、カスタムフォントは現在一覧よりも下に追加されるが、フォントの一覧の先頭に追加されるようにする
+- [ ]: フォントID を global-xxxx ではなく、フォントのファイルごとに一意に定まるようにする。
+  - font-xxxx (xxxx はフォントファイルのハッシュ値) のようにする。
+  - 複数の端末で同じプロジェクトを共有する場合、フォントIDが同じでないと、フォントが正しく表示されないため。
+- [ ]: userData/fonts/ 配下のフォントを、userData/fonts/<fontId> というディレクトリに配置するようにする。現在、同名のフォントが存在すると上書きされてしまうため、フォントIDをディレクトリ名にすることで、同名のフォントが存在しても上書きされないようにする。
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
