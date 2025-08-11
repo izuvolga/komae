@@ -121,6 +121,7 @@
     ...
     ```
    - もし情報が取得できない場合には、ファイルが不正だと判断してエラーを表示する
+- [ ]: fonts-registry.json に存在しないフォントはデータ不整合なので自動削除するようにする
 - [ ]: Google フォントのフォントを追加する機能を実装する
   - Google フォントの場合には、ライセンス情報の取得のボタンは https://fonts.google.com/specimen/<URLエンコードしたフォント名>/license を開くようにする
   - UI は ui-specification.md の Font Management に従う
