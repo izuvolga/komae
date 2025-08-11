@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { app } from 'electron';
+import * as opentype from 'opentype.js';
 import { FileSystemService } from './FileSystemService';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import type { FontInfo, FontType, FontManagerState, ProjectData, FontRegistry, FontRegistryEntry } from '../../types/entities';
@@ -49,6 +50,56 @@ export class FontManager {
     const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
     // 最初の8文字を使用してfont-xxxxxxxxの形式にする
     return `font-${hash.substring(0, 8)}`;
+  }
+
+  /**
+   * フォントファイルからメタデータを抽出
+   */
+  private static extractFontMetadata(filePath: string): { fullName: string; family: string; subfamily: string } {
+    try {
+      const buffer = fs.readFileSync(filePath);
+      // Node.jsのBufferをArrayBufferに変換
+      const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+      const font = opentype.parse(arrayBuffer);
+      
+      // フォント名の優先順位:
+      // 1. Full name (name ID 4)
+      // 2. Family name + Subfamily name (name ID 1 + 2)
+      // 3. PostScript name (name ID 6)
+      // 4. ファイル名をフォールバック
+      
+      const names = font.names;
+      
+      // LocalizedNameから文字列を取得するヘルパー関数
+      const getLocalizedNameString = (localizedName: any): string => {
+        if (typeof localizedName === 'string') {
+          return localizedName;
+        }
+        // 英語を優先、なければ最初の言語を使用
+        return localizedName?.en || Object.values(localizedName || {})[0] as string || '';
+      };
+      
+      const fullNameStr = getLocalizedNameString(names.fullName);
+      const familyStr = getLocalizedNameString(names.fontFamily);
+      const subfamilyStr = getLocalizedNameString(names.fontSubfamily);
+      const postScriptStr = getLocalizedNameString(names.postScriptName);
+      
+      const fullName = fullNameStr || `${familyStr || ''} ${subfamilyStr || ''}`.trim();
+      const family = familyStr || postScriptStr || path.basename(filePath, path.extname(filePath));
+      const subfamily = subfamilyStr || 'Regular';
+      
+      if (!fullName && !familyStr) {
+        throw new Error('Font metadata extraction failed: no valid font names found');
+      }
+      
+      return {
+        fullName: fullName || family,
+        family,
+        subfamily
+      };
+    } catch (error) {
+      throw new Error(`Failed to extract font metadata: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   constructor() {
@@ -113,8 +164,18 @@ export class FontManager {
             const ext = path.extname(item).toLowerCase();
             
             if (FontManager.SUPPORTED_FONT_EXTENSIONS.includes(ext)) {
-              const fontName = path.basename(item, ext);
               const fontId = FontManager.generateFontId(itemPath);
+              
+              // フォントメタデータから適切な名前を取得
+              let fontName: string;
+              try {
+                const metadata = FontManager.extractFontMetadata(itemPath);
+                fontName = metadata.fullName;
+              } catch (error) {
+                // ビルトインフォントでメタデータ抽出に失敗した場合はファイル名をフォールバック
+                fontName = path.basename(item, ext);
+                console.warn(`Failed to extract metadata from builtin font ${itemPath}:`, error);
+              }
               
               // public/fontsからの相対パスをHTTP URLに変換
               const relativePath = path.relative(path.join(process.cwd(), 'public'), itemPath);
@@ -247,8 +308,24 @@ export class FontManager {
         }
       }
 
-      // FontInfo作成
-      const fontName = path.basename(fileName, path.extname(fileName));
+      // FontInfo作成 - メタデータから適切なフォント名を取得
+      let fontName: string;
+      try {
+        const metadata = FontManager.extractFontMetadata(fontFilePath);
+        fontName = metadata.fullName;
+        await this.logger.logDevelopment('font_metadata_extracted', 'Font metadata extracted successfully', {
+          font_id: fontId,
+          full_name: metadata.fullName,
+          family: metadata.family,
+          subfamily: metadata.subfamily,
+        });
+      } catch (error) {
+        // メタデータ抽出に失敗した場合はエラーを投げる（無効なフォントファイル）
+        await this.logger.logError('font_metadata_extraction_failed', error as Error, {
+          font_file: fontFilePath,
+        });
+        throw new Error(`Invalid font file: ${error instanceof Error ? error.message : String(error)}`);
+      }
 
       const fontInfo: FontInfo = {
         id: fontId,

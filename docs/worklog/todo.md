@@ -110,6 +110,20 @@
   - font-xxxx (xxxx はフォントファイルのハッシュ値) のようにする。
   - 複数の端末で同じプロジェクトを共有する場合、フォントIDが同じでないと、フォントが正しく表示されないため。
 - [x]: userData/fonts/ 配下のフォントを、userData/fonts/<fontId> というディレクトリに配置するようにする。現在、同名のフォントが存在すると上書きされてしまうため、フォントIDをディレクトリ名にすることで、同名のフォントが存在しても上書きされないようにする。
+- [ ]: TrueType/OpenType フォントを読み込んだときに、TrueType/OpenType のメタ情報を取得して、Full name の情報を自動的にフォント名として設定する。
+   - otfinfo コマンドで取得できる Full name 相当のもの
+    ```
+    $ otfinfo --info *.ttf
+    Family:              Dela Gothic One
+    Subfamily:           Regular
+    Full name:           Dela Gothic One Regular
+    PostScript name:     DelaGothicOne-Regular
+    ...
+    ```
+   - もし情報が取得できない場合には、ファイルが不正だと判断してエラーを表示する
+- [ ]: Google フォントのフォントを追加する機能を実装する
+  - Google フォントの場合には、ライセンス情報の取得のボタンは https://fonts.google.com/specimen/<URLエンコードしたフォント名>/license を開くようにする
+  - UI は ui-specification.md の Font Management に従う
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
