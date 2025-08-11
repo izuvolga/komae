@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { app } from 'electron';
-import { v4 as uuidv4 } from 'uuid';
 import { FileSystemService } from './FileSystemService';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import type { FontInfo, FontType, FontManagerState, ProjectData, FontRegistry, FontRegistryEntry } from '../../types/entities';
@@ -40,6 +40,16 @@ export class FontManager {
   
   // サポートするフォント拡張子
   private static readonly SUPPORTED_FONT_EXTENSIONS = ['.ttf', '.otf', '.woff', '.woff2'];
+
+  /**
+   * ファイルのSHA256ハッシュを計算してフォントIDを生成
+   */
+  private static generateFontId(filePath: string): string {
+    const fileBuffer = fs.readFileSync(filePath);
+    const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    // 最初の8文字を使用してfont-xxxxxxxxの形式にする
+    return `font-${hash.substring(0, 8)}`;
+  }
 
   constructor() {
     this.fileSystemService = new FileSystemService();
@@ -104,7 +114,7 @@ export class FontManager {
             
             if (FontManager.SUPPORTED_FONT_EXTENSIONS.includes(ext)) {
               const fontName = path.basename(item, ext);
-              const fontId = `builtin-${fontName.toLowerCase().replace(/[\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '-')}`;
+              const fontId = FontManager.generateFontId(itemPath);
               
               // public/fontsからの相対パスをHTTP URLに変換
               const relativePath = path.relative(path.join(process.cwd(), 'public'), itemPath);
@@ -191,13 +201,20 @@ export class FontManager {
       // グローバルフォントディレクトリを確保
       this.ensureGlobalDirectories();
 
-      // フォントファイルをグローバルディレクトリにコピー
+      // フォントファイルをフォントID別ディレクトリにコピー
       const fileName = path.basename(fontFilePath);
-      const destinationPath = path.join(this.globalFontsDir, fileName);
+      const fontId = FontManager.generateFontId(fontFilePath);
+      const fontDir = path.join(this.globalFontsDir, fontId);
+      const destinationPath = path.join(fontDir, fileName);
       
-      // 既存ファイルのチェック
+      // フォントディレクトリを作成
+      if (!fs.existsSync(fontDir)) {
+        fs.mkdirSync(fontDir, { recursive: true });
+      }
+      
+      // 既存ファイルのチェック（同じフォントIDの場合は上書きしない）
       if (fs.existsSync(destinationPath)) {
-        throw new Error(`Font file already exists: ${fileName}`);
+        throw new Error(`Font already exists: ${fileName} (ID: ${fontId})`);
       }
 
       fs.copyFileSync(fontFilePath, destinationPath);
@@ -208,14 +225,14 @@ export class FontManager {
       
       if (licenseFilePath && fs.existsSync(licenseFilePath)) {
         try {
-          // ライセンスファイルをグローバルディレクトリにコピー
+          // ライセンスファイルを同じフォントIDディレクトリにコピー
           const licenseFileName = path.basename(licenseFilePath);
-          const licenseDestinationPath = path.join(this.globalFontsDir, licenseFileName);
+          const licenseDestinationPath = path.join(fontDir, licenseFileName);
           fs.copyFileSync(licenseFilePath, licenseDestinationPath);
           
           // ライセンスファイルの内容を読み込み
           license = fs.readFileSync(licenseFilePath, 'utf-8');
-          licenseFileRelativePath = `global/fonts/${licenseFileName}`;
+          licenseFileRelativePath = `global/fonts/${fontId}/${licenseFileName}`;
           
           await this.logger.logDevelopment('license_file_processed', 'License file processed', {
             license_file: licenseFilePath,
@@ -232,13 +249,12 @@ export class FontManager {
 
       // FontInfo作成
       const fontName = path.basename(fileName, path.extname(fileName));
-      const fontId = `global-${uuidv4()}`;
 
       const fontInfo: FontInfo = {
         id: fontId,
         name: fontName,
         type: FontTypeEnum.CUSTOM,
-        path: `global/fonts/${fileName}`,
+        path: `global/fonts/${fontId}/${fileName}`,
         filename: fileName,
         license,
         licenseFile: licenseFileRelativePath,
@@ -298,18 +314,10 @@ export class FontManager {
         font_name: fontInfo.name,
       });
 
-      // グローバルフォントファイルを削除
-      const fontFilePath = path.join(this.globalFontsDir, fontInfo.filename!);
-      if (fs.existsSync(fontFilePath)) {
-        fs.unlinkSync(fontFilePath);
-      }
-
-      // ライセンスファイルも削除
-      if (fontInfo.licenseFile) {
-        const licenseFilePath = path.join(this.globalFontsDir, path.basename(fontInfo.licenseFile));
-        if (fs.existsSync(licenseFilePath)) {
-          fs.unlinkSync(licenseFilePath);
-        }
+      // フォントディレクトリ全体を削除（フォントファイルとライセンスファイルを含む）
+      const fontDir = path.join(this.globalFontsDir, fontId);
+      if (fs.existsSync(fontDir)) {
+        fs.rmSync(fontDir, { recursive: true, force: true });
       }
 
       // レジストリから削除
@@ -483,7 +491,7 @@ export class FontManager {
             id: entry.id,
             name: entry.name,
             type: FontTypeEnum.CUSTOM,
-            path: `global/fonts/${entry.filename}`, // komae-asset://global/fonts/用のパス
+            path: `global/fonts/${entry.id}/${entry.filename}`, // komae-asset://global/fonts/<fontId>/用のパス
             filename: entry.filename,
             license: entry.license,
             licenseFile: entry.licenseFile,

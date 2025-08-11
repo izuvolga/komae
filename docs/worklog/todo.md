@@ -104,8 +104,8 @@
 - [x]: ui-specification.md の "Font management" に従うようにして、フォント管理の機能を実装する。
   - `?` をクリックしてLICENSE の表示（データ構造上、LICENSEの情報を持たせる必要がある）
 - [x]: ui-specification.md に従ったフォントのインポート機能を実装する
-- [ ]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加した直後に Sample Text で内容をプレビューする画面があるが、追加された直後にフォントのプレビューが更新されないので、更新するようにする
-- [ ]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加するとき、カスタムフォントは現在一覧よりも下に追加されるが、フォントの一覧の先頭に追加されるようにする
+- [x]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加した直後に Sample Text で内容をプレビューする画面があるが、追加された直後にフォントのプレビューが更新されないので、更新するようにする
+- [x]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加するとき、カスタムフォントは現在一覧よりも下に追加されるが、フォントの一覧の先頭に追加されるようにする
 - [ ]: フォントID を global-xxxx ではなく、フォントのファイルごとに一意に定まるようにする。
   - font-xxxx (xxxx はフォントファイルのハッシュ値) のようにする。
   - 複数の端末で同じプロジェクトを共有する場合、フォントIDが同じでないと、フォントが正しく表示されないため。
