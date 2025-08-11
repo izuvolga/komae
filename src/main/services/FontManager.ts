@@ -484,7 +484,7 @@ export class FontManager {
       const fonts: FontInfo[] = [];
 
       for (const entry of registry.fonts) {
-        const fontPath = path.join(this.globalFontsDir, entry.filename);
+        const fontPath = path.join(this.globalFontsDir, entry.id, entry.filename);
         
         if (fs.existsSync(fontPath)) {
           const fontInfo: FontInfo = {

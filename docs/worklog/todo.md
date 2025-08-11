@@ -106,10 +106,10 @@
 - [x]: ui-specification.md に従ったフォントのインポート機能を実装する
 - [x]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加した直後に Sample Text で内容をプレビューする画面があるが、追加された直後にフォントのプレビューが更新されないので、更新するようにする
 - [x]: Font Management の画面 ( @src/renderer/components/font/FontManagementModal.tsx ) にフォント追加するとき、カスタムフォントは現在一覧よりも下に追加されるが、フォントの一覧の先頭に追加されるようにする
-- [ ]: フォントID を global-xxxx ではなく、フォントのファイルごとに一意に定まるようにする。
+- [x]: フォントID を global-xxxx ではなく、フォントのファイルごとに一意に定まるようにする。
   - font-xxxx (xxxx はフォントファイルのハッシュ値) のようにする。
   - 複数の端末で同じプロジェクトを共有する場合、フォントIDが同じでないと、フォントが正しく表示されないため。
-- [ ]: userData/fonts/ 配下のフォントを、userData/fonts/<fontId> というディレクトリに配置するようにする。現在、同名のフォントが存在すると上書きされてしまうため、フォントIDをディレクトリ名にすることで、同名のフォントが存在しても上書きされないようにする。
+- [x]: userData/fonts/ 配下のフォントを、userData/fonts/<fontId> というディレクトリに配置するようにする。現在、同名のフォントが存在すると上書きされてしまうため、フォントIDをディレクトリ名にすることで、同名のフォントが存在しても上書きされないようにする。
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
