@@ -51,19 +51,34 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
           <div className="license-content">
             {font.license ? (
               <pre className="license-text">{font.license}</pre>
+            ) : font.isGoogleFont ? (
+              <div className="google-fonts-license">
+                <p>This is a Google Fonts font. Google Fonts are generally licensed under open source licenses (such as OFL, Apache, etc.).</p>
+                <p>For detailed license information, please visit:</p>
+                <ul>
+                  <li>
+                    <a href="#" onClick={(e) => { 
+                      e.preventDefault(); 
+                      const encodedFontName = encodeURIComponent(font.name);
+                      handleExternalLink(`https://fonts.google.com/specimen/${encodedFontName}/license`); 
+                    }}>
+                      {font.name} License Page
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>
+                      Google Fonts General Information
+                    </a>
+                  </li>
+                </ul>
+              </div>
             ) : (
               <div className="no-license">
                 <p>No license information available for this font.</p>
-                {font.isGoogleFont && (
-                  <div className="google-fonts-license">
-                    <p>This is a Google Fonts font. Google Fonts are generally licensed under open source licenses (such as OFL, Apache, etc.).</p>
-                    <p>For specific license information, please visit: <a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>Google Fonts</a></p>
-                  </div>
-                )}
-                {font.type === 'builtin' && !font.isGoogleFont && (
+                {font.type === 'builtin' && (
                   <p>This is a built-in font. Please check the font's original license if you plan to use it commercially.</p>
                 )}
-                {font.type === 'custom' && !font.isGoogleFont && (
+                {font.type === 'custom' && (
                   <p>Consider adding license information when using this font in your projects.</p>
                 )}
               </div>
