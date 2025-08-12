@@ -5,6 +5,7 @@ import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageOverrides } from '../../../types/entities';
 import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData } from '../../../types/entities';
 import './TextEditModal.css';
+import {current} from 'immer';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -42,6 +43,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }>({ isValid: true });
   const [availableFonts, setAvailableFonts] = useState<FontInfo[]>([]);
   const [fontsLoading, setFontsLoading] = useState(false);
+  
+  // ドラッグ操作関連の状態
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0 });
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -75,6 +81,51 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   if (!isOpen || !editingAsset) return null;
 
+  // 現在の位置を取得（Asset vs Instance）
+  const getCurrentPosition = () => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      return {
+        x: langOverride?.override_pos_x ?? editingAsset.default_pos_x,
+        y: langOverride?.override_pos_y ?? editingAsset.default_pos_y,
+      };
+    }
+    return {
+      x: editingAsset.default_pos_x,
+      y: editingAsset.default_pos_y,
+    };
+  };
+
+  const currentPos = getCurrentPosition();
+
+  // 位置更新関数
+  const updatePosition = (x: number, y: number) => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      const currentOverrides = editingInstance.multilingual_overrides || {};
+      const langOverride = currentOverrides[currentLang] || {};
+      
+      setEditingInstance({
+        ...editingInstance,
+        multilingual_overrides: {
+          ...currentOverrides,
+          [currentLang]: {
+            ...langOverride,
+            override_pos_x: x,
+            override_pos_y: y,
+          },
+        },
+      });
+    } else {
+      setEditingAsset({
+        ...editingAsset,
+        default_pos_x: x,
+        default_pos_y: y,
+      });
+    }
+  };
+
   // 現在の値を取得する（instanceモードでは多言語overrideを確認）
   const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: keyof LanguageOverrides): any => {
     if (mode === 'instance' && editingInstance && langOverrideKey) {
@@ -85,6 +136,38 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
     }
     return editingAsset[assetField];
+  };
+
+  const getTextFrameSize = () => {
+    const pos = currentPos;
+    const scale = previewDimensions.scale;
+    const fontSize = getCurrentValue('font_size', 'override_font_size')
+    const charWidth = fontSize * previewDimensions.scale
+    const lines = getCurrentValue('default_text', 'override_text').split('\n');
+    const vertical = getCurrentValue('vertical', 'override_vertical');
+    const leading = getCurrentValue('leading', 'override_leading') || 1.2; // デフォルトの行間
+    let maxWidth = 0;
+    for (const line of lines) {
+      const lineLength = line.length;
+      if (lineLength > maxWidth) {
+        maxWidth = lineLength;
+      }
+    }
+    if (vertical) {
+      return {
+        top: pos.y * scale,
+        left: (pos.x - lines.length * fontSize + fontSize / 2) * scale,
+        height: (maxWidth * fontSize * leading) * scale,
+        width: (lines.length * fontSize ) * scale,
+      }
+    } else {
+      return {
+        top: (pos.y - fontSize) * scale,
+        left: pos.x * scale,
+        height: lines.length * charWidth,
+        width: maxWidth * charWidth,
+      }
+    }
   };
 
   const handleInputChange = (field: keyof TextAsset, value: any) => {
@@ -261,6 +344,67 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
   };
 
+  // ドラッグ操作のハンドラー
+  const handleTextMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDragging(true);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({ x: currentPos.x, y: currentPos.y });
+  };
+
+  // プレビューサイズを計算
+  const previewDimensions = useMemo(() => {
+    const canvasWidth = canvasConfig?.width || 800;
+    const canvasHeight = canvasConfig?.height || 600;
+    const maxPreviewWidth = 360;
+    const maxPreviewHeight = 300;
+    
+    // 縦横比を保持しながら最大サイズ内に収める
+    const widthRatio = maxPreviewWidth / canvasWidth;
+    const heightRatio = maxPreviewHeight / canvasHeight;
+    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
+    
+    return {
+      width: Math.round(canvasWidth * scale),
+      height: Math.round(canvasHeight * scale),
+      scale,
+    };
+  }, [canvasConfig]);
+
+  // グローバルマウスイベントの処理
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const deltaX = (e.clientX - dragStartPos.x) / previewDimensions.scale;
+        const deltaY = (e.clientY - dragStartPos.y) / previewDimensions.scale;
+        
+        // キャンバス境界内に制限
+        const canvasWidth = canvasConfig?.width || 800;
+        const canvasHeight = canvasConfig?.height || 600;
+        
+        const newX = Math.max(0, Math.min(canvasWidth - 50, dragStartValues.x + deltaX)); // 50px余裕を持たせる
+        const newY = Math.max(0, Math.min(canvasHeight - 50, dragStartValues.y + deltaY));
+        
+        updatePosition(newX, newY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragStartPos, dragStartValues, canvasConfig, previewDimensions.scale]);
+
   const handleSave = () => {
     if (mode === 'asset') {
       // TextAssetの全体バリデーション
@@ -285,25 +429,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
     onClose();
   };
-
-  // プレビューサイズを計算
-  const previewDimensions = useMemo(() => {
-    const canvasWidth = canvasConfig?.width || 800;
-    const canvasHeight = canvasConfig?.height || 600;
-    const maxPreviewWidth = 360;
-    const maxPreviewHeight = 300;
-    
-    // 縦横比を保持しながら最大サイズ内に収める
-    const widthRatio = maxPreviewWidth / canvasWidth;
-    const heightRatio = maxPreviewHeight / canvasHeight;
-    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
-    
-    return {
-      width: Math.round(canvasWidth * scale),
-      height: Math.round(canvasHeight * scale),
-      scale,
-    };
-  }, [canvasConfig]);
 
   // プレビュー用SVGを生成
   const previewSVG = useMemo(() => {
@@ -341,14 +466,50 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               width: previewDimensions.width,
               height: previewDimensions.height,
             }}>
-              <div
-                className="svg-preview"
-                dangerouslySetInnerHTML={{ __html: previewSVG }}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
+              <div className={`canvas-frame ${isDragging ? 'dragging' : ''}`} style={{ 
+                position: 'relative', 
+                width: previewDimensions.width,
+                height: previewDimensions.height,
+                border: '2px solid #007bff',
+                borderRadius: '4px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                backgroundColor: '#f8f9fa'
+              }}>
+                {/* SVGプレビュー */}
+                <div
+                  className="svg-preview"
+                  dangerouslySetInnerHTML={{ __html: previewSVG }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    pointerEvents: 'none', // SVG自体はクリック無効
+                  }}
+                />
+                
+                {/* ドラッグ可能領域（テキスト位置に配置） */}
+                <div
+                  className="text-drag-area"
+                  style={{
+                    position: 'absolute',
+                    left: `${getTextFrameSize().left}px`,
+                    top: `${getTextFrameSize().top}px`,
+                    width: `${getTextFrameSize().width}px`,
+                    height: `${getTextFrameSize().height}px`,
+                    // TODO: ドラッグ中にこの要素がアニメーションがひどく遅れるのが気になるので一旦透明にしておく
+                    backgroundColor: isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent',
+                    border: isDragging ? '2px dashed #007bff' : '1px dashed rgba(0, 123, 255, 0.3)',
+                    cursor: 'move',
+                    pointerEvents: 'all',
+                    zIndex: 2,
+                  }}
+                  onMouseDown={handleTextMouseDown}
+                  title="ドラッグしてテキスト位置を変更"
+                />
+              </div>
             </div>
           </div>
 

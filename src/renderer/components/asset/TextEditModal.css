@@ -353,3 +353,26 @@
   min-width: 40px;
   text-align: right;
 }
+
+/* Canvas Frame Styles */
+.canvas-frame {
+  user-select: none;
+}
+
+.canvas-frame.dragging {
+  cursor: move !important;
+}
+
+.canvas-frame.dragging * {
+  cursor: move !important;
+}
+
+/* Text Drag Area */
+.text-drag-area {
+  transition: all 0.2s ease;
+}
+
+.text-drag-area:hover {
+  background-color: rgba(0, 123, 255, 0.1) !important;
+  border-color: #007bff !important;
+}
