@@ -3,6 +3,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { NotificationDisplay } from './components/notification/NotificationDisplay';
 import { useProjectStore } from './stores/projectStore';
 import type { FontInfo } from '../types/entities';
+import { setFontInfoCache } from '../utils/svgGeneratorCommon';
 import './App.css';
 
 const App: React.FC = () => {
@@ -17,6 +18,16 @@ const App: React.FC = () => {
         console.log('[App] Initializing all fonts...');
         const fonts: FontInfo[] = await window.electronAPI.font.getAvailableFonts();
         console.log(`[App] Loaded ${fonts.length} fonts (builtin + global custom)`);
+        
+        // Google Fontsの詳細ログ
+        const googleFonts = fonts.filter(f => f.isGoogleFont);
+        console.log(`[App] Google Fonts count: ${googleFonts.length}`);
+        googleFonts.forEach(font => {
+          console.log(`[App] Google Font: ${font.name} (${font.id}) - URL: ${font.googleFontUrl}`);
+        });
+        
+        // フォント情報をSVG生成用にキャッシュ
+        setFontInfoCache(fonts);
         
         // フォントをCSSに登録
         registerFontsInCSS(fonts);
@@ -82,6 +93,10 @@ const App: React.FC = () => {
     document.head.appendChild(style);
     
     console.log(`[App] Registered ${fontFaceRules.length} font faces in CSS`);
+    
+    // Google Fontsリンクタグの確認
+    const googleFontLinks = document.querySelectorAll('link[data-komae-google-font]');
+    console.log(`[App] Total Google Fonts link tags: ${googleFontLinks.length}`);
   };
 
   // グローバルに公開してFontManagementModalから使用できるようにする
@@ -89,6 +104,7 @@ const App: React.FC = () => {
     (window as any).komaeApp = {
       refreshFonts: async () => {
         const fonts: FontInfo[] = await window.electronAPI.font.getAvailableFonts();
+        setFontInfoCache(fonts);
         registerFontsInCSS(fonts);
         return fonts;
       }

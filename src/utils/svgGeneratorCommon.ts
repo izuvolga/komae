@@ -1,5 +1,53 @@
-import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance, TextAssetInstance } from '../types/entities';
+import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, FontInfo } from '../types/entities';
 import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity } from '../types/entities';
+
+/**
+ * フォント情報のキャッシュ
+ * レンダラープロセスでのフォント情報取得用
+ */
+let fontInfoCache: FontInfo[] | null = null;
+
+/**
+ * フォント情報キャッシュを設定
+ */
+export function setFontInfoCache(fonts: FontInfo[]): void {
+  fontInfoCache = fonts;
+}
+
+/**
+ * フォント情報キャッシュを取得
+ */
+export function getFontInfoCache(): FontInfo[] | null {
+  return fontInfoCache;
+}
+
+/**
+ * フォントIDから適切なSVG用フォント名を取得
+ */
+function resolveSvgFontName(fontId: string): string {
+  // フォント情報がキャッシュされている場合は参照
+  if (fontInfoCache) {
+    const font = fontInfoCache.find(f => f.id === fontId);
+    if (font) {
+      if (font.isGoogleFont) {
+        // Google Fontsの場合はフォント名を使用
+        console.log(`[SVG] Resolved Google Font: ${fontId} -> "${font.name}"`);
+        return font.name;
+      } else if (font.id === 'system-ui') {
+        // システムフォントの場合
+        return 'system-ui, -apple-system, sans-serif';
+      } else {
+        // ビルトイン・カスタムフォントの場合はIDを使用
+        console.log(`[SVG] Resolved builtin/custom font: ${fontId} -> "${font.id}"`);
+        return font.id;
+      }
+    }
+  }
+  
+  // フォールバック：システムUIまたはフォントIDをそのまま使用
+  console.log(`[SVG] Font fallback: ${fontId} (no cache)`);
+  return fontId === 'system-ui' ? 'system-ui, -apple-system, sans-serif' : fontId;
+}
 
 /**
  * 共通のSVG構造生成ロジック
@@ -230,7 +278,7 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
  * 単一言語のテキスト要素を生成する（内部ヘルパー関数）
  */
 function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
-  const font = asset.font || 'Arial';
+  const font = resolveSvgFontName(asset.font || 'Arial');
   const strokeWidth = asset.stroke_width || 0;
   const strokeColor = asset.stroke_color || '#000000';
   const fillColor = asset.fill_color || '#FFFFFF';
