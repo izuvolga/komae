@@ -3,7 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageOverrides } from '../../../types/entities';
-import { getEffectiveZIndex } from '../../../types/entities';
+import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData } from '../../../types/entities';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -262,10 +262,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   const handleSave = () => {
-    if (mode === 'asset' && onSaveAsset) {
-      onSaveAsset(editingAsset);
-    } else if (mode === 'instance' && editingInstance && onSaveInstance) {
-      onSaveInstance(editingInstance);
+    if (mode === 'asset') {
+      // TextAssetの全体バリデーション
+      const validation = validateTextAssetData(editingAsset);
+      if (!validation.isValid) {
+        alert(validation.errors.join('\n'));
+        return;
+      }
+      if (onSaveAsset) {
+        onSaveAsset(editingAsset);
+      }
+    } else if (mode === 'instance' && editingInstance) {
+      // TextAssetInstanceの全体バリデーション
+      const validation = validateTextAssetInstanceData(editingInstance);
+      if (!validation.isValid) {
+        alert(validation.errors.join('\n'));
+        return;
+      }
+      if (onSaveInstance) {
+        onSaveInstance(editingInstance);
+      }
     }
     onClose();
   };

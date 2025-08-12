@@ -494,3 +494,135 @@ export function createTextAsset(params: {
     default_z_index: 0,
   };
 }
+
+// バリデーション関数
+
+/**
+ * 不透明度値のバリデーション（0-1の範囲チェック）
+ * @param value - チェック対象の値
+ * @param fieldName - フィールド名（エラーメッセージ用）
+ * @returns バリデーション結果
+ */
+export function validateOpacity(value: number | undefined, fieldName: string): { 
+  isValid: boolean; 
+  error?: string; 
+} {
+  if (value === undefined) {
+    return { isValid: true }; // undefinedは許可
+  }
+  
+  if (value < 0 || value > 1) {
+    return {
+      isValid: false,
+      error: `${fieldName}の値は0から1の範囲で入力してください。現在の値: ${value}`
+    };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * TextAssetのバリデーション
+ * @param asset - バリデーション対象のTextAsset
+ * @returns バリデーション結果
+ */
+export function validateTextAssetData(asset: TextAsset): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 不透明度のバリデーション
+  const opacityValidation = validateOpacity(asset.opacity, '不透明度');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  // フォントサイズのバリデーション
+  if (asset.font_size <= 0) {
+    errors.push(`フォントサイズは0より大きい値を入力してください。現在の値: ${asset.font_size}`);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * ImageAssetのバリデーション
+ * @param asset - バリデーション対象のImageAsset
+ * @returns バリデーション結果
+ */
+export function validateImageAssetData(asset: ImageAsset): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // デフォルト不透明度のバリデーション
+  const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * TextAssetInstanceのバリデーション
+ * @param instance - バリデーション対象のTextAssetInstance
+ * @returns バリデーション結果
+ */
+export function validateTextAssetInstanceData(instance: TextAssetInstance): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 多言語オーバーライドの不透明度バリデーション
+  if (instance.multilingual_overrides) {
+    for (const [lang, overrides] of Object.entries(instance.multilingual_overrides)) {
+      const opacityValidation = validateOpacity(overrides.override_opacity, `不透明度 (${lang})`);
+      if (!opacityValidation.isValid && opacityValidation.error) {
+        errors.push(opacityValidation.error);
+      }
+      
+      // フォントサイズのバリデーション
+      if (overrides.override_font_size !== undefined && overrides.override_font_size <= 0) {
+        errors.push(`フォントサイズ (${lang})は0より大きい値を入力してください。現在の値: ${overrides.override_font_size}`);
+      }
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * ImageAssetInstanceのバリデーション
+ * @param instance - バリデーション対象のImageAssetInstance
+ * @returns バリデーション結果
+ */
+export function validateImageAssetInstanceData(instance: ImageAssetInstance): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // オーバーライド不透明度のバリデーション
+  const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}

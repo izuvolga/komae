@@ -3,7 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
-import { getEffectiveZIndex } from '../../../types/entities';
+import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
 import './ImageAssetEditModal.css';
 
 // 編集モードの種類
@@ -306,10 +306,27 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'instance' && editedInstance && onSaveInstance) {
-      onSaveInstance(editedInstance);
-    } else if (mode === 'asset' && onSaveAsset) {
-      onSaveAsset(editedAsset);
+
+    if (mode === 'instance' && editedInstance) {
+      // ImageAssetInstanceの全体バリデーション
+      const validation = validateImageAssetInstanceData(editedInstance);
+      if (!validation.isValid) {
+        alert(validation.errors.join('\n'));
+        return;
+      }
+      if (onSaveInstance) {
+        onSaveInstance(editedInstance);
+      }
+    } else if (mode === 'asset') {
+      // ImageAssetの全体バリデーション
+      const validation = validateImageAssetData(editedAsset);
+      if (!validation.isValid) {
+        alert(validation.errors.join('\n'));
+        return;
+      }
+      if (onSaveAsset) {
+        onSaveAsset(editedAsset);
+      }
     }
     onClose();
   };
