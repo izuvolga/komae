@@ -57,6 +57,9 @@ const electronAPI = {
     addCustomFont: (fontFilePath: string, licenseFilePath?: string) => 
       ipcRenderer.invoke('font:addCustomFont', fontFilePath, licenseFilePath),
     
+    addGoogleFont: (googleFontUrl: string) => 
+      ipcRenderer.invoke('font:addGoogleFont', googleFontUrl),
+    
     removeCustomFont: (fontId: string) => 
       ipcRenderer.invoke('font:removeCustomFont', fontId),
     
@@ -95,6 +98,9 @@ const electronAPI = {
     
     showItemInFolder: (filePath: string): Promise<void> => 
       ipcRenderer.invoke('shell:showItemInFolder', filePath),
+    
+    openExternal: (url: string): Promise<void> => 
+      ipcRenderer.invoke('shell:openExternal', url),
   },
 
   // Logger Integration

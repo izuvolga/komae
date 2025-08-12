@@ -46,7 +46,6 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   const handleAddFont = async (fontPath: string, licensePath?: string) => {
     setIsLoading(true);
     try {
-      // TODO: FontManagerにライセンス情報を含めたフォント追加機能を実装する必要がある
       const newFont = await window.electronAPI.font.addCustomFont(fontPath, licensePath);
       
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
@@ -61,6 +60,29 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
       console.log('Font added successfully:', newFont.name);
     } catch (error) {
       console.error('Failed to add font:', error);
+      throw error; // FontAddModalでエラーハンドリングされる
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddGoogleFont = async (googleFontUrl: string) => {
+    setIsLoading(true);
+    try {
+      const newFont = await window.electronAPI.font.addGoogleFont(googleFontUrl);
+      
+      // CSS @font-faceルールを更新してフォント一覧も再読み込み
+      const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
+      if (refreshedFonts) {
+        setFonts(refreshedFonts);
+      } else {
+        // フォールバック：通常の再読み込み
+        await loadFonts();
+      }
+      
+      console.log('Google Font added successfully:', newFont.name);
+    } catch (error) {
+      console.error('Failed to add Google font:', error);
       throw error; // FontAddModalでエラーハンドリングされる
     } finally {
       setIsLoading(false);
@@ -118,6 +140,11 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
       return 'system-ui, -apple-system, sans-serif';
     }
     
+    // Google Fontsの場合はフォント名を使用
+    if (font.isGoogleFont) {
+      return `"${font.name}", system-ui, sans-serif`;
+    }
+    
     // ビルトインフォント・カスタムフォントの場合はIDを使用（CSS @font-faceで登録された名前と一致させる）
     return `"${font.id}", system-ui, sans-serif`;
   };
@@ -172,6 +199,9 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                         <span className="font-name">{font.name}</span>
                         {font.type === 'builtin' && (
                           <span className="builtin-badge">Built-in</span>
+                        )}
+                        {font.isGoogleFont && (
+                          <span className="google-fonts-badge">Google Fonts</span>
                         )}
                       </div>
                       <button
@@ -231,6 +261,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onAdd={handleAddFont}
+          onAddGoogleFont={handleAddGoogleFont}
         />
         
         <FontLicenseModal

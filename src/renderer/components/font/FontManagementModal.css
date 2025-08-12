@@ -159,6 +159,15 @@
   font-weight: 500;
 }
 
+.google-fonts-badge {
+  background: #4285f4;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .license-button {
   background: #17a2b8;
   color: white;

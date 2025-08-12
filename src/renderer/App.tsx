@@ -42,8 +42,21 @@ const App: React.FC = () => {
     
     const fontFaceRules: string[] = [];
     
+    // Google Fonts のリンクタグを管理
+    const existingGoogleFontLinks = document.querySelectorAll('link[data-komae-google-font]');
+    existingGoogleFontLinks.forEach(link => link.remove());
+    
     fonts.forEach(font => {
-      if (font.path !== 'system-ui') {
+      if (font.isGoogleFont && font.googleFontUrl) {
+        // Google Fonts の場合はlinkタグを作成
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = font.googleFontUrl;
+        link.setAttribute('data-komae-google-font', font.id);
+        document.head.appendChild(link);
+        
+        console.log(`[App] Added Google Fonts link: ${font.name} (${font.googleFontUrl})`);
+      } else if (font.path !== 'system-ui') {
         // ビルトインフォントとグローバルカスタムフォントをkomae-assetプロトコルで登録
         const fontUrl = `komae-asset://${font.path}`;
         const fontFamily = font.id; // IDを使用してSVGと一致させる

@@ -192,3 +192,54 @@
   color: #999;
   cursor: not-allowed;
 }
+
+/* ラジオボタングループ */
+.radio-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* テキスト入力 */
+.text-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.text-input:disabled {
+  background: #f9f9f9;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* フォームヘルプテキスト */
+.form-help {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.4;
+}

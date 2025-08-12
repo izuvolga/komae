@@ -70,6 +70,9 @@ export interface FontInfo {
   filename?: string; // ファイル名（表示用）
   license?: string; // ライセンステキスト全文（表示・エクスポート用）
   licenseFile?: string; // ライセンスファイルパス（参照・管理用）
+  // Google Fonts 用フィールド
+  isGoogleFont?: boolean;
+  googleFontUrl?: string;
 }
 
 export interface FontManagerState {
@@ -89,6 +92,9 @@ export interface FontRegistryEntry {
   licenseFile?: string;
   license?: string;
   addedAt: string;
+  // Google Fonts 用フィールド
+  isGoogleFont?: boolean;
+  googleFontUrl?: string;
 }
 
 // フォント定数

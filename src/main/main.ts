@@ -354,6 +354,15 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('font:addGoogleFont', async (event, googleFontUrl: string) => {
+      try {
+        return await this.fontManager.addGoogleFont(googleFontUrl);
+      } catch (error) {
+        console.error('Failed to add Google font:', error);
+        throw error;
+      }
+    });
+
     ipcMain.handle('font:removeCustomFont', async (event, fontId: string) => {
       try {
         await this.fontManager.removeCustomFont(fontId);
@@ -463,6 +472,11 @@ class KomaeApp {
     ipcMain.handle('shell:showItemInFolder', async (event, filePath: string) => {
       const { shell } = await import('electron');
       shell.showItemInFolder(filePath);
+    });
+
+    ipcMain.handle('shell:openExternal', async (event, url: string) => {
+      const { shell } = await import('electron');
+      await shell.openExternal(url);
     });
 
     // Logger Operations

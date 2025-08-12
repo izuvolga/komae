@@ -5,6 +5,7 @@ import { app } from 'electron';
 import * as opentype from 'opentype.js';
 import { FileSystemService } from './FileSystemService';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
+import { parseGoogleFontUrl, generateGoogleFontId } from '../../utils/googleFontsUtils';
 import type { FontInfo, FontType, FontManagerState, ProjectData, FontRegistry, FontRegistryEntry } from '../../types/entities';
 import { FontType as FontTypeEnum, DEFAULT_FONT_ID } from '../../types/entities';
 
@@ -240,6 +241,76 @@ export class FontManager {
       });
 
       await tracker.end({ success: false, error: (error as Error).message });
+      throw error;
+    }
+  }
+
+
+  /**
+   * Google Fontを追加
+   */
+  async addGoogleFont(googleFontUrl: string): Promise<FontInfo> {
+    const tracker = new PerformanceTracker('add_google_font');
+    
+    try {
+      await this.logger.logDevelopment('add_google_font_start', 'Adding Google font', {
+        url: googleFontUrl,
+      });
+
+      // Google Fonts URL の解析
+      const { fontName } = parseGoogleFontUrl(googleFontUrl);
+      const fontId = generateGoogleFontId(googleFontUrl);
+      
+      // グローバルフォントディレクトリを確保
+      this.ensureGlobalDirectories();
+
+      // 同じIDのフォントが既に存在するかチェック
+      const registry = await this.loadGlobalRegistry();
+      const existingFont = registry.fonts.find(f => f.id === fontId);
+      if (existingFont) {
+        throw new Error(`このGoogle Fontは既に追加済みです: ${fontName}`);
+      }
+
+      // FontInfo作成
+      const fontInfo: FontInfo = {
+        id: fontId,
+        name: fontName,
+        type: FontTypeEnum.CUSTOM,
+        path: googleFontUrl, // URLをパスとして保存
+        filename: '', // Google Fontsはファイル名なし
+        isGoogleFont: true,
+        googleFontUrl: googleFontUrl,
+      };
+
+      // レジストリエントリ作成
+      const registryEntry: FontRegistryEntry = {
+        id: fontId,
+        name: fontName,
+        filename: '', // Google Fontsはファイル名なし
+        isGoogleFont: true,
+        googleFontUrl: googleFontUrl,
+        addedAt: new Date().toISOString(),
+      };
+      
+      registry.fonts.push(registryEntry);
+      await this.saveGlobalRegistry(registry);
+      
+      // キャッシュに保存
+      this.globalFontCache.set(fontId, fontInfo);
+
+      await this.logger.logDevelopment('google_font_added', 'Google font added successfully', {
+        font_id: fontId,
+        font_name: fontName,
+        url: googleFontUrl,
+      });
+
+      await tracker.end({ success: true, font_id: fontId });
+      return fontInfo;
+    } catch (error) {
+      await this.logger.logError('add_google_font', error as Error, {
+        url: googleFontUrl,
+      });
+      await tracker.end({ success: false, error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -563,15 +634,21 @@ export class FontManager {
       const invalidEntries: FontRegistryEntry[] = [];
       
       for (const entry of registry.fonts) {
-        const fontPath = path.join(this.globalFontsDir, entry.id, entry.filename);
-        if (fs.existsSync(fontPath)) {
+        if (entry.isGoogleFont) {
+          // Google Fontsはファイルチェック不要
           validEntries.push(entry);
         } else {
-          invalidEntries.push(entry);
-          await this.logger.logDevelopment('global_font_missing', 'Global font file missing', {
-            font_id: entry.id,
-            expected_path: fontPath,
-          });
+          // 埋め込みフォントはファイル存在チェック
+          const fontPath = path.join(this.globalFontsDir, entry.id, entry.filename);
+          if (fs.existsSync(fontPath)) {
+            validEntries.push(entry);
+          } else {
+            invalidEntries.push(entry);
+            await this.logger.logDevelopment('global_font_missing', 'Global font file missing', {
+              font_id: entry.id,
+              expected_path: fontPath,
+            });
+          }
         }
       }
       
@@ -611,6 +688,7 @@ export class FontManager {
       
       for (const dirName of existingDirectories) {
         // フォントIDの形式チェック（font-xxxxxxxx形式）
+        // Google Fontsは除外（ディレクトリを持たない）
         if (dirName.startsWith('font-') && !validFontIds.has(dirName)) {
           orphanedDirectories.push(dirName);
         }
@@ -698,10 +776,12 @@ export class FontManager {
         id: entry.id,
         name: entry.name,
         type: FontTypeEnum.CUSTOM,
-        path: `global/fonts/${entry.id}/${entry.filename}`,
+        path: entry.isGoogleFont ? entry.googleFontUrl! : `global/fonts/${entry.id}/${entry.filename}`,
         filename: entry.filename,
         license: entry.license,
         licenseFile: entry.licenseFile,
+        isGoogleFont: entry.isGoogleFont,
+        googleFontUrl: entry.googleFontUrl,
       };
       
       fonts.push(fontInfo);
@@ -710,6 +790,8 @@ export class FontManager {
 
     this.logger.logDevelopment('load_global_fonts', 'Global fonts loaded', {
       font_count: fonts.length,
+      google_fonts_count: fonts.filter(f => f.isGoogleFont).length,
+      embedded_fonts_count: fonts.filter(f => !f.isGoogleFont).length,
     });
     
     return fonts;
