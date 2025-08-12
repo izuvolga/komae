@@ -556,21 +556,27 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-row">
                 <label>
                   不透明度:
-                  <input
-                    type="number"
-                    value={formatNumberForDisplay(getCurrentValue('opacity', 'override_opacity'))}
-                    onChange={(e) => {
-                      const numValue = parseFloat(e.target.value) || 0;
-                      if (mode === 'asset') {
-                        handleInputChange('opacity', numValue);
-                      } else {
-                        handleInstanceChange('override_opacity', numValue);
-                      }
-                    }}
-                    min="0"
-                    max="1"
-                    step="0.01"
-                  />
+                  <div className="opacity-controls">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={getCurrentValue('opacity', 'override_opacity')}
+                      onChange={(e) => {
+                        const numValue = parseFloat(e.target.value);
+                        if (mode === 'asset') {
+                          handleInputChange('opacity', numValue);
+                        } else {
+                          handleInstanceChange('override_opacity', numValue);
+                        }
+                      }}
+                      className="opacity-slider"
+                    />
+                    <span className="opacity-value">
+                      {getCurrentValue('opacity', 'override_opacity').toFixed(2)}
+                    </span>
+                  </div>
                 </label>
               </div>
 
