@@ -63,8 +63,8 @@
 - [x]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 - [x]: Asset/AssetInstance の編集画面の数値の入力フィールドに上下ボタンを追加して、数値を増減できるようにする。増減の単位は1ずつ。小数を含む場合でも1ずつ増減できるようにする。
 - [x]: システムのビルトインのフォントが、一旦 Custom Font 画面を開かないと利用できるようにならない。アプリ起動直後に利用できるようにしたい。
-- [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
 - [ ]: TextAsset/TextAssetInstance の opacity のテキストボックスに1 以上の値を入力しつつ、「保存」を押すと保存できてしまうが、opacityは1を超えるとエラーのため、プロジェクトが開けなくなる。
+- [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
 - [ ]: TextAssetInstance の Edit 画面で「縦書き」および「フォント」を各言語で override できるようにする
 - [ ]: Preview Window の「自動ズーム」と「キャンバスをプレビュー画面に収める」を統合する
   - 事実上「キャンバスをプレビュー画面に収める」と「自動ズーム」は同じ挙動をする機能なので、統合する。
@@ -131,7 +131,7 @@
 - [x]: buitin フォントも custom フォントと同様に json による管理を行って統一的に管理する
   - 特定の環境変数が有効な場合には、ビルトインフォントのDELETE/ADD も可能とする
   - ビルトインフォントの場合、public/fonts/ 配下に json とファイルを配置する
-- [ ]: Google フォントも HTML としてエクスポートできることを確認
+- [x]: Google フォントも HTML としてエクスポートできることを確認
 
 ## 多言語テキスト作成支援
 ui-specification.md の Project Creation / Project Header を参照
@@ -148,8 +148,10 @@ ui-specification.md の Project Creation / Project Header を参照
 
 ## 大きめの改善
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
-- [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造をにするか...要検討）
-- [ ]: Asset Library の Asset をソートする機能をほしい
+- [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
+- [ ]: Asset Library の Asset を自動でソートする機能をほしい
+  - 種類ごと
+  - 名前順
 - [ ]: SpreadSheet Window の列のバルク操作に、列自体を非表示にする機能を追加
 - [ ]: TextAsset に rotate を対応する
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
