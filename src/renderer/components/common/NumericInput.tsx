@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './NumericInput.css';
 
 interface NumericInputProps {
@@ -30,6 +30,37 @@ export const NumericInput: React.FC<NumericInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(value.toString());
   const [isEditing, setIsEditing] = useState(false);
+  
+  // 連続増減のためのタイマー管理
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isPressingRef = useRef(false);
+  
+  // 現在の値をリアルタイムで参照するためのref
+  const currentValueRef = useRef(value);
+  
+  // valueが変更されたらrefも更新
+  useEffect(() => {
+    currentValueRef.current = value;
+  }, [value]);
+
+  // タイマーをクリアする関数
+  const clearTimers = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    isPressingRef.current = false;
+  }, []);
+
+  // コンポーネントのクリーンアップ
+  useEffect(() => {
+    return clearTimers;
+  }, [clearTimers]);
 
   // 数値を指定した小数点以下桁数で丸める
   const formatNumber = useCallback((num: number): number => {
@@ -92,30 +123,98 @@ export const NumericInput: React.FC<NumericInputProps> = ({
     }
   }, []);
 
-  // 上ボタンクリック（+1）
-  const handleIncrement = useCallback(() => {
+  // 値を増加させる関数
+  const performIncrement = useCallback(() => {
     if (disabled) return;
     
-    const newValue = formatNumber(value + step);
+    const currentValue = currentValueRef.current;
+    const newValue = formatNumber(currentValue + step);
+    
     if (max === undefined || newValue <= max) {
       onChange(newValue);
       setInputValue(newValue.toString());
+    } else {
+      clearTimers();
     }
-  }, [value, step, max, disabled, formatNumber, onChange]);
+  }, [step, max, disabled, formatNumber, onChange, clearTimers]);
 
-  // 下ボタンクリック（-1）
-  const handleDecrement = useCallback(() => {
+  // 値を減少させる関数
+  const performDecrement = useCallback(() => {
     if (disabled) return;
     
-    const newValue = formatNumber(value - step);
+    const currentValue = currentValueRef.current;
+    const newValue = formatNumber(currentValue - step);
+    
     if (min === undefined || newValue >= min) {
       onChange(newValue);
       setInputValue(newValue.toString());
+    } else {
+      clearTimers();
     }
-  }, [value, step, min, disabled, formatNumber, onChange]);
+  }, [step, min, disabled, formatNumber, onChange, clearTimers]);
+
+  // 連続増減を開始する関数
+  const startContinuousChange = useCallback((incrementFn: () => void) => {
+    if (disabled || isPressingRef.current) return;
+    
+    isPressingRef.current = true;
+    
+    // 最初の変更を即座に実行
+    incrementFn();
+    
+    // 初期遅延後に連続実行を開始（500ms後）
+    timeoutRef.current = setTimeout(() => {
+      if (isPressingRef.current) {
+        intervalRef.current = setInterval(() => {
+          if (isPressingRef.current) {
+            incrementFn();
+          } else {
+            clearTimers();
+          }
+        }, 100); // 100ms間隔で連続実行
+      }
+    }, 500);
+  }, [disabled, clearTimers]);
+
+  // マウスダウン時の処理（増加ボタン）
+  const handleIncrementMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    startContinuousChange(performIncrement);
+  }, [startContinuousChange, performIncrement]);
+
+  // マウスダウン時の処理（減少ボタン）
+  const handleDecrementMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    startContinuousChange(performDecrement);
+  }, [startContinuousChange, performDecrement]);
+
+  // マウスアップ時やリーブ時の処理
+  const handleMouseUpOrLeave = useCallback(() => {
+    clearTimers();
+  }, [clearTimers]);
 
   // 表示用の値を決定
   const displayValue = isEditing ? inputValue : value.toFixed(decimals);
+
+  // グローバルマウスイベントのリスナーを追加（マウスアップ時にタイマーをクリア）
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      clearTimers();
+    };
+
+    // ページがフォーカスを失った時にもタイマーをクリア
+    const handleBlur = () => {
+      clearTimers();
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [clearTimers]);
 
   return (
     <div className={`numeric-input ${className} ${disabled ? 'disabled' : ''}`}>
@@ -134,18 +233,22 @@ export const NumericInput: React.FC<NumericInputProps> = ({
         <button
           type="button"
           className="numeric-input-btn increment"
-          onClick={handleIncrement}
+          onMouseDown={handleIncrementMouseDown}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
           disabled={disabled || (max !== undefined && value >= max)}
-          title="増加 (+1)"
+          title="長押しで連続増加"
         >
           ▲
         </button>
         <button
           type="button"
           className="numeric-input-btn decrement"
-          onClick={handleDecrement}
+          onMouseDown={handleDecrementMouseDown}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
           disabled={disabled || (min !== undefined && value <= min)}
-          title="減少 (-1)"
+          title="長押しで連続減少"
         >
           ▼
         </button>
