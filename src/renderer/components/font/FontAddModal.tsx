@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './FontAddModal.css';
 import { FontAddHelpModal } from './FontAddHelpModal';
+import { FontLicenseHelpModal } from './FontLicenseHelpModal';
 
 interface FontAddModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   const [googleFontUrl, setGoogleFontUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showLicenseHelpModal, setShowLicenseHelpModal] = useState(false);
 
   // 管理者モードかどうかを確認
   useEffect(() => {
@@ -169,21 +171,12 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
     setLicenseFile('');
     setGoogleFontUrl('');
     setShowHelpModal(false);
+    setShowLicenseHelpModal(false);
     onClose();
   };
 
   const showLicenseHelp = () => {
-    const helpMessage = `ライセンス情報について:
-
-• フォントはHTMLファイルのエクスポート時にファイルに埋め込まれます
-• HTMLファイルのビューワーに著作権表示がされるページも追加されます
-• フォントを利用する際には、ライセンス情報を確認することが推奨されます
-• 特に以下の点をよく確認してください:
-  - 商用利用が可能かどうか
-  - 組み込み利用が可能かどうか
-  - 再配布が可能かどうか`;
-
-    alert(helpMessage);
+    setShowLicenseHelpModal(true);
   };
 
   return (
@@ -408,6 +401,11 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
       <FontAddHelpModal 
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
+      />
+      
+      <FontLicenseHelpModal 
+        isOpen={showLicenseHelpModal}
+        onClose={() => setShowLicenseHelpModal(false)}
       />
     </div>
   );
