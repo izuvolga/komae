@@ -157,7 +157,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       return {
         top: pos.y * scale,
         left: (pos.x - lines.length * fontSize + fontSize / 2) * scale,
-        height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2,
+        height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2, // ヒューリスティックな調整:1.2くらいでちょうどよくなる。
         width: (lines.length * fontSize ) * scale,
       }
     } else {
