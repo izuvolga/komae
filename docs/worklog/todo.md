@@ -127,7 +127,7 @@
 - [x]: Google フォントのフォントを追加する機能を実装する
   - Google フォントの場合には、ライセンス情報の取得のボタンは https://fonts.google.com/specimen/<URLエンコードしたフォント名>/license を開くようにする
   - UI は ui-specification.md の Font Management に従う
-- [ ]: buitin フォントも custom フォントと同様に json による管理を行って統一的に管理する
+- [x]: buitin フォントも custom フォントと同様に json による管理を行って統一的に管理する
   - 特定の環境変数が有効な場合には、ビルトインフォントのDELETE/ADD も可能とする
   - ビルトインフォントの場合、public/fonts/ 配下に json とファイルを配置する
 
