@@ -557,44 +557,161 @@ export class FontManager {
    */
   private async loadGlobalFonts(): Promise<FontInfo[]> {
     try {
+      // Phase 1: レジストリベースの不整合チェック
       const registry = await this.loadGlobalRegistry();
-      const fonts: FontInfo[] = [];
-
+      const validEntries: FontRegistryEntry[] = [];
+      const invalidEntries: FontRegistryEntry[] = [];
+      
       for (const entry of registry.fonts) {
         const fontPath = path.join(this.globalFontsDir, entry.id, entry.filename);
-        
         if (fs.existsSync(fontPath)) {
-          const fontInfo: FontInfo = {
-            id: entry.id,
-            name: entry.name,
-            type: FontTypeEnum.CUSTOM,
-            path: `global/fonts/${entry.id}/${entry.filename}`, // komae-asset://global/fonts/<fontId>/用のパス
-            filename: entry.filename,
-            license: entry.license,
-            licenseFile: entry.licenseFile,
-          };
-          
-          fonts.push(fontInfo);
-          this.globalFontCache.set(entry.id, fontInfo);
+          validEntries.push(entry);
         } else {
-          // ファイルが存在しない場合は警告ログ
+          invalidEntries.push(entry);
           await this.logger.logDevelopment('global_font_missing', 'Global font file missing', {
             font_id: entry.id,
             expected_path: fontPath,
           });
         }
       }
-
-      await this.logger.logDevelopment('load_global_fonts', 'Global fonts loaded', {
-        font_count: fonts.length,
-      });
-
-      return fonts;
+      
+      // Phase 2: ファイルシステムベースの不整合チェック
+      const orphanedDirectories = await this.findOrphanedFontDirectories(validEntries);
+      
+      // 不整合データの一括修正
+      if (invalidEntries.length > 0 || orphanedDirectories.length > 0) {
+        await this.cleanupInconsistentData(invalidEntries, orphanedDirectories, validEntries);
+      }
+      
+      // 正常なフォント情報のみを構築して返す
+      return this.buildFontInfoList(validEntries);
     } catch (error) {
       await this.logger.logError('load_global_fonts', error as Error, {
         global_fonts_dir: this.globalFontsDir,
       });
       return [];
     }
+  }
+
+  /**
+   * レジストリに存在しない孤立したフォントディレクトリを検出
+   */
+  private async findOrphanedFontDirectories(validEntries: FontRegistryEntry[]): Promise<string[]> {
+    const orphanedDirectories: string[] = [];
+    
+    try {
+      if (!fs.existsSync(this.globalFontsDir)) {
+        return orphanedDirectories;
+      }
+      
+      const validFontIds = new Set(validEntries.map(entry => entry.id));
+      const existingDirectories = fs.readdirSync(this.globalFontsDir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+      
+      for (const dirName of existingDirectories) {
+        // フォントIDの形式チェック（font-xxxxxxxx形式）
+        if (dirName.startsWith('font-') && !validFontIds.has(dirName)) {
+          orphanedDirectories.push(dirName);
+        }
+      }
+      
+      if (orphanedDirectories.length > 0) {
+        await this.logger.logDevelopment('orphaned_directories_found', 'Orphaned font directories detected', {
+          directories: orphanedDirectories,
+        });
+      }
+    } catch (error) {
+      await this.logger.logError('find_orphaned_directories', error as Error);
+    }
+    
+    return orphanedDirectories;
+  }
+
+  /**
+   * 不整合データの一括修正処理
+   */
+  private async cleanupInconsistentData(
+    invalidEntries: FontRegistryEntry[],
+    orphanedDirectories: string[],
+    validEntries: FontRegistryEntry[]
+  ): Promise<void> {
+    try {
+      await this.logger.logDevelopment('font_inconsistency_detected', 'Font data inconsistency detected', {
+        invalid_registry_entries: invalidEntries.length,
+        orphaned_directories: orphanedDirectories.length,
+      });
+      
+      // 孤立ディレクトリの削除
+      for (const dirName of orphanedDirectories) {
+        const dirPath = path.join(this.globalFontsDir, dirName);
+        try {
+          fs.rmSync(dirPath, { recursive: true, force: true });
+          await this.logger.logDevelopment('orphaned_directory_removed', 'Orphaned font directory removed', {
+            directory: dirName,
+            path: dirPath,
+          });
+        } catch (error) {
+          await this.logger.logError('remove_orphaned_directory', error as Error, {
+            directory: dirName,
+            path: dirPath,
+          });
+        }
+      }
+      
+      // レジストリの修正（有効なエントリのみ保持）
+      if (invalidEntries.length > 0) {
+        const updatedRegistry: FontRegistry = {
+          version: '1.0',
+          fonts: validEntries
+        };
+        
+        await this.saveGlobalRegistry(updatedRegistry);
+        
+        // 無効なエントリをキャッシュからも削除
+        for (const entry of invalidEntries) {
+          this.globalFontCache.delete(entry.id);
+        }
+        
+        await this.logger.logDevelopment('invalid_registry_entries_removed', 'Invalid registry entries removed', {
+          removed_entries: invalidEntries.map(e => ({ id: e.id, name: e.name })),
+        });
+      }
+      
+      await this.logger.logDevelopment('font_inconsistency_repaired', 'Font data inconsistency repaired successfully', {
+        removed_registry_entries: invalidEntries.length,
+        removed_directories: orphanedDirectories.length,
+      });
+    } catch (error) {
+      await this.logger.logError('cleanup_inconsistent_data', error as Error);
+    }
+  }
+
+  /**
+   * 有効なレジストリエントリからFontInfo配列を構築
+   */
+  private buildFontInfoList(validEntries: FontRegistryEntry[]): FontInfo[] {
+    const fonts: FontInfo[] = [];
+    
+    for (const entry of validEntries) {
+      const fontInfo: FontInfo = {
+        id: entry.id,
+        name: entry.name,
+        type: FontTypeEnum.CUSTOM,
+        path: `global/fonts/${entry.id}/${entry.filename}`,
+        filename: entry.filename,
+        license: entry.license,
+        licenseFile: entry.licenseFile,
+      };
+      
+      fonts.push(fontInfo);
+      this.globalFontCache.set(entry.id, fontInfo);
+    }
+
+    this.logger.logDevelopment('load_global_fonts', 'Global fonts loaded', {
+      font_count: fonts.length,
+    });
+    
+    return fonts;
   }
 }
