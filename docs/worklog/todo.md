@@ -49,6 +49,7 @@
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
   - ./docs/design/html-export.md の "HTML Viwer" の見出し参照
 - [ ]: エクスポート時に、ページ送り、ページタップ範囲のデフォルトの値を指定できるようにする
+- [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## 細かい改善
 - [x]: SpreadSheetWindow のセルを非表示にすると編集ボタンが消えてしまうが編集ボタンは常に表示しててほしい。
@@ -64,9 +65,8 @@
 - [x]: AssetManager.ts の Asset 初期化処理も entities.ts にまとめる
 - [x]: Asset/AssetInstance の編集画面の数値の入力フィールドに上下ボタンを追加して、数値を増減できるようにする。増減の単位は1ずつ。小数を含む場合でも1ずつ増減できるようにする。
 - [x]: システムのビルトインのフォントが、一旦 Custom Font 画面を開かないと利用できるようにならない。アプリ起動直後に利用できるようにしたい。
-- [ ]: TextAsset/TextAssetInstance の opacity のテキストボックスに1 以上の値を入力しつつ、「保存」を押すと保存できてしまうが、opacityは1を超えるとエラーのため、プロジェクトが開けなくなる。
+- [x]: TextAsset/TextAssetInstance の opacity のテキストボックスに1 以上の値を入力しつつ、「保存」を押すと保存できてしまうが、opacityは1を超えるとエラーのため、プロジェクトが開けなくなる。
 - [ ]: Asset/AssetInstance の編集画面の数値の入力フィールドの上下ボタンだが、押しっぱなしで連続して増減できるようにする。
-- [ ]: TextAsset/TextAssetInstance の opacity のテキストボックスに1 以上の値を入力しつつ、「保存」を押すと保存できてしまうが、opacityは1を超えるとエラーのため、プロジェクトが開けなくなる。
 - [ ]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
 - [ ]: TextAssetInstance の Edit 画面で「縦書き」および「フォント」を各言語で override できるようにする
 - [ ]: Preview Window の「自動ズーム」と「キャンバスをプレビュー画面に収める」を統合する
@@ -81,7 +81,7 @@
 - [ ]: Spread Sheet のセルを右クリックしたらそのセル単体で「変更をリセット」を表示するようにする
 - [ ]: Spread Sheet 上で TextAssetInstance のセルのcell-contentの箇所を左クリックしたら、直接表示中の override_text を編集できるようにする。
 - [ ]: Project Header のプルダウンメニューのデザインがダサいので改善する
-- [ ]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする
+- [ ]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする。Project Header からはプロジェクト名は削除する。
 - [ ]: Asset に追加する画像として SVG も対応する
   - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
 - [ ]: ImageAsset のマスクの処理がうまくいってないので修正する
@@ -89,7 +89,6 @@
   - Preview Window でのプレビューもマスクが適用されていない
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: Custom Font の中にライセンス全文と著作権表示を表示する画面を追加する
-- [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## フォント管理機能
 デフォルトではビルドインで用意されているフォントを表示し、ユーザーがフォントファイルを追加できるようにする（ui-specification.md の Font Management 参照）
