@@ -23,7 +23,7 @@ class KomaeApp {
     this.fileSystemService = new FileSystemService();
     this.assetManager = new AssetManager();
     this.fontManager = new FontManager();
-    this.exportService = new ExportService();
+    this.exportService = new ExportService(this.fontManager);
     
     this.setupEventHandlers();
     this.setupIPC();

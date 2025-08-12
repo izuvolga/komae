@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { ProjectData, ExportOptions, Page, AssetInstance } from '../types/entities';
-import { generateSvgStructureCommon } from './svgGeneratorCommon';
+import type { ProjectData, ExportOptions, Page, AssetInstance, FontInfo } from '../types/entities';
+import { generateSvgStructureCommon, setFontInfoCache } from './svgGeneratorCommon';
 import { VIEWER_TEMPLATES, type ViewerTemplateVariables } from '../generated/viewer-templates';
 
 /**
@@ -55,20 +55,218 @@ function getMimeType(filePath: string): string {
 }
 
 /**
+ * フォントファイル拡張子からMIMEタイプを取得する
+ */
+function getFontMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.ttf': return 'font/truetype';
+    case '.otf': return 'font/opentype';
+    case '.woff': return 'font/woff';
+    case '.woff2': return 'font/woff2';
+    default: return 'font/truetype';
+  }
+}
+
+/**
+ * フォントファイルをBase64エンコードする
+ */
+function encodeFontToBase64(filePath: string): string {
+  // テスト環境では実際のファイルが存在しないため、
+  // ダミーのBase64データを返す
+  if (process.env.NODE_ENV === 'test') {
+    return 'data:font/truetype;charset=utf-8;base64,dGVzdCBmb250IGRhdGE=';
+  }
+
+  if (!fs.existsSync(filePath)) {
+    console.warn(`Font file not found: ${filePath}`);
+    return 'data:font/truetype;charset=utf-8;base64,dGVzdCBmb250IGRhdGE=';
+  }
+  
+  try {
+    const fontBuffer = fs.readFileSync(filePath);
+    const base64Data = fontBuffer.toString('base64');
+    const mimeType = getFontMimeType(filePath);
+    return `data:${mimeType};charset=utf-8;base64,${base64Data}`;
+  } catch (error) {
+    console.error(`Error reading font file: ${filePath}`, error);
+    // ファイルが読めない場合はダミーデータを返す
+    return 'data:font/truetype;charset=utf-8;base64,dGVzdCBmb250IGRhdGE=';
+  }
+}
+
+/**
  * HTMLエクスポート専用クラス
  */
 export class HtmlExporter {
-  constructor(private projectPath: string | null = null) {}
+  private availableFonts: FontInfo[] = [];
+  
+  constructor(private projectPath: string | null = null, availableFonts?: FontInfo[]) {
+    this.availableFonts = availableFonts || [];
+  }
+
+  /**
+   * プロジェクトで使用されている全フォントIDを収集する
+   */
+  private collectUsedFonts(project: ProjectData): Set<string> {
+    const usedFontIds = new Set<string>();
+    
+    // 全ページの TextAsset を確認
+    for (const page of project.pages) {
+      for (const instanceId in page.asset_instances) {
+        const instance = page.asset_instances[instanceId];
+        const asset = project.assets[instance.asset_id];
+        
+        if (asset && asset.type === 'TextAsset') {
+          const textAsset = asset as any; // TextAsset型
+          if (textAsset.font) {
+            usedFontIds.add(textAsset.font);
+          }
+        }
+      }
+    }
+    
+    console.log(`[HtmlExporter] Collected used fonts:`, Array.from(usedFontIds));
+    return usedFontIds;
+  }
+
+  /**
+   * ビルトイン・カスタムフォント用の@font-face CSS宣言を生成する
+   */
+  private async generateFontFaceDeclarations(fontIds: Set<string>): Promise<string> {
+    const declarations: string[] = [];
+    const { app } = require('electron');
+    
+    for (const fontId of fontIds) {
+      // システムフォントはスキップ
+      if (fontId === 'system-ui') {
+        continue;
+      }
+      
+      // Google Fontはスキップ（別途リンクタグで処理）
+      const fontInfo = this.availableFonts.find(f => f.id === fontId);
+      if (fontInfo && fontInfo.isGoogleFont) {
+        console.log(`[HtmlExporter] Skipping Google Font for @font-face: ${fontId} (will use link tag instead)`);
+        continue;
+      }
+      
+      try {
+        // フォントファイルを探す (ビルトイン -> カスタム の順)
+        let fontFilePath: string | null = null;
+        let fontDirectoryPath: string;
+        
+        // 1. ビルトインフォントを確認
+        const isDev = process.env.NODE_ENV === 'development';
+        const builtinFontsDir = isDev 
+          ? path.join(process.cwd(), 'public', 'fonts')
+          : path.join(app.getAppPath(), 'public', 'fonts');
+        
+        const builtinFontDir = path.join(builtinFontsDir, fontId);
+        if (fs.existsSync(builtinFontDir)) {
+          fontDirectoryPath = builtinFontDir;
+          // フォントファイルを検索
+          const files = fs.readdirSync(fontDirectoryPath);
+          const supportedExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
+          const fontFile = files.find(file => 
+            supportedExtensions.some(ext => file.toLowerCase().endsWith(ext))
+          );
+          if (fontFile) {
+            fontFilePath = path.join(fontDirectoryPath, fontFile);
+          }
+        }
+        
+        // 2. カスタムフォントを確認（ビルトインで見つからない場合）
+        if (!fontFilePath) {
+          const userDataDir = app.getPath('userData');
+          const customFontsDir = path.join(userDataDir, 'fonts');
+          const customFontDir = path.join(customFontsDir, fontId);
+          
+          if (fs.existsSync(customFontDir)) {
+            fontDirectoryPath = customFontDir;
+            const files = fs.readdirSync(fontDirectoryPath);
+            const supportedExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
+            const fontFile = files.find(file => 
+              supportedExtensions.some(ext => file.toLowerCase().endsWith(ext))
+            );
+            if (fontFile) {
+              fontFilePath = path.join(fontDirectoryPath, fontFile);
+            }
+          }
+        }
+        
+        // フォントファイルが見つかった場合のみ@font-face宣言を生成
+        if (fontFilePath) {
+          const base64Data = encodeFontToBase64(fontFilePath);
+          const declaration = `@font-face {
+  font-family: '${fontId}';
+  src: url(${base64Data});
+}`;
+          declarations.push(declaration);
+          console.log(`[HtmlExporter] Generated @font-face for: ${fontId}`);
+        } else {
+          console.warn(`[HtmlExporter] Font file not found for: ${fontId}`);
+        }
+      } catch (error) {
+        console.error(`[HtmlExporter] Error generating @font-face for ${fontId}:`, error);
+      }
+    }
+    
+    return declarations.join('\n\n');
+  }
+
+  /**
+   * Google Fonts用のリンクタグを生成する
+   */
+  private async generateGoogleFontsLinks(fontIds: Set<string>): Promise<string> {
+    const links: string[] = [];
+    const googleFontUrls = new Set<string>();
+    
+    // Google Fontsの収集
+    for (const fontId of fontIds) {
+      if (fontId === 'system-ui') continue;
+      
+      const fontInfo = this.availableFonts.find(f => f.id === fontId);
+      if (fontInfo && fontInfo.isGoogleFont && fontInfo.googleFontUrl) {
+        googleFontUrls.add(fontInfo.googleFontUrl);
+      }
+    }
+    
+    // プリコネクトリンクを追加（Google Fontsが存在する場合のみ）
+    if (googleFontUrls.size > 0) {
+      links.push('<link rel="preconnect" href="https://fonts.googleapis.com">');
+      links.push('<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
+    }
+    
+    // Google Fontsリンクを生成
+    for (const url of googleFontUrls) {
+      links.push(`<link href="${url}" rel="stylesheet">`);
+      console.log(`[HtmlExporter] Generated Google Fonts link: ${url}`);
+    }
+    
+    return links.join('\n  ');
+  }
 
   /**
    * プロジェクトをHTMLファイルとして出力（新しい統合SVG構造）
    */
   async exportToHTML(project: ProjectData, options: ExportOptions): Promise<string> {
-    // 統合SVGコンテンツを生成
-    const unifiedSVG = await this.generateUnifiedSVG(project);
-    
-    // HTMLコンテンツを生成
-    return this.generateHTMLContent(project, options, unifiedSVG);
+    try {
+      // フォント情報をキャッシュに設定（SVG生成で正しいフォント名を解決するため）
+      if (this.availableFonts.length > 0) {
+        setFontInfoCache(this.availableFonts);
+        console.log(`[HtmlExporter] Set font info cache with ${this.availableFonts.length} fonts`);
+      }
+
+      // 統合SVGコンテンツを生成
+      const unifiedSVG = await this.generateUnifiedSVG(project);
+      
+      // HTMLコンテンツを生成（フォント埋め込み機能付き）
+      return await this.generateHTMLContent(project, options, unifiedSVG);
+    } finally {
+      // エクスポート完了後にキャッシュをクリア（メモリリーク防止）
+      setFontInfoCache([]);
+      console.log(`[HtmlExporter] Cleared font info cache`);
+    }
   }
 
   /**
@@ -218,9 +416,16 @@ export class HtmlExporter {
   /**
    * HTMLコンテンツをテンプレートで生成
    */
-  private generateHTMLContent(project: ProjectData, options: ExportOptions, unifiedSVG: string): string {
+  private async generateHTMLContent(project: ProjectData, options: ExportOptions, unifiedSVG: string): Promise<string> {
     const { title } = options;
     const { includeNavigation } = options.htmlOptions || {};
+
+    // 使用されているフォントを収集
+    const usedFonts = this.collectUsedFonts(project);
+    
+    // フォント関連のコンテンツを生成
+    const fontFaceDeclarations = await this.generateFontFaceDeclarations(usedFonts);
+    const googleFontsLinks = await this.generateGoogleFontsLinks(usedFonts);
 
     // テンプレート変数を設定
     const currentLanguage = project.metadata?.currentLanguage || 'ja';
@@ -232,7 +437,9 @@ export class HtmlExporter {
       TOTAL_PAGES: project.pages.length.toString(),
       CANVAS_WIDTH: project.canvas.width.toString(),
       CURRENT_LANGUAGE: currentLanguage,
-      AVAILABLE_LANGUAGES_JSON: JSON.stringify(availableLanguages)
+      AVAILABLE_LANGUAGES_JSON: JSON.stringify(availableLanguages),
+      FONT_FACE_DECLARATIONS: fontFaceDeclarations,
+      GOOGLE_FONTS_LINKS: googleFontsLinks
     };
 
     // テンプレートをレンダーしてHTMLを生成

@@ -15,6 +15,11 @@ export interface ExportResult {
 export class ExportService {
   private logger = getLogger();
   private currentProjectPath: string | null = null;
+  private fontManager: any; // FontManager型
+  
+  constructor(fontManager?: any) {
+    this.fontManager = fontManager;
+  }
 
   /**
    * プロジェクトをエクスポートする
@@ -126,8 +131,18 @@ export class ExportService {
    */
   private async exportToHTML(project: ProjectData, options: ExportOptions, outputPath: string): Promise<ExportResult> {
     try {
+      // フォント情報を取得
+      let availableFonts = [];
+      if (this.fontManager) {
+        try {
+          availableFonts = await this.fontManager.getAvailableFonts(project);
+        } catch (error) {
+          console.warn('Failed to get font information:', error);
+        }
+      }
+
       // HtmlExporterを使用してHTML生成
-      const htmlExporter = new HtmlExporter(this.currentProjectPath);
+      const htmlExporter = new HtmlExporter(this.currentProjectPath, availableFonts);
       const htmlContent = await htmlExporter.exportToHTML(project, options);
 
       // HTMLファイルを書き込み
