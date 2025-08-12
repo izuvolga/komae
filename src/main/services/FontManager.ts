@@ -120,13 +120,13 @@ export class FontManager {
   }
 
   /**
-   * ビルトインフォントを読み込み
+   * ビルトインフォントを読み込み（ディレクトリベース管理）
    */
   async loadBuiltinFonts(): Promise<FontInfo[]> {
     const tracker = new PerformanceTracker('load_builtin_fonts');
     
     try {
-      await this.logger.logDevelopment('builtin_fonts_load_start', 'Loading builtin fonts', {
+      await this.logger.logDevelopment('builtin_fonts_load_start', 'Loading builtin fonts from directory structure', {
         builtin_fonts_dir: FontManager.BUILTIN_FONTS_DIR,
       });
 
@@ -150,77 +150,82 @@ export class FontManager {
         return builtinFonts;
       }
 
-      // fontsディレクトリ内のフォントファイルを再帰的に検索
-      const scanFontFiles = (directory: string): void => {
-        const items = fs.readdirSync(directory);
+      // ディレクトリベースの読み込み（カスタムフォントと同じロジック）
+      const fontDirs = fs.readdirSync(FontManager.BUILTIN_FONTS_DIR, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name)
+        .filter(name => name.startsWith('font-')); // font-プレフィックスに統一
+
+      for (const fontDirName of fontDirs) {
+        const fontDirPath = path.join(FontManager.BUILTIN_FONTS_DIR, fontDirName);
         
-        for (const item of items) {
-          const itemPath = path.join(directory, item);
-          const stats = fs.statSync(itemPath);
+        try {
+          // ディレクトリ内のフォントファイルを検索
+          const dirContents = fs.readdirSync(fontDirPath);
+          const fontFile = dirContents.find(file => 
+            FontManager.SUPPORTED_FONT_EXTENSIONS.includes(path.extname(file).toLowerCase())
+          );
           
-          if (stats.isDirectory()) {
-            // サブディレクトリを再帰的に検索
-            scanFontFiles(itemPath);
-          } else if (stats.isFile()) {
-            const ext = path.extname(item).toLowerCase();
-            
-            if (FontManager.SUPPORTED_FONT_EXTENSIONS.includes(ext)) {
-              const fontId = FontManager.generateFontId(itemPath);
-              
-              // フォントメタデータから適切な名前を取得
-              let fontName: string;
-              try {
-                const metadata = FontManager.extractFontMetadata(itemPath);
-                fontName = metadata.fullName;
-              } catch (error) {
-                // ビルトインフォントでメタデータ抽出に失敗した場合はファイル名をフォールバック
-                fontName = path.basename(item, ext);
-                console.warn(`Failed to extract metadata from builtin font ${itemPath}:`, error);
-              }
-              
-              // public/fontsからの相対パスをHTTP URLに変換
-              const relativePath = path.relative(path.join(process.cwd(), 'public'), itemPath);
-              const httpPath = relativePath.replace(/\\/g, '/'); // Windows対応
-              
-              // ライセンスファイルを探す
-              let license: string | undefined;
-              let licenseFile: string | undefined;
-              const possibleLicenseFiles = [
-                path.join(directory, `${fontName}.txt`),
-                path.join(directory, `${fontName}.license`),
-                path.join(directory, `${fontName}_LICENSE.txt`),
-                path.join(directory, 'LICENSE.txt'),
-                path.join(directory, 'license.txt'),
-              ];
-              
-              for (const licenseFilePath of possibleLicenseFiles) {
-                if (fs.existsSync(licenseFilePath)) {
-                  try {
-                    license = fs.readFileSync(licenseFilePath, 'utf-8');
-                    const licensePubPath = path.relative(path.join(process.cwd(), 'public'), licenseFilePath);
-                    licenseFile = licensePubPath.replace(/\\/g, '/');
-                    break;
-                  } catch (error) {
-                    // ライセンス読み込みエラーは無視して続行
-                  }
-                }
-              }
-              
-              builtinFonts.push({
-                id: fontId,
-                name: fontName,
-                type: FontTypeEnum.BUILTIN,
-                path: `builtin/fonts/${item}`, // komae-asset://builtin/fonts/用のパス
-                filename: item,
-                license,
-                licenseFile,
+          if (!fontFile) {
+            await this.logger.logDevelopment('builtin_font_no_file', 'No font file found in builtin font directory', {
+              font_dir: fontDirPath,
+              contents: dirContents,
+            });
+            continue;
+          }
+          
+          const fontFilePath = path.join(fontDirPath, fontFile);
+          
+          // フォントメタデータを抽出
+          let fontName: string;
+          try {
+            const metadata = FontManager.extractFontMetadata(fontFilePath);
+            fontName = metadata.fullName;
+          } catch (error) {
+            // メタデータ抽出に失敗した場合はファイル名をフォールバック
+            fontName = path.basename(fontFile, path.extname(fontFile));
+            await this.logger.logDevelopment('builtin_font_metadata_failed', 'Failed to extract metadata, using filename', {
+              font_path: fontFilePath,
+              fallback_name: fontName,
+            });
+          }
+          
+          // ライセンスファイルを検索
+          let license: string | undefined;
+          let licenseFile: string | undefined;
+          const licenseFiles = dirContents.filter(file => 
+            file.toLowerCase().includes('license') || file.endsWith('.txt')
+          );
+          
+          if (licenseFiles.length > 0) {
+            const licenseFilePath = path.join(fontDirPath, licenseFiles[0]);
+            try {
+              license = fs.readFileSync(licenseFilePath, 'utf-8');
+              licenseFile = licenseFiles[0];
+            } catch (error) {
+              await this.logger.logDevelopment('builtin_license_read_failed', 'Failed to read license file', {
+                license_path: licenseFilePath,
               });
             }
           }
+          
+          builtinFonts.push({
+            id: fontDirName, // ディレクトリ名がフォントID
+            name: fontName,
+            type: FontTypeEnum.BUILTIN,
+            path: `builtin/fonts/${fontDirName}/${fontFile}`, // komae-asset://builtin/fonts/用のパス
+            filename: fontFile,
+            license,
+            licenseFile,
+          });
+          
+        } catch (error) {
+          await this.logger.logDevelopment('builtin_font_processing_error', 'Error processing builtin font directory', {
+            font_dir: fontDirPath,
+            error: (error as Error).message,
+          });
         }
-      };
-      
-      scanFontFiles(FontManager.BUILTIN_FONTS_DIR);
+      }
 
       // キャッシュに保存
       builtinFonts.forEach(font => {
@@ -487,6 +492,144 @@ export class FontManager {
       await this.logger.logError('remove_custom_font', error as Error, {
         font_id: fontId,
         global_fonts_dir: this.globalFontsDir,
+      });
+
+      await tracker.end({ success: false, error: (error as Error).message });
+      throw error;
+    }
+  }
+
+  /**
+   * 環境変数KOMAE_ADMINが設定されているかチェック
+   */
+  private isAdminMode(): boolean {
+    return process.env.KOMAE_ADMIN === 'true' || process.env.KOMAE_ADMIN === '1';
+  }
+
+  /**
+   * ビルトインフォントを追加（管理者モードのみ）- ディレクトリベース管理
+   */
+  async addBuiltinFont(fontFilePath: string, licenseFilePath?: string): Promise<FontInfo> {
+    if (!this.isAdminMode()) {
+      throw new Error('Builtin font management requires KOMAE_ADMIN environment variable');
+    }
+
+    const tracker = new PerformanceTracker('add_builtin_font');
+
+    try {
+      await this.logger.logDevelopment('add_builtin_font_start', 'Adding builtin font (admin mode)', {
+        font_file: fontFilePath,
+        license_file: licenseFilePath,
+      });
+
+      // フォントメタデータを抽出
+      const metadata = FontManager.extractFontMetadata(fontFilePath);
+      const fontName = metadata.fullName;
+      
+      // フォントIDを生成
+      const fontId = FontManager.generateFontId(fontFilePath);
+      
+      // ファイル名を取得
+      const fileName = path.basename(fontFilePath);
+      
+      // ビルトインフォントのディレクトリを作成
+      const fontDirPath = path.join(FontManager.BUILTIN_FONTS_DIR, fontId);
+      if (!fs.existsSync(fontDirPath)) {
+        fs.mkdirSync(fontDirPath, { recursive: true });
+      }
+      
+      // フォントファイルをディレクトリにコピー
+      const destinationPath = path.join(fontDirPath, fileName);
+      fs.copyFileSync(fontFilePath, destinationPath);
+      
+      // ライセンスファイルの処理
+      let license: string | undefined;
+      let licenseFileName: string | undefined;
+      
+      if (licenseFilePath && fs.existsSync(licenseFilePath)) {
+        licenseFileName = 'license.txt';
+        const licenseDestinationPath = path.join(fontDirPath, licenseFileName);
+        
+        fs.copyFileSync(licenseFilePath, licenseDestinationPath);
+        license = fs.readFileSync(licenseDestinationPath, 'utf-8');
+      }
+      
+      // FontInfo オブジェクトを作成
+      const fontInfo: FontInfo = {
+        id: fontId,
+        name: fontName,
+        type: FontTypeEnum.BUILTIN,
+        path: `builtin/fonts/${fontId}/${fileName}`, // komae-asset://builtin/fonts/用のパス
+        filename: fileName,
+        license,
+        licenseFile: licenseFileName,
+      };
+      
+      // キャッシュに保存
+      this.fontCache.set(fontId, fontInfo);
+      
+      await this.logger.logDevelopment('builtin_font_added', 'Builtin font added successfully', {
+        font_id: fontId,
+        font_name: fontName,
+        destination: fontDirPath,
+      });
+      
+      await tracker.end({ success: true, font_id: fontId });
+      return fontInfo;
+      
+    } catch (error) {
+      await this.logger.logError('add_builtin_font', error as Error, {
+        font_file: fontFilePath,
+        builtin_fonts_dir: FontManager.BUILTIN_FONTS_DIR,
+      });
+      
+      await tracker.end({ success: false, error: (error as Error).message });
+      throw error;
+    }
+  }
+
+  /**
+   * ビルトインフォントを削除（管理者モードのみ）- ディレクトリベース管理
+   */
+  async removeBuiltinFont(fontId: string): Promise<void> {
+    if (!this.isAdminMode()) {
+      throw new Error('Builtin font management requires KOMAE_ADMIN environment variable');
+    }
+
+    const tracker = new PerformanceTracker('remove_builtin_font');
+
+    try {
+      const fontInfo = this.fontCache.get(fontId);
+      if (!fontInfo || fontInfo.type !== FontTypeEnum.BUILTIN) {
+        throw new Error(`Builtin font not found: ${fontId}`);
+      }
+
+      await this.logger.logDevelopment('remove_builtin_font_start', 'Removing builtin font (admin mode)', {
+        font_id: fontId,
+        font_name: fontInfo.name,
+      });
+
+      // フォントディレクトリ全体を削除（フォントファイルとライセンスファイルを含む）
+      const fontDirPath = path.join(FontManager.BUILTIN_FONTS_DIR, fontId);
+      if (fs.existsSync(fontDirPath)) {
+        fs.rmSync(fontDirPath, { recursive: true, force: true });
+      }
+
+      // キャッシュから削除
+      this.fontCache.delete(fontId);
+
+      await this.logger.logDevelopment('builtin_font_removed', 'Builtin font removed successfully', {
+        font_id: fontId,
+        font_name: fontInfo.name,
+        removed_directory: fontDirPath,
+      });
+
+      await tracker.end({ success: true, font_id: fontId });
+
+    } catch (error) {
+      await this.logger.logError('remove_builtin_font', error as Error, {
+        font_id: fontId,
+        builtin_fonts_dir: FontManager.BUILTIN_FONTS_DIR,
       });
 
       await tracker.end({ success: false, error: (error as Error).message });

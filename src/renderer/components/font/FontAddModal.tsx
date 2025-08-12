@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FontAddModal.css';
 import { FontAddHelpModal } from './FontAddHelpModal';
 
@@ -7,6 +7,7 @@ interface FontAddModalProps {
   onClose: () => void;
   onAdd: (fontPath: string, licensePath?: string) => Promise<void>;
   onAddGoogleFont?: (googleFontUrl: string) => Promise<void>;
+  onAddBuiltinFont?: (fontPath: string, licensePath?: string) => Promise<void>;
 }
 
 export const FontAddModal: React.FC<FontAddModalProps> = ({
@@ -14,13 +15,32 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   onClose,
   onAdd,
   onAddGoogleFont,
+  onAddBuiltinFont,
 }) => {
-  const [fontType, setFontType] = useState<'embed' | 'google'>('embed');
+  const [fontType, setFontType] = useState<'embed' | 'google' | 'builtin'>('embed');
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [fontFile, setFontFile] = useState<string>('');
   const [licenseFile, setLicenseFile] = useState<string>('');
   const [googleFontUrl, setGoogleFontUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // 管理者モードかどうかを確認
+  useEffect(() => {
+    const checkAdminMode = async () => {
+      try {
+        const adminMode = await window.electronAPI.font.isAdminMode();
+        setIsAdminMode(adminMode);
+      } catch (error) {
+        console.error('Failed to check admin mode:', error);
+        setIsAdminMode(false);
+      }
+    };
+
+    if (isOpen) {
+      checkAdminMode();
+    }
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -94,6 +114,30 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
       } finally {
         setIsLoading(false);
       }
+    } else if (fontType === 'builtin') {
+      if (!fontFile) {
+        alert('フォントファイルを選択してください');
+        return;
+      }
+      
+      if (!onAddBuiltinFont) {
+        alert('ビルトインフォント機能が利用できません');
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        await onAddBuiltinFont(fontFile, licenseFile || undefined);
+        // 成功したらフォームをリセットして閉じる
+        setFontFile('');
+        setLicenseFile('');
+        onClose();
+      } catch (error) {
+        console.error('Failed to add builtin font:', error);
+        alert('ビルトインフォントの追加に失敗しました: ' + (error instanceof Error ? error.message : String(error)));
+      } finally {
+        setIsLoading(false);
+      }
     } else if (fontType === 'google') {
       if (!googleFontUrl.trim()) {
         alert('Google Fonts URLを入力してください');
@@ -161,7 +205,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                   name="fontType"
                   value="embed"
                   checked={fontType === 'embed'}
-                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google')}
+                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
                   disabled={isLoading}
                 />
                 埋め込み（ファイル）
@@ -172,11 +216,24 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                   name="fontType"
                   value="google"
                   checked={fontType === 'google'}
-                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google')}
+                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
                   disabled={isLoading}
                 />
                 Google Fonts
               </label>
+              {isAdminMode && (
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="fontType"
+                    value="builtin"
+                    checked={fontType === 'builtin'}
+                    onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
+                    disabled={isLoading}
+                  />
+                  ビルトイン（管理者）
+                </label>
+              )}
             </div>
           </div>
 
@@ -266,6 +323,68 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* ビルトインフォント用フィールド */}
+          {fontType === 'builtin' && (
+            <>
+              <div className="form-section">
+                <label>
+                  Font File
+                  <div className="file-input-row">
+                    <input
+                      type="text"
+                      value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
+                      placeholder="フォントファイルを選択..."
+                      readOnly
+                      className="file-path-input"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleFontFileSelect}
+                      className="file-select-button"
+                      disabled={isLoading}
+                    >
+                      📁
+                    </button>
+                  </div>
+                </label>
+              </div>
+
+              <div className="form-section">
+                <label>
+                  License File 
+                  <button 
+                    type="button" 
+                    onClick={showLicenseHelp}
+                    className="help-button"
+                    title="ライセンス情報について"
+                  >
+                    ?
+                  </button>
+                  <div className="file-input-row">
+                    <input
+                      type="text"
+                      value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
+                      placeholder="ライセンスファイルを選択（オプション）..."
+                      readOnly
+                      className="file-path-input"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleLicenseFileSelect}
+                      className="file-select-button"
+                      disabled={isLoading}
+                    >
+                      📁
+                    </button>
+                  </div>
+                </label>
+              </div>
+              <div className="form-help">
+                ビルトインフォントとして public/fonts/ ディレクトリに追加されます（管理者モード）
+              </div>
+            </>
+          )}
         </div>
 
         <div className="font-add-modal-footer">
@@ -279,7 +398,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           <button 
             onClick={handleAdd} 
             className="add-button"
-            disabled={(fontType === 'embed' && !fontFile) || (fontType === 'google' && !googleFontUrl.trim()) || isLoading}
+            disabled={(fontType === 'embed' && !fontFile) || (fontType === 'google' && !googleFontUrl.trim()) || (fontType === 'builtin' && !fontFile) || isLoading}
           >
             {isLoading ? '追加中...' : '追加'}
           </button>

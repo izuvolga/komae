@@ -20,13 +20,25 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [licenseFont, setLicenseFont] = useState<FontInfo | null>(null);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
-  // フォント一覧を読み込み
+  // フォント一覧を読み込みと管理者モード確認
   useEffect(() => {
     if (isOpen) {
       loadFonts();
+      checkAdminMode();
     }
   }, [isOpen]);
+
+  const checkAdminMode = async () => {
+    try {
+      const adminMode = await window.electronAPI.font.isAdminMode();
+      setIsAdminMode(adminMode);
+    } catch (error) {
+      console.error('Failed to check admin mode:', error);
+      setIsAdminMode(false);
+    }
+  };
 
   // フォントはApp.tsx で既に初期化済みのため、ここでは登録しない
   // カスタムフォント追加時は別途処理が必要
@@ -89,6 +101,29 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     }
   };
 
+  const handleAddBuiltinFont = async (fontPath: string, licensePath?: string) => {
+    setIsLoading(true);
+    try {
+      const newFont = await window.electronAPI.font.addBuiltinFont(fontPath, licensePath);
+      
+      // CSS @font-faceルールを更新してフォント一覧も再読み込み
+      const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
+      if (refreshedFonts) {
+        setFonts(refreshedFonts);
+      } else {
+        // フォールバック：通常の再読み込み
+        await loadFonts();
+      }
+      
+      console.log('Builtin Font added successfully:', newFont.name);
+    } catch (error) {
+      console.error('Failed to add builtin font:', error);
+      throw error; // FontAddModalでエラーハンドリングされる
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteFont = async () => {
     if (!selectedFont) {
       alert('Please select a font to delete');
@@ -100,20 +135,33 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
       return;
     }
 
-    // ビルトインフォントは削除不可
-    if (fontToDelete.type === 'builtin') {
-      alert('Built-in fonts cannot be deleted');
+    // ビルトインフォントは管理者モードでのみ削除可能
+    if (fontToDelete.type === 'builtin' && !isAdminMode) {
+      alert('Built-in fonts cannot be deleted (Admin mode required)');
       return;
     }
 
-    const confirmed = confirm(`Are you sure you want to delete the font "${fontToDelete.name}"?`);
+    // システムフォント（system-ui）は削除不可
+    if (fontToDelete.id === 'system-ui') {
+      alert('System default font cannot be deleted');
+      return;
+    }
+
+    const fontTypeText = fontToDelete.type === 'builtin' ? 'builtin font (Admin mode)' : 'font';
+    const confirmed = confirm(`Are you sure you want to delete the ${fontTypeText} "${fontToDelete.name}"?`);
     if (!confirmed) {
       return;
     }
 
     try {
       setIsLoading(true);
-      await window.electronAPI.font.removeCustomFont(selectedFont);
+      
+      // フォントタイプに応じて適切な削除関数を呼び出し
+      if (fontToDelete.type === 'builtin') {
+        await window.electronAPI.font.removeBuiltinFont(selectedFont);
+      } else {
+        await window.electronAPI.font.removeCustomFont(selectedFont);
+      }
       
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
       const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
@@ -198,7 +246,9 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                       <div className="font-info">
                         <span className="font-name">{font.name}</span>
                         {font.type === 'builtin' && (
-                          <span className="builtin-badge">Built-in</span>
+                          <span className="builtin-badge">
+                            Built-in{isAdminMode && font.id !== 'system-ui' ? ' (Editable)' : ''}
+                          </span>
                         )}
                         {font.isGoogleFont && (
                           <span className="google-fonts-badge">Google Fonts</span>
@@ -242,7 +292,19 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
             <button
               className="delete-font-button"
               onClick={handleDeleteFont}
-              disabled={!selectedFont || isLoading}
+              disabled={!selectedFont || isLoading || (
+                // システムフォントは削除不可
+                fonts.find(f => f.id === selectedFont)?.id === 'system-ui' ||
+                // ビルトインフォントは管理者モードでのみ削除可能
+                (fonts.find(f => f.id === selectedFont)?.type === 'builtin' && !isAdminMode)
+              )}
+              title={
+                fonts.find(f => f.id === selectedFont)?.id === 'system-ui'
+                  ? 'System default font cannot be deleted'
+                  : fonts.find(f => f.id === selectedFont)?.type === 'builtin' && !isAdminMode
+                    ? 'Built-in fonts cannot be deleted (Admin mode required)'
+                    : 'Delete selected font'
+              }
             >
               Delete Font
             </button>
@@ -262,6 +324,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           onClose={() => setShowAddModal(false)}
           onAdd={handleAddFont}
           onAddGoogleFont={handleAddGoogleFont}
+          onAddBuiltinFont={handleAddBuiltinFont}
         />
         
         <FontLicenseModal

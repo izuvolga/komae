@@ -63,6 +63,16 @@ const electronAPI = {
     removeCustomFont: (fontId: string) => 
       ipcRenderer.invoke('font:removeCustomFont', fontId),
     
+    // ビルトインフォント管理（管理者モードのみ）
+    addBuiltinFont: (fontFilePath: string, licenseFilePath?: string) => 
+      ipcRenderer.invoke('font:addBuiltinFont', fontFilePath, licenseFilePath),
+    
+    removeBuiltinFont: (fontId: string) => 
+      ipcRenderer.invoke('font:removeBuiltinFont', fontId),
+    
+    isAdminMode: () => 
+      ipcRenderer.invoke('font:isAdminMode'),
+    
     getAvailableFonts: (project?: any) => 
       ipcRenderer.invoke('font:getAvailableFonts', project),
     

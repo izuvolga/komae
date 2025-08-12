@@ -373,6 +373,30 @@ class KomaeApp {
       }
     });
 
+    // ビルトインフォント管理（管理者モードのみ）
+    ipcMain.handle('font:addBuiltinFont', async (event, fontFilePath: string, licenseFilePath?: string) => {
+      try {
+        return await this.fontManager.addBuiltinFont(fontFilePath, licenseFilePath);
+      } catch (error) {
+        console.error('Failed to add builtin font:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:removeBuiltinFont', async (event, fontId: string) => {
+      try {
+        await this.fontManager.removeBuiltinFont(fontId);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to remove builtin font:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('font:isAdminMode', async () => {
+      return process.env.KOMAE_ADMIN === 'true' || process.env.KOMAE_ADMIN === '1';
+    });
+
     ipcMain.handle('font:getAvailableFonts', async (event, project?: any) => {
       try {
         return await this.fontManager.getAvailableFonts(project);
