@@ -25,7 +25,7 @@ public/fonts/
 フォントが複数のライセンスファイルやREADMEがある場合は、以下のコマンドでテキストファイルをUTF-8に変換して、内容を一つのファイルにまとめたものを格納する。
 
 ```
-$ find . -type f | awk '{c=gsub("/","/");print c"\t"$0}' | sort -t'\t' -k1,1n | awk -F'\t' '{print $2}' | while read -r f ;do file "$f"| grep -q text && { echo "==> $f <=="; nkf -Lu -w "$f";} ;done
+$ find . -type f | awk '{c=gsub("/","/");print c"\t"$0}' | sort -t'\t' -k1,1n | awk -F'\t' '{print $2}' | while read -r f ;do file "$f"| grep -q text && { printf '\n\n%s\n\n' "==> $f <=="; nkf -Lu -w "$f";} ;done
 ```
 
 ### カスタムフォント（Custom Fonts）
