@@ -270,6 +270,42 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
+  // 縦書き関連のヘルパー関数
+  const getCurrentVertical = () => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      return langOverride?.override_vertical ?? editingAsset.vertical;
+    }
+    return editingAsset.vertical;
+  };
+
+  const updateVertical = (value: boolean) => {
+    if (mode === 'asset') {
+      handleInputChange('vertical', value);
+    } else {
+      handleInstanceChange('override_vertical', value);
+    }
+  };
+
+  // フォント関連のヘルパー関数
+  const getCurrentFont = () => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      return langOverride?.override_font ?? editingAsset.font;
+    }
+    return editingAsset.font;
+  };
+
+  const updateFont = (value: string) => {
+    if (mode === 'asset') {
+      handleInputChange('font', value);
+    } else {
+      handleInstanceChange('override_font', value);
+    }
+  };
+
   // z_index専用のサニタイズ関数（整数のみ）
   const sanitizeZIndexInput = (value: string): string => {
     // 数字と-のみを許可（小数点は除外）
@@ -550,35 +586,38 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {/* フォント設定 */}
             <div className="form-section">
               <h4>フォント設定</h4>
-              {mode === 'asset' && (
-                <div className="form-row">
-                  <label>
-                    フォント:
-                    {fontsLoading ? (
-                      <select disabled>
-                        <option>フォント読み込み中...</option>
-                      </select>
-                    ) : (
-                      <select
-                        value={editingAsset.font}
-                        onChange={(e) => handleInputChange('font', e.target.value)}
-                      >
-                        {availableFonts.map((font) => (
-                          <option key={font.id} value={font.id}>
-                            {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                          </option>
-                        ))}
-                        {/* 現在のフォントが一覧にない場合の対応 */}
-                        {editingAsset.font && !availableFonts.find(f => f.id === editingAsset.font) && (
-                          <option value={editingAsset.font}>
-                            {editingAsset.font} (未定義)
-                          </option>
-                        )}
-                      </select>
-                    )}
-                  </label>
-                </div>
-              )}
+              <div className="form-row">
+                <label>
+                  フォント:
+                  {fontsLoading ? (
+                    <select disabled>
+                      <option>フォント読み込み中...</option>
+                    </select>
+                  ) : (
+                    <select
+                      value={getCurrentFont()}
+                      onChange={(e) => updateFont(e.target.value)}
+                    >
+                      {availableFonts.map((font) => (
+                        <option key={font.id} value={font.id}>
+                          {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                        </option>
+                      ))}
+                      {/* 現在のフォントが一覧にない場合の対応 */}
+                      {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
+                        <option value={getCurrentFont()}>
+                          {getCurrentFont()} (未定義)
+                        </option>
+                      )}
+                    </select>
+                  )}
+                  {mode === 'instance' && (
+                    <span className="override-indicator">
+                      {editingInstance?.multilingual_overrides?.[getCurrentLanguage()]?.override_font !== undefined ? ' (オーバーライド中)' : ''}
+                    </span>
+                  )}
+                </label>
+              </div>
               <div className="form-row">
                 <label>
                   フォントサイズ:
@@ -598,41 +637,44 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </label>
               </div>
               {mode === 'asset' && (
-                <>
-                  <div className="form-row">
-                    <label>
-                      行間:
-                      <input
-                        type="text"
-                        value={tempInputValues.leading ?? formatNumberForDisplay(editingAsset.leading)}
-                        onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, true);
-                          setTempInputValues(prev => ({ ...prev, leading: sanitized }));
-                        }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, -9999, editingAsset.leading);
-                          handleInputChange('leading', validated);
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp.leading;
-                            return newTemp;
-                          });
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={editingAsset.vertical}
-                        onChange={(e) => handleInputChange('vertical', e.target.checked)}
-                      />
-                      縦書き
-                    </label>
-                  </div>
-                </>
+                <div className="form-row">
+                  <label>
+                    行間:
+                    <input
+                      type="text"
+                      value={tempInputValues.leading ?? formatNumberForDisplay(editingAsset.leading)}
+                      onChange={(e) => {
+                        const sanitized = validateNumericInput(e.target.value, true);
+                        setTempInputValues(prev => ({ ...prev, leading: sanitized }));
+                      }}
+                      onBlur={(e) => {
+                        const validated = validateAndSetValue(e.target.value, -9999, editingAsset.leading);
+                        handleInputChange('leading', validated);
+                        setTempInputValues(prev => {
+                          const newTemp = { ...prev };
+                          delete newTemp.leading;
+                          return newTemp;
+                        });
+                      }}
+                    />
+                  </label>
+                </div>
               )}
+              <div className="form-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={getCurrentVertical()}
+                    onChange={(e) => updateVertical(e.target.checked)}
+                  />
+                  縦書き
+                  {mode === 'instance' && (
+                    <span className="override-indicator">
+                      {editingInstance?.multilingual_overrides?.[getCurrentLanguage()]?.override_vertical !== undefined ? ' (オーバーライド中)' : ''}
+                    </span>
+                  )}
+                </label>
+              </div>
             </div>
 
             {/* 色設定 - AssetInstanceモードでは表示しない */}

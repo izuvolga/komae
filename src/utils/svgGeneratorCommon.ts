@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity, getEffectiveFont, getEffectiveVertical, getEffectiveLeading } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -278,12 +278,14 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
  * 単一言語のテキスト要素を生成する（内部ヘルパー関数）
  */
 function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
-  const font = resolveSvgFontName(asset.font || 'Arial');
+  const effectiveFont = getEffectiveFont(asset, textInstance, language);
+  const font = resolveSvgFontName(effectiveFont || 'Arial');
   const strokeWidth = asset.stroke_width || 0;
   const strokeColor = asset.stroke_color || '#000000';
   const fillColor = asset.fill_color || '#FFFFFF';
-  const leading = asset.leading || 0;
-  const vertical = asset.vertical || false;
+  const effectiveLeading = getEffectiveLeading(asset, textInstance, language);
+  const leading = effectiveLeading || 0;
+  const vertical = getEffectiveVertical(asset, textInstance, language);
 
   // XMLエスケープを適用
   const escapedText = escapeXml(textContent);
