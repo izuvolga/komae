@@ -3,7 +3,8 @@ import { useProjectStore } from '../../stores/projectStore';
 import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
-import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page, AssetInstance } from '../../../types/entities';
+// import { VectorEditModal } from '../asset/VectorEditModal'; // TODO: 実装予定
+import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
@@ -44,6 +45,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const [editingTextInstance, setEditingTextInstance] = useState<{
     instance: TextAssetInstance;
     asset: TextAsset;
+    page: Page;
+  } | null>(null);
+  
+  const [editingVectorInstance, setEditingVectorInstance] = useState<{
+    instance: VectorAssetInstance;
+    asset: VectorAsset;
     page: Page;
   } | null>(null);
   
@@ -255,6 +262,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
           asset: asset as TextAsset,
           page,
         });
+      } else if (asset.type === 'VectorAsset') {
+        // TODO: VectorEditModalを実装後に有効化
+        alert('SVGアセットの編集機能は現在開発中です');
+        // setEditingVectorInstance({
+        //   instance: instance as VectorAssetInstance,
+        //   asset: asset as VectorAsset,
+        //   page,
+        // });
       }
     }
   };
@@ -279,6 +294,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleTextModalClose = () => {
     setEditingTextInstance(null);
+  };
+
+  const handleVectorInstanceSave = (updatedInstance: VectorAssetInstance) => {
+    if (editingVectorInstance) {
+      updateAssetInstance(editingVectorInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingVectorInstance(null);
+  };
+
+  const handleVectorModalClose = () => {
+    setEditingVectorInstance(null);
   };
 
   // 右クリックメニュー関連のハンドラー
@@ -600,7 +626,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   {asset.name}
                 </span>
                 <span className="asset-type">
-                  {asset.type === 'ImageAsset' ? '画像' : 'テキスト'}
+                  {asset.type === 'ImageAsset' ? '画像' : 
+                   asset.type === 'VectorAsset' ? 'SVG' : 'テキスト'}
                 </span>
               </div>
             </div>
@@ -675,7 +702,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       >
                         {isUsed ? '✓' : '×'}
                       </button>
-                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset') && (
+                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset') && (
                         <button
                           className="edit-button"
                           onClick={(e) => {
@@ -752,6 +779,24 @@ export const EnhancedSpreadsheet: React.FC = () => {
                             onError={(e) => {
                               // 画像読み込みエラー時のフォールバック
                               e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      {isUsed && asset.type === 'VectorAsset' && (
+                        <div className="vector-content">
+                          <div 
+                            className="vector-preview-small"
+                            dangerouslySetInnerHTML={{ 
+                              __html: (asset as VectorAsset).svg_content || '<div>SVG Error</div>' 
+                            }}
+                            style={{
+                              maxWidth: '60px',
+                              maxHeight: '40px',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
                             }}
                           />
                         </div>

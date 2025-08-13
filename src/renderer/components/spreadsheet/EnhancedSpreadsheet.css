@@ -448,3 +448,42 @@
 .text-content:hover {
   background-color: #f8f9fa;
 }
+
+/* 画像コンテンツ */
+.image-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  height: 100%;
+}
+
+.image-preview-small {
+  max-width: 60px;
+  max-height: 40px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+/* SVGコンテンツ */
+.vector-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  height: 100%;
+}
+
+.vector-preview-small {
+  max-width: 60px;
+  max-height: 40px;
+  border-radius: 2px;
+}
+
+.vector-preview-small svg {
+  width: 100%;
+  height: 100%;
+  max-width: 60px;
+  max-height: 40px;
+  object-fit: contain;
+}
