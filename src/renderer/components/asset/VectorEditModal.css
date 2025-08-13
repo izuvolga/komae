@@ -51,14 +51,18 @@
 
 .vector-edit-modal .edit-panels {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 350px 1fr;
   gap: 32px;
   height: 100%;
 }
 
-.vector-edit-modal .properties-panel {
+.vector-edit-modal .preview-panel {
   border-right: 1px solid #e5e7eb;
   padding-right: 32px;
+}
+
+.vector-edit-modal .properties-panel {
+  /* 右側のプロパティパネル */
 }
 
 .vector-edit-modal .properties-panel h3,
@@ -163,6 +167,67 @@
   max-height: 100%;
 }
 
+.vector-edit-modal .preview-instructions {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.vector-edit-modal .preview-instructions p {
+  margin: 2px 0;
+}
+
+/* 不透明度スライダー */
+.vector-edit-modal .opacity-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vector-edit-modal .opacity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vector-edit-modal .opacity-slider {
+  flex: 1;
+  height: 4px;
+  background: #dee2e6;
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.vector-edit-modal .opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.vector-edit-modal .opacity-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.vector-edit-modal .opacity-value {
+  font-size: 12px;
+  color: #6c757d;
+  min-width: 40px;
+  text-align: right;
+}
+
 /* フッター */
 .vector-edit-modal .modal-footer {
   display: flex;
@@ -214,10 +279,14 @@
     gap: 24px;
   }
   
-  .vector-edit-modal .properties-panel {
+  .vector-edit-modal .preview-panel {
     border-right: none;
     padding-right: 0;
     border-bottom: 1px solid #e5e7eb;
     padding-bottom: 24px;
+  }
+  
+  .vector-edit-modal .properties-panel {
+    /* モバイルでのプロパティパネル */
   }
 }

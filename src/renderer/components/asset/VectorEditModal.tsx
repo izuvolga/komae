@@ -44,11 +44,42 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     error?: string;
     warning?: string;
   }>({ isValid: true });
+  
+  // マウス操作関連の状態
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
+  
+  // Shiftキーの状態を監視
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   if (!isOpen || !project) return null;
 
@@ -185,6 +216,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         validateVectorAssetInstanceData(editedInstance);
         onSaveInstance?.(editedInstance);
       }
+      onClose(); // 保存後にモーダルを閉じる
     } catch (error) {
       alert(`保存に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -194,9 +226,115 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const currentSize = getCurrentSize();
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
+  
+  // ドラッグ操作ハンドラー
+  const handlePreviewMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDragging(true);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({ 
+      x: currentPos.x, 
+      y: currentPos.y, 
+      width: currentSize.width, 
+      height: currentSize.height 
+    });
+  };
+  
+  // リサイズハンドラー
+  const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({ 
+      x: currentPos.x, 
+      y: currentPos.y, 
+      width: currentSize.width, 
+      height: currentSize.height 
+    });
+  };
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const deltaX = e.clientX - dragStartPos.x;
+      const deltaY = e.clientY - dragStartPos.y;
+      
+      // スケール調整（プレビューのサイズに合わせて調整）
+      const scale = Math.min(300 / currentSize.width, 250 / currentSize.height, 1);
+      
+      // 位置変更
+      const newX = dragStartValues.x + deltaX / scale;
+      const newY = dragStartValues.y + deltaY / scale;
+      
+      handlePositionChange('x', newX);
+      handlePositionChange('y', newY);
+    } else if (isResizing && resizeHandle) {
+      const deltaX = e.clientX - dragStartPos.x;
+      const deltaY = e.clientY - dragStartPos.y;
+      const scale = Math.min(300 / dragStartValues.width, 250 / dragStartValues.height, 1);
+      
+      let newWidth = dragStartValues.width;
+      let newHeight = dragStartValues.height;
+      let newX = dragStartValues.x;
+      let newY = dragStartValues.y;
+      
+      switch (resizeHandle) {
+        case 'top-left':
+          newWidth = Math.max(10, dragStartValues.width - deltaX / scale);
+          newHeight = Math.max(10, dragStartValues.height - deltaY / scale);
+          newX = dragStartValues.x + (dragStartValues.width - newWidth);
+          newY = dragStartValues.y + (dragStartValues.height - newHeight);
+          break;
+        case 'top-right':
+          newWidth = Math.max(10, dragStartValues.width + deltaX / scale);
+          newHeight = Math.max(10, dragStartValues.height - deltaY / scale);
+          newY = dragStartValues.y + (dragStartValues.height - newHeight);
+          break;
+        case 'bottom-left':
+          newWidth = Math.max(10, dragStartValues.width - deltaX / scale);
+          newHeight = Math.max(10, dragStartValues.height + deltaY / scale);
+          newX = dragStartValues.x + (dragStartValues.width - newWidth);
+          break;
+        case 'bottom-right':
+          newWidth = Math.max(10, dragStartValues.width + deltaX / scale);
+          newHeight = Math.max(10, dragStartValues.height + deltaY / scale);
+          break;
+      }
+      
+      handlePositionChange('x', newX);
+      handlePositionChange('y', newY);
+      handleSizeChange('width', newWidth);
+      handleSizeChange('height', newHeight);
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+    setResizeHandle(null);
+  };
+  
+  // マウスイベントのグローバルリスナー設定
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, currentPos, currentSize, resizeHandle]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="vector-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
@@ -208,7 +346,93 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
         <div className="modal-content">
           <div className="edit-panels">
-            {/* 左側：プロパティ編集 */}
+            {/* 左側：プレビュー */}
+            <div className="preview-panel">
+              <h3>プレビュー</h3>
+              <div className="svg-preview">
+                <div 
+                  className="svg-preview-wrapper"
+                  style={{
+                    position: 'relative',
+                    width: 300,
+                    height: 250,
+                    border: '1px solid #e5e7eb',
+                    overflow: 'hidden',
+                    backgroundColor: '#f9fafb',
+                  }}
+                >
+                  <div 
+                    className="svg-preview-container"
+                    style={{
+                      width: currentSize.width,
+                      height: currentSize.height,
+                      opacity: currentOpacity,
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                      userSelect: 'none',
+                      transform: `scale(${Math.min(300 / currentSize.width, 250 / currentSize.height, 1)})`,
+                      transformOrigin: 'top left',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                    }}
+                    onMouseDown={handlePreviewMouseDown}
+                    dangerouslySetInnerHTML={{ __html: asset.svg_content }}
+                  />
+                  
+                  {/* リサイズハンドル */}
+                  {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
+                    const handleSize = 12;
+                    const scale = Math.min(300 / currentSize.width, 250 / currentSize.height, 1);
+                    let x = 0;
+                    let y = 0;
+                    let cursor = 'nw-resize';
+                    
+                    switch (handle) {
+                      case 'top-left':
+                        x = 0;
+                        y = 0;
+                        cursor = 'nw-resize';
+                        break;
+                      case 'top-right':
+                        x = currentSize.width * scale - handleSize;
+                        y = 0;
+                        cursor = 'ne-resize';
+                        break;
+                      case 'bottom-left':
+                        x = 0;
+                        y = currentSize.height * scale - handleSize;
+                        cursor = 'sw-resize';
+                        break;
+                      case 'bottom-right':
+                        x = currentSize.width * scale - handleSize;
+                        y = currentSize.height * scale - handleSize;
+                        cursor = 'se-resize';
+                        break;
+                    }
+                    
+                    return (
+                      <div
+                        key={handle}
+                        style={{
+                          position: 'absolute',
+                          left: `${x}px`,
+                          top: `${y}px`,
+                          width: `${handleSize}px`,
+                          height: `${handleSize}px`,
+                          backgroundColor: '#007acc',
+                          cursor: cursor,
+                          zIndex: 4,
+                          border: '1px solid #ffffff',
+                        }}
+                        onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* 右側：プロパティ編集 */}
             <div className="properties-panel">
               <h3>プロパティ</h3>
               
@@ -290,14 +514,21 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
               {/* 不透明度 */}
               <div className="property-group">
-                <label>不透明度 (0.0 - 1.0)</label>
-                <NumericInput
-                  value={currentOpacity}
-                  onChange={handleOpacityChange}
-                  min={0}
-                  max={1}
-                  step={0.1}
-                />
+                <div className="opacity-section">
+                  <span>{mode === 'asset' ? 'Default Opacity' : 'Opacity'}</span>
+                  <div className="opacity-controls">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={currentOpacity}
+                      onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
+                      className="opacity-slider"
+                    />
+                    <span className="opacity-value">{currentOpacity.toFixed(2)}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Z-Index */}
@@ -313,22 +544,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     ⚠️ {zIndexValidation.warning}
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* 右側：プレビュー */}
-            <div className="preview-panel">
-              <h3>プレビュー</h3>
-              <div className="svg-preview">
-                <div 
-                  className="svg-preview-container"
-                  style={{
-                    width: Math.min(currentSize.width, 400),
-                    height: Math.min(currentSize.height, 300),
-                    opacity: currentOpacity,
-                  }}
-                  dangerouslySetInnerHTML={{ __html: asset.svg_content }}
-                />
               </div>
             </div>
           </div>
