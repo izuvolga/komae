@@ -696,3 +696,88 @@ export function validateImageAssetInstanceData(instance: ImageAssetInstance): {
     errors
   };
 }
+
+/**
+ * VectorAssetのバリデーション
+ * @param asset - バリデーション対象のVectorAsset
+ * @returns バリデーション結果
+ */
+export function validateVectorAssetData(asset: VectorAsset): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 基本フィールドのバリデーション
+  if (!asset.name || asset.name.trim() === '') {
+    errors.push('アセット名は必須です。');
+  }
+  
+  if (!asset.original_file_path || asset.original_file_path.trim() === '') {
+    errors.push('ファイルパスは必須です。');
+  }
+  
+  if (!asset.svg_content || asset.svg_content.trim() === '') {
+    errors.push('SVGコンテンツは必須です。');
+  }
+  
+  // サイズのバリデーション
+  if (asset.original_width <= 0) {
+    errors.push(`元の幅は0より大きい値を入力してください。現在の値: ${asset.original_width}`);
+  }
+  
+  if (asset.original_height <= 0) {
+    errors.push(`元の高さは0より大きい値を入力してください。現在の値: ${asset.original_height}`);
+  }
+  
+  if (asset.default_width <= 0) {
+    errors.push(`デフォルト幅は0より大きい値を入力してください。現在の値: ${asset.default_width}`);
+  }
+  
+  if (asset.default_height <= 0) {
+    errors.push(`デフォルト高さは0より大きい値を入力してください。現在の値: ${asset.default_height}`);
+  }
+  
+  // 不透明度のバリデーション
+  const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * VectorAssetInstanceのバリデーション
+ * @param instance - バリデーション対象のVectorAssetInstance
+ * @returns バリデーション結果
+ */
+export function validateVectorAssetInstanceData(instance: VectorAssetInstance): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // オーバーライド不透明度のバリデーション
+  const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  // オーバーライドサイズのバリデーション
+  if (instance.override_width !== undefined && instance.override_width <= 0) {
+    errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
+  }
+  
+  if (instance.override_height !== undefined && instance.override_height <= 0) {
+    errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}

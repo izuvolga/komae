@@ -3,7 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
-// import { VectorEditModal } from '../asset/VectorEditModal'; // TODO: 実装予定
+import { VectorEditModal } from '../asset/VectorEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
@@ -263,13 +263,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
           page,
         });
       } else if (asset.type === 'VectorAsset') {
-        // TODO: VectorEditModalを実装後に有効化
-        alert('SVGアセットの編集機能は現在開発中です');
-        // setEditingVectorInstance({
-        //   instance: instance as VectorAssetInstance,
-        //   asset: asset as VectorAsset,
-        //   page,
-        // });
+        setEditingVectorInstance({
+          instance: instance as VectorAssetInstance,
+          asset: asset as VectorAsset,
+          page,
+        });
       }
     }
   };
@@ -842,6 +840,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
           isOpen={!!editingTextInstance}
           onClose={handleTextModalClose}
           onSaveInstance={handleTextInstanceSave}
+        />
+      )}
+
+      {/* VectorAssetInstance編集モーダル */}
+      {editingVectorInstance && (
+        <VectorEditModal
+          mode="instance"
+          asset={editingVectorInstance.asset}
+          assetInstance={editingVectorInstance.instance}
+          page={editingVectorInstance.page}
+          isOpen={!!editingVectorInstance}
+          onClose={handleVectorModalClose}
+          onSaveInstance={handleVectorInstanceSave}
         />
       )}
 

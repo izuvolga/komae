@@ -5,6 +5,7 @@ import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
 import { ImageEditModal } from './ImageEditModal';
 import { TextEditModal } from './TextEditModal';
+import { VectorEditModal } from './VectorEditModal';
 import type { Asset, ImageAsset, TextAsset, VectorAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
@@ -152,6 +153,12 @@ export const AssetLibrary: React.FC = () => {
         assetName: asset.name,
       });
       setEditingTextAsset(asset as TextAsset);
+    } else if (asset.type === 'VectorAsset') {
+      logger.logUserInteraction('asset_edit_open', 'VectorAsset', {
+        assetId: asset.id,
+        assetName: asset.name,
+      });
+      setEditingVectorAsset(asset as VectorAsset);
     }
   };
 
@@ -161,6 +168,10 @@ export const AssetLibrary: React.FC = () => {
 
   const handleTextModalClose = () => {
     setEditingTextAsset(null);
+  };
+
+  const handleVectorModalClose = () => {
+    setEditingVectorAsset(null);
   };
 
   const handleImageAssetSave = (updatedAsset: ImageAsset) => {
@@ -178,6 +189,15 @@ export const AssetLibrary: React.FC = () => {
       assetId: updatedAsset.id,
       assetName: updatedAsset.name,
       assetType: 'TextAsset',
+    });
+  };
+
+  const handleVectorAssetSave = (updatedAsset: VectorAsset) => {
+    updateAsset(updatedAsset.id, updatedAsset);
+    logger.logUserInteraction('asset_save', 'AssetLibrary', {
+      assetId: updatedAsset.id,
+      assetName: updatedAsset.name,
+      assetType: 'VectorAsset',
     });
   };
 
@@ -615,6 +635,17 @@ export const AssetLibrary: React.FC = () => {
           isOpen={!!editingTextAsset}
           onClose={handleTextModalClose}
           onSaveAsset={handleTextAssetSave}
+        />
+      )}
+
+      {/* VectorAsset編集モーダル */}
+      {editingVectorAsset && (
+        <VectorEditModal
+          mode="asset"
+          asset={editingVectorAsset}
+          isOpen={!!editingVectorAsset}
+          onClose={handleVectorModalClose}
+          onSaveAsset={handleVectorAssetSave}
         />
       )}
     </div>

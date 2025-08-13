@@ -1,0 +1,223 @@
+/* VectorEditModal共通スタイル */
+.vector-edit-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90vw;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vector-edit-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.vector-edit-modal .modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.vector-edit-modal .modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.vector-edit-modal .modal-close-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.vector-edit-modal .modal-content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+.vector-edit-modal .edit-panels {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 32px;
+  height: 100%;
+}
+
+.vector-edit-modal .properties-panel {
+  border-right: 1px solid #e5e7eb;
+  padding-right: 32px;
+}
+
+.vector-edit-modal .properties-panel h3,
+.vector-edit-modal .preview-panel h3 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.vector-edit-modal .property-group {
+  margin-bottom: 20px;
+}
+
+.vector-edit-modal .property-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.vector-edit-modal .readonly-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.vector-edit-modal .size-display {
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.vector-edit-modal .position-inputs,
+.vector-edit-modal .size-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.vector-edit-modal .input-with-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.vector-edit-modal .input-with-label label {
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #6b7280;
+}
+
+.vector-edit-modal .validation-warning {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #92400e;
+}
+
+/* プレビューパネル */
+.vector-edit-modal .preview-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.vector-edit-modal .svg-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 300px;
+}
+
+.vector-edit-modal .svg-preview-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vector-edit-modal .svg-preview-container svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* フッター */
+.vector-edit-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.vector-edit-modal .btn-secondary {
+  padding: 10px 20px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vector-edit-modal .btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.vector-edit-modal .btn-primary {
+  padding: 10px 20px;
+  background: #2563eb;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vector-edit-modal .btn-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 900px) {
+  .vector-edit-modal .edit-panels {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .vector-edit-modal .properties-panel {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 24px;
+  }
+}
