@@ -79,7 +79,7 @@
     - 「キャンバスをプレビュー画面に収める」のトグルスイッチの左側に移動する
     - 「自動ズーム」のボタンは削除する
   - Preview Window で倍率の変更やスクロールをしたら「キャンバスをプレビュー画面に収める」は OFF になる
-- [ ]: Spread Sheet のセルを右クリックしたらそのセル単体で「変更をリセット」を表示するようにする
+- [x]: Spread Sheet のセルを右クリックしたらそのセル単体で「変更をリセット」を表示するようにする
 - [ ]: Spread Sheet 上で TextAssetInstance のセルのcell-contentの箇所を左クリックしたら、直接表示中の override_text を編集できるようにする。
 - [ ]: Project Header のプルダウンメニューのデザインがダサいので改善する
 - [ ]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする。Project Header からはプロジェクト名は削除する。
