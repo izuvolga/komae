@@ -103,6 +103,16 @@ export async function copyAssetToProject(
   // 保存先ディレクトリを決定
   const targetDir = path.join(projectPath, 'assets', assetType);
   
+  // ディレクトリが存在しない場合は作成
+  try {
+    await fs.mkdir(targetDir, { recursive: true });
+  } catch (error) {
+    throw new AssetManagerError(
+      `Failed to create target directory: ${targetDir}`,
+      'DIRECTORY_CREATE_FAILED'
+    );
+  }
+  
   // ファイル名の重複チェックと連番生成
   let targetFileName = originalFileName;
   let targetPath = path.join(targetDir, targetFileName);

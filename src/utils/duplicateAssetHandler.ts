@@ -30,7 +30,7 @@ export interface ConflictResolutionResult {
 export interface NewAssetInfo {
   name: string;
   filePath: string;
-  type: 'image' | 'font';
+  type: 'image' | 'vector' | 'font';
 }
 
 /**

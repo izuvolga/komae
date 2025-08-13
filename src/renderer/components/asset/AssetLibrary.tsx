@@ -224,7 +224,7 @@ export const AssetLibrary: React.FC = () => {
       });
 
       const result = await window.electronAPI?.fileSystem?.showOpenDialog({
-        title: 'アセットをインポート',
+        title: '画像アセットをインポート',
         filters: [
           { name: '画像ファイル', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'] },
         ],
@@ -270,6 +270,70 @@ export const AssetLibrary: React.FC = () => {
       });
       console.error('Failed to import assets:', error);
       alert('アセットのインポートに失敗しました');
+    }
+  };
+
+  const handleImportVectorAsset = async () => {
+    setShowCreateMenu(false); // メニューを閉じる
+    const tracker = new UIPerformanceTracker('asset_import_dialog');
+    
+    try {
+      await logger.logUserInteraction('asset_import_dialog_open', 'AssetLibrary', {
+        currentAssetCount: assetList.length,
+        assetType: 'vector',
+      });
+
+      const result = await window.electronAPI?.fileSystem?.showOpenDialog({
+        title: 'SVGアセットをインポート',
+        filters: [
+          { name: 'SVGファイル', extensions: ['svg'] },
+        ],
+        properties: ['openFile', 'multiSelections'],
+      });
+
+      await tracker.end({ dialogResult: result.canceled ? 'canceled' : 'confirmed' });
+
+      if (!result.canceled && result.filePaths.length > 0) {
+        await logger.logUserInteraction('asset_import_start', 'AssetLibrary', {
+          fileCount: result.filePaths.length,
+          filePaths: result.filePaths.map((p: string) => p.split('/').pop() || p), // ファイル名のみをログ
+          assetType: 'vector',
+        });
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const filePath of result.filePaths) {
+          try {
+            await importAsset(filePath);
+            successCount++;
+          } catch (error) {
+            errorCount++;
+            const message = error instanceof Error ? error.message : String(error);
+            await logger.logError('asset_import_file', error as Error, {
+              filePath: filePath.split('/').pop() || filePath,
+              component: 'AssetLibrary',
+              assetType: 'vector',
+            });
+            alert(`ファイル "${filePath}" のインポートに失敗しました:\n${message}`);
+          }
+        }
+
+        await logger.logUserInteraction('asset_import_complete', 'AssetLibrary', {
+          totalFiles: result.filePaths.length,
+          successCount,
+          errorCount,
+          newAssetCount: assetList.length,
+          assetType: 'vector',
+        });
+      }
+    } catch (error) {
+      await logger.logError('asset_import_dialog', error as Error, {
+        component: 'AssetLibrary',
+        assetType: 'vector',
+      });
+      console.error('Failed to import SVG assets:', error);
+      alert('SVGアセットのインポートに失敗しました');
     }
   };
 
@@ -353,25 +417,26 @@ export const AssetLibrary: React.FC = () => {
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files) as ElectronFile[];
-    const imageFiles = files.filter(file => 
+    const supportedFiles = files.filter(file => 
       file.type.startsWith('image/') || 
-      /\.(png|jpg|jpeg|webp|gif|bmp)$/i.test(file.name)
+      file.type === 'image/svg+xml' ||
+      /\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(file.name)
     );
 
-    if (imageFiles.length === 0) {
-      alert('画像ファイルをドロップしてください');
+    if (supportedFiles.length === 0) {
+      alert('画像ファイルまたはSVGファイルをドロップしてください');
       return;
     }
 
     await logger.logUserInteraction('asset_drag_drop_start', 'AssetLibrary', {
-      fileCount: imageFiles.length,
-      fileNames: imageFiles.map(f => f.name),
+      fileCount: supportedFiles.length,
+      fileNames: supportedFiles.map(f => f.name),
     });
 
     let successCount = 0;
     let errorCount = 0;
 
-    for (const file of imageFiles) {
+    for (const file of supportedFiles) {
       try {
         console.log('Drag&Drop Debug:', {
           fileName: file.name,
@@ -419,7 +484,7 @@ export const AssetLibrary: React.FC = () => {
     }
 
     await logger.logUserInteraction('asset_drag_drop_complete', 'AssetLibrary', {
-      totalFiles: imageFiles.length,
+      totalFiles: supportedFiles.length,
       successCount,
       errorCount,
       newAssetCount: assetList.length,
@@ -452,7 +517,10 @@ export const AssetLibrary: React.FC = () => {
             {showCreateMenu && (
               <div className="create-menu">
                 <button className="create-menu-item" onClick={handleImportImageAsset}>
-                  💼 画像
+                  🖼️ 画像
+                </button>
+                <button className="create-menu-item" onClick={handleImportVectorAsset}>
+                  📐 SVG
                 </button>
                 <button className="create-menu-item" onClick={handleCreateTextAsset}>
                   🔤 テキスト

@@ -41,6 +41,16 @@ const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   multilingual_overrides: z.record(z.string(), LanguageOverridesSchema).optional(),
 });
 
+// VectorAssetInstance スキーマ
+const VectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
+  override_pos_x: z.number().optional(),
+  override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_z_index: z.number().optional(),
+});
+
 // AssetInstance Union スキーマ（判別子なし、全フィールドを許可）
 const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
   // ImageAssetInstanceの追加フィールド
@@ -91,8 +101,25 @@ const TextAssetSchema = z.object({
   default_z_index: z.number(),
 });
 
+// VectorAsset スキーマ
+const VectorAssetSchema = z.object({
+  id: z.string().min(1),
+  type: z.literal('VectorAsset'),
+  name: z.string().min(1),
+  original_file_path: z.string().min(1),
+  original_width: z.number().min(0.01),
+  original_height: z.number().min(0.01),
+  default_pos_x: z.number(),
+  default_pos_y: z.number(),
+  default_width: z.number().min(0.01),
+  default_height: z.number().min(0.01),
+  default_opacity: z.number().min(0).max(1),
+  default_z_index: z.number(),
+  svg_content: z.string(),
+});
+
 // Asset Union スキーマ
-const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema]);
+const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema]);
 
 // Page スキーマ
 const PageSchema = z.object({
