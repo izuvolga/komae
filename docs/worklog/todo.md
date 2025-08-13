@@ -81,8 +81,8 @@
   - Preview Window で倍率の変更やスクロールをしたら「キャンバスをプレビュー画面に収める」は OFF になる
 - [x]: Spread Sheet のセルを右クリックしたらそのセル単体で「変更をリセット」を表示するようにする
 - [x]: Spread Sheet 上で TextAssetInstance のセルのcell-contentの箇所を左クリックしたら、直接表示中の override_text を編集できるようにする。
-- [ ]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする。Project Header からはプロジェクト名は削除する。
-- [ ]: Project Header のプルダウンメニューのデザインがダサいので改善する
+- [x]: Electron のメインウィンドウの Bar が「Komae - Sequential Panel Illustration Creator」固定だが、プロジェクトが読まれたらプロジェクト名を表示するようにする。Project Header からはプロジェクト名は削除する。
+- [x]: Project Header のプルダウンメニューのデザインがダサいので改善する
   - `P:🖊️` や `[JA|▼]` や `T:🖊️` の表記があるが、更新したい
     - `P:🖊️` → `Project` という文言にする
     - `[JA|▼]` → この表記はやめて、しっかり現在選択されている言語 `JA (日本語)` のように表示する
@@ -90,6 +90,7 @@
     - `T:🖊️` → リッチなTの文字のアイコンのみ。SVGでも可能。
 - [ ]: Asset に追加する画像として SVG も対応する
   - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
+- [ ]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
 - [ ]: ImageAsset のマスクの処理がうまくいってないので修正する
   - エクスポートしてもマスクが適用されていない
   - Preview Window でのプレビューもマスクが適用されていない
