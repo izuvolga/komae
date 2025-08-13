@@ -497,7 +497,7 @@ export const MainLayout: React.FC = () => {
               <div className="language-selector-container">
                 <div className="language-selector">
                   <span className="language-display">
-                    {getCurrentLanguage().toUpperCase()} ({getLanguageDisplayName(getCurrentLanguage())})
+                    {getLanguageDisplayName(getCurrentLanguage())}
                   </span>
                   <button
                     className="language-dropdown-btn"
