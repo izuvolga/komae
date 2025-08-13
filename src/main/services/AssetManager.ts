@@ -10,8 +10,8 @@ import {
   resolveDuplicateAssetConflict,
   DuplicateResolutionStrategy 
 } from '../../utils/duplicateAssetHandler';
-import type { Asset, ImageAsset, TextAsset, ProjectData } from '../../types/entities';
-import { createImageAsset, createTextAsset } from '../../types/entities';
+import type { Asset, ImageAsset, TextAsset, VectorAsset, ProjectData } from '../../types/entities';
+import { createImageAsset, createTextAsset, createVectorAsset } from '../../types/entities';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -115,6 +115,8 @@ export class AssetManager {
       let asset: Asset;
       if (assetType === 'image') {
         asset = await this.importImageAsset(filePath, finalAssetName, extension);
+      } else if (assetType === 'vector') {
+        asset = await this.importVectorAsset(filePath, finalAssetName, extension);
       } else {
         throw new Error(`Unsupported file type: ${extension}`);
       }
@@ -172,6 +174,25 @@ export class AssetManager {
     const asset = createTextAsset({
       name: name,
       defaultText: defaultText,
+    });
+
+    return asset;
+  }
+  
+  private async importVectorAsset(filePath: string, fileName: string, extension: string): Promise<VectorAsset> {
+    // ファイルをプロジェクトにコピー
+    const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'vectors');
+    
+    // SVGの基本情報を取得
+    const svgInfo = await this.getSVGInfo(filePath);
+    
+    // entities.tsのヘルパー関数を使用してVectorAssetを作成
+    const asset = createVectorAsset({
+      name: fileName,
+      relativePath: relativePath,
+      originalWidth: svgInfo.width,
+      originalHeight: svgInfo.height,
+      svgContent: svgInfo.content,
     });
 
     return asset;
@@ -281,6 +302,58 @@ export class AssetManager {
       // エラーの場合はデフォルト値を返す
       console.warn(`Failed to get image dimensions for ${filePath}:`, error);
       return { width: 800, height: 600 };
+    }
+  }
+  
+  private async getSVGInfo(filePath: string): Promise<{ width: number; height: number; content: string }> {
+    try {
+      const svgContent = fs.readFileSync(filePath, 'utf8');
+      
+      // SVGの<svg>タグからwidth/height属性を抽出
+      const svgMatch = svgContent.match(/<svg[^>]*>/i);
+      if (!svgMatch) {
+        throw new Error('Invalid SVG file: no <svg> tag found');
+      }
+      
+      const svgTag = svgMatch[0];
+      
+      // width/height属性を抽出
+      const widthMatch = svgTag.match(/width\s*=\s*["']?([^"'\s>]+)["']?/i);
+      const heightMatch = svgTag.match(/height\s*=\s*["']?([^"'\s>]+)["']?/i);
+      
+      let width = 800;
+      let height = 600;
+      
+      if (widthMatch && heightMatch) {
+        // 単位を除去して数値を抽出
+        const widthValue = parseFloat(widthMatch[1].replace(/[^\d.-]/g, ''));
+        const heightValue = parseFloat(heightMatch[1].replace(/[^\d.-]/g, ''));
+        
+        if (!isNaN(widthValue) && !isNaN(heightValue)) {
+          width = Math.round(widthValue);
+          height = Math.round(heightValue);
+        }
+      } else {
+        // width/heightが見つからない場合、viewBox属性を確認
+        const viewBoxMatch = svgTag.match(/viewBox\s*=\s*["']?\s*([^"']+)["']?/i);
+        if (viewBoxMatch) {
+          const viewBoxValues = viewBoxMatch[1].trim().split(/\s+/);
+          if (viewBoxValues.length === 4) {
+            const viewBoxWidth = parseFloat(viewBoxValues[2]);
+            const viewBoxHeight = parseFloat(viewBoxValues[3]);
+            
+            if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
+              width = Math.round(viewBoxWidth);
+              height = Math.round(viewBoxHeight);
+            }
+          }
+        }
+      }
+      
+      return { width, height, content: svgContent };
+    } catch (error) {
+      console.warn(`Failed to parse SVG dimensions from ${filePath}:`, error);
+      return { width: 800, height: 600, content: '' };
     }
   }
 }

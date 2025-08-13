@@ -16,7 +16,7 @@ export class AssetManagerError extends Error {
 /**
  * アセットタイプ
  */
-export type AssetType = 'image' | 'font';
+export type AssetType = 'image' | 'vector' | 'font';
 
 /**
  * 相対パスを絶対パスに解決する
@@ -65,20 +65,20 @@ export function makeAssetPathRelative(projectPath: string, absolutePath: string)
  * アセットファイルをプロジェクトにコピーする
  * @param projectPath プロジェクトディレクトリのパス
  * @param sourceFilePath コピー元ファイルのパス
- * @param assetType アセットタイプ ('images' または 'fonts')
+ * @param assetType アセットタイプ ('images' または 'vectors' または 'fonts')
  * @returns コピー先の相対パス
  */
 export async function copyAssetToProject(
   projectPath: string, 
   sourceFilePath: string, 
-  assetType: 'images' | 'fonts'
+  assetType: 'images' | 'vectors' | 'fonts'
 ): Promise<string> {
   // パラメータ検証
   if (!projectPath || !sourceFilePath) {
     throw new AssetManagerError('Invalid parameters provided', 'INVALID_PARAMETERS');
   }
   
-  if (assetType !== 'images' && assetType !== 'fonts') {
+  if (assetType !== 'images' && assetType !== 'vectors' && assetType !== 'fonts') {
     throw new AssetManagerError(`Invalid asset type: ${assetType}`, 'INVALID_ASSET_TYPE');
   }
   
@@ -187,6 +187,12 @@ export function getAssetTypeFromExtension(extension: string): AssetType {
   const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
   if (imageExtensions.includes(lowerExt)) {
     return 'image';
+  }
+  
+  // ベクター画像ファイル拡張子
+  const vectorExtensions = ['.svg'];
+  if (vectorExtensions.includes(lowerExt)) {
+    return 'vector';
   }
   
   throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');

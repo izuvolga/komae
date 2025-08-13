@@ -20,7 +20,7 @@ export interface CanvasConfig {
 // Asset定義（テンプレート）
 export interface BaseAsset {
   id: string;
-  type: 'ImageAsset' | 'TextAsset';
+  type: 'ImageAsset' | 'TextAsset' | 'VectorAsset';
   name: string;
 }
 
@@ -54,7 +54,21 @@ export interface TextAsset extends BaseAsset {
   default_z_index: number;
 }
 
-export type Asset = ImageAsset | TextAsset;
+export interface VectorAsset extends BaseAsset {
+  type: 'VectorAsset';
+  original_file_path: string;
+  original_width: number;
+  original_height: number;
+  default_pos_x: number;
+  default_pos_y: number;
+  default_width: number;
+  default_height: number;
+  default_opacity: number;
+  default_z_index: number;
+  svg_content: string; // SVGの内容をテキストとして保持
+}
+
+export type Asset = ImageAsset | TextAsset | VectorAsset;
 
 // Font管理定義
 export enum FontType {
@@ -121,6 +135,15 @@ export interface TextAssetInstance extends BaseAssetInstance {
   multilingual_overrides?: Record<string, LanguageOverrides>;
 }
 
+export interface VectorAssetInstance extends BaseAssetInstance {
+  override_pos_x?: number;
+  override_pos_y?: number;
+  override_width?: number;
+  override_height?: number;
+  override_opacity?: number;
+  override_z_index?: number;
+}
+
 // 多言語対応のための言語別オーバーライド設定
 export interface LanguageOverrides {
   override_text?: string;
@@ -134,7 +157,7 @@ export interface LanguageOverrides {
   override_vertical?: boolean; // 言語別縦書き設定
 }
 
-export type AssetInstance = ImageAssetInstance | TextAssetInstance;
+export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance;
 
 // AssetInstanceのoverride値チェック用ヘルパー関数
 export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
@@ -153,6 +176,16 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
       imageInstance.override_opacity !== undefined ||
       imageInstance.override_mask ||
       imageInstance.override_z_index !== undefined
+    );
+  } else if (assetType === 'VectorAsset') {
+    const vectorInstance = instance as VectorAssetInstance;
+    return !!(
+      vectorInstance.override_pos_x !== undefined ||
+      vectorInstance.override_pos_y !== undefined ||
+      vectorInstance.override_width !== undefined ||
+      vectorInstance.override_height !== undefined ||
+      vectorInstance.override_opacity !== undefined ||
+      vectorInstance.override_z_index !== undefined
     );
   }
   
@@ -175,6 +208,11 @@ export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, curren
     if (imageInstance.override_z_index !== undefined) {
       return imageInstance.override_z_index;
     }
+  } else if (asset.type === 'VectorAsset') {
+    const vectorInstance = instance as VectorAssetInstance;
+    if (vectorInstance.override_z_index !== undefined) {
+      return vectorInstance.override_z_index;
+    }
   }
   
   return asset.default_z_index;
@@ -196,6 +234,14 @@ export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: 
     resetUpdates.override_opacity = undefined;
     resetUpdates.override_z_index = undefined;
     resetUpdates.override_mask = undefined;
+  } else if (assetType === 'VectorAsset') {
+    // VectorAssetInstanceのoverride項目をリセット
+    resetUpdates.override_pos_x = undefined;
+    resetUpdates.override_pos_y = undefined;
+    resetUpdates.override_width = undefined;
+    resetUpdates.override_height = undefined;
+    resetUpdates.override_opacity = undefined;
+    resetUpdates.override_z_index = undefined;
   }
   
   return resetUpdates;
@@ -492,6 +538,30 @@ export function createTextAsset(params: {
     leading: 0,
     vertical: false,
     default_z_index: 0,
+  };
+}
+
+export function createVectorAsset(params: {
+  name: string;
+  relativePath: string;
+  originalWidth: number;
+  originalHeight: number;
+  svgContent: string;
+}): VectorAsset {
+  return {
+    id: `vector-${uuidv4()}`,
+    type: 'VectorAsset',
+    name: params.name,
+    original_file_path: params.relativePath,
+    original_width: params.originalWidth,
+    original_height: params.originalHeight,
+    default_pos_x: 50,
+    default_pos_y: 50,
+    default_width: params.originalWidth,
+    default_height: params.originalHeight,
+    default_opacity: 1.0,
+    default_z_index: 0,
+    svg_content: params.svgContent,
   };
 }
 
