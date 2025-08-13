@@ -7,11 +7,13 @@ import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, Page
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
+import { CellContextMenu } from './CellContextMenu';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
 import './RowContextMenu.css';
+import './CellContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
@@ -67,6 +69,21 @@ export const EnhancedSpreadsheet: React.FC = () => {
     position: { x: 0, y: 0 },
     page: null,
     pageIndex: -1,
+  });
+
+  // セルの右クリックメニュー用のstate
+  const [cellContextMenu, setCellContextMenu] = useState<{
+    isVisible: boolean;
+    position: { x: number; y: number };
+    assetInstance: AssetInstance | null;
+    asset: any;
+    page: Page | null;
+  }>({
+    isVisible: false,
+    position: { x: 0, y: 0 },
+    assetInstance: null,
+    asset: null,
+    page: null,
   });
   
   // パン機能用のstate
@@ -275,6 +292,41 @@ export const EnhancedSpreadsheet: React.FC = () => {
       page: null,
       pageIndex: -1,
     });
+    setCellContextMenu({
+      isVisible: false,
+      position: { x: 0, y: 0 },
+      assetInstance: null,
+      asset: null,
+      page: null,
+    });
+  };
+
+  // セル右クリックのハンドラー
+  const handleCellRightClick = (e: React.MouseEvent, assetInstance: AssetInstance, asset: any, page: Page) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // 他のコンテキストメニューを閉じる
+    setContextMenu({ isVisible: false, position: { x: 0, y: 0 }, asset: null });
+    setRowContextMenu({ isVisible: false, position: { x: 0, y: 0 }, page: null, pageIndex: -1 });
+    
+    setCellContextMenu({
+      isVisible: true,
+      position: { x: e.clientX, y: e.clientY },
+      assetInstance: assetInstance,
+      asset: asset,
+      page: page,
+    });
+  };
+
+  // セルのリセット機能
+  const handleResetCell = () => {
+    if (!cellContextMenu.assetInstance || !cellContextMenu.asset || !cellContextMenu.page) return;
+    
+    const resetUpdates = resetAssetInstanceOverrides(cellContextMenu.assetInstance, cellContextMenu.asset.type);
+    const updatedInstance = { ...cellContextMenu.assetInstance, ...resetUpdates };
+    updateAssetInstance(cellContextMenu.page.id, cellContextMenu.assetInstance.id, updatedInstance);
+    handleContextMenuClose();
   };
 
   // 列全体の操作ハンドラー
@@ -533,7 +585,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
-                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''} ${cellContextMenu.isVisible && cellContextMenu.assetInstance?.id === instance?.id && cellContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                    onContextMenu={(e) => {
+                      if (isUsed && instance) {
+                        handleCellRightClick(e, instance as AssetInstance, asset, page);
+                      }
+                    }}
                   >
                     {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
                     <div className="cell-manage">
@@ -667,6 +724,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
           onDelete={handleDeletePageFromMenu}
         />
       )}
+
+      {/* セルの右クリックメニュー */}
+      <CellContextMenu
+        isVisible={cellContextMenu.isVisible}
+        position={cellContextMenu.position}
+        assetInstance={cellContextMenu.assetInstance}
+        page={cellContextMenu.page}
+        onClose={handleContextMenuClose}
+        onReset={handleResetCell}
+      />
     </div>
   );
 };

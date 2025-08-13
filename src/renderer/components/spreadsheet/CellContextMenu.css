@@ -1,0 +1,25 @@
+/* セル用コンテキストメニュー */
+.cell-context-menu {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.cell-context-menu .context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.1s;
+}
+
+.cell-context-menu .context-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.cell-context-menu .context-menu-item:active {
+  background-color: #e8e8e8;
+}
