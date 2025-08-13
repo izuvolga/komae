@@ -368,16 +368,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
     if (!assetInstance) return;
     
     const currentLang = getCurrentLanguage();
-    const updatedInstance = { ...assetInstance };
     
-    // 多言語オーバーライドを設定
-    if (!updatedInstance.multilingual_overrides) {
-      updatedInstance.multilingual_overrides = {};
-    }
-    if (!updatedInstance.multilingual_overrides[currentLang]) {
-      updatedInstance.multilingual_overrides[currentLang] = {};
-    }
-    updatedInstance.multilingual_overrides[currentLang].override_text = inlineEditState.text;
+    // 多言語オーバーライドを設定（深いコピーを作成）
+    const updatedInstance = {
+      ...assetInstance,
+      multilingual_overrides: {
+        ...assetInstance.multilingual_overrides,
+        [currentLang]: {
+          ...assetInstance.multilingual_overrides?.[currentLang],
+          override_text: inlineEditState.text
+        }
+      }
+    };
     
     updateAssetInstance(inlineEditState.pageId, inlineEditState.assetInstanceId, updatedInstance);
     
