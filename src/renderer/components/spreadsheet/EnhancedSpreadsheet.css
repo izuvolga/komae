@@ -412,3 +412,75 @@
   color: white;
   border-style: solid;
 }
+
+/* インライン編集 */
+.inline-edit-container {
+  width: 100%;
+  padding: 4px;
+}
+
+.inline-edit-textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.inline-edit-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.inline-edit-buttons {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+.inline-edit-save,
+.inline-edit-cancel {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.inline-edit-save {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.inline-edit-save:hover {
+  background-color: #0056b3;
+}
+
+.inline-edit-cancel {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.inline-edit-cancel:hover {
+  background-color: #545b62;
+}
+
+.text-content {
+  padding: 4px;
+  min-height: 20px;
+  border-radius: 2px;
+  transition: background-color 0.1s;
+}
+
+.text-content:hover {
+  background-color: #f8f9fa;
+}

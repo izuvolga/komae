@@ -86,6 +86,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
     page: null,
   });
   
+  // インライン編集用のstate
+  const [inlineEditState, setInlineEditState] = useState<{
+    isEditing: boolean;
+    assetInstanceId: string | null;
+    pageId: string | null;
+    text: string;
+  }>({
+    isEditing: false,
+    assetInstanceId: null,
+    pageId: null,
+    text: '',
+  });
+
   // パン機能用のstate
   const [isPanning, setIsPanning] = useState(false);
   const [panStartPos, setPanStartPos] = useState({ x: 0, y: 0 });
@@ -327,6 +340,62 @@ export const EnhancedSpreadsheet: React.FC = () => {
     const updatedInstance = { ...cellContextMenu.assetInstance, ...resetUpdates };
     updateAssetInstance(cellContextMenu.page.id, cellContextMenu.assetInstance.id, updatedInstance);
     handleContextMenuClose();
+  };
+
+  // インライン編集のハンドラー
+  const handleStartInlineEdit = (assetInstance: TextAssetInstance, page: Page) => {
+    const currentLang = getCurrentLanguage();
+    const currentText = getEffectiveTextValue(
+      project.assets[assetInstance.asset_id] as TextAsset,
+      assetInstance,
+      currentLang
+    );
+    
+    setInlineEditState({
+      isEditing: true,
+      assetInstanceId: assetInstance.id,
+      pageId: page.id,
+      text: currentText,
+    });
+  };
+
+  const handleSaveInlineEdit = () => {
+    if (!inlineEditState.assetInstanceId || !inlineEditState.pageId) return;
+    
+    const assetInstance = Object.values(project.pages).find(p => p.id === inlineEditState.pageId)
+      ?.asset_instances[inlineEditState.assetInstanceId] as TextAssetInstance;
+    
+    if (!assetInstance) return;
+    
+    const currentLang = getCurrentLanguage();
+    const updatedInstance = { ...assetInstance };
+    
+    // 多言語オーバーライドを設定
+    if (!updatedInstance.multilingual_overrides) {
+      updatedInstance.multilingual_overrides = {};
+    }
+    if (!updatedInstance.multilingual_overrides[currentLang]) {
+      updatedInstance.multilingual_overrides[currentLang] = {};
+    }
+    updatedInstance.multilingual_overrides[currentLang].override_text = inlineEditState.text;
+    
+    updateAssetInstance(inlineEditState.pageId, inlineEditState.assetInstanceId, updatedInstance);
+    
+    setInlineEditState({
+      isEditing: false,
+      assetInstanceId: null,
+      pageId: null,
+      text: '',
+    });
+  };
+
+  const handleCancelInlineEdit = () => {
+    setInlineEditState({
+      isEditing: false,
+      assetInstanceId: null,
+      pageId: null,
+      text: '',
+    });
   };
 
   // 列全体の操作ハンドラー
@@ -629,11 +698,63 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     {/* 右側：cell-content（コンテンツ表示） */}
                     <div className="cell-content">
                       {isUsed && asset.type === 'TextAsset' && instance && (
-                        <div className="text-content">
-                          {getEffectiveTextValue(
-                            asset as TextAsset, 
-                            instance as TextAssetInstance, 
-                            getCurrentLanguage()
+                        <div 
+                          className="text-content"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!inlineEditState.isEditing) {
+                              handleStartInlineEdit(instance as TextAssetInstance, page);
+                            }
+                          }}
+                          style={{ cursor: inlineEditState.isEditing ? 'default' : 'pointer' }}
+                        >
+                          {inlineEditState.isEditing && 
+                           inlineEditState.assetInstanceId === instance.id && 
+                           inlineEditState.pageId === page.id ? (
+                            <div className="inline-edit-container">
+                              <textarea
+                                className="inline-edit-textarea"
+                                value={inlineEditState.text}
+                                onChange={(e) => setInlineEditState(prev => ({ ...prev, text: e.target.value }))}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && e.ctrlKey) {
+                                    e.preventDefault();
+                                    handleSaveInlineEdit();
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    handleCancelInlineEdit();
+                                  }
+                                }}
+                                autoFocus
+                                rows={3}
+                              />
+                              <div className="inline-edit-buttons">
+                                <button 
+                                  className="inline-edit-save"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSaveInlineEdit();
+                                  }}
+                                >
+                                  保存
+                                </button>
+                                <button 
+                                  className="inline-edit-cancel"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelInlineEdit();
+                                  }}
+                                >
+                                  キャンセル
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            getEffectiveTextValue(
+                              asset as TextAsset, 
+                              instance as TextAssetInstance, 
+                              getCurrentLanguage()
+                            )
                           )}
                         </div>
                       )}
