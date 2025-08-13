@@ -490,18 +490,23 @@ export const MainLayout: React.FC = () => {
                 }}
                 title="プロジェクト設定を編集"
               >
-                P:🖊️
+                Project
               </button>
               
               {/* 言語切り替えドロップダウン */}
               <div className="language-selector-container">
-                <button
-                  className="language-dropdown-btn"
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                  title="表示言語を切り替え"
-                >
-                  [{getCurrentLanguage().toUpperCase()}|▼]
-                </button>
+                <div className="language-selector">
+                  <span className="language-display">
+                    {getCurrentLanguage().toUpperCase()} ({getLanguageDisplayName(getCurrentLanguage())})
+                  </span>
+                  <button
+                    className="language-dropdown-btn"
+                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                    title="表示言語を切り替え"
+                  >
+                    <span className="dropdown-arrow">▼</span>
+                  </button>
+                </div>
                 
                 {showLanguageDropdown && (
                   <div className="language-dropdown">
@@ -536,7 +541,9 @@ export const MainLayout: React.FC = () => {
                 onClick={() => setShowBulkEditModal(true)}
                 title="テキストアセット一括編集"
               >
-                T:🖊️
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M2 2h12v2H9v10H7V4H2V2z"/>
+                </svg>
               </button>
               
               <span className="project-title">{project.metadata.title}</span>
