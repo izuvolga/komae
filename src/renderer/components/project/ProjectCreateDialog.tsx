@@ -258,7 +258,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <div className="form-field">
               <label className="form-label">対応言語</label>
               
-              <div className="language-selector">
+              <div className="language-selector-area">
                 <div className="language-dropdown-container">
                   <div 
                     className="language-dropdown-trigger"

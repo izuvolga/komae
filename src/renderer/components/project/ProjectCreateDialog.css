@@ -285,7 +285,7 @@
 }
 
 /* 多言語設定 */
-.language-selector {
+.language-selector-area {
   display: flex;
   flex-direction: column;
   gap: 12px;
