@@ -546,7 +546,6 @@ export const MainLayout: React.FC = () => {
                 </svg>
               </button>
               
-              <span className="project-title">{project.metadata.title}</span>
             </div>
             
             <div className="toolbar-section right-section">

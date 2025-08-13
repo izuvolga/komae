@@ -136,6 +136,9 @@ export const useProjectStore = create<ProjectStore>()(
           } else {
             state.ui.currentPage = null;
           }
+          
+          // ウィンドウタイトルをプロジェクト名に設定
+          window.electronAPI?.system?.setTitle(project.metadata.title);
         }),
 
         setCurrentProjectPath: (path) => set((state) => {
@@ -151,6 +154,9 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.isDirty = false;
           state.app.lastSaved = null;
           state.app.notifications = [];
+          
+          // ウィンドウタイトルをデフォルトに戻す
+          window.electronAPI?.system?.setTitle('Sequential Panel Illustration Creator');
         }),
 
         // Asset Actions
