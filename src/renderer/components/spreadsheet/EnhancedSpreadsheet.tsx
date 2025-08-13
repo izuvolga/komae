@@ -716,6 +716,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
                                 className="inline-edit-textarea"
                                 value={inlineEditState.text}
                                 onChange={(e) => setInlineEditState(prev => ({ ...prev, text: e.target.value }))}
+                                onBlur={() => {
+                                  handleSaveInlineEdit();
+                                }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' && e.ctrlKey) {
                                     e.preventDefault();
@@ -728,26 +731,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
                                 autoFocus
                                 rows={3}
                               />
-                              <div className="inline-edit-buttons">
-                                <button 
-                                  className="inline-edit-save"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleSaveInlineEdit();
-                                  }}
-                                >
-                                  保存
-                                </button>
-                                <button 
-                                  className="inline-edit-cancel"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCancelInlineEdit();
-                                  }}
-                                >
-                                  キャンセル
-                                </button>
-                              </div>
                             </div>
                           ) : (
                             getEffectiveTextValue(

@@ -437,42 +437,6 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-.inline-edit-buttons {
-  display: flex;
-  gap: 4px;
-  margin-top: 4px;
-  justify-content: flex-end;
-}
-
-.inline-edit-save,
-.inline-edit-cancel {
-  padding: 4px 8px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.1s;
-}
-
-.inline-edit-save {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.inline-edit-save:hover {
-  background-color: #0056b3;
-}
-
-.inline-edit-cancel {
-  background-color: #6c757d;
-  color: white;
-  border-color: #6c757d;
-}
-
-.inline-edit-cancel:hover {
-  background-color: #545b62;
-}
 
 .text-content {
   padding: 4px;
