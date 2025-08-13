@@ -5,7 +5,7 @@ import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
 import { ImageEditModal } from './ImageEditModal';
 import { TextEditModal } from './TextEditModal';
-import type { Asset, ImageAsset, TextAsset } from '../../../types/entities';
+import type { Asset, ImageAsset, TextAsset, VectorAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -25,6 +25,7 @@ export const AssetLibrary: React.FC = () => {
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [editingImageAsset, setEditingImageAsset] = useState<ImageAsset | null>(null);
   const [editingTextAsset, setEditingTextAsset] = useState<TextAsset | null>(null);
+  const [editingVectorAsset, setEditingVectorAsset] = useState<VectorAsset | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -110,6 +111,8 @@ export const AssetLibrary: React.FC = () => {
         setEditingImageAsset(contextMenu.asset as ImageAsset);
       } else if (contextMenu.asset.type === 'TextAsset') {
         setEditingTextAsset(contextMenu.asset as TextAsset);
+      } else if (contextMenu.asset.type === 'VectorAsset') {
+        setEditingVectorAsset(contextMenu.asset as VectorAsset);
       }
     }
     setContextMenu(null);
@@ -508,7 +511,7 @@ export const AssetLibrary: React.FC = () => {
             zIndex: 1000,
           }}
         >
-          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset') && (
+          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset') && (
             <button
               className="context-menu-item"
               onClick={handleContextMenuEdit}

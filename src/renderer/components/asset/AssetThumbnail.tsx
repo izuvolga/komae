@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
-import type { ImageAsset } from '../../../types/entities';
+import type { Asset, ImageAsset, VectorAsset } from '../../../types/entities';
 import './AssetThumbnail.css';
 
 interface AssetThumbnailProps {
-  asset: ImageAsset;
+  asset: Asset;
   maxWidth?: number;
   maxHeight?: number;
 }
@@ -28,9 +28,9 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       setHasError(false);
       
       try {
-        console.log('Generating custom protocol URL for asset:', currentProjectPath, asset.original_file_path);
+        console.log('Generating custom protocol URL for asset:', currentProjectPath, (asset as any).original_file_path);
         // カスタムプロトコルURLを生成（非同期処理不要）
-        const protocolUrl = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
+        const protocolUrl = getCustomProtocolUrl((asset as any).original_file_path, currentProjectPath);
         
         if (isMounted) {
           setCustomProtocolUrl(protocolUrl);
@@ -51,15 +51,18 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [asset.original_file_path, currentProjectPath]);
+  }, [asset, currentProjectPath]);
 
   // サムネイルサイズを計算
-  const thumbnailSize = calculateThumbnailSize(
-    asset.original_width,
-    asset.original_height,
-    maxWidth,
-    maxHeight
-  );
+  let thumbnailSize = { width: maxWidth, height: maxHeight };
+  if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
+    thumbnailSize = calculateThumbnailSize(
+      (asset as ImageAsset | VectorAsset).original_width,
+      (asset as ImageAsset | VectorAsset).original_height,
+      maxWidth,
+      maxHeight
+    );
+  }
 
   if (isLoading) {
     return (
@@ -72,6 +75,22 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     );
   }
 
+  // TextAssetの場合は専用の表示
+  if (asset.type === 'TextAsset') {
+    return (
+      <div 
+        className="asset-thumbnail text-asset"
+        style={{ width: maxWidth, height: maxHeight }}
+      >
+        <div className="text-asset-placeholder">
+          <span>TXT</span>
+          <small>{asset.name}</small>
+        </div>
+      </div>
+    );
+  }
+
+  // ImageAssetまたはVectorAssetでエラーまたはURLなしの場合
   if (hasError || !customProtocolUrl) {
     return (
       <div 
@@ -79,7 +98,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
         style={{ width: maxWidth, height: maxHeight }}
       >
         <div className="error-placeholder">
-          <span>IMG</span>
+          <span>{asset.type === 'VectorAsset' ? 'SVG' : 'IMG'}</span>
           <small>読み込み失敗</small>
         </div>
       </div>
@@ -88,7 +107,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
 
   return (
     <div 
-      className="asset-thumbnail"
+      className={`asset-thumbnail ${asset.type === 'VectorAsset' ? 'vector-asset' : 'image-asset'}`}
       style={{ width: maxWidth, height: maxHeight }}
     >
       <img
