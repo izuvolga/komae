@@ -21,6 +21,7 @@
   - 現時点で、以下の種類の Asset が存在する:
     - ImageAsset ... 画像を表現するためのテンプレート
     - TextAsset ... テキストを表現するためのテンプレート
+    - VectorAsset ... SVGベクター画像を表現するためのテンプレート
 
 - AssetInstance
   - 背景: 実態として全く同じ画像を複数のページで何度も使うことは少なく、微妙に位置を変えたり、サイズを変えたりすることが多い。そのため、ちょっとした位置の変更のたびに Asset が増えるのは非効率的である。そこで、Asset の属性情報を極力使いまわしつつ、 Page ごとに微妙に異なる配置情報を持つことができるようにするための概念。
@@ -72,6 +73,32 @@ leading: テキストの行間（verticalがtrueの場合にのみ利用）
 vertical: 縦書き設定（true の場合、縦書き）
 default_z_index: デフォルトのレイヤー順序
 ```
+
+### VectorAsset
+
+SVGベクター画像を表現するためのテンプレートで、以下の属性をもつ。
+
+```
+id: テンプレートのID (ユーザーが指定する必要はない)
+name: SVG画像の名前 (デフォルトはファイル名)
+original_file_path: SVGファイルのファイルパス（絶対パス）
+original_width: 元SVGファイルの幅（SVGのwidth属性またはviewBoxから取得）
+original_height: 元SVGファイルの高さ（SVGのheight属性またはviewBoxから取得）
+default_pos_x: デフォルトのX座標
+default_pos_y: デフォルトのY座標
+default_width: デフォルトの幅（レンダリング時のサイズ）
+default_height: デフォルトの高さ（レンダリング時のサイズ）
+default_opacity: デフォルトの不透明度（0.0〜1.0）
+default_z_index: デフォルトのレイヤー順序
+svg_content: SVGファイルの内容をテキストとして保持（XMLパース済み）
+```
+
+VectorAssetの特徴：
+- SVGファイルの内容を`svg_content`フィールドに文字列として保持
+- ベクター画像なので無限拡大・縮小が可能
+- `original_width`/`original_height`はSVGの元サイズ
+- `default_width`/`default_height`は実際のレンダリングサイズ
+- ImageAssetとは異なり、再利用定義は作成せずインスタンスごとにインライン描画
 
 ## DynamicSvgAsset
 
@@ -135,6 +162,28 @@ override_font: 言語別フォント選択 (optional)
 override_leading: 言語別行間設定 (optional)
 override_vertical: 言語別縦書き設定 (optional)
 ```
+
+### VectorAssetInstance
+
+VectorAssetを実際のPageに配置する際のインスタンス。以下の属性をもつ。
+
+```
+id: インスタンスのID (ユーザーが指定する必要はない)
+asset_id: 参照するVectorAssetのID
+override_pos_x: VectorAssetのdefault_pos_xを上書きするX座標 (optional)
+override_pos_y: VectorAssetのdefault_pos_yを上書きするY座標 (optional)
+override_width: VectorAssetのdefault_widthを上書きする幅 (optional)
+override_height: VectorAssetのdefault_heightを上書きする高さ (optional)
+override_opacity: VectorAssetのdefault_opacityを上書きする不透明度 (optional)
+override_z_index: VectorAssetのdefault_z_indexを上書きするレイヤー順序 (optional)
+```
+
+VectorAssetInstanceの特徴：
+- VectorAssetの各デフォルト値を個別にオーバーライド可能
+- SVG要素の位置・サイズ・透明度を柔軟に調整
+- z_indexによる他アセットとの重なり順制御
+- インスタンスごとにSVG要素として直接レンダリング
+- オーバーライドされた値はSVGのx, y, width, height, opacity属性に直接適用
 
 ## DynamicSvgAssetInstance
 

@@ -329,7 +329,7 @@ export class HtmlExporter {
       }
     }
     
-    // アセット定義を生成
+    // アセット定義を生成（ImageAssetのみ - VectorAssetとTextAssetはインライン表示）
     for (const assetId of allAssetIds) {
       const asset = project.assets[assetId];
       if (!asset || asset.type !== 'ImageAsset') continue;
@@ -510,7 +510,7 @@ export class HtmlExporter {
   }
 
   generateSvgAssetDefinitions(project: ProjectData): string {
-    // SVGアセット定義を生成（テスト用の単純版）
+    // SVGアセット定義を生成（ImageAssetのみ - VectorAssetやTextAssetはインライン表示）
     return Object.values(project.assets)
       .filter(asset => asset.type === 'ImageAsset')
       .map(asset => {

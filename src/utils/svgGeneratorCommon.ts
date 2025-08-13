@@ -1,4 +1,4 @@
-import type { ProjectData, ImageAsset, TextAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, FontInfo } from '../types/entities';
+import type { ProjectData, ImageAsset, TextAsset, VectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, FontInfo } from '../types/entities';
 import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity, getEffectiveFont, getEffectiveVertical, getEffectiveLeading } from '../types/entities';
 
 /**
@@ -153,10 +153,55 @@ export function generateSvgStructureCommon(
       // テキストアセットは多言語対応インライン要素として追加
       const textElement = generateMultilingualTextElement(textAsset, instance, availableLanguages, currentLanguage);
       useElements.push(textElement);
+      
+    } else if (asset.type === 'VectorAsset') {
+      const vectorAsset = asset as VectorAsset;
+      
+      // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
+      const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
+      useElements.push(vectorElement);
     }
   }
 
   return { assetDefinitions, useElements };
+}
+
+/**
+ * VectorAsset要素を生成する
+ */
+function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance): string {
+  // インスタンスのオーバーライド値を取得
+  const posX = instance.override_pos_x ?? asset.default_pos_x;
+  const posY = instance.override_pos_y ?? asset.default_pos_y;
+  const width = instance.override_width ?? asset.default_width;
+  const height = instance.override_height ?? asset.default_height;
+  const opacity = instance.override_opacity ?? asset.default_opacity;
+  
+  // SVGコンテンツを解析してviewBoxやサイズ情報を取得
+  let svgContent = asset.svg_content;
+  
+  // SVGのルート要素を置換してサイズと位置を適用
+  const svgMatch = svgContent.match(/<svg[^>]*>/i);
+  if (svgMatch) {
+    const originalSvgTag = svgMatch[0];
+    
+    // 新しいSVG要素の属性を構築
+    const newSvgTag = originalSvgTag
+      .replace(/\s*width\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/\s*height\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/\s*x\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/\s*y\s*=\s*["'][^"']*["']/gi, '')
+      .replace('<svg', `<svg x="${posX}" y="${posY}" width="${width}" height="${height}" opacity="${opacity}"`);
+    
+    svgContent = svgContent.replace(originalSvgTag, newSvgTag);
+  }
+  
+  // グループ要素でラップ（ID付き）
+  return [
+    `<g id="vector-instance-${instance.id}">`,
+    `  ${svgContent}`,
+    `</g>`
+  ].join('\n    ');
 }
 
 /**
