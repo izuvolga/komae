@@ -223,7 +223,7 @@ export interface UIState {
   currentPage: string | null;
   activeWindow: 'asset' | 'spreadsheet' | 'preview';
   zoomLevel: number;
-  autoZoom: boolean;
+  canvasFit: boolean; // 旧 autoZoom から統合された「キャンバスをプレビュー画面に収める」機能
   showAssetLibrary: boolean;
   showPreview: boolean;
   showFontManagement: boolean;

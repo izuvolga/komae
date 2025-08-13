@@ -8,9 +8,9 @@ export const PreviewArea: React.FC = () => {
   const project = useProjectStore((state) => state.project);
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
-  const autoZoom = useProjectStore((state) => state.ui.autoZoom);
+  const canvasFit = useProjectStore((state) => state.ui.canvasFit);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
-  const setAutoZoom = useProjectStore((state) => state.setAutoZoom);
+  const setCanvasFit = useProjectStore((state) => state.setCanvasFit);
   const togglePreview = useProjectStore((state) => state.togglePreview);
 
   const previewContentRef = useRef<HTMLDivElement>(null);
@@ -107,9 +107,9 @@ export const PreviewArea: React.FC = () => {
     };
   }, [canvasWidth, canvasHeight, zoomLevel, isPanning, panStartPos, panStartScroll, setZoomLevel]);
 
-  // 自動ズーム機能
+  // キャンバスフィット機能（旧自動ズーム機能）
   React.useEffect(() => {
-    if (!autoZoom) return;
+    if (!canvasFit) return;
     
     const container = previewContentRef.current;
     if (!container) return;
@@ -140,7 +140,7 @@ export const PreviewArea: React.FC = () => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [autoZoom, canvasWidth, canvasHeight, setZoomLevel]);
+  }, [canvasFit, canvasWidth, canvasHeight, setZoomLevel]);
 
   // 初期スクロール位置を中央に設定
   React.useEffect(() => {
@@ -182,43 +182,10 @@ export const PreviewArea: React.FC = () => {
     setZoomLevel(parseFloat(e.target.value));
   };
 
-  const handleAutoZoomToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAutoZoom(e.target.checked);
+  const handleCanvasFitButtonClick = () => {
+    setCanvasFit(!canvasFit);
   };
 
-  const handleFitToView = () => {
-    const container = previewContentRef.current;
-    if (!container) return;
-
-    // コンテナのサイズを取得
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    const containerHeight = containerRect.height;
-
-    // キャンバスサイズに対してコンテナに収まるズームレベルを計算
-    const widthRatio = containerWidth / canvasWidth;
-    const heightRatio = containerHeight / canvasHeight;
-    
-    // 両方向に収まる最小の倍率を選択（マージンを考慮して0.9倍）
-    const fitZoomLevel = Math.min(widthRatio, heightRatio) * 0.9;
-    const clampedZoomLevel = Math.min(3.0, Math.max(0.1, fitZoomLevel));
-    
-    setZoomLevel(clampedZoomLevel);
-    
-    // ズーム変更後、キャンバスを中央に配置
-    setTimeout(() => {
-      if (!container) return;
-      const containerRect = container.getBoundingClientRect();
-      const wrapperWidth = Math.max(canvasWidth * clampedZoomLevel + 400, containerRect.width * 2);
-      const wrapperHeight = Math.max(canvasHeight * clampedZoomLevel + 400, containerRect.height * 2);
-      
-      const centerScrollLeft = (wrapperWidth - containerRect.width) / 2;
-      const centerScrollTop = (wrapperHeight - containerRect.height) / 2;
-      
-      container.scrollLeft = centerScrollLeft;
-      container.scrollTop = centerScrollTop;
-    }, 50);
-  };
 
   return (
     <div className="preview-area">
@@ -239,18 +206,16 @@ export const PreviewArea: React.FC = () => {
         </div>
         <div className="preview-controls">
           <div className="controls-left">
-            <div className="auto-zoom-control">
-              <label className="toggle-label">
-                <input
-                  type="checkbox"
-                  checked={autoZoom}
-                  onChange={handleAutoZoomToggle}
-                  className="auto-zoom-toggle"
-                />
-                <span className="toggle-text">自動ズーム</span>
-              </label>
+            <div className="canvas-fit-control">
+              <button
+                className={`mode-btn fit-btn ${canvasFit ? 'active' : ''}`}
+                onClick={handleCanvasFitButtonClick}
+                title="キャンバスをプレビュー画面に収める"
+              >
+                <FitToViewIcon size={14} />
+              </button>
             </div>
-            {!autoZoom && (
+            {!canvasFit && (
               <div className="zoom-control">
                 <label>倍率:</label>
                 <input
@@ -265,21 +230,11 @@ export const PreviewArea: React.FC = () => {
                 <span className="zoom-value">{Math.round(zoomLevel * 100)}%</span>
               </div>
             )}
-            {autoZoom && (
+            {canvasFit && (
               <div className="zoom-display">
-                <span className="zoom-value">自動: {Math.round(zoomLevel * 100)}%</span>
+                <span className="zoom-value">自動フィット: {Math.round(zoomLevel * 100)}%</span>
               </div>
             )}
-            <div className="mode-control">
-              <button
-                className="mode-btn fit-btn"
-                onClick={handleFitToView}
-                title="キャンバスをプレビュー画面に収める"
-                disabled={autoZoom}
-              >
-                <FitToViewIcon size={14} />
-              </button>
-            </div>
           </div>
           <div className="page-info">
             <span>Page:{Object.values(project.pages).indexOf(currentPageData) + 1} Assets:{Object.keys(currentPageData.asset_instances).length} {canvasWidth}×{canvasHeight}px</span>

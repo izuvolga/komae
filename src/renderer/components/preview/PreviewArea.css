@@ -53,10 +53,11 @@
   color: #333;
 }
 
-/* 自動ズームトグル */
-.auto-zoom-control {
+/* キャンバスフィットコントロール（統合後） */
+.canvas-fit-control {
   display: flex;
   align-items: center;
+  gap: 8px;
   font-size: 12px;
 }
 
@@ -68,7 +69,7 @@
   color: #666;
 }
 
-.auto-zoom-toggle {
+.canvas-fit-toggle {
   margin: 0;
   cursor: pointer;
 }
@@ -141,6 +142,12 @@
 
 .mode-btn:hover:not(:disabled) {
   background-color: #f0f0f0;
+}
+
+.mode-btn.active {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
 }
 
 .mode-btn:disabled {

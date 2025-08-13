@@ -68,7 +68,7 @@
 - [x]: TextAsset/TextAssetInstance の opacity のテキストボックスに1 以上の値を入力しつつ、「保存」を押すと保存できてしまうが、opacityは1を超えるとエラーのため、プロジェクトが開けなくなる。
 - [x]: Asset/AssetInstance の編集画面の数値の入力フィールドの上下ボタンだが、押しっぱなしで連続して増減できるようにする。
 - [x]: TextAsset/TextAssetInstance のプレビュー画面でPosX/Yの位置をマウスのドラッグ・アンド・ドロップで変更できるようにする
-- [ ]: TextAssetInstance の Edit 画面で「縦書き」および「フォント」を各言語で override できるようにする
+- [x]: TextAssetInstance の Edit 画面で「縦書き」および「フォント」を各言語で override できるようにする
   - TextEditModal も編集する
 - [ ]: Preview Window の「自動ズーム」と「キャンバスをプレビュー画面に収める」を統合する
   - 事実上「キャンバスをプレビュー画面に収める」と「自動ズーム」は同じ挙動をする機能なので、統合する。
