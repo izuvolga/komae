@@ -91,8 +91,9 @@
 - [x]: Asset に追加する画像として SVG も対応する
   - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
 - [ ]: SVG のサイズの処理が現状うまくいってないため、以下のように変更する
-  - SVGでのエクスポート時は、VectorAssetInstanceを `<svg version="1.1" width="100px" height="100px" ..中略.. >` という更に `<svg>` タグの中に `width` と `height` を指定する。これで SVG のサイズを指定できる。
-  - VectorEditModalでも同様の処理をする
+  - SVGで VectorAssetを描画するときには、VectorAssetInstanceの SVG をさらに`<svg version="1.1" width="100px" height="100px" ..中略.. >` という更に新たな `<svg>` タグの子要素にし、親要素の `width` と `height` を指定する。これで SVG のサイズを指定できる。
+  - まずはVectorEditModalでこの処理を試す
+  - うまく動いたら SVG のエクスポートでも同様の処理を行う
 - [ ]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
 - [ ]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外ではなにの効果もない
   - Preview Window でのプレビューもマスクが適用されていない

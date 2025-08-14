@@ -203,6 +203,13 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
   
+  // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御
+  const wrapSVGWithParentContainer = (svgContent: string, x: number, y: number, width: number, height: number, opacity: number): string => {
+    return `<svg version="1.1" x="${x}px" y="${y}px" width="${width}px" height="${height}px" style="opacity: ${opacity};" xmlns="http://www.w3.org/2000/svg">
+      ${svgContent}
+    </svg>`;
+  };
+  
   // ドラッグ操作ハンドラー
   const handlePreviewMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -241,19 +248,27 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       const deltaX = e.clientX - dragStartPos.x;
       const deltaY = e.clientY - dragStartPos.y;
       
-      // スケール調整（プレビューのサイズに合わせて調整）
-      const scale = Math.min(300 / currentSize.width, 250 / currentSize.height, 1);
+      // キャンバス比率に合わせたスケール計算
+      const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+      const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+      const scaleX = canvasWidth / (project?.canvas.width || 800);
+      const scaleY = canvasHeight / (project?.canvas.height || 600);
       
       // 位置変更
-      const newX = dragStartValues.x + deltaX / scale;
-      const newY = dragStartValues.y + deltaY / scale;
+      const newX = dragStartValues.x + deltaX / scaleX;
+      const newY = dragStartValues.y + deltaY / scaleY;
       
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
       const deltaX = e.clientX - dragStartPos.x;
       const deltaY = e.clientY - dragStartPos.y;
-      const scale = Math.min(300 / dragStartValues.width, 250 / dragStartValues.height, 1);
+      
+      // キャンバス比率に合わせたスケール計算
+      const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+      const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+      const scaleX = canvasWidth / (project?.canvas.width || 800);
+      const scaleY = canvasHeight / (project?.canvas.height || 600);
       
       let newWidth = dragStartValues.width;
       let newHeight = dragStartValues.height;
@@ -262,24 +277,24 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       
       switch (resizeHandle) {
         case 'top-left':
-          newWidth = Math.max(10, dragStartValues.width - deltaX / scale);
-          newHeight = Math.max(10, dragStartValues.height - deltaY / scale);
+          newWidth = Math.max(10, dragStartValues.width - deltaX / scaleX);
+          newHeight = Math.max(10, dragStartValues.height - deltaY / scaleY);
           newX = dragStartValues.x + (dragStartValues.width - newWidth);
           newY = dragStartValues.y + (dragStartValues.height - newHeight);
           break;
         case 'top-right':
-          newWidth = Math.max(10, dragStartValues.width + deltaX / scale);
-          newHeight = Math.max(10, dragStartValues.height - deltaY / scale);
+          newWidth = Math.max(10, dragStartValues.width + deltaX / scaleX);
+          newHeight = Math.max(10, dragStartValues.height - deltaY / scaleY);
           newY = dragStartValues.y + (dragStartValues.height - newHeight);
           break;
         case 'bottom-left':
-          newWidth = Math.max(10, dragStartValues.width - deltaX / scale);
-          newHeight = Math.max(10, dragStartValues.height + deltaY / scale);
+          newWidth = Math.max(10, dragStartValues.width - deltaX / scaleX);
+          newHeight = Math.max(10, dragStartValues.height + deltaY / scaleY);
           newX = dragStartValues.x + (dragStartValues.width - newWidth);
           break;
         case 'bottom-right':
-          newWidth = Math.max(10, dragStartValues.width + deltaX / scale);
-          newHeight = Math.max(10, dragStartValues.height + deltaY / scale);
+          newWidth = Math.max(10, dragStartValues.width + deltaX / scaleX);
+          newHeight = Math.max(10, dragStartValues.height + deltaY / scaleY);
           break;
       }
       
@@ -324,85 +339,116 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           <div className="edit-panels">
             {/* 左側：プレビュー */}
             <div className="preview-panel">
-              <div className="svg-preview">
+              <div className="canvas-preview">
+                {/* キャンバス比率のプレビュー領域 */}
                 <div 
-                  className="svg-preview-wrapper"
+                  className="canvas-container"
                   style={{
                     position: 'relative',
-                    width: 300,
-                    height: 250,
-                    border: '1px solid #e5e7eb',
-                    overflow: 'hidden',
-                    backgroundColor: '#f9fafb',
+                    width: Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                    height: Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                    border: '2px solid #d1d5db',
+                    backgroundColor: '#ffffff',
+                    overflow: 'visible',
                   }}
                 >
+                  {/* キャンバス背景 */}
                   <div 
-                    className="svg-preview-container"
+                    className="canvas-background"
                     style={{
-                      width: currentSize.width,
-                      height: currentSize.height,
-                      opacity: currentOpacity,
-                      cursor: isDragging ? 'grabbing' : 'grab',
-                      userSelect: 'none',
-                      transform: `scale(${Math.min(300 / currentSize.width, 250 / currentSize.height, 1)})`,
-                      transformOrigin: 'top left',
                       position: 'absolute',
                       top: 0,
                       left: 0,
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: '#f8fafc',
+                      border: '1px dashed #cbd5e1',
                     }}
-                    onMouseDown={handlePreviewMouseDown}
-                    dangerouslySetInnerHTML={{ __html: asset.svg_content }}
                   />
                   
-                  {/* リサイズハンドル */}
-                  {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
-                    const handleSize = 12;
-                    const scale = Math.min(300 / currentSize.width, 250 / currentSize.height, 1);
-                    let x = 0;
-                    let y = 0;
-                    let cursor = 'nw-resize';
+                  {/* SVGアセットプレビュー */}
+                  <div 
+                    className="svg-asset-preview"
+                    style={{
+                      position: 'absolute',
+                      cursor: isDragging ? 'grabbing' : 'grab',
+                      userSelect: 'none',
+                      transformOrigin: 'top left',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                    }}
+                    onMouseDown={handlePreviewMouseDown}
+                  >
+                    {/* キャンバスサイズに合わせたSVG表示 */}
+                    <div 
+                      dangerouslySetInnerHTML={{ 
+                        __html: `<svg width="100%" height="100%" viewBox="0 0 ${project?.canvas.width || 800} ${project?.canvas.height || 600}" xmlns="http://www.w3.org/2000/svg">
+                          ${wrapSVGWithParentContainer(asset.svg_content, currentPos.x, currentPos.y, currentSize.width, currentSize.height, currentOpacity)}
+                        </svg>`
+                      }}
+                    />
+                  </div>
+                  
+                  {/* アセットのリサイズハンドル */}
+                  {(() => {
+                    const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+                    const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
+                    const scaleX = canvasWidth / (project?.canvas.width || 800);
+                    const scaleY = canvasHeight / (project?.canvas.height || 600);
+                    const handleSize = 8;
                     
-                    switch (handle) {
-                      case 'top-left':
-                        x = 0;
-                        y = 0;
-                        cursor = 'nw-resize';
-                        break;
-                      case 'top-right':
-                        x = currentSize.width * scale - handleSize;
-                        y = 0;
-                        cursor = 'ne-resize';
-                        break;
-                      case 'bottom-left':
-                        x = 0;
-                        y = currentSize.height * scale - handleSize;
-                        cursor = 'sw-resize';
-                        break;
-                      case 'bottom-right':
-                        x = currentSize.width * scale - handleSize;
-                        y = currentSize.height * scale - handleSize;
-                        cursor = 'se-resize';
-                        break;
-                    }
-                    
-                    return (
-                      <div
-                        key={handle}
-                        style={{
-                          position: 'absolute',
-                          left: `${x}px`,
-                          top: `${y}px`,
-                          width: `${handleSize}px`,
-                          height: `${handleSize}px`,
-                          backgroundColor: '#007acc',
-                          cursor: cursor,
-                          zIndex: 4,
-                          border: '1px solid #ffffff',
-                        }}
-                        onMouseDown={(e) => handleResizeMouseDown(e, handle)}
-                      />
-                    );
-                  })}
+                    return ['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
+                      let x = 0;
+                      let y = 0;
+                      let cursor = 'nw-resize';
+                      
+                      switch (handle) {
+                        case 'top-left':
+                          x = currentPos.x * scaleX - handleSize / 2;
+                          y = currentPos.y * scaleY - handleSize / 2;
+                          cursor = 'nw-resize';
+                          break;
+                        case 'top-right':
+                          x = (currentPos.x + currentSize.width) * scaleX - handleSize / 2;
+                          y = currentPos.y * scaleY - handleSize / 2;
+                          cursor = 'ne-resize';
+                          break;
+                        case 'bottom-left':
+                          x = currentPos.x * scaleX - handleSize / 2;
+                          y = (currentPos.y + currentSize.height) * scaleY - handleSize / 2;
+                          cursor = 'sw-resize';
+                          break;
+                        case 'bottom-right':
+                          x = (currentPos.x + currentSize.width) * scaleX - handleSize / 2;
+                          y = (currentPos.y + currentSize.height) * scaleY - handleSize / 2;
+                          cursor = 'se-resize';
+                          break;
+                      }
+                      
+                      return (
+                        <div
+                          key={handle}
+                          style={{
+                            position: 'absolute',
+                            left: `${x}px`,
+                            top: `${y}px`,
+                            width: `${handleSize}px`,
+                            height: `${handleSize}px`,
+                            backgroundColor: '#3b82f6',
+                            cursor: cursor,
+                            zIndex: 10,
+                            border: '1px solid #ffffff',
+                            borderRadius: '2px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                          }}
+                          onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                        />
+                      );
+                    });
+                  })()
+                  }
                 </div>
               </div>
             </div>
