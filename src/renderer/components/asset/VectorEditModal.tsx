@@ -51,35 +51,11 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
-  const [isShiftPressed, setIsShiftPressed] = useState(false);
 
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
-  
-  // Shiftキーの状態を監視
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   if (!isOpen || !project) return null;
 
@@ -348,7 +324,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           <div className="edit-panels">
             {/* 左側：プレビュー */}
             <div className="preview-panel">
-              <h3>プレビュー</h3>
               <div className="svg-preview">
                 <div 
                   className="svg-preview-wrapper"
