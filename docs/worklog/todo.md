@@ -90,7 +90,7 @@
     - `T:🖊️` → リッチなTの文字のアイコンのみ。SVGでも可能。
 - [x]: Asset に追加する画像として SVG も対応する
   - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
-- [ ]: SVG のサイズ指定処理を変更する
+- [ ]: SVG のサイズの処理が現状うまくいってないため、以下のように変更する
   - SVGでのエクスポート時は、VectorAssetInstanceを `<svg version="1.1" width="100px" height="100px" ..中略.. >` という更に `<svg>` タグの中に `width` と `height` を指定する。これで SVG のサイズを指定できる。
   - VectorEditModalでも同様の処理をする
 - [ ]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
