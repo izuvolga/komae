@@ -223,23 +223,42 @@ TextAssetは直接インライン要素として各ページグループ内に�
 
 VectorAssetは、SVGファイルをアセットとして管理し、各ページでインライン要素として直接描画される。ImageAssetとは異なり、VectorAssetは再利用可能な定義を作成せず、インスタンスごとに個別のSVG要素として配置される。これにより、サイズや位置の変形を柔軟に適用できる。
 
-### VectorAssetの基本構造
+### VectorAssetの基本構造（SVGネスト構造）
 
 ```html
 <g id="page-1" style="display: block;">
     <use href="#background" />
     
     <!-- VectorAsset インライン要素（vector-icon-heart, z_index=5） -->
+    <!-- 親SVG要素でサイズ・位置制御、子SVG要素で元のコンテンツ保持 -->
     <g id="vector-instance-vec-inst-001">
-        <svg x="200" y="150" width="64" height="64" opacity="0.8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ff4444"/>
+        <svg version="1.1"
+             xmlns="http://www.w3.org/2000/svg"
+             x="83.33px"
+             y="62.5px"
+             width="24px"
+             height="24px"
+             transform="scale(2.67, 2.67)"
+             style="opacity: 0.8;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ff4444"/>
+            </svg>
         </svg>
     </g>
     
     <!-- VectorAsset インライン要素（vector-arrow-right, z_index=10） -->
     <g id="vector-instance-vec-inst-002">
-        <svg x="400" y="300" width="32" height="32" opacity="1.0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="#333333"/>
+        <svg version="1.1"
+             xmlns="http://www.w3.org/2000/svg"
+             x="300px"
+             y="225px"
+             width="24px"
+             height="24px"
+             transform="scale(1.33, 1.33)"
+             style="opacity: 1.0;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="#333333"/>
+            </svg>
         </svg>
     </g>
 </g>
@@ -247,20 +266,31 @@ VectorAssetは、SVGファイルをアセットとして管理し、各ページ
 
 ### VectorAssetの特徴
 
-#### 1. インライン配置
-- **直接埋め込み**: VectorAssetは各ページグループ内に直接SVG要素として配置
-- **個別変形**: インスタンスごとに位置、サイズ、透明度を個別に設定
+#### 1. SVGネスト構造
+- **親SVG要素**: サイズ・位置・透明度制御用の外側SVG
+- **子SVG要素**: 元のSVGコンテンツを保持する内側SVG
+- **スケール対応**: transform属性でサイズ変更、座標調整で位置制御
 - **元SVG保持**: オリジナルのSVGコンテンツ（viewBox、path、fillなど）をそのまま保持
 
-#### 2. 位置とサイズの制御
+#### 2. 座標変換システム
 ```html
-<!-- アセットのデフォルト値: default_pos_x=100, default_pos_y=100, default_width=48, default_height=48 -->
+<!-- アセット設定: original_width=24, original_height=24 -->
+<!-- デフォルト値: default_pos_x=100, default_pos_y=100, default_width=48, default_height=48 -->
 <!-- インスタンスのオーバーライド: override_pos_x=200, override_width=64, override_height=64 -->
 <g id="vector-instance-vec-inst-003">
-    <svg x="200" y="100" width="64" height="64" opacity="1.0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <!-- 元のSVGコンテンツ -->
-        <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
-        <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none"/>
+    <svg version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         x="75px"
+         y="37.5px"
+         width="24px"
+         height="24px"
+         transform="scale(2.67, 2.67)"
+         style="opacity: 1.0;">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- 元のSVGコンテンツ -->
+            <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+            <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none"/>
+        </svg>
     </svg>
 </g>
 ```
@@ -273,8 +303,17 @@ VectorAssetは、SVGファイルをアセットとして管理し、各ページ
     
     <!-- z_index=5: VectorAsset（装飾） -->
     <g id="vector-instance-decoration-001">
-        <svg x="50" y="50" width="100" height="100" opacity="0.3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100" height="100" fill="url(#gradient1)"/>
+        <svg version="1.1"
+             xmlns="http://www.w3.org/2000/svg"
+             x="12.5px"
+             y="12.5px"
+             width="40px"
+             height="40px"
+             transform="scale(2.5, 2.5)"
+             style="opacity: 0.3;">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" fill="url(#gradient1)"/>
+            </svg>
         </svg>
     </g>
     
@@ -283,8 +322,17 @@ VectorAssetは、SVGファイルをアセットとして管理し、各ページ
     
     <!-- z_index=15: VectorAsset（UIアイコン） -->
     <g id="vector-instance-button-001">
-        <svg x="600" y="50" width="48" height="48" opacity="1.0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="#2196F3"/>
+        <svg version="1.1"
+             xmlns="http://www.w3.org/2000/svg"
+             x="300px"
+             y="25px"
+             width="24px"
+             height="24px"
+             transform="scale(2.0, 2.0)"
+             style="opacity: 1.0;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="#2196F3"/>
+            </svg>
         </svg>
     </g>
 </g>
@@ -296,20 +344,29 @@ VectorAssetは、SVGファイルをアセットとして管理し、各ページ
 |------|------------|-------------|
 | **定義方法** | `<g id="assets">` 内で一度定義 | 各インスタンスでインライン配置 |
 | **再利用** | `<use href="#id">` で参照 | 毎回完全なSVG要素を生成 |
-| **変形方法** | `transform` 属性で変形 | `x`, `y`, `width`, `height` 属性で直接指定 |
+| **変形方法** | `transform` 属性で変形 | SVGネスト構造で座標変換・スケール制御 |
 | **ファイル形式** | PNG, JPEG, WebP等のラスター画像 | SVGベクター画像 |
 | **スケーラビリティ** | 拡大時に画質劣化 | 無限拡大可能 |
 | **カスタマイズ** | 透明度・変形のみ | SVG属性の完全制御 |
 
 ### プレビューWindowでの表示
 
-アプリケーション内のプレビューでは、VectorAssetのSVGコンテンツを直接レンダリング：
+アプリケーション内のプレビューでは、VectorAssetのSVGネスト構造を直接レンダリング：
 
 ```html
 <!-- レンダラープロセスでの表示 -->
 <g id="vector-instance-preview-001">
-    <svg x="250" y="200" width="80" height="80" opacity="0.9" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4CAF50"/>
+    <svg version="1.1"
+         xmlns="http://www.w3.org/2000/svg"
+         x="75px"
+         y="60px"
+         width="24px"
+         height="24px"
+         transform="scale(3.33, 3.33)"
+         style="opacity: 0.9;">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4CAF50"/>
+        </svg>
     </svg>
 </g>
 ```
