@@ -177,29 +177,31 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
   const height = instance.override_height ?? asset.default_height;
   const opacity = instance.override_opacity ?? asset.default_opacity;
   
-  // SVGコンテンツを解析してviewBoxやサイズ情報を取得
-  let svgContent = asset.svg_content;
+  // 修正されたwrapSVGWithParentContainer関数のロジックを適用
+  const originalWidth = asset.original_width;
+  const originalHeight = asset.original_height;
+  const scaleX = width / originalWidth;
+  const scaleY = height / originalHeight;
   
-  // SVGのルート要素を置換してサイズと位置を適用
-  const svgMatch = svgContent.match(/<svg[^>]*>/i);
-  if (svgMatch) {
-    const originalSvgTag = svgMatch[0];
-    
-    // 新しいSVG要素の属性を構築
-    const newSvgTag = originalSvgTag
-      .replace(/\s*width\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/\s*height\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/\s*x\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/\s*y\s*=\s*["'][^"']*["']/gi, '')
-      .replace('<svg', `<svg x="${posX}" y="${posY}" width="${width}" height="${height}" opacity="${opacity}"`);
-    
-    svgContent = svgContent.replace(originalSvgTag, newSvgTag);
-  }
+  // SVG 内部での X, Y 座標は scale 処理を考慮して調整
+  const adjustedX = posX * (1 / scaleX);
+  const adjustedY = posY * (1 / scaleY);
+  
+  const wrappedSVG = `<svg version="1.1"
+    xmlns="http://www.w3.org/2000/svg"
+    x="${adjustedX}px"
+    y="${adjustedY}px"
+    width="${originalWidth}px"
+    height="${originalHeight}px"
+    transform="scale(${scaleX}, ${scaleY})"
+    style="opacity: ${opacity};">
+      ${asset.svg_content}
+  </svg>`;
   
   // グループ要素でラップ（ID付き）
   return [
     `<g id="vector-instance-${instance.id}">`,
-    `  ${svgContent}`,
+    `  ${wrappedSVG}`,
     `</g>`
   ].join('\n    ');
 }
