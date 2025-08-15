@@ -90,7 +90,7 @@
     - `T:🖊️` → リッチなTの文字のアイコンのみ。SVGでも可能。
 - [x]: Asset に追加する画像として SVG も対応する
   - SVG ファイルを Asset Window にドラッグ＆ドロップしたら、ImageAsset とは別に VectorAsset を作成する
-- [ ]: SVG のサイズの処理が現状うまくいってないため、以下のように変更する
+- [x]: SVG のサイズの処理が現状うまくいってないため、以下のように変更する
   - SVGで VectorAssetを描画するときには、VectorAssetInstanceの SVG をさらに`<svg version="1.1" width="100px" height="100px" ..中略.. >` という更に新たな `<svg>` タグの子要素にし、親要素の `width` と `height` を指定する。これで SVG のサイズを指定できる。
   - まずはVectorEditModalでこの処理を試す
   - うまく動いたら SVG のエクスポートでも同様の処理を行う
@@ -100,7 +100,6 @@
   - HTML でエクスポートしてもマスクが適用されていない
   - docs/design/svg-structure.md のマスク情報の記述を参考に、マスクの処理を SVG に適用する
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
-- [ ]: Custom Font の中にライセンス全文と著作権表示を表示する画面を追加する
 - [ ]: プロジェクトを開いたときに存在しないアセットは assets/ ディレクトリ配下から削除
 - [ ]: assets/fonts ディレクトリはもはや不要なので作らない
 
@@ -162,8 +161,8 @@ ui-specification.md の Project Creation / Project Header を参照
   - 行番号表示
   - 編集をしたら、編集がされた行の背景色を変更する
   - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
-- [ ]: 新規アセット: スクリプト生成できる SVG
-- [ ]: 新規アセット: ラベル
+- [ ]: 新規アセット: スクリプト生成できる SVG (docs/design/asset-specificaiton.md)
+- [ ]: 新規アセット: ラベル (docs/design/asset-specificaiton.md)
 - [ ]: Spread Sheet 上にカーソルの概念を追加する。セルをクリックしたときに、カーソルがそのセルの位置に表示されるようにする。
   - UI: カーソルは線で表示し、カーソルの色は青色
   - キーボードの矢印キーでカーソルを移動できるようにする
