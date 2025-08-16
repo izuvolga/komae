@@ -43,10 +43,9 @@ describe('プロジェクトディレクトリの作成・管理', () => {
       const imagesStats = await fs.stat(imagesPath);
       expect(imagesStats.isDirectory()).toBe(true);
       
-      // assets/fonts/ ディレクトリが作成されたことを確認
+      // assets/fonts/ ディレクトリは作成されないことを確認
       const fontsPath = path.join(assetsPath, 'fonts');
-      const fontsStats = await fs.stat(fontsPath);
-      expect(fontsStats.isDirectory()).toBe(true);
+      await expect(fs.stat(fontsPath)).rejects.toThrow();
     });
 
     test('既存のディレクトリがある場合はエラーが発生する', async () => {
@@ -138,10 +137,9 @@ describe('プロジェクトディレクトリの作成・管理', () => {
       const imagesStats = await fs.stat(imagesPath);
       expect(imagesStats.isDirectory()).toBe(true);
       
-      // assets/fonts/ が作成されたことを確認
+      // assets/fonts/ は作成されないことを確認
       const fontsPath = path.join(projectPath, 'assets', 'fonts');
-      const fontsStats = await fs.stat(fontsPath);
-      expect(fontsStats.isDirectory()).toBe(true);
+      await expect(fs.stat(fontsPath)).rejects.toThrow();
     });
   });
 
@@ -151,12 +149,11 @@ describe('プロジェクトディレクトリの作成・管理', () => {
       
       await createProjectDirectory(projectPath);
       
-      // 期待される構造
+      // 期待される構造（fontsディレクトリは除外）
       const expectedPaths = [
         projectPath,
         path.join(projectPath, 'assets'),
-        path.join(projectPath, 'assets', 'images'),
-        path.join(projectPath, 'assets', 'fonts')
+        path.join(projectPath, 'assets', 'images')
       ];
       
       for (const expectedPath of expectedPaths) {

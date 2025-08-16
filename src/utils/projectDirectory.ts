@@ -128,15 +128,13 @@ export function getAssetsDirectoryPath(projectPath: string): string {
 }
 
 /**
- * アセット用のサブディレクトリ（images/、fonts/）を作成する
+ * アセット用のサブディレクトリ（images/）を作成する
  * @param projectPath プロジェクトディレクトリのパス
  */
 export async function ensureAssetsDirectories(projectPath: string): Promise<void> {
   const assetsPath = getAssetsDirectoryPath(projectPath);
   const imagesPath = path.join(assetsPath, 'images');
-  const fontsPath = path.join(assetsPath, 'fonts');
 
   await fs.mkdir(assetsPath, { recursive: true });
   await fs.mkdir(imagesPath, { recursive: true });
-  await fs.mkdir(fontsPath, { recursive: true });
 }
