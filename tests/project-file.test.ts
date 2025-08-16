@@ -135,7 +135,7 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
       }
       
       if (textAsset && textAsset.type === 'TextAsset') {
-        expect(textAsset.font).toMatch(/^assets\/fonts\//);
+        expect(textAsset.font).toBe('system-ui');
       }
     });
   });
@@ -165,6 +165,9 @@ metadata:
   komae_version: "1.0"
   project_version: "1.0"
   title: "Invalid Project"
+  supportedLanguages:
+    - ja
+  currentLanguage: ja
 canvas:
   width: -100
   height: 600
