@@ -14,6 +14,26 @@
   - docs/design/svg-structure.md のマスク情報の記述を参考に、マスクの処理を SVG に適用する
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 
+## テスト
+- [ ]: テストをしっかり通す
+```
+NG npm test -- ./tests/image-utils.test.ts
+OK npm test -- ./tests/custom-protocol-encoding.test.ts
+NG npm test -- ./tests/svg-generator.test.ts
+OK npm test -- ./tests/project-directory.test.ts
+NG npm test -- ./tests/asset-manager.test.ts
+NG npm test -- ./tests/html-export.test.ts
+OK npm test -- ./tests/duplicate-asset-handling.test.ts
+OK npm test -- ./tests/export-directory.test.ts
+NG npm test -- ./tests/project-file.test.ts
+NG npm test -- ./tests/export-service.test.ts
+OK npm test -- ./tests/export-settings.test.ts
+OK npm test -- ./tests/google-fonts-parsing.test.ts
+NG npm test -- ./tests/validation.test.ts
+OK npm test -- ./tests/setup.test.ts
+```
+- [ ]: テストの場所を、`tests/` ディレクトリではなく、テスト対象のあるディレクトリの`__tests__/` ディレクトリに移動したほうが良いか？ 例: `src/asset-manager/__tests__/asset-manager.test.ts`
+
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
   - ./docs/design/html-export.md の "HTML Viwer" の見出し参照
