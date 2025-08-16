@@ -26,6 +26,11 @@ export const resolveAssetPath = (relativePath: string, projectPath: string | nul
  * ドキュメント仕様（svg-structure.md）に従い、アプリ起動中はローカルファイルパスを使用
  */
 export const getAbsoluteImagePath = (relativePath: string, projectPath: string | null): string => {
+  // 既にkomae-asset://プロトコルの場合はそのまま返す
+  if (relativePath.startsWith('komae-asset://')) {
+    return relativePath;
+  }
+  
   // 既に絶対パスの場合はそのまま返す
   if (relativePath.startsWith('/') || relativePath.match(/^[A-Za-z]:/)) {
     return relativePath;
@@ -53,8 +58,9 @@ export const getCustomProtocolUrl = (relativePath: string, projectPath: string |
     return absolutePath;
   }
   
-  // 絶対パスをカスタムプロトコルURLに変換
-  return `komae-asset://${absolutePath}`;
+  // 絶対パスをカスタムプロトコルURLに変換（ファイルパスをURLエンコード）
+  const encodedPath = encodeURIComponent(absolutePath);
+  return `komae-asset://${encodedPath}`;
 };
 
 /**

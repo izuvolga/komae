@@ -548,7 +548,10 @@ class KomaeApp {
           // komae-asset://の後の部分を取得（プロトコル長13文字）
           let filePath = request.url.substring(13);
           
-          // 余分なスラッシュを除去
+          // URLデコードを実行して空白文字などを正しく復元
+          filePath = decodeURIComponent(filePath);
+          
+          // URLデコード後に余分なスラッシュを除去
           if (filePath.startsWith('//')) {
             filePath = filePath.substr(1);
           }

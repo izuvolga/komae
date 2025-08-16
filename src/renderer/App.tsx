@@ -69,7 +69,8 @@ const App: React.FC = () => {
         console.log(`[App] Added Google Fonts link: ${font.name} (${font.googleFontUrl})`);
       } else if (font.path !== 'system-ui') {
         // ビルトインフォントとグローバルカスタムフォントをkomae-assetプロトコルで登録
-        const fontUrl = `komae-asset://${font.path}`;
+        const encodedPath = encodeURIComponent(font.path);
+        const fontUrl = `komae-asset://${encodedPath}`;
         const fontFamily = font.id; // IDを使用してSVGと一致させる
         
         // ファイル拡張子からフォーマットを決定
