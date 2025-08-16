@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import { readdir, rmdir } from 'fs/promises';
 import imageSize from 'image-size';
 import { FileSystemService } from './FileSystemService';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
@@ -283,6 +284,145 @@ export class AssetManager {
     // TODO: 画像最適化処理
     // 画像圧縮、リサイズなどの最適化
     throw new Error('Asset optimization not implemented yet');
+  }
+
+  /**
+   * assetsディレクトリをスキャンして、プロジェクトファイルに記載のないファイルを削除
+   */
+  async cleanupUnreferencedAssets(projectData: ProjectData): Promise<{ deletedFiles: string[] }> {
+    const tracker = new PerformanceTracker('cleanup_unreferenced_assets');
+    const deletedFiles: string[] = [];
+
+    try {
+      if (!this.currentProjectPath) {
+        throw new Error('No project is currently open');
+      }
+
+      await this.logger.logDevelopment('cleanup_unreferenced_start', 'Starting cleanup of unreferenced assets', {
+        projectPath: this.currentProjectPath,
+        totalAssets: Object.keys(projectData.assets).length,
+      });
+
+      const assetsDir = path.join(this.currentProjectPath, 'assets');
+      
+      // assetsディレクトリが存在しない場合は何もしない
+      if (!(await this.fileSystemService.exists(assetsDir))) {
+        await this.logger.logDevelopment('assets_dir_not_found', 'Assets directory not found', {
+          assetsDir,
+        });
+        return { deletedFiles: [] };
+      }
+
+      // プロジェクトファイルで参照されているファイルパスのセットを作成
+      const referencedFiles = new Set<string>();
+      
+      for (const asset of Object.values(projectData.assets)) {
+        if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
+          // original_file_pathが相対パスの場合、絶対パスに変換
+          let filePath = asset.original_file_path;
+          if (!path.isAbsolute(filePath)) {
+            filePath = path.resolve(this.currentProjectPath, filePath);
+          }
+          referencedFiles.add(filePath);
+        }
+      }
+
+      await this.logger.logDevelopment('referenced_files_collected', 'Collected referenced files', {
+        referencedCount: referencedFiles.size,
+      });
+
+      // assetsディレクトリを再帰的にスキャン
+      const deletedFromScan = await this.scanAndCleanupDirectory(assetsDir, referencedFiles);
+      deletedFiles.push(...deletedFromScan);
+
+      await this.logger.logAssetOperation('delete', {
+        type: 'unreferenced_assets_cleanup',
+      }, {
+        projectPath: this.currentProjectPath,
+        deletedCount: deletedFiles.length,
+        deletedFiles,
+      }, true);
+
+      await tracker.end({ 
+        success: true, 
+        deletedCount: deletedFiles.length,
+      });
+
+      return { deletedFiles };
+
+    } catch (error) {
+      await this.logger.logError('cleanup_unreferenced_failed', error as Error, {
+        projectPath: this.currentProjectPath,
+      });
+
+      await tracker.end({ 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error),
+      });
+      
+      throw error;
+    }
+  }
+
+  /**
+   * ディレクトリを再帰的にスキャンして、参照されていないファイルを削除
+   */
+  private async scanAndCleanupDirectory(dirPath: string, referencedFiles: Set<string>): Promise<string[]> {
+    const deletedFiles: string[] = [];
+
+    try {
+      const entries = await readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+          // サブディレクトリを再帰的にスキャン
+          const deletedFromSubdir = await this.scanAndCleanupDirectory(fullPath, referencedFiles);
+          deletedFiles.push(...deletedFromSubdir);
+          
+          // ディレクトリが空になった場合は削除
+          try {
+            const remainingEntries = await readdir(fullPath);
+            if (remainingEntries.length === 0) {
+              await rmdir(fullPath);
+              await this.logger.logDevelopment('empty_directory_deleted', 'Deleted empty directory', {
+                dirPath: fullPath,
+              });
+            }
+          } catch (error) {
+            // ディレクトリ削除エラーは無視
+          }
+          
+        } else if (entry.isFile()) {
+          // ファイルが参照されているかチェック
+          if (!referencedFiles.has(fullPath)) {
+            try {
+              await this.fileSystemService.deleteFile(fullPath);
+              deletedFiles.push(fullPath);
+              
+              await this.logger.logDevelopment('unreferenced_file_deleted', 'Deleted unreferenced file', {
+                filePath: fullPath,
+              });
+            } catch (deleteError) {
+              await this.logger.logError('file_delete_failed', deleteError as Error, {
+                filePath: fullPath,
+              });
+            }
+          } else {
+            await this.logger.logDevelopment('referenced_file_kept', 'Kept referenced file', {
+              filePath: fullPath,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      await this.logger.logError('directory_scan_failed', error as Error, {
+        dirPath,
+      });
+    }
+
+    return deletedFiles;
   }
 
 

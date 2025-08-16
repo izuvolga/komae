@@ -248,7 +248,7 @@ export class ProjectManager {
       const projectFilePath = await this.detectProjectFile(inputPath);
       
       // YAMLファイルを読み込み
-      const projectData = await loadProjectFile(projectFilePath);
+      let projectData = await loadProjectFile(projectFilePath);
       
       // プロジェクトパスを設定
       const stats = await fs.stat(inputPath);
@@ -258,6 +258,27 @@ export class ProjectManager {
       } else {
         // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
+      }
+      
+      // AssetManagerで参照されていないファイルをクリーンアップ
+      try {
+        const assetManager = new (await import('./AssetManager')).AssetManager();
+        assetManager.setCurrentProjectPath(this.currentProjectPath);
+        
+        const cleanupResult = await assetManager.cleanupUnreferencedAssets(projectData);
+        
+        if (cleanupResult.deletedFiles.length > 0) {
+          await this.logger.logDevelopment('project_load_cleanup', 'Cleaned up unreferenced files during project load', {
+            projectPath: this.currentProjectPath,
+            deletedFiles: cleanupResult.deletedFiles,
+            deletedCount: cleanupResult.deletedFiles.length,
+          });
+        }
+      } catch (cleanupError) {
+        // クリーンアップエラーは警告として記録するが、プロジェクト読み込み自体は継続
+        await this.logger.logError('project_load_cleanup_failed', cleanupError as Error, {
+          projectPath: this.currentProjectPath,
+        });
       }
       
       return projectData;
