@@ -4,9 +4,9 @@ import {
   generateMultilingualTextElement,
   setFontInfoCache,
   SvgStructureResult,
-} from '../svgGeneratorCommon';
-import { mockProject, mockImageAsset, mockTextAsset, mockVectorAsset } from '@test-fixtures/sampleProject';
-import type { AssetInstance, FontInfo } from '../../types/entities';
+} from '../src/utils/svgGeneratorCommon';
+import { mockProject, mockImageAsset, mockTextAsset, mockVectorAsset } from './fixtures/sampleProject';
+import type { AssetInstance, FontInfo } from '../src/types/entities';
 
 describe('SVG Generator Common', () => {
   beforeEach(() => {
