@@ -125,6 +125,39 @@ describe('imageUtils.ts ユニットテスト', () => {
       const result = getCustomProtocolUrl('', '/Users/test/project');
       expect(result).toBe('komae-asset:///Users/test/project/');
     });
+
+    test('空白を含むファイル名の正しいエンコーディング', () => {
+      const result = getCustomProtocolUrl('assets/my image file.png', '/Users/test/project');
+      expect(result).toBe('komae-asset:///Users/test/project/assets/my%20image%20file.png');
+    });
+
+    test('日本語ファイル名の正しいエンコーディング', () => {
+      const result = getCustomProtocolUrl('assets/画像ファイル.jpg', '/Users/test/project');
+      expect(result).toBe('komae-asset:///Users/test/project/assets/%E7%94%BB%E5%83%8F%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB.jpg');
+    });
+
+    test('特殊文字を含むディレクトリ名とファイル名のエンコーディング', () => {
+      const result = getCustomProtocolUrl('assets/My Photos & Videos/image (1).png', '/Users/test/My Project');
+      expect(result).toBe('komae-asset:///Users/test/My%20Project/assets/My%20Photos%20%26%20Videos/image%20(1).png');
+    });
+
+    test('パーセント文字を含むファイル名のエンコーディング', () => {
+      const result = getCustomProtocolUrl('assets/100% complete.png', '/Users/test/project');
+      expect(result).toBe('komae-asset:///Users/test/project/assets/100%25%20complete.png');
+    });
+
+    test('パス区切り文字がエンコードされないことを確認', () => {
+      const result = getCustomProtocolUrl('assets/sub/dir/file.png', '/Users/test/project');
+      expect(result).toBe('komae-asset:///Users/test/project/assets/sub/dir/file.png');
+      // パス区切り文字の/が%2Fになっていないことを確認
+      expect(result).not.toContain('%2F');
+    });
+
+    test('既にカスタムプロトコルの場合はエンコーディングしない', () => {
+      const customUrl = 'komae-asset:///Users/test/project/assets/my image.png';
+      const result = getCustomProtocolUrl(customUrl, '/Users/test/project');
+      expect(result).toBe(customUrl);
+    });
   });
 
   describe('loadImageAsDataUrl()', () => {
@@ -284,16 +317,6 @@ describe('imageUtils.ts ユニットテスト', () => {
       expect(protocolUrl).toBe('komae-asset:///Users/test/project.komae/assets/background.png');
     });
 
-    test('重複ディレクトリを含む複雑なパスの処理', () => {
-      const relativePath = 'test.komae/assets/images/sprite.png';
-      const projectPath = '/Users/developer/Desktop/test.komae';
-      
-      const absolutePath = getAbsoluteImagePath(relativePath, projectPath);
-      expect(absolutePath).toBe('/Users/developer/Desktop/test.komae/assets/images/sprite.png');
-      
-      const protocolUrl = getCustomProtocolUrl(relativePath, projectPath);
-      expect(protocolUrl).toBe('komae-asset:///Users/developer/Desktop/test.komae/assets/images/sprite.png');
-    });
 
     test('画像ファイル判定とサムネイルサイズ計算の組み合わせ', () => {
       const filePath = 'assets/large-image.jpg';

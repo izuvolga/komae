@@ -58,8 +58,17 @@ export const getCustomProtocolUrl = (relativePath: string, projectPath: string |
     return absolutePath;
   }
   
-  // 絶対パスをカスタムプロトコルURLに変換（ファイルパスをURLエンコード）
-  const encodedPath = encodeURIComponent(absolutePath);
+  // 絶対パスをカスタムプロトコルURLに変換（パス区切り文字はエンコードしない）
+  // パスの各セグメントをエンコードしてから結合
+  const pathSegments = absolutePath.split('/');
+  const encodedSegments = pathSegments.map(segment => {
+    // 空のセグメント（ルートの場合など）はそのまま
+    if (segment === '') return segment;
+    // 各セグメントをエンコード（ファイル名に特殊文字が含まれる場合に対応）
+    return encodeURIComponent(segment);
+  });
+  const encodedPath = encodedSegments.join('/');
+  
   return `komae-asset://${encodedPath}`;
 };
 
