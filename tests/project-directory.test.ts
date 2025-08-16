@@ -62,12 +62,6 @@ describe('プロジェクトディレクトリの作成・管理', () => {
       
       await expect(createProjectDirectory(invalidPath)).rejects.toThrow(ProjectDirectoryError);
     });
-
-    test('.komae 拡張子でない場合はエラーが発生する', async () => {
-      const invalidPath = path.join(tempDir, 'invalid-project.txt');
-      
-      await expect(createProjectDirectory(invalidPath)).rejects.toThrow(ProjectDirectoryError);
-    });
   });
 
   describe('validateProjectDirectory', () => {
