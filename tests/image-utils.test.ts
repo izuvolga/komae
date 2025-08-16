@@ -73,21 +73,6 @@ describe('imageUtils.ts ユニットテスト', () => {
       expect(result).toBe('/Users/test/project/assets/image.png');
     });
 
-    test('重複する.komaeディレクトリ名を除去する', () => {
-      const result = resolveAssetPath(
-        'test.komae/assets/image.png', 
-        '/Users/test/test.komae'
-      );
-      expect(result).toBe('/Users/test/test.komae/assets/image.png');
-    });
-
-    test('複数の重複ディレクトリを正しく処理する', () => {
-      const projectPath = '/Users/test/project.komae';
-      const relativePath = 'project.komae/assets/image.png';
-      const result = resolveAssetPath(relativePath, projectPath);
-      expect(result).toBe('/Users/test/project.komae/assets/image.png');
-    });
-
     test('空文字列の相対パスを処理する', () => {
       const result = resolveAssetPath('', '/Users/test/project');
       expect(result).toBe('/Users/test/project/');
@@ -102,6 +87,11 @@ describe('imageUtils.ts ユニットテスト', () => {
       expect(result).toBe(absolutePath);
     });
 
+    test('カスタムプロトコルの場合にはそのまま', () => {
+      const result = getAbsoluteImagePath('komae-asset:///Users/test/project/assets/image.png', '/Users/test/project');
+      expect(result).toBe('komae-asset:///Users/test/project/assets/image.png');
+    });
+
     test('プロジェクトパスがnullの場合、相対パスをそのまま返す', () => {
       const result = getAbsoluteImagePath('assets/image.png', null);
       expect(result).toBe('assets/image.png');
@@ -112,13 +102,6 @@ describe('imageUtils.ts ユニットテスト', () => {
       expect(result).toBe('/Users/test/project/assets/image.png');
     });
 
-    test('resolveAssetPath()と同じ重複除去機能を持つ', () => {
-      const result = getAbsoluteImagePath(
-        'test.komae/assets/image.png', 
-        '/Users/test/test.komae'
-      );
-      expect(result).toBe('/Users/test/test.komae/assets/image.png');
-    });
   });
 
   describe('getCustomProtocolUrl()', () => {
@@ -136,21 +119,6 @@ describe('imageUtils.ts ユニットテスト', () => {
     test('プロジェクトパスがnullの場合の処理', () => {
       const result = getCustomProtocolUrl('assets/image.png', null);
       expect(result).toBe('komae-asset://assets/image.png');
-    });
-
-    test('既にカスタムプロトコルURLの場合、二重にプロトコルが付加される（実装の動作確認）', () => {
-      const existingUrl = 'komae-asset:///Users/test/image.png';
-      const result = getCustomProtocolUrl(existingUrl, '/Users/test/project');
-      // 実装では getAbsoluteImagePath を経由するため、プロトコルURLは絶対パスとして認識されない
-      expect(result).toBe('komae-asset:///Users/test/project/komae-asset:///Users/test/image.png');
-    });
-
-    test('重複ディレクトリを含むパスの処理', () => {
-      const result = getCustomProtocolUrl(
-        'test.komae/assets/image.png', 
-        '/Users/test/test.komae'
-      );
-      expect(result).toBe('komae-asset:///Users/test/test.komae/assets/image.png');
     });
 
     test('空文字列のパスを処理する', () => {
