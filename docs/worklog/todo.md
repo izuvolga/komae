@@ -1,12 +1,12 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
-- [ ]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
+- [x]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
   - i.e "komae-asset:///Users/greymd/Desktop/aaa bbb/assets/images/1-18.jpg"
   - なぜか上のようなパスを読み込んでくれない
-- [ ]: assets/fonts ディレクトリはもはや不要なので作らない
+- [ ]: プロジェクトの assets/fonts ディレクトリはもはや不要なので作らない
 - [ ]: プロジェクトを開いたときに存在しないアセットは assets/ ディレクトリ配下から削除
-- [ ]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外ではなにの効果もない
+- [ ]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外では効果がない
   - Preview Window でのプレビューもマスクが適用されていない
   - HTML でエクスポートしてもマスクが適用されていない
   - docs/design/svg-structure.md のマスク情報の記述を参考に、マスクの処理を SVG に適用する
