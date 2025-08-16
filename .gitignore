@@ -115,3 +115,5 @@ src/generated/viewer-templates.ts
 
 # Images
 *.png
+
+.serena/cache/
