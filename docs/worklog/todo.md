@@ -4,7 +4,7 @@
 - [x]: プロジェクト名に空白が含まれるとアセットが正常に読み込まれない。
   - i.e "komae-asset:///Users/greymd/Desktop/aaa bbb/assets/images/1-18.jpg"
   - なぜか上のようなパスを読み込んでくれない
-- [ ]: プロジェクトの assets/fonts ディレクトリはもはや不要なので作らない
+- [x]: プロジェクトの assets/fonts ディレクトリはもはや不要なので作らない
 - [ ]: プロジェクトを開いたときに存在しないアセットは assets/ ディレクトリ配下から削除
 - [ ]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外では効果がない
   - Preview Window でのプレビューもマスクが適用されていない
