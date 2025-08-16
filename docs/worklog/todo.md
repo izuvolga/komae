@@ -17,19 +17,19 @@
 ## テスト
 - [ ]: テストをしっかり通す
 ```
-NG npm test -- ./tests/image-utils.test.ts
+OK npm test -- ./tests/image-utils.test.ts
 OK npm test -- ./tests/custom-protocol-encoding.test.ts
-NG npm test -- ./tests/svg-generator.test.ts
+OK npm test -- ./tests/svg-generator.test.ts
 OK npm test -- ./tests/project-directory.test.ts
 NG npm test -- ./tests/asset-manager.test.ts
 NG npm test -- ./tests/html-export.test.ts
 OK npm test -- ./tests/duplicate-asset-handling.test.ts
 OK npm test -- ./tests/export-directory.test.ts
-NG npm test -- ./tests/project-file.test.ts
+OK npm test -- ./tests/project-file.test.ts
 NG npm test -- ./tests/export-service.test.ts
 OK npm test -- ./tests/export-settings.test.ts
 OK npm test -- ./tests/google-fonts-parsing.test.ts
-NG npm test -- ./tests/validation.test.ts
+OK npm test -- ./tests/validation.test.ts
 OK npm test -- ./tests/setup.test.ts
 ```
 - [ ]: テストの場所を、`tests/` ディレクトリではなく、テスト対象のあるディレクトリの`__tests__/` ディレクトリに移動したほうが良いか？ 例: `src/asset-manager/__tests__/asset-manager.test.ts`

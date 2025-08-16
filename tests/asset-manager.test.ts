@@ -17,7 +17,6 @@ describe('相対パス解決とアセットファイル管理', () => {
   let tempDir: string;
   let projectDir: string;
   let testImageFile: string;
-  let testFontFile: string;
   
   beforeAll(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'komae-asset-test-'));
@@ -27,14 +26,11 @@ describe('相対パス解決とアセットファイル管理', () => {
     await fs.mkdir(projectDir, { recursive: true });
     await fs.mkdir(path.join(projectDir, 'assets'), { recursive: true });
     await fs.mkdir(path.join(projectDir, 'assets', 'images'), { recursive: true });
-    await fs.mkdir(path.join(projectDir, 'assets', 'fonts'), { recursive: true });
     
     // テスト用のアセットファイルを作成
     testImageFile = path.join(tempDir, 'test-image.png');
-    testFontFile = path.join(tempDir, 'test-font.ttf');
     
     await fs.writeFile(testImageFile, 'fake image data', 'utf8');
-    await fs.writeFile(testFontFile, 'fake font data', 'utf8');
   });
 
   afterAll(async () => {
@@ -100,17 +96,6 @@ describe('相対パス解決とアセットファイル管理', () => {
       expect(stats.isFile()).toBe(true);
     });
 
-    test('フォントファイルをプロジェクトにコピーできる', async () => {
-      const result = await copyAssetToProject(projectDir, testFontFile, 'fonts');
-      
-      expect(result.startsWith('assets/fonts/')).toBe(true);
-      expect(result.endsWith('.ttf')).toBe(true);
-      
-      // ファイルがコピーされたことを確認
-      const copiedPath = path.join(projectDir, result);
-      const stats = await fs.stat(copiedPath);
-      expect(stats.isFile()).toBe(true);
-    });
 
     test('存在しないソースファイルでエラーが発生する', async () => {
       const nonExistentFile = path.join(tempDir, 'nonexistent.png');
@@ -137,9 +122,6 @@ describe('相対パス解決とアセットファイル管理', () => {
       await expect(validateAssetFile(testImageFile, 'image')).resolves.toBe(true);
     });
 
-    test('有効なフォントファイルの検証が成功する', async () => {
-      await expect(validateAssetFile(testFontFile, 'font')).resolves.toBe(true);
-    });
 
     test('存在しないファイルでエラーが発生する', async () => {
       const nonExistentFile = path.join(tempDir, 'nonexistent.png');
@@ -147,10 +129,6 @@ describe('相対パス解決とアセットファイル管理', () => {
       await expect(validateAssetFile(nonExistentFile, 'image')).rejects.toThrow(AssetManagerError);
     });
 
-    test('ファイルタイプとアセットタイプが一致しない場合はエラーが発生する', async () => {
-      // 画像ファイルをフォントとして検証
-      await expect(validateAssetFile(testImageFile, 'font')).rejects.toThrow(AssetManagerError);
-    });
   });
 
   describe('getAssetTypeFromExtension', () => {
@@ -162,16 +140,10 @@ describe('相対パス解決とアセットファイル管理', () => {
       expect(getAssetTypeFromExtension('.webp')).toBe('image');
     });
 
-    test('フォント拡張子から正しいタイプを取得できる', () => {
-      expect(getAssetTypeFromExtension('.ttf')).toBe('font');
-      expect(getAssetTypeFromExtension('.otf')).toBe('font');
-      expect(getAssetTypeFromExtension('.woff')).toBe('font');
-      expect(getAssetTypeFromExtension('.woff2')).toBe('font');
-    });
 
     test('大文字小文字を区別しない', () => {
       expect(getAssetTypeFromExtension('.PNG')).toBe('image');
-      expect(getAssetTypeFromExtension('.TTF')).toBe('font');
+      expect(getAssetTypeFromExtension('.SVG')).toBe('vector');
     });
 
     test('サポートされていない拡張子でエラーが発生する', () => {
@@ -221,21 +193,6 @@ describe('相対パス解決とアセットファイル管理', () => {
       await expect(fs.stat(absolutePath)).rejects.toThrow();
     });
 
-    test('フォントファイルも削除できる', async () => {
-      // フォントファイルをコピー
-      const relativePath = await copyAssetToProject(projectDir, testFontFile, 'fonts');
-      const absolutePath = resolveAssetPath(projectDir, relativePath);
-      
-      // ファイルが存在することを確認
-      const statsBefore = await fs.stat(absolutePath);
-      expect(statsBefore.isFile()).toBe(true);
-      
-      // ファイルを削除
-      await deleteAssetFromProject(projectDir, relativePath);
-      
-      // ファイルが削除されたことを確認
-      await expect(fs.stat(absolutePath)).rejects.toThrow();
-    });
   });
 
   describe('パス処理の統合テスト', () => {

@@ -16,7 +16,7 @@ export class AssetManagerError extends Error {
 /**
  * アセットタイプ
  */
-export type AssetType = 'image' | 'vector' | 'font';
+export type AssetType = 'image' | 'vector';
 
 /**
  * 相対パスを絶対パスに解決する
