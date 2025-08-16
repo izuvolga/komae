@@ -15,11 +15,7 @@
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 
 ## テスト
-- [ ]: テストをしっかり通す
-```
-NG npm test -- ./tests/export-service.test.ts
-NG npm test -- ./tests/html-export.test.ts
-```
+- [x]: テストをしっかり通す
 - [ ]: テストの場所を、`tests/` ディレクトリではなく、テスト対象のあるディレクトリの`__tests__/` ディレクトリに移動したほうが良いか？ 例: `src/asset-manager/__tests__/asset-manager.test.ts`
 
 ## HTML ファイル関連

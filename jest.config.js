@@ -15,6 +15,10 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '^electron$': '<rootDir>/tests/mocks/electron.ts',
+    // 共有テストリソース用エイリアス
+    '^@test-fixtures/(.*)$': '<rootDir>/tests/fixtures/$1',
+    '^@test-mocks/(.*)$': '<rootDir>/tests/mocks/$1',
+    '^@test-utils/(.*)$': '<rootDir>/tests/utils/$1',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
