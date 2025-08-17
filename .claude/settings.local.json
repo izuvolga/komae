@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(gh issue list:*)",
-      "Bash(gh issue view:*)"
+      "Bash(gh issue view:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__replace_symbol_body"
     ],
     "deny": []
   }

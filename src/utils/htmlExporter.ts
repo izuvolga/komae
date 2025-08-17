@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ProjectData, ExportOptions, Page, AssetInstance, FontInfo } from '../types/entities';
-import { generateSvgStructureCommon, setFontInfoCache } from './svgGeneratorCommon';
+import { generateSvgStructureCommon, setFontInfoCache, generateAllClipPathDefinitions } from './svgGeneratorCommon';
 import { VIEWER_TEMPLATES, type ViewerTemplateVariables } from '../generated/viewer-templates';
 
 /**
@@ -319,6 +319,7 @@ export class HtmlExporter {
     
     // 全ページで使用されるアセットを収集
     const allAssetIds = new Set<string>();
+    const allInstances: AssetInstance[] = [];
     const processedAssets = new Set<string>();
     const assetDefinitions: string[] = [];
     
@@ -326,7 +327,17 @@ export class HtmlExporter {
     for (const page of project.pages) {
       for (const instance of Object.values(page.asset_instances)) {
         allAssetIds.add(instance.asset_id);
+        allInstances.push(instance);
       }
+    }
+    
+    // マスク定義を生成（全インスタンスからマスクを収集）
+    let clipPathDefinitions: string[] = [];
+    try {
+      clipPathDefinitions = generateAllClipPathDefinitions(project, allInstances);
+    } catch (error) {
+      console.warn('[HtmlExporter] generateAllClipPathDefinitions not available, skipping mask definitions');
+      clipPathDefinitions = [];
     }
     
     // アセット定義を生成（ImageAssetのみ - VectorAssetとTextAssetはインライン表示）
@@ -396,7 +407,7 @@ export class HtmlExporter {
       `>`,
       `  <defs>`,
       `    <!-- プロジェクト全体で使用される ImageAsset のマスク情報を宣言 -->`,
-      `    <!-- 将来的にマスク機能実装時に追加 -->`,
+      ...clipPathDefinitions.map(def => `    ${def}`),
       `  </defs>`,
       ``,
       `  <!-- プロジェクト全体で使用される全 ImageAsset を一度だけ定義 -->`,

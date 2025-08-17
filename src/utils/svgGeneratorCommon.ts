@@ -70,6 +70,9 @@ export function generateCompleteSvg(
   const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
   const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, getProtocolUrl, availableLanguages, currentLanguage || 'ja');
   
+  // マスク定義を生成
+  const clipPathDefinitions = generateAllClipPathDefinitions(project, instances);
+  
   // SVGを組み立て（svg-structure.md仕様に準拠）
   const svgContent = [
     `<svg`,
@@ -82,8 +85,8 @@ export function generateCompleteSvg(
     `  visibility="visible"`,
     `>`,
     `  <defs>`,
-    `    <!-- 存在するImageAssetにあるマスク情報をすべて宣言する -->`,
-    `    <!-- 将来的にマスク機能実装時に追加 -->`,
+    `    <!-- プロジェクト全体で使用されるImageAssetのマスク情報を宣言 -->`,
+    ...clipPathDefinitions.map(def => `    ${def}`),
     `  </defs>`,
     ``,
     `  <!-- 存在するImageAssetをすべて宣言する -->`,
@@ -244,7 +247,7 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
   }
   
-  // サイズ调整（ImageAssetInstanceのみ対応）
+  // サイズ調整（ImageAssetInstanceのみ対応）
   if ('override_width' in instance || 'override_height' in instance) {
     const imageInstance = instance as ImageAssetInstance;
     const width = imageInstance.override_width ?? asset.default_width;
@@ -267,10 +270,18 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
   }
   
+  // マスク適用（ImageAssetでマスクが存在する場合）
+  let clipPathAttr = '';
+  const imageInstance = instance as ImageAssetInstance;
+  const maskId = getMaskId(asset, imageInstance);
+  if (maskId) {
+    clipPathAttr = ` clip-path="url(#${maskId})"`;
+  }
+  
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
   const opacityAttr = finalOpacity !== undefined ? ` opacity="${finalOpacity}"` : '';
   
-  return `<use href="#${asset.id}"${transformAttr}${opacityAttr} />`;
+  return `<use href="#${asset.id}"${transformAttr}${opacityAttr}${clipPathAttr} />`;
 }
 
 /**
@@ -283,6 +294,62 @@ function escapeXml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+/**
+ * マスクの座標をSVGのclipPath要素として生成
+ */
+function generateClipPathDefinition(maskId: string, mask: [[number, number], [number, number], [number, number], [number, number]]): string {
+  const [p1, p2, p3, p4] = mask;
+  const pathData = `M ${p1[0]} ${p1[1]} L ${p2[0]} ${p2[1]} L ${p3[0]} ${p3[1]} L ${p4[0]} ${p4[1]} Z`;
+  
+  return [
+    `<clipPath id="${maskId}">`,
+    `  <path d="${pathData}" />`,
+    `</clipPath>`
+  ].join('\n    ');
+}
+
+/**
+ * プロジェクト内のすべてのマスクからclipPath定義を生成
+ */
+export function generateAllClipPathDefinitions(project: ProjectData, instances: AssetInstance[]): string[] {
+  const clipPaths: string[] = [];
+  const processedMasks = new Set<string>();
+
+  for (const instance of instances) {
+    const asset = project.assets[instance.asset_id];
+    if (!asset || asset.type !== 'ImageAsset') continue;
+
+    const imageAsset = asset as ImageAsset;
+    const imageInstance = instance as ImageAssetInstance;
+    
+    // インスタンスレベルのマスクを優先、なければアセットレベルのマスクを使用
+    const mask = imageInstance.override_mask ?? imageAsset.default_mask;
+    if (!mask) continue;
+
+    // マスクIDを生成（アセットID + マスクのハッシュで重複回避）
+    const maskHash = mask.flat().join('-');
+    const maskId = `mask-${asset.id}-${maskHash.replace(/[.-]/g, '_')}`;
+    
+    if (!processedMasks.has(maskId)) {
+      clipPaths.push(generateClipPathDefinition(maskId, mask));
+      processedMasks.add(maskId);
+    }
+  }
+
+  return clipPaths;
+}
+
+/**
+ * インスタンスに適用されるマスクIDを取得
+ */
+function getMaskId(asset: ImageAsset, instance: ImageAssetInstance): string | null {
+  const mask = instance.override_mask ?? asset.default_mask;
+  if (!mask) return null;
+
+  const maskHash = mask.flat().join('-');
+  return `mask-${asset.id}-${maskHash.replace(/[.-]/g, '_')}`;
 }
 
 /**

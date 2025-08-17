@@ -386,4 +386,170 @@ describe('SVG Generator Common', () => {
       }).not.toThrow();
     });
   });
+
+  describe('マスク処理（clipPath）機能', () => {
+    test('マスクが設定されたImageAssetでclipPath定義が生成される', () => {
+      const maskPoints: [[number, number], [number, number], [number, number], [number, number]] = [
+        [100, 100], [500, 100], [500, 400], [100, 400]
+      ];
+
+      // マスク付きImageAssetInstanceを作成
+      const instances: AssetInstance[] = [
+        {
+          id: 'instance-with-mask',
+          asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
+          override_mask: maskPoints,
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+
+      // clipPath定義が<defs>内に生成されている
+      expect(result).toContain('<defs>');
+      expect(result).toContain('<clipPath id="');
+      expect(result).toContain('<path d="M 100 100 L 500 100 L 500 400 L 100 400 Z" />');
+      expect(result).toContain('</clipPath>');
+
+      // use要素にclip-path属性が適用されている
+      expect(result).toContain('clip-path="url(#mask-');
+      expect(result).toContain('href="#img-f3227b66-61ec-428d-adb2-e4f1526e378c"');
+    });
+
+    test('アセットレベルのdefault_maskが使用される', () => {
+      // プロジェクトにdefault_maskを持つImageAssetを追加
+      const projectWithMask = {
+        ...mockProject,
+        assets: {
+          ...mockProject.assets,
+          'img-with-default-mask': {
+            ...mockImageAsset,
+            id: 'img-with-default-mask',
+            default_mask: [[50, 50], [250, 50], [250, 200], [50, 200]] as [[number, number], [number, number], [number, number], [number, number]],
+          },
+        },
+      };
+
+      const instances: AssetInstance[] = [
+        {
+          id: 'instance-default-mask',
+          asset_id: 'img-with-default-mask',
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(projectWithMask, instances, mockProtocolUrl, 'ja');
+
+      // default_maskが適用されている
+      expect(result).toContain('M 50 50 L 250 50 L 250 200 L 50 200 Z');
+      expect(result).toContain('clip-path="url(#mask-');
+    });
+
+    test('override_maskがdefault_maskより優先される', () => {
+      const defaultMask: [[number, number], [number, number], [number, number], [number, number]] = [
+        [0, 0], [100, 0], [100, 100], [0, 100]
+      ];
+      const overrideMask: [[number, number], [number, number], [number, number], [number, number]] = [
+        [200, 200], [400, 200], [400, 350], [200, 350]
+      ];
+
+      const projectWithDefaultMask = {
+        ...mockProject,
+        assets: {
+          ...mockProject.assets,
+          'img-with-masks': {
+            ...mockImageAsset,
+            id: 'img-with-masks',
+            default_mask: defaultMask,
+          },
+        },
+      };
+
+      const instances: AssetInstance[] = [
+        {
+          id: 'instance-override-mask',
+          asset_id: 'img-with-masks',
+          override_mask: overrideMask,
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(projectWithDefaultMask, instances, mockProtocolUrl, 'ja');
+
+      // override_maskのパスが使用されている
+      expect(result).toContain('M 200 200 L 400 200 L 400 350 L 200 350 Z');
+      // default_maskのパスは使用されていない
+      expect(result).not.toContain('M 0 0 L 100 0 L 100 100 L 0 100 Z');
+    });
+
+    test('マスクがないImageAssetではclip-path属性が追加されない', () => {
+      const instances: AssetInstance[] = [
+        {
+          id: 'instance-no-mask',
+          asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+
+      // clip-path属性がない
+      expect(result).not.toContain('clip-path="url(#');
+      // 通常のuse要素は生成されている
+      expect(result).toContain('href="#img-f3227b66-61ec-428d-adb2-e4f1526e378c"');
+    });
+
+    test('同じマスクを持つ複数のインスタンスで重複するclipPath定義が回避される', () => {
+      const sameMask: [[number, number], [number, number], [number, number], [number, number]] = [
+        [10, 10], [90, 10], [90, 90], [10, 90]
+      ];
+
+      const instances: AssetInstance[] = [
+        {
+          id: 'instance-1',
+          asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
+          override_mask: sameMask,
+        },
+        {
+          id: 'instance-2', 
+          asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
+          override_mask: sameMask,
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+
+      // clipPath定義は1つだけ生成される
+      const clipPathMatches = result.match(/<clipPath id="/g);
+      expect(clipPathMatches).toHaveLength(1);
+
+      // 両方のuse要素で同じclipPathが参照される  
+      const clipPathRefs = result.match(/clip-path="url\(#[^"]+\)"/g);
+      expect(clipPathRefs).toHaveLength(2);
+    });
+
+    test('TextAssetやVectorAssetにはマスクが適用されない', () => {
+      const instances: AssetInstance[] = [
+        {
+          id: 'text-instance',
+          asset_id: 'text-1c835411-9001-4633-a120-2a8ae273b8cb',
+        },
+        {
+          id: 'vector-instance',
+          asset_id: 'vector-7011a954-c8c3-49bc-a48c-2554755d7da7',
+        },
+      ];
+
+      const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
+      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+
+      // clipPath定義が生成されない
+      expect(result).not.toContain('<clipPath');
+      // TextAsset要素は正常に生成される
+      expect(result).toContain('font-family=');
+      // VectorAsset要素は正常に生成される
+      expect(result).toContain('vector-instance-');
+    });
+  });
 });
