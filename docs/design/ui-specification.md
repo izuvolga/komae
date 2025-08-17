@@ -449,6 +449,7 @@ ImageAssetInstance の場合、cell-content にはその画像の小さなプレ
 ```
 
 TextAssetInstance の場合、cell-content にはその Asset のテキスト (default_text ないし override_text) が表示される。SVG ではなくプレーンテキストで表示される。
+クリックをするとテキストボックスとなり、値を直接編集できる。
 
 ```
 ┌────────────────┐
@@ -457,6 +458,20 @@ TextAssetInstance の場合、cell-content にはその Asset のテキスト (d
 │     |          │
 └────────────────┘
 ```
+
+ValueAssetInstance の場合、cell-content にはその ValueAsset の現在の値が表示される。
+クリックをするとテキストボックスとなり、値を直接編集できる。
+ただし ValueAsset が数式を持つ場合は、数式の結果が表示され、テキストボックスになったときは数式を編集できるようになる。
+
+```
+┌────────────────┐
+│ [✔] |          │
+│ [%] | 123      │
+│     |          │
+└────────────────┘
+```
+
+
 
 ## Column
 
@@ -647,12 +662,94 @@ Color Stroke、Color はそれぞれの色を選択するための項目で、�
     └────────────────────────────────────────────────────────────┘
 ```
 
-
 #### TextAssetInstance編集画面
 
 TextAsset から TextAssetInstance において override できる項目のみが表示される。
 
+#### ValueAsset 編集画面
+
+ValueAsset は Asset Library で追加ボタンを押下したあと、自動的にモーダルが表示される。
+全ての項目を埋めなければ Save はできない。
+
+```
+    ┌──────────────────────────────────────────────┐
+    │ ValueAsset Creation                     [x]  │
+    ├──────────────────────────────────────────────┤
+    │                                              │
+    │  ID [?]                                      │
+    │  ┌──────────────────────────────────┐        │
+    │  │                                  │        │
+    │  └──────────────────────────────────┘        │
+    │                                              │
+    │  Value Type                                  │
+    │    (o) String                                │
+    │    ( ) Number                                │
+    │    ( ) Formula                               │
+    │                                              │
+    │  Initial Value                               │
+    │  ┌──────────────────────────────────┐        │
+    │  │                                  │        │
+    │  └──────────────────────────────────┘        │
+    │  Value for new page [?]                      │
+    │  (o) Reset to initial value                  │
+    │  ( ) Inherit previous page's value           │
+    │                                              │
+    │                                              │
+    │             [Cancel]    [Save]               │
+    └──────────────────────────────────────────────┘
+```
+
+ID は、ValueAsset の識別子であり、他の Asset と重複しないように設定する必要がある。
+また、ID は英数字とアンダースコア（_）のみを使用することができる。数字で開始することはできない。IDの横の`[?]`をクリックすると、ヘルプモーダルID の命名規則についてのヘルプが表示される。
+
+Initial Value は、ValueAsset の初期値であり、任意の値を設定することができる。1ページ目はこの値となるが、ValueAssetInstance側で上書きは可能。任意の文字列を記入できるが、Value Type で String を選択した場合は文字列、Number を選択した場合は数値、Formula を選択した場合は数式を入力する必要がある。もし不正な文字列を記入するとエラーメッセージが表示され、Save ボタンは押せなくなる。
+
+Value for new page は、新しいページに対して ValueAsset の値をどのように設定するかを選択することができる。Reset to initial value を選択すると、新しいページに対して初期値が設定される。一方で、Inherit previous page's value を選択すると、前のページの値が引き継がれる。
+
+
+#### ValueAssetEdit 編集画面
+
+ValueAssetEdit の編集画面は SpreadSheet Window のセルの ValueAsset に該当するセルの編集ボタンを押下することで表示される。Override Value のみを編集することができる。
+`non-editable` で開始する項目は編集ができず、テキストボックスは灰色であり、ラジオボタンも灰色で選択できない。実際には `non-editable:` という文言は存在しない。
+
+`Current Result (For formula)` は Value Type が Formula の場合に表示される項目で、現在の数式の結果を表示する。数式を入力すると、その結果がここに表示される。
+
+```
+    ┌──────────────────────────────────────────────┐
+    │ ValueAsset Creation                     [x]  │
+    ├──────────────────────────────────────────────┤
+    │                                              │
+    │  non-editable: ID [?]                        │
+    │  ┌──────────────────────────────────┐        │
+    │  │ value_asset_id                   │        │
+    │  └──────────────────────────────────┘        │
+    │  non-editable: Initial Value                 │
+    │  ┌──────────────────────────────────┐        │
+    │  │ 0                                │        │
+    │  └──────────────────────────────────┘        │
+    │  non-editable: Value for new page [?]        │
+    │  (o) Reset to initial value                  │
+    │  ( ) Inherit previous page's value           │
+    │                                              │
+    │  non-editable: Value Type                    │
+    │    (o) String                                │
+    │    ( ) Number                                │
+    │    ( ) Formula                               │
+    │                                              │
+    │  Override Value                              │
+    │  ┌──────────────────────────────────┐        │
+    │  │                                  │        │
+    │  └──────────────────────────────────┘        │
+    │  Current Result (For formula) :[       ]     │
+    │                                              │
+    │             [Cancel]    [Save]               │
+    └──────────────────────────────────────────────┘
+```
+
+
 #### DynamicVectorAsset 編集画面
+
+Script の箇所に JavaScript スクリプトを記載でき、返り値の文字列を SVG として解釈して描画するアセット。Script の箇所には JavaScript のソースコードが記載される。そして、ソースコードの実行結果の返り値の結果を SVG として解釈して描画を行う。
 
 想定動作については asset-specification.md も参照のこと。
 
@@ -713,11 +810,9 @@ TextAsset から TextAssetInstance において override できる項目のみ�
     └─────────────────────────────────────────────────────────────┘
 ```
 
-Script の箇所に JavaScript スクリプトを記載でき、返り値の文字列を SVG として解釈して描画するアセット。Script の箇所には JavaScript のソースコードが記載される。そして、ソースコードの実行結果の返り値の結果を SVG として解釈して描画を行う。
+ソースコード中ではいくつかの変数が利用でき、page_current は現在のページ番号、page_total は合計のページ番号、として取得できる。
 
-ソースコード中ではいくつかの変数が利用でき、page_current は現在のページ番号、page_total は合計のページ番号、などが描画できる。
-
-さらに、ユーザ側でカスタマイズした引数と、その初期値を定義するための入力欄がUI上描画される。
+さらに、ユーザ側で変数のの初期値を定義するための入力欄がUI上描画される。
 `+ Add Variable` のボタンをクリックすると、新たなモーダルが開き、変数を新しく追加する画面が表示される。
 
 - 変数名
