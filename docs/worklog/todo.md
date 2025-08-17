@@ -8,12 +8,13 @@
 - [x]: プロジェクトを開いたときに存在しないアセットは assets/ ディレクトリ配下から削除
   - 実装してほしい： assetsディレクトリをスキャンして、プロジェクトファイルに記載のないファイルを削除
   - 実装不要： プロジェクトファイルに記載されているアセットのうち、元ファイル（original_file_path）が存在しないものを削除
-- [ ]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外では効果がない
+- [x]: ImageAsset のマスクの処理が ImageEditModal.tsx の中で編集はできるがそれ以外では効果がない
   - docs/design/svg-structure.md のマスク情報の記述を参考に、マスクの処理を SVG に適用する
   - Preview Window でのプレビューもマスクが適用されていない
   - HTML でエクスポートしてもマスクが適用されていない
   - ImageEditModal でのマスクの編集は不要
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
+- [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 
 ## テスト
 - [x]: テストをしっかり通す
@@ -26,6 +27,7 @@
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## 大きめの改善
+- [ ]: TextAssetInstance だけでなく TextAsset にも multi_language の概念を追加した方が良い？
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
 - [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
 - [ ]: Asset Library の Asset を自動でソートする機能をほしい
