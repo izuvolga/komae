@@ -20,6 +20,9 @@ ImageAssetは、画像ファイル（PNG, WEBP形式）を表すアセット。
 インスタンス: VectorAssetInstance
 
 SVG形式のベクター画像を表すアセット。
+いくつかのプリセットが存在する。
+- 吹き出し
+- 四角形
 
 ## Value
 
@@ -50,10 +53,10 @@ SVG形式のベクター画像を表すアセット。
 数式がエラーとなると、`#ERROR` という文字列が返される。
 
 
-## Dynamic SVG
+## DynamicVector
 
-エンティティ: DynamicSvgAsset
-インスタンス: DynamicSvgAssetInstance
+エンティティ: DynamicVectorAsset
+インスタンス: DynamicVectorAssetInstance
 
 「SVGのXML文字列を出力するスクリプト」をアセットして登録できる。
 ページによって、動的に内容が変化する画像を実現するためのアセット。
@@ -74,6 +77,7 @@ function createSquareSVG(x, y, sideLength) {
 引数となる値（上記の例だとx, y, sideLength）は、 Dynamic SVG の AssetInstance 側で指定できる。
 AssetInstance 側では、引数名と、ValueAsset のIDを紐づけることで、ページ内の他の要素の値を引数として渡すことができる。
 スクリプトは vm （Node.jsのvmモジュール）のサンドボックス環境で実行される。
+HTML エクスポート時には、関数実行後の文字列が埋め込まれており、HTML ビューワーの視聴環境ではスクリプトは実行されない。
 
 ## Script
 
