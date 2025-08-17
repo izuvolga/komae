@@ -57,6 +57,28 @@ default_mask: デフォルトのマスク情報で、4点の値の配列。そ�
 
 テキストを表現するためのテンプレートで、以下の属性をもつ。
 
+新バージョン:
+```
+id: テンプレートのID (ユーザーが指定する必要はない)
+name: テキストの名前 (デフォルトは "Text")
+default_context: そのテキストの表す文脈 (例: 'キャラクターAの叫び声') (optional)
+default_fill_color: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
+default_font_size: TextAssetのfont_sizeを上書きするフォントサイズ
+default_font: フォント選択
+default_leading: 言語別行間設定
+default_opacity: デフォルトの不透明度（0.0〜1.0）
+default_pos_x: デフォルトのX座標
+default_pos_y: デフォルトのY座標
+default_stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
+default_vertical: 言語別縦書き設定
+default_z_index: デフォルトのレイヤー順序
+multilingual_default: 言語別オーバーライド設定 (optional)
+  - Record<string, LanguageOverrides> 形式
+  - キーは言語コード（例: 'ja', 'en'）
+  - 値はLanguageOverridesオブジェクト
+```
+
+旧バージョン:
 ```
 id: テンプレートのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
@@ -131,6 +153,19 @@ override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optio
 
 **多言語対応の簡素化された構造**
 
+新バージョン:
+```
+id: インスタンスのID (ユーザーが指定する必要はない)
+asset_id: 参照するTextAssetのID
+override_context: TextAssetのdefault_contextを上書きする文脈情報 (optional)
+multilingual_overrides: 言語別オーバーライド設定 (optional)
+  - Record<string, LanguageOverrides> 形式
+  - キーは言語コード（例: 'ja', 'en'）
+  - 値はLanguageOverridesオブジェクト
+```
+
+
+旧バージョン:
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するTextAssetのID
