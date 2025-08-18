@@ -131,7 +131,12 @@ export interface ImageAssetInstance extends BaseAssetInstance {
 }
 
 export interface TextAssetInstance extends BaseAssetInstance {
-  // 新機能：言語別完全オーバーライド
+  // 言語別のテキスト内容（新バージョン対応）
+  multilingual_text: Record<string, string>;
+  // インスタンス個別の言語別設定（Phase 2で実装予定）
+  // override_language_settings?: Record<string, LanguageSettings>;
+  
+  // 既存のmultilingual_overridesは暫定的に残す（後で削除予定）
   multilingual_overrides?: Record<string, LanguageOverrides>;
 }
 
@@ -155,6 +160,21 @@ export interface LanguageOverrides {
   override_z_index?: number;
   override_leading?: number; // 言語別行間
   override_vertical?: boolean; // 言語別縦書き設定
+}
+
+// 新仕様：統一されたLanguageSettings型
+export interface LanguageSettings {
+  override_pos_x?: number;
+  override_pos_y?: number;
+  override_font?: string;
+  override_font_size?: number;
+  override_stroke_width?: number;
+  override_leading?: number;
+  override_vertical?: boolean;
+  override_opacity?: number;
+  override_z_index?: number;
+  override_fill_color?: string;
+  override_stroke_color?: string;
 }
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance;
@@ -393,13 +413,18 @@ export function getEffectiveTextValue(
   instance: TextAssetInstance, 
   currentLang: string
 ): string {
-  // 1. 言語別オーバーライドをチェック
+  // 1. 新バージョン: multilingual_text をチェック
+  if (instance.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
+    return instance.multilingual_text[currentLang];
+  }
+  
+  // 2. 旧バージョン: 言語別オーバーライドをチェック（後方互換性）
   const langOverride = instance.multilingual_overrides?.[currentLang];
   if (langOverride?.override_text !== undefined) {
     return langOverride.override_text;
   }
   
-  // 2. アセットのデフォルト値を使用
+  // 3. アセットのデフォルト値を使用
   return asset.default_text;
 }
 

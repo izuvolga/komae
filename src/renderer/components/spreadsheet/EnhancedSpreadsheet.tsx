@@ -393,15 +393,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
     
     const currentLang = getCurrentLanguage();
     
-    // 多言語オーバーライドを設定（深いコピーを作成）
+    // 新バージョン: multilingual_text を更新
     const updatedInstance = {
       ...assetInstance,
-      multilingual_overrides: {
-        ...assetInstance.multilingual_overrides,
-        [currentLang]: {
-          ...assetInstance.multilingual_overrides?.[currentLang],
-          override_text: inlineEditState.text
-        }
+      multilingual_text: {
+        ...assetInstance.multilingual_text,
+        [currentLang]: inlineEditState.text
       }
     };
     

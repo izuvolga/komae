@@ -10,7 +10,9 @@ import type {
   Page,
   ExportFormat,
   ExportOptions,
-  AppNotification 
+  AppNotification,
+  TextAsset,
+  TextAssetInstance
 } from '../../types/entities';
 import { getDefaultExportSettings } from '../../utils/exportSettings';
 
@@ -343,6 +345,20 @@ export const useProjectStore = create<ProjectStore>()(
               id: instanceId,
               asset_id: assetId,
             };
+            
+            // TextAssetInstanceの場合はmultilingual_textを初期化
+            const asset = state.project.assets[assetId];
+            if (asset?.type === 'TextAsset') {
+              const supportedLanguages = state.project.metadata.supportedLanguages || ['ja'];
+              const multilingual_text: Record<string, string> = {};
+              
+              // 各対応言語に対してデフォルトテキストを設定
+              supportedLanguages.forEach(langCode => {
+                multilingual_text[langCode] = (asset as TextAsset).default_text || '';
+              });
+              
+              (newInstance as TextAssetInstance).multilingual_text = multilingual_text;
+            }
             
             // 以前に保存された編集内容があるかチェック
             if (state.hiddenInstanceData[pageId]?.[assetId]) {

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
-import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageOverrides } from '../../../types/entities';
-import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData } from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, Page, FontInfo } from '../../../types/entities';
+import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData, getEffectiveTextValue } from '../../../types/entities';
 import './TextEditModal.css';
 import {current} from 'immer';
 
@@ -127,15 +127,40 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   // 現在の値を取得する（instanceモードでは多言語overrideを確認）
-  const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: keyof LanguageOverrides): any => {
+  const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: string): any => {
     if (mode === 'instance' && editingInstance && langOverrideKey) {
       const currentLang = getCurrentLanguage();
       const langOverride = editingInstance.multilingual_overrides?.[currentLang];
-      if (langOverride && langOverride[langOverrideKey] !== undefined) {
-        return langOverride[langOverrideKey];
+      if (langOverride && (langOverride as any)[langOverrideKey] !== undefined) {
+        return (langOverride as any)[langOverrideKey];
       }
     }
     return editingAsset[assetField];
+  };
+
+  // テキスト内容を取得する（新しいmultilingual_textシステム対応）
+  const getCurrentTextValue = (): string => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      return getEffectiveTextValue(editingAsset, editingInstance, currentLang);
+    }
+    return editingAsset.default_text || '';
+  };
+
+  // テキスト内容を更新する（新しいmultilingual_textシステム対応）
+  const updateTextValue = (newText: string) => {
+    if (mode === 'instance' && editingInstance) {
+      const currentLang = getCurrentLanguage();
+      setEditingInstance({
+        ...editingInstance,
+        multilingual_text: {
+          ...editingInstance.multilingual_text,
+          [currentLang]: newText
+        }
+      });
+    } else {
+      handleInputChange('default_text', newText);
+    }
   };
 
   const getTextFrameSize = () => {
@@ -143,7 +168,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const scale = previewDimensions.scale;
     const fontSize = getCurrentValue('font_size', 'override_font_size')
     const charWidth = fontSize * previewDimensions.scale
-    const lines = getCurrentValue('default_text', 'override_text').split('\n');
+    const lines = getCurrentTextValue().split('\n');
     const vertical = getCurrentValue('vertical', 'override_vertical');
     const leading = getCurrentValue('leading', 'override_leading') || 1.2; // デフォルトの行間
     let maxWidth = 0;
@@ -179,7 +204,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  const handleInstanceChange = (langOverrideKey: keyof LanguageOverrides, value: any) => {
+  const handleInstanceChange = (langOverrideKey: string, value: any) => {
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
       const currentOverrides = editingInstance.multilingual_overrides || {};
@@ -192,7 +217,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           [currentLang]: {
             ...langOverride,
             [langOverrideKey]: value,
-          },
+          } as any,
         },
       });
     }
@@ -569,16 +594,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <label>
                   {mode === 'asset' ? 'デフォルトテキスト:' : 'テキスト内容:'}
                   <textarea
-                    value={getCurrentValue('default_text', 'override_text')}
-                    onChange={(e) => {
-                      if (mode === 'asset') {
-                        handleInputChange('default_text', e.target.value);
-                      } else {
-                        handleInstanceChange('override_text', e.target.value);
-                      }
-                    }}
+                    value={getCurrentTextValue()}
+                    onChange={(e) => updateTextValue(e.target.value)}
                     rows={3}
                   />
+                  {mode === 'instance' && (
+                    <div className="language-info">
+                      現在の言語: {getCurrentLanguage()}
+                    </div>
+                  )}
                 </label>
               </div>
             </div>
