@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
-import type { TextAsset, TextAssetInstance, Page, FontInfo } from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings } from '../../../types/entities';
 import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData, getEffectiveTextValue } from '../../../types/entities';
 import './TextEditModal.css';
 import {current} from 'immer';
@@ -118,6 +118,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         },
       });
     } else {
+      // Phase 2A: 既存フィールドを更新
       setEditingAsset({
         ...editingAsset,
         default_pos_x: x,
@@ -221,6 +222,70 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         },
       });
     }
+  };
+
+  // 言語別設定変更ハンドラー（Asset編集用）
+  const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
+    if (mode !== 'asset') return;
+    
+    const currentSettings = editingAsset.default_language_settings || {};
+    const languageSettings = currentSettings[language] || {};
+    
+    // 値がundefinedまたは空の場合は設定を削除
+    const updatedLanguageSettings = { ...languageSettings };
+    if (value === undefined || value === '' || value === null) {
+      delete updatedLanguageSettings[settingKey];
+    } else {
+      updatedLanguageSettings[settingKey] = value;
+    }
+    
+    // 言語設定全体が空になった場合は言語エントリを削除
+    const hasAnySettings = Object.keys(updatedLanguageSettings).length > 0;
+    const updatedDefaultLanguageSettings = { ...currentSettings };
+    
+    if (hasAnySettings) {
+      updatedDefaultLanguageSettings[language] = updatedLanguageSettings;
+    } else {
+      delete updatedDefaultLanguageSettings[language];
+    }
+    
+    setEditingAsset({
+      ...editingAsset,
+      default_language_settings: Object.keys(updatedDefaultLanguageSettings).length > 0 ? 
+        updatedDefaultLanguageSettings : undefined
+    });
+  };
+
+  // インスタンス用言語別設定変更ハンドラー
+  const handleInstanceLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
+    if (mode !== 'instance' || !editingInstance) return;
+    
+    const currentSettings = editingInstance.override_language_settings || {};
+    const languageSettings = currentSettings[language] || {};
+    
+    // 値がundefinedまたは空の場合は設定を削除
+    const updatedLanguageSettings = { ...languageSettings };
+    if (value === undefined || value === '' || value === null) {
+      delete updatedLanguageSettings[settingKey];
+    } else {
+      updatedLanguageSettings[settingKey] = value;
+    }
+    
+    // 言語設定全体が空になった場合は言語エントリを削除
+    const hasAnySettings = Object.keys(updatedLanguageSettings).length > 0;
+    const updatedOverrideLanguageSettings = { ...currentSettings };
+    
+    if (hasAnySettings) {
+      updatedOverrideLanguageSettings[language] = updatedLanguageSettings;
+    } else {
+      delete updatedOverrideLanguageSettings[language];
+    }
+    
+    setEditingInstance({
+      ...editingInstance,
+      override_language_settings: Object.keys(updatedOverrideLanguageSettings).length > 0 ? 
+        updatedOverrideLanguageSettings : undefined
+    });
   };
 
   // 数値入力バリデーション関数（ImageEditModalから流用）
@@ -605,6 +670,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   )}
                 </label>
               </div>
+              {mode === 'asset' && (
+                <div className="form-row">
+                  <label>
+                    文脈・用途:
+                    <input
+                      type="text"
+                      value={editingAsset.default_context || ''}
+                      onChange={(e) => handleInputChange('default_context', e.target.value)}
+                      placeholder="例: キャラクターAの叫び声、ナレーション等"
+                    />
+                    <div className="form-help">
+                      このテキストの用途や文脈を記録しておけます
+                    </div>
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* フォント設定 */}
@@ -700,6 +781,131 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* 言語別設定 */}
+            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
+              <div className="form-section">
+                <h4>{mode === 'asset' ? '言語別デフォルト設定' : '言語別設定オーバーライド'}</h4>
+                <div className="form-help">
+                  {mode === 'asset' 
+                    ? '特定の言語でのみ異なる設定にしたい場合に使用します'
+                    : '現在のページでのみ、この言語の設定を変更したい場合に使用します'
+                  }
+                </div>
+                {project.metadata.supportedLanguages.map((lang) => (
+                  <div key={lang} className="language-settings-group">
+                    <h5>{lang === 'ja' ? '日本語' : lang === 'en' ? 'English' : lang}</h5>
+                    <div className="language-settings">
+                      <div className="form-row form-row-compact">
+                        <label>
+                          フォント:
+                          <select
+                            value={mode === 'asset' 
+                              ? (editingAsset.default_language_settings?.[lang]?.override_font || '')
+                              : (editingInstance?.override_language_settings?.[lang]?.override_font || '')
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
+                              }
+                            }}
+                          >
+                            <option value="">{mode === 'asset' ? 'デフォルトフォントを使用' : 'アセット設定を使用'}</option>
+                            {availableFonts.map((font) => (
+                              <option key={font.id} value={font.id}>
+                                {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          フォントサイズ:
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            value={mode === 'asset'
+                              ? (editingAsset.default_language_settings?.[lang]?.override_font_size || '')
+                              : (editingInstance?.override_language_settings?.[lang]?.override_font_size || '')
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
+                              }
+                            }}
+                            placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
+                          />
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          位置調整:
+                          <div className="position-inputs">
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={mode === 'asset'
+                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_x || '')
+                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_x || '')
+                              }
+                              onChange={(e) => {
+                                if (mode === 'asset') {
+                                  handleLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
+                                } else {
+                                  handleInstanceLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
+                                }
+                              }}
+                              placeholder="X座標"
+                            />
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={mode === 'asset'
+                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_y || '')
+                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_y || '')
+                              }
+                              onChange={(e) => {
+                                if (mode === 'asset') {
+                                  handleLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                                } else {
+                                  handleInstanceLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                                }
+                              }}
+                              placeholder="Y座標"
+                            />
+                          </div>
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={mode === 'asset'
+                              ? (editingAsset.default_language_settings?.[lang]?.override_vertical !== undefined ? editingAsset.default_language_settings[lang].override_vertical : false)
+                              : (editingInstance?.override_language_settings?.[lang]?.override_vertical !== undefined ? editingInstance.override_language_settings[lang].override_vertical : false)
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
+                              }
+                            }}
+                          />
+                          縦書き設定をオーバーライド
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* 色設定 - AssetInstanceモードでは表示しない */}
             {mode === 'asset' && (

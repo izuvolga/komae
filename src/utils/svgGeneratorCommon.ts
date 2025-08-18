@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosX, getEffectivePosY, getEffectiveOpacity, getEffectiveFont, getEffectiveVertical, getEffectiveLeading } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFont, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -366,9 +366,10 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
     const isCurrentLanguage = lang === currentLanguage;
     const displayStyle = isCurrentLanguage ? '' : ' style="display: none;"';
     
-    // 多言語対応ヘルパー関数を使用して各言語の値を取得
-    const finalPosX = getEffectivePosX(asset, textInstance, lang);
-    const finalPosY = getEffectivePosY(asset, textInstance, lang);
+    // 新仕様多言語対応ヘルパー関数を使用して各言語の値を取得
+    const finalPos = getEffectivePosition(asset, textInstance, lang);
+    const finalPosX = finalPos.x;
+    const finalPosY = finalPos.y;
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang);
     const textContent = getEffectiveTextValue(asset, textInstance, lang);
@@ -394,11 +395,11 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
 function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
   const effectiveFont = getEffectiveFont(asset, textInstance, language);
   const font = resolveSvgFontName(effectiveFont || 'Arial');
-  const strokeWidth = asset.stroke_width || 0;
-  const strokeColor = asset.stroke_color || '#000000';
-  const fillColor = asset.fill_color || '#FFFFFF';
-  const effectiveLeading = getEffectiveLeading(asset, textInstance, language);
-  const leading = effectiveLeading || 0;
+  const strokeWidth = getEffectiveStrokeWidth(asset, textInstance, language);
+  const colors = getEffectiveColors(asset, textInstance, language);
+  const strokeColor = colors.stroke;
+  const fillColor = colors.fill;
+  const leading = getEffectiveLeading(asset, textInstance, language);
   const vertical = getEffectiveVertical(asset, textInstance, language);
 
   // XMLエスケープを適用

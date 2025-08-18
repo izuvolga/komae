@@ -40,6 +40,8 @@ export interface ImageAsset extends BaseAsset {
 
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
+  
+  // 後方互換性のため、既存フィールドを必須に保つ
   default_text: string;
   font: string; // フォントID（FontInfoのidを参照）
   stroke_width: number;
@@ -52,6 +54,10 @@ export interface TextAsset extends BaseAsset {
   leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
   vertical: boolean; // true の場合、縦書き
   default_z_index: number;
+  
+  // 新バージョンフィールド
+  default_context?: string; // そのテキストの表す文脈 (例: 'キャラクターAの叫び声')
+  default_language_settings?: Record<string, LanguageSettings>; // 言語別のデフォルト設定
 }
 
 export interface VectorAsset extends BaseAsset {
@@ -133,8 +139,13 @@ export interface ImageAssetInstance extends BaseAssetInstance {
 export interface TextAssetInstance extends BaseAssetInstance {
   // 言語別のテキスト内容（新バージョン対応）
   multilingual_text: Record<string, string>;
-  // インスタンス個別の言語別設定（Phase 2で実装予定）
-  // override_language_settings?: Record<string, LanguageSettings>;
+  // インスタンス個別の言語別設定（新バージョン）
+  override_language_settings?: Record<string, LanguageSettings>;
+  // インスタンス個別の文脈設定
+  override_context?: string;
+  // インスタンス個別の不透明度・z-index設定
+  override_opacity?: number;
+  override_z_index?: number;
   
   // 既存のmultilingual_overridesは暫定的に残す（後で削除予定）
   multilingual_overrides?: Record<string, LanguageOverrides>;
@@ -235,7 +246,7 @@ export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, curren
     }
   }
   
-  return asset.default_z_index;
+  return asset.default_z_index ?? 0;
 }
 
 // AssetInstanceのoverride値をリセットする関数
@@ -424,135 +435,213 @@ export function getEffectiveTextValue(
     return langOverride.override_text;
   }
   
-  // 3. アセットのデフォルト値を使用
-  return asset.default_text;
+  // 3. アセットのデフォルト値を使用（旧仕様対応）
+  return asset.default_text || '';
 }
 
 /**
- * 多言語対応：現在言語の有効フォントサイズを取得
+ * 新仕様対応: 言語別設定の有効値を取得
+ * 優先順位: override_language_settings > default_language_settings > 旧仕様フィールド
  */
-export function getEffectiveFontSize(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
-  currentLang: string
-): number {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_font_size !== undefined) {
-    return langOverride.override_font_size;
+export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  setting: K
+): LanguageSettings[K] | undefined {
+  // 1. インスタンスのオーバーライド設定をチェック
+  if (instance?.override_language_settings?.[currentLang]?.[setting] !== undefined) {
+    return instance.override_language_settings[currentLang][setting];
   }
   
+  // 2. アセットの言語別デフォルト設定をチェック
+  if (asset.default_language_settings?.[currentLang]?.[setting] !== undefined) {
+    return asset.default_language_settings[currentLang][setting];
+  }
+  
+  // 3. 既存のmultilingual_overridesをチェック（後方互換性）
+  if (instance?.multilingual_overrides?.[currentLang]) {
+    const override = instance.multilingual_overrides[currentLang];
+    switch (setting) {
+      case 'override_pos_x': return override.override_pos_x as LanguageSettings[K];
+      case 'override_pos_y': return override.override_pos_y as LanguageSettings[K];
+      case 'override_font': return override.override_font as LanguageSettings[K];
+      case 'override_font_size': return override.override_font_size as LanguageSettings[K];
+      case 'override_opacity': return override.override_opacity as LanguageSettings[K];
+      case 'override_z_index': return override.override_z_index as LanguageSettings[K];
+      case 'override_leading': return override.override_leading as LanguageSettings[K];
+      case 'override_vertical': return override.override_vertical as LanguageSettings[K];
+    }
+  }
+  
+  return undefined;
+}
+
+/**
+ * 新仕様対応: 最終的なフォントサイズを取得する
+ */
+export function getEffectiveFontSize(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font_size');
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  
+  // 既存フィールドを使用
   return asset.font_size;
 }
 
 /**
- * 多言語対応：現在言語の有効位置X座標を取得
+ * 新仕様対応: 最終的な位置を取得する
  */
-export function getEffectivePosX(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
+export function getEffectivePosition(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
   currentLang: string
-): number {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_pos_x !== undefined) {
-    return langOverride.override_pos_x;
-  }
-  
-  return asset.default_pos_x;
+): { x: number; y: number } {
+  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_x') ?? asset.default_pos_x;
+  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_y') ?? asset.default_pos_y;
+  return { x, y };
 }
 
 /**
- * 多言語対応：現在言語の有効位置Y座標を取得
- */
-export function getEffectivePosY(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
-  currentLang: string
-): number {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_pos_y !== undefined) {
-    return langOverride.override_pos_y;
-  }
-  
-  return asset.default_pos_y;
-}
-
-/**
- * 多言語対応：現在言語の有効不透明度を取得
- */
-export function getEffectiveOpacity(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
-  currentLang: string
-): number {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_opacity !== undefined) {
-    return langOverride.override_opacity;
-  }
-  
-  return asset.opacity;
-}
-
-/**
- * 多言語対応：現在言語の有効フォントを取得
+ * 新仕様対応: 最終的なフォントを取得する
  */
 export function getEffectiveFont(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
   currentLang: string
 ): string {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_font !== undefined) {
-    return langOverride.override_font;
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font');
+  if (languageSetting !== undefined) {
+    return languageSetting;
   }
   
+  // 既存フィールドを使用
   return asset.font;
 }
 
 /**
- * 多言語対応：現在言語の有効行間を取得
- */
-export function getEffectiveLeading(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
-  currentLang: string
-): number {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_leading !== undefined) {
-    return langOverride.override_leading;
-  }
-  
-  return asset.leading;
-}
-
-/**
- * 多言語対応：現在言語の有効縦書き設定を取得
+ * 新仕様対応: 最終的な縦書き設定を取得する
  */
 export function getEffectiveVertical(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
   currentLang: string
 ): boolean {
-  const langOverride = instance.multilingual_overrides?.[currentLang];
-  if (langOverride?.override_vertical !== undefined) {
-    return langOverride.override_vertical;
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_vertical');
+  if (languageSetting !== undefined) {
+    return languageSetting;
   }
   
+  // 既存フィールドを使用
   return asset.vertical;
 }
 
 /**
- * TextAssetの初期データを作成
+ * 新仕様対応: 最終的な色設定を取得する
  */
-export function createTextAsset(params: {
+export function getEffectiveColors(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): { fill: string; stroke: string } {
+  const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_fill_color');
+  const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_color');
+  
+  const fill = fillOverride ?? asset.fill_color;
+  const stroke = strokeOverride ?? asset.stroke_color;
+  
+  return { fill, stroke };
+}
+
+/**
+ * 新仕様対応: 最終的なストローク幅を取得する
+ */
+export function getEffectiveStrokeWidth(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_width');
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  
+  // 既存フィールドを使用
+  return asset.stroke_width;
+}
+
+/**
+ * 新仕様対応: 最終的な行間を取得する
+ */
+export function getEffectiveLeading(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_leading');
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  
+  // 既存フィールドを使用
+  return asset.leading;
+}
+
+/**
+ * 新仕様対応: 最終的な不透明度を取得する
+ */
+export function getEffectiveOpacity(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_opacity');
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  
+  // 既存フィールドを使用
+  return asset.opacity;
+}
+
+/**
+ * 新仕様対応: 最終的なz-indexを取得する
+ */
+export function getEffectiveZIndexForLanguage(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_z_index');
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  
+  // 既存フィールドを使用
+  return asset.default_z_index;
+}
+
+/**
+ * 新仕様対応: TextAssetのデフォルト値を作成する
+ */
+export function createDefaultTextAsset(params: {
   name: string;
-  defaultText: string;
+  supportedLanguages?: string[];
 }): TextAsset {
-  return {
+  const { name, supportedLanguages } = params;
+  
+  // Phase 2B: 新機能フィールドを含むTextAssetを作成
+  const asset: TextAsset = {
     id: `text-${uuidv4()}`,
     type: 'TextAsset',
-    name: params.name,
-    default_text: params.defaultText,
-    font: DEFAULT_FONT_ID, // デフォルトフォントID
+    name,
+    default_text: '',
+    font: DEFAULT_FONT_ID,
     stroke_width: 2.0,
     font_size: 24,
     stroke_color: '#000000',
@@ -563,8 +652,53 @@ export function createTextAsset(params: {
     leading: 0,
     vertical: false,
     default_z_index: 0,
+    default_context: '',
+    // 言語別設定を初期化（supportedLanguagesが提供された場合のみ）
+    default_language_settings: supportedLanguages ? 
+      supportedLanguages.reduce<Record<string, LanguageSettings>>((acc, lang) => {
+        // デフォルトでは空のオーバーライド設定
+        acc[lang] = {};
+        return acc;
+      }, {}) : undefined
   };
+  
+  return asset;
 }
+
+/**
+ * 既存のTextAssetを新仕様に移行する
+ */
+export function migrateTextAssetToNewFormat(
+  asset: TextAsset,
+  supportedLanguages?: string[]
+): TextAsset {
+  // 既に新仕様フィールドを持っている場合はそのまま返す
+  if (asset.default_language_settings !== undefined && asset.default_context !== undefined) {
+    return asset;
+  }
+
+  const migratedAsset: TextAsset = {
+    ...asset,
+    // 新機能フィールドを追加
+    default_context: asset.default_context || '',
+    default_language_settings: supportedLanguages ? 
+      supportedLanguages.reduce<Record<string, LanguageSettings>>((acc, lang) => {
+        // デフォルトでは空のオーバーライド設定
+        // 既存のdefault_text値は各言語で共通利用される
+        acc[lang] = {};
+        return acc;
+      }, {}) : {}
+  };
+
+  return migratedAsset;
+}
+
+// 旧関数は削除し、上記の新しい関数で置き換え
+
+/**
+ * TextAssetの初期データを作成
+ */
+// 旧createTextAsset関数は削除し、createDefaultTextAssetを使用
 
 export function createVectorAsset(params: {
   name: string;
@@ -617,7 +751,7 @@ export function validateOpacity(value: number | undefined, fieldName: string): {
 }
 
 /**
- * TextAssetのバリデーション
+ * TextAssetのバリデーション（Phase 2A: 既存フィールド中心）
  * @param asset - バリデーション対象のTextAsset
  * @returns バリデーション結果
  */
@@ -627,7 +761,7 @@ export function validateTextAssetData(asset: TextAsset): {
 } {
   const errors: string[] = [];
   
-  // 不透明度のバリデーション
+  // 既存フィールドのバリデーション
   const opacityValidation = validateOpacity(asset.opacity, '不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
@@ -636,6 +770,21 @@ export function validateTextAssetData(asset: TextAsset): {
   // フォントサイズのバリデーション
   if (asset.font_size <= 0) {
     errors.push(`フォントサイズは0より大きい値を入力してください。現在の値: ${asset.font_size}`);
+  }
+  
+  // 新機能: 言語別設定のバリデーション（オプショナル）
+  if (asset.default_language_settings) {
+    Object.entries(asset.default_language_settings).forEach(([langCode, settings]) => {
+      if (settings.override_font_size !== undefined && settings.override_font_size <= 0) {
+        errors.push(`${langCode}言語のフォントサイズは0より大きい値を入力してください。現在の値: ${settings.override_font_size}`);
+      }
+      if (settings.override_opacity !== undefined) {
+        const opacityValidation = validateOpacity(settings.override_opacity, `${langCode}言語の不透明度`);
+        if (!opacityValidation.isValid && opacityValidation.error) {
+          errors.push(opacityValidation.error);
+        }
+      }
+    });
   }
   
   return {
@@ -678,7 +827,7 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
 } {
   const errors: string[] = [];
   
-  // 多言語オーバーライドの不透明度バリデーション
+  // 旧バージョン：多言語オーバーライドの不透明度バリデーション
   if (instance.multilingual_overrides) {
     for (const [lang, overrides] of Object.entries(instance.multilingual_overrides)) {
       const opacityValidation = validateOpacity(overrides.override_opacity, `不透明度 (${lang})`);
@@ -689,6 +838,34 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
       // フォントサイズのバリデーション
       if (overrides.override_font_size !== undefined && overrides.override_font_size <= 0) {
         errors.push(`フォントサイズ (${lang})は0より大きい値を入力してください。現在の値: ${overrides.override_font_size}`);
+      }
+    }
+  }
+  
+  // 新バージョン：override_language_settingsのバリデーション
+  if (instance.override_language_settings) {
+    for (const [lang, settings] of Object.entries(instance.override_language_settings)) {
+      // フォントサイズのバリデーション
+      if (settings.override_font_size !== undefined && settings.override_font_size <= 0) {
+        errors.push(`${lang}言語のフォントサイズは0より大きい値を入力してください。現在の値: ${settings.override_font_size}`);
+      }
+      
+      // 不透明度のバリデーション
+      if (settings.override_opacity !== undefined) {
+        const opacityValidation = validateOpacity(settings.override_opacity, `${lang}言語の不透明度`);
+        if (!opacityValidation.isValid && opacityValidation.error) {
+          errors.push(opacityValidation.error);
+        }
+      }
+      
+      // ストローク幅のバリデーション
+      if (settings.override_stroke_width !== undefined && settings.override_stroke_width < 0) {
+        errors.push(`${lang}言語のストローク幅は0以上の値を入力してください。現在の値: ${settings.override_stroke_width}`);
+      }
+      
+      // 行間のバリデーション
+      if (settings.override_leading !== undefined && settings.override_leading < 0) {
+        errors.push(`${lang}言語の行間は0以上の値を入力してください。現在の値: ${settings.override_leading}`);
       }
     }
   }

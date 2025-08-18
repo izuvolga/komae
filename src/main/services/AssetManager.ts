@@ -12,7 +12,7 @@ import {
   DuplicateResolutionStrategy 
 } from '../../utils/duplicateAssetHandler';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, ProjectData } from '../../types/entities';
-import { createImageAsset, createTextAsset, createVectorAsset } from '../../types/entities';
+import { createImageAsset, createDefaultTextAsset, createVectorAsset } from '../../types/entities';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -170,11 +170,23 @@ export class AssetManager {
     return asset;
   }
 
-  async createTextAsset(name: string, defaultText: string): Promise<TextAsset> {
-    // entities.tsのヘルパー関数を使用してTextAssetを作成
-    const asset = createTextAsset({
+  async createTextAsset(name: string, defaultText: string, project?: ProjectData): Promise<TextAsset> {
+    // プロジェクトの多言語設定を取得
+    const supportedLanguages = project?.metadata?.supportedLanguages || ['ja'];
+    
+    // entities.tsのヘルパー関数を使用してTextAssetを作成（新仕様対応）
+    const asset = createDefaultTextAsset({
       name: name,
-      defaultText: defaultText,
+      supportedLanguages: supportedLanguages
+    });
+    // デフォルトテキストを設定
+    asset.default_text = defaultText;
+
+    await this.logger.logDevelopment('text_asset_created', 'TextAsset created with new specification', {
+      assetId: asset.id,
+      assetName: asset.name,
+      supportedLanguages,
+      hasDefaultLanguageSettings: !!asset.default_language_settings,
     });
 
     return asset;

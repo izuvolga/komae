@@ -376,3 +376,57 @@
   background-color: rgba(0, 123, 255, 0.1) !important;
   border-color: #007bff !important;
 }
+
+/* 言語別設定用スタイル */
+.language-settings-group {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.language-settings-group h5 {
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.language-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-row-compact {
+  margin-bottom: 8px;
+}
+
+.form-row-compact label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.form-row-compact input,
+.form-row-compact select {
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+.position-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.position-inputs input {
+  flex: 1;
+  max-width: 80px;
+}
+
+.form-help {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
