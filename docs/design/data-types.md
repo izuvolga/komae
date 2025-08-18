@@ -66,20 +66,20 @@ default_fill_color: テキストの内部の色（RGBA形式の文字列、例: 
 default_stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
 default_opacity: デフォルトの不透明度（0.0〜1.0）
 default_z_index: デフォルトのレイヤー順序
-default_multilingual_overrides: 言語別のデフォルトオーバーライド設定
-  - Record<string, LanguageOverrides> 形式
+default_language_settings: 言語別のデフォルト設定
+  - Record<string, LanguageSettings> 形式
   - キーは言語コード（例: 'ja', 'en'）
-  - さらに TextAsset にはデフォルトで 'default' キーがあり、全言語共通の設定を保持
-  - 値はLanguageOverridesオブジェクト
+  - 値はLanguageSettingsオブジェクト
 ```
 
 Asset Library では、テキスト自体は保持できず、あくまでフォントサイズや色、位置などの設定を保持できる。
 UI については ui-specification.md の「TextAsset 編集画面」の見出し以下を参照。
 
-default_multilingual_overrides には 'default' キーが必ず存在し、全言語共通のデフォルト設定を保持する。
-ただし、言語ごとに異なる設定が必要な場合は、各言語コード（例: 'ja', 'en'）ごとに、個別のオーバーライド設定を行うことができる。
-設定意図として、言語によってフォントやサイズ、位置などが異なる場合に対応できるようにしている。
-言語によっては縦書きや横書き、行間の調整が必要な場合もあるため、変更ができるようにしている。
+default_language_settings では、言語ごとに異なる設定が必要な場合に、各言語コード（例: 'ja', 'en'）ごとに、個別の設定を行うことができる。
+設定意図として、言語によってフォントやサイズ、位置、縦書き・横書きなどが異なる場合に対応できるようにしている。
+この設定により、TextAssetInstanceで個別調整の必要性を最小限に抑えることができる。
+例えば、TextAsset編集で「日本語は縦書き・明朝体」「英語は横書き・サンセリフ」を設定できる。
+TextAssetInstanceでは位置微調整や特殊なケースのみ編集。
 
 
 旧バージョン:
@@ -162,14 +162,15 @@ asset_id: 参照するTextAssetのID
 override_context: TextAssetのdefault_contextを上書きする文脈情報 (optional)
 override_opacity: TextAssetのdefault_opacityを上書きする不透明度 (optional)
 override_z_index: TextAssetのdefault_z_indexを上書きするレイヤー順序 (optional)
-multilingual_text: 言語別のデフォルトテキスト設定
+multilingual_text: 言語別のテキスト内容
   - Record<string, string> 形式
   - キーは言語コード（例: 'ja', 'en'）
   - 値はその言語でのテキスト内容
-override_multilingual_overrides: 言語別オーバーライド設定 (optional)
-  - Record<string, LanguageOverrides> 形式
+override_language_settings: インスタンス個別の言語別設定 (optional)
+  - Record<string, LanguageSettings> 形式
   - キーは言語コード（例: 'ja', 'en'）
-  - 値はLanguageOverridesオブジェクト
+  - 値はLanguageSettingsオブジェクト
+  - TextAssetのdefault_language_settingsを個別にオーバーライドする場合に使用
 ```
 
 旧バージョン:
@@ -183,20 +184,29 @@ multilingual_overrides: 言語別オーバーライド設定 (optional)
 ```
 
 
-### LanguageOverrides
+### LanguageSettings
 
-言語別のオーバーライド設定で、以下の属性をもつ：
+言語別の設定で、TextAssetの default_language_settings と TextAssetInstance の override_language_settings で共通して使用される。以下の属性をもつ：
 
 新バージョン:
 ```
-override_pos_x: TextAsset の multilingual_default['all'].override_pos_x を上書きするX座標 (optional)
-override_pos_y: TextAsset の multilingual_default['all'].override_pos_y を上書きするY座標 (optional)
-override_font_size: TextAsset の multilingual_default['all'].override_font_size を上書きするフォントサイズ (optional)
-override_stroke_width: TextAsset の multilingual_default['all'].override_stroke_width テキストの縁取りの幅（0.0以上） (optional)
-override_font: 言語別フォント選択 (optional)
-override_leading: 言語別行間設定 (optional)
-override_vertical: 言語別縦書き設定 (optional)
+override_pos_x: X座標 (optional)
+override_pos_y: Y座標 (optional)
+override_font: フォント選択 (optional)
+override_font_size: フォントサイズ (optional)
+override_stroke_width: テキストの縁取りの幅（0.0以上） (optional)
+override_leading: 行間設定 (optional)
+override_vertical: 縦書き設定 (optional)
+override_opacity: 不透明度（0.0〜1.0） (optional)
+override_z_index: レイヤー順序 (optional)
+override_fill_color: テキストの内部の色（RGBA形式の文字列） (optional)
+override_stroke_color: テキストの縁取りの色（RGBA形式の文字列） (optional)
 ```
+
+設定の適用順序：
+1. TextAsset の全言語共通設定（default_fill_color など）
+2. TextAsset の default_language_settings（言語別デフォルト設定）
+3. TextAssetInstance の override_language_settings（個別オーバーライド設定）
 
 旧バージョン:
 ```
