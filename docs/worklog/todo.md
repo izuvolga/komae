@@ -32,7 +32,7 @@
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## 大きめの改善
-- [ ]: TextAssetInstance だけでなく TextAsset にも multi_language の概念を追加した方が良い？
+- [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
 - [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
 - [ ]: Asset Library の Asset を自動でソートする機能をほしい
