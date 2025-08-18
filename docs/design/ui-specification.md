@@ -685,7 +685,7 @@ Asset Library では、テキスト自体は保持できず、あくまでフォ
 
 
 
-#### TextAssetInstance編集画面
+#### TextAssetInstance 編集画面
 
 TextAsset から TextAssetInstance において override できる項目のみが表示される。
 override できない項目については、灰色のテキストで表示され、編集できないが、表示はされる。
