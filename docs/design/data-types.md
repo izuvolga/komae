@@ -55,7 +55,7 @@ default_mask: デフォルトのマスク情報で、4点の値の配列。そ�
 
 ### TextAsset
 
-テキストを表現するためのテンプレートで、以下の属性をもつ。
+作中のテキストを表現するためのテンプレートで、以下の属性をもつ。
 
 新バージョン:
 ```
@@ -63,20 +63,24 @@ id: テンプレートのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
 default_context: そのテキストの表す文脈 (例: 'キャラクターAの叫び声') (optional)
 default_fill_color: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
-default_font_size: TextAssetのfont_sizeを上書きするフォントサイズ
-default_font: フォント選択
-default_leading: 言語別行間設定
-default_opacity: デフォルトの不透明度（0.0〜1.0）
-default_pos_x: デフォルトのX座標
-default_pos_y: デフォルトのY座標
 default_stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
-default_vertical: 言語別縦書き設定
+default_opacity: デフォルトの不透明度（0.0〜1.0）
 default_z_index: デフォルトのレイヤー順序
-multilingual_default: 言語別オーバーライド設定 (optional)
+default_multilingual_overrides: 言語別のデフォルトオーバーライド設定
   - Record<string, LanguageOverrides> 形式
   - キーは言語コード（例: 'ja', 'en'）
+  - さらに TextAsset にはデフォルトで 'default' キーがあり、全言語共通の設定を保持
   - 値はLanguageOverridesオブジェクト
 ```
+
+Asset Library では、テキスト自体は保持できず、あくまでフォントサイズや色、位置などの設定を保持できる。
+UI については ui-specification.md の「TextAsset 編集画面」の見出し以下を参照。
+
+default_multilingual_overrides には 'default' キーが必ず存在し、全言語共通のデフォルト設定を保持する。
+ただし、言語ごとに異なる設定が必要な場合は、各言語コード（例: 'ja', 'en'）ごとに、個別のオーバーライド設定を行うことができる。
+設定意図として、言語によってフォントやサイズ、位置などが異なる場合に対応できるようにしている。
+言語によっては縦書きや横書き、行間の調整が必要な場合もあるため、変更ができるようにしている。
+
 
 旧バージョン:
 ```
@@ -151,19 +155,22 @@ override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optio
 
 ### TextAssetInstance
 
-**多言語対応の簡素化された構造**
-
 新バージョン:
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するTextAssetのID
 override_context: TextAssetのdefault_contextを上書きする文脈情報 (optional)
-multilingual_overrides: 言語別オーバーライド設定 (optional)
+override_opacity: TextAssetのdefault_opacityを上書きする不透明度 (optional)
+override_z_index: TextAssetのdefault_z_indexを上書きするレイヤー順序 (optional)
+multilingual_text: 言語別のデフォルトテキスト設定
+  - Record<string, string> 形式
+  - キーは言語コード（例: 'ja', 'en'）
+  - 値はその言語でのテキスト内容
+override_multilingual_overrides: 言語別オーバーライド設定 (optional)
   - Record<string, LanguageOverrides> 形式
   - キーは言語コード（例: 'ja', 'en'）
   - 値はLanguageOverridesオブジェクト
 ```
-
 
 旧バージョン:
 ```
@@ -175,17 +182,23 @@ multilingual_overrides: 言語別オーバーライド設定 (optional)
   - 値はLanguageOverridesオブジェクト
 ```
 
-上記構造で、テキスト要素に対する包括的な多言語対応機能を実装している。
-- プロジェクトごとに現在言語（currentLanguage）を設定
-- TextAssetInstanceは言語別オーバーライド（multilingual_overrides）あり
-- 各言語に対して、テキスト内容、位置、フォント、サイズなどを個別設定可能
-- 言語切り替え時に動的にテキスト表示が更新される
-
 
 ### LanguageOverrides
 
 言語別のオーバーライド設定で、以下の属性をもつ：
 
+新バージョン:
+```
+override_pos_x: TextAsset の multilingual_default['all'].override_pos_x を上書きするX座標 (optional)
+override_pos_y: TextAsset の multilingual_default['all'].override_pos_y を上書きするY座標 (optional)
+override_font_size: TextAsset の multilingual_default['all'].override_font_size を上書きするフォントサイズ (optional)
+override_stroke_width: TextAsset の multilingual_default['all'].override_stroke_width テキストの縁取りの幅（0.0以上） (optional)
+override_font: 言語別フォント選択 (optional)
+override_leading: 言語別行間設定 (optional)
+override_vertical: 言語別縦書き設定 (optional)
+```
+
+旧バージョン:
 ```
 override_text: TextAssetのdefault_textを上書きするテキスト内容 (optional)
 override_pos_x: TextAssetのdefault_pos_xを上書きするX座標 (optional)
