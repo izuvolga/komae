@@ -64,13 +64,9 @@ export const mockPage1: Page = {
     'instance-1755353627147': {
       id: 'instance-1755353627147',
       asset_id: 'text-1c835411-9001-4633-a120-2a8ae273b8cb',
-      multilingual_overrides: {
-        ja: {
-          override_text: 'もっと！',
-        },
-        en: {
-          override_text: 'Get more',
-        },
+      multilingual_text: {
+        ja: 'もっと！',
+        en: 'Get more',
       },
     },
     'instance-1755353812019': {

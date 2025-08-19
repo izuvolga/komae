@@ -1,21 +1,23 @@
 // Zodスキーマによるプロジェクトデータバリデーション
 
 import { z } from 'zod';
-import { ProjectData, Asset, Page, LanguageOverrides } from '../types/entities';
+import { ProjectData, Asset, Page, LanguageSettings } from '../types/entities';
 
 // 基本的なスキーマ定義
 
-// LanguageOverrides スキーマ
-const LanguageOverridesSchema = z.object({
-  override_text: z.string().optional(),
-  override_font_size: z.number().min(1).optional(),
+// LanguageSettings スキーマ
+const LanguageSettingsSchema = z.object({
   override_pos_x: z.number().optional(),
   override_pos_y: z.number().optional(),
-  override_font: z.string().optional(), // 言語別フォント選択
+  override_font: z.string().optional(),
+  override_font_size: z.number().min(1).optional(),
+  override_stroke_width: z.number().min(0).optional(),
+  override_leading: z.number().optional(),
+  override_vertical: z.boolean().optional(),
   override_opacity: z.number().min(0).max(1).optional(),
   override_z_index: z.number().optional(),
-  override_leading: z.number().optional(), // 言語別行間
-  override_vertical: z.boolean().optional(), // 言語別縦書き設定
+  override_fill_color: z.string().optional(),
+  override_stroke_color: z.string().optional(),
 });
 
 // AssetInstance 基本スキーマ
@@ -37,8 +39,11 @@ const ImageAssetInstanceSchema = BaseAssetInstanceSchema.extend({
 
 // TextAssetInstance スキーマ
 const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
-  // 新機能：言語別完全オーバーライド
-  multilingual_overrides: z.record(z.string(), LanguageOverridesSchema).optional(),
+  multilingual_text: z.record(z.string(), z.string()),
+  override_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
+  override_context: z.string().optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_z_index: z.number().optional(),
 });
 
 // VectorAssetInstance スキーマ
@@ -62,7 +67,9 @@ const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_z_index: z.number().optional(),
   override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
   // 多言語対応フィールド
-  multilingual_overrides: z.record(z.string(), LanguageOverridesSchema).optional(),
+  multilingual_text: z.record(z.string(), z.string()).optional(),
+  override_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
+  override_context: z.string().optional(),
 });
 
 // ImageAsset スキーマ
@@ -223,17 +230,17 @@ export function validatePage(data: unknown): Page {
 }
 
 /**
- * LanguageOverridesデータのバリデーション
+ * LanguageSettingsデータのバリデーション
  * @param data バリデーション対象のデータ
- * @returns バリデーション済みのLanguageOverridesデータ
+ * @returns バリデーション済みのLanguageSettingsデータ
  */
-export function validateLanguageOverrides(data: unknown): LanguageOverrides {
+export function validateLanguageSettings(data: unknown): LanguageSettings {
   try {
-    return LanguageOverridesSchema.parse(data);
+    return LanguageSettingsSchema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new ValidationError(
-        `LanguageOverrides validation failed: ${error.issues.map(issue => issue.message).join(', ')}`,
+        `LanguageSettings validation failed: ${error.issues.map(issue => issue.message).join(', ')}`,
         error.issues
       );
     }

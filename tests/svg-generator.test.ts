@@ -24,9 +24,9 @@ describe('SVG Generator Common', () => {
         {
           id: 'instance-2',
           asset_id: 'text-1c835411-9001-4633-a120-2a8ae273b8cb',
-          multilingual_overrides: {
-            ja: { override_text: 'もっと！' },
-            en: { override_text: 'Get more' },
+          multilingual_text: {
+            ja: 'もっと！',
+            en: 'Get more',
           },
         },
       ];
@@ -157,8 +157,8 @@ describe('SVG Generator Common', () => {
         {
           id: 'instance-2',
           asset_id: 'text-1c835411-9001-4633-a120-2a8ae273b8cb',
-          multilingual_overrides: {
-            ja: { override_text: 'テストテキスト' },
+          multilingual_text: {
+            ja: 'テストテキスト',
           },
         },
       ];
@@ -195,9 +195,9 @@ describe('SVG Generator Common', () => {
         {
           id: 'instance-text',
           asset_id: 'text-1c835411-9001-4633-a120-2a8ae273b8cb',
-          multilingual_overrides: {
-            ja: { override_text: '日本語' },
-            en: { override_text: 'English' },
+          multilingual_text: {
+            ja: '日本語',
+            en: 'English',
           },
         },
       ];
@@ -233,10 +233,10 @@ describe('SVG Generator Common', () => {
       const instance: AssetInstance = {
         id: 'test-instance',
         asset_id: textAsset.id,
-        multilingual_overrides: {
-          ja: { override_text: '日本語テスト' },
-          en: { override_text: 'English Test' },
-          zh: { override_text: '中文测试' },
+        multilingual_text: {
+          ja: '日本語テスト',
+          en: 'English Test',
+          zh: '中文测试',
         },
       };
 
@@ -300,8 +300,8 @@ describe('SVG Generator Common', () => {
       const instance: AssetInstance = {
         id: 'font-test-instance',
         asset_id: textAssetWithCustomFont.id,
-        multilingual_overrides: {
-          ja: { override_text: 'カスタムフォント' },
+        multilingual_text: {
+          ja: 'カスタムフォント',
         },
       };
 
@@ -321,8 +321,8 @@ describe('SVG Generator Common', () => {
       const instance: AssetInstance = {
         id: 'escape-test',
         asset_id: mockTextAsset.id,
-        multilingual_overrides: {
-          ja: { override_text: '<test>&"special"&</test>' },
+        multilingual_text: {
+          ja: '<test>&"special"&</test>',
         },
       };
 

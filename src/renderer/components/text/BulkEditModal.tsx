@@ -48,15 +48,15 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
       // 各ページの各インスタンスを更新
       for (const pageData of parsedData) {
         for (const [instanceId, instanceData] of Object.entries(pageData.instances)) {
-          // 多言語テキストをmultilingual_overridesに変換
-          const multilingual_overrides: Record<string, { override_text?: string }> = {};
+          // 多言語テキストをmultilingual_textに変換
+          const multilingual_text: Record<string, string> = {};
           for (const [langCode, text] of Object.entries(instanceData.texts)) {
             if (text && text.trim()) {
-              multilingual_overrides[langCode] = { override_text: text };
+              multilingual_text[langCode] = text;
             }
           }
           
-          updateAssetInstance(pageData.pageId, instanceId, { multilingual_overrides });
+          updateAssetInstance(pageData.pageId, instanceId, { multilingual_text });
         }
       }
 

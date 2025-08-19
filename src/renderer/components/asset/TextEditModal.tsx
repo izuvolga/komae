@@ -85,10 +85,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getCurrentPosition = () => {
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
-      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
+      const langSettings = editingInstance.override_language_settings?.[currentLang];
       return {
-        x: langOverride?.override_pos_x ?? editingAsset.default_pos_x,
-        y: langOverride?.override_pos_y ?? editingAsset.default_pos_y,
+        x: langSettings?.override_pos_x ?? editingAsset.default_pos_x,
+        y: langSettings?.override_pos_y ?? editingAsset.default_pos_y,
       };
     }
     return {
@@ -102,21 +102,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 位置更新関数
   const updatePosition = (x: number, y: number) => {
     if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const currentOverrides = editingInstance.multilingual_overrides || {};
-      const langOverride = currentOverrides[currentLang] || {};
-      
-      setEditingInstance({
-        ...editingInstance,
-        multilingual_overrides: {
-          ...currentOverrides,
-          [currentLang]: {
-            ...langOverride,
-            override_pos_x: x,
-            override_pos_y: y,
-          },
-        },
-      });
+      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', x);
+      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', y);
     } else {
       // Phase 2A: 既存フィールドを更新
       setEditingAsset({
@@ -131,9 +118,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: string): any => {
     if (mode === 'instance' && editingInstance && langOverrideKey) {
       const currentLang = getCurrentLanguage();
-      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
-      if (langOverride && (langOverride as any)[langOverrideKey] !== undefined) {
-        return (langOverride as any)[langOverrideKey];
+      const langSettings = editingInstance.override_language_settings?.[currentLang];
+      if (langSettings && (langSettings as any)[langOverrideKey] !== undefined) {
+        return (langSettings as any)[langOverrideKey];
       }
     }
     return editingAsset[assetField];
@@ -205,24 +192,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  const handleInstanceChange = (langOverrideKey: string, value: any) => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const currentOverrides = editingInstance.multilingual_overrides || {};
-      const langOverride = currentOverrides[currentLang] || {};
-      
-      setEditingInstance({
-        ...editingInstance,
-        multilingual_overrides: {
-          ...currentOverrides,
-          [currentLang]: {
-            ...langOverride,
-            [langOverrideKey]: value,
-          } as any,
-        },
-      });
-    }
-  };
 
   // 言語別設定変更ハンドラー（Asset編集用）
   const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
@@ -345,9 +314,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // z_index関連のヘルパー関数
   const getCurrentZIndex = () => {
     if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
-      return langOverride?.override_z_index ?? editingAsset.default_z_index;
+      return editingInstance.override_z_index ?? editingAsset.default_z_index;
     }
     return editingAsset.default_z_index;
   };
@@ -355,8 +322,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const updateZIndex = (value: number) => {
     if (mode === 'asset') {
       handleInputChange('default_z_index', value);
-    } else {
-      handleInstanceChange('override_z_index', value);
+    } else if (editingInstance) {
+      setEditingInstance({
+        ...editingInstance,
+        override_z_index: value
+      });
     }
   };
 
@@ -364,8 +334,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getCurrentVertical = () => {
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
-      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
-      return langOverride?.override_vertical ?? editingAsset.vertical;
+      const langSettings = editingInstance.override_language_settings?.[currentLang];
+      return langSettings?.override_vertical ?? editingAsset.vertical;
     }
     return editingAsset.vertical;
   };
@@ -374,7 +344,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (mode === 'asset') {
       handleInputChange('vertical', value);
     } else {
-      handleInstanceChange('override_vertical', value);
+      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_vertical', value);
     }
   };
 
@@ -382,8 +352,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getCurrentFont = () => {
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
-      const langOverride = editingInstance.multilingual_overrides?.[currentLang];
-      return langOverride?.override_font ?? editingAsset.font;
+      const langSettings = editingInstance.override_language_settings?.[currentLang];
+      return langSettings?.override_font ?? editingAsset.font;
     }
     return editingAsset.font;
   };
@@ -392,7 +362,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (mode === 'asset') {
       handleInputChange('font', value);
     } else {
-      handleInstanceChange('override_font', value);
+      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_font', value);
     }
   };
 
@@ -718,7 +688,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   )}
                   {mode === 'instance' && (
                     <span className="override-indicator">
-                      {editingInstance?.multilingual_overrides?.[getCurrentLanguage()]?.override_font !== undefined ? ' (オーバーライド中)' : ''}
+                      {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_font !== undefined ? ' (オーバーライド中)' : ''}
                     </span>
                   )}
                 </label>
@@ -732,7 +702,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       if (mode === 'asset') {
                         handleInputChange('font_size', value);
                       } else {
-                        handleInstanceChange('override_font_size', value);
+                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_font_size', value);
                       }
                     }}
                     min={0.01}
@@ -775,7 +745,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   縦書き
                   {mode === 'instance' && (
                     <span className="override-indicator">
-                      {editingInstance?.multilingual_overrides?.[getCurrentLanguage()]?.override_vertical !== undefined ? ' (オーバーライド中)' : ''}
+                      {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_vertical !== undefined ? ' (オーバーライド中)' : ''}
                     </span>
                   )}
                 </label>
@@ -959,7 +929,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       if (mode === 'asset') {
                         handleInputChange('default_pos_x', value);
                       } else {
-                        handleInstanceChange('override_pos_x', value);
+                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', value);
                       }
                     }}
                     min={-9999}
@@ -976,7 +946,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       if (mode === 'asset') {
                         handleInputChange('default_pos_y', value);
                       } else {
-                        handleInstanceChange('override_pos_y', value);
+                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', value);
                       }
                     }}
                     min={-9999}
@@ -1000,8 +970,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         const numValue = parseFloat(e.target.value);
                         if (mode === 'asset') {
                           handleInputChange('opacity', numValue);
-                        } else {
-                          handleInstanceChange('override_opacity', numValue);
+                        } else if (editingInstance) {
+                          setEditingInstance({
+                            ...editingInstance,
+                            override_opacity: numValue
+                          });
                         }
                       }}
                       className="opacity-slider"
@@ -1054,9 +1027,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         zIndexValidation.warning :
                         mode === 'instance' 
                           ? (() => {
-                            const currentLang = getCurrentLanguage();
-                            const langOverride = editingInstance?.multilingual_overrides?.[currentLang];
-                            return langOverride?.override_z_index !== undefined
+                            return editingInstance?.override_z_index !== undefined
                               ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
                               : `デフォルト値を使用中`;
                           })()

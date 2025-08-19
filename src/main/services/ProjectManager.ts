@@ -10,7 +10,6 @@ import type {
   ExportOptions,
   TextAsset
 } from '../../types/entities';
-import { migrateTextAssetToNewFormat } from '../../types/entities';
 import { saveProjectFile, loadProjectFile } from '../../utils/projectFile';
 import { createProjectDirectory, validateProjectDirectory } from '../../utils/projectDirectory';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
@@ -260,49 +259,6 @@ export class ProjectManager {
       } else {
         // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
-      }
-      
-      // TextAssetを新仕様に移行
-      let migrationPerformed = false;
-      const supportedLanguages = projectData.metadata?.supportedLanguages || ['ja'];
-      
-      for (const [assetId, asset] of Object.entries(projectData.assets)) {
-        if (asset.type === 'TextAsset') {
-          const textAsset = asset as TextAsset;
-          const migratedAsset = migrateTextAssetToNewFormat(textAsset, supportedLanguages);
-          
-          // 移行が実際に行われた場合（新機能フィールドが追加された場合）
-          if (migratedAsset !== textAsset || 
-              textAsset.default_language_settings === undefined || 
-              textAsset.default_context === undefined) {
-            projectData.assets[assetId] = migratedAsset;
-            migrationPerformed = true;
-            
-            await this.logger.logDevelopment('textasset_migrated', 'TextAsset migrated to new format', {
-              assetId,
-              assetName: textAsset.name,
-              supportedLanguages,
-              projectPath: this.currentProjectPath,
-            });
-          }
-        }
-      }
-      
-      // 移行が実行された場合、プロジェクトファイルを自動的に保存
-      if (migrationPerformed) {
-        try {
-          await saveProjectFile(projectFilePath, projectData);
-          await this.logger.logDevelopment('project_auto_saved', 'Project auto-saved after TextAsset migration', {
-            projectPath: this.currentProjectPath,
-            projectFilePath,
-          });
-        } catch (saveError) {
-          await this.logger.logError('project_auto_save_failed', saveError as Error, {
-            projectPath: this.currentProjectPath,
-            projectFilePath,
-          });
-          // 保存エラーは警告として扱い、プロジェクト読み込みは継続
-        }
       }
       
       // AssetManagerで参照されていないファイルをクリーンアップ
