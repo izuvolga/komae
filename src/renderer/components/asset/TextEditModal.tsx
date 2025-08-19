@@ -44,6 +44,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [availableFonts, setAvailableFonts] = useState<FontInfo[]>([]);
   const [fontsLoading, setFontsLoading] = useState(false);
   
+  // プレビュータブ関連の状態
+  const [activePreviewTab, setActivePreviewTab] = useState<string>('');
+  
   // ドラッグ操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
@@ -56,8 +59,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (isOpen) {
       setEditingAsset({ ...asset });
       setEditingInstance(assetInstance ? { ...assetInstance } : null);
+      
+      // プレビュータブの初期化
+      if (project?.metadata.supportedLanguages) {
+        // 現在の言語を初期選択にする
+        setActivePreviewTab(getCurrentLanguage());
+      }
     }
-  }, [isOpen, asset, assetInstance]);
+  }, [isOpen, asset, assetInstance, project, getCurrentLanguage]);
 
   // フォント一覧を読み込み
   useEffect(() => {
@@ -80,6 +89,35 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }, [isOpen, project]);
 
   if (!isOpen || !editingAsset) return null;
+
+  // プレビュータブのリストを生成
+  const getPreviewTabs = () => {
+    const tabs: Array<{id: string, label: string, type: 'common' | 'language'}> = [];
+    
+    // アセット編集時は「共通設定」タブを追加
+    if (mode === 'asset') {
+      tabs.push({ id: 'common', label: '共通設定', type: 'common' });
+    }
+    
+    // 各対応言語のタブを追加
+    if (project?.metadata.supportedLanguages) {
+      project.metadata.supportedLanguages.forEach(lang => {
+        const label = lang === 'ja' ? '日本語' : 
+                     lang === 'en' ? 'English' : 
+                     lang === 'zh' ? '中文' : 
+                     lang === 'ko' ? '한국어' : 
+                     lang.toUpperCase();
+        tabs.push({ id: lang, label, type: 'language' });
+      });
+    }
+    
+    return tabs;
+  };
+
+  // プレビュータブのクリックハンドラー
+  const handlePreviewTabClick = (tabId: string) => {
+    setActivePreviewTab(tabId);
+  };
 
   // 現在の位置を取得（Asset vs Instance）
   const getCurrentPosition = () => {
@@ -529,10 +567,23 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // プレビュー用SVGを生成
   const previewSVG = useMemo(() => {
     try {
+      // 選択されたタブに応じて言語を決定
+      let previewLanguage: string;
+      if (activePreviewTab === 'common') {
+        // 共通設定の場合は現在の言語を使用
+        previewLanguage = getCurrentLanguage();
+      } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+        // 言語タブの場合はそのタブの言語を使用
+        previewLanguage = activePreviewTab;
+      } else {
+        // フォールバック: 現在の言語
+        previewLanguage = getCurrentLanguage();
+      }
+
       return generateTextPreviewSVG(
         editingAsset,
         mode === 'instance' ? editingInstance : undefined,
-        getCurrentLanguage(),
+        previewLanguage,
         {
           width: canvasConfig?.width || 800,
           height: canvasConfig?.height || 600,
@@ -543,7 +594,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       console.error('Failed to generate preview SVG:', error);
       return '<svg><text>プレビューエラー</text></svg>';
     }
-  }, [editingAsset, editingInstance, mode, canvasConfig, getCurrentLanguage()]);
+  }, [editingAsset, editingInstance, mode, canvasConfig, getCurrentLanguage, activePreviewTab, project]);
 
   // モーダル外側クリックでの閉じる処理を削除
 
@@ -558,6 +609,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         <div className="text-edit-modal-content">
           <div className="text-edit-preview">
             <h4>プレビュー</h4>
+            
+            {/* プレビュータブ */}
+            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
+              <div className="preview-tabs">
+                {getPreviewTabs().map(tab => (
+                  <button
+                    key={tab.id}
+                    className={`preview-tab ${activePreviewTab === tab.id ? 'active' : ''}`}
+                    onClick={() => handlePreviewTabClick(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            
             <div className="preview-container" style={{
               width: previewDimensions.width,
               height: previewDimensions.height,
