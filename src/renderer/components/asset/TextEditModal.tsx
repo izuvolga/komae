@@ -752,131 +752,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               </div>
             </div>
 
-            {/* 言語別設定 */}
-            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
-              <div className="form-section">
-                <h4>{mode === 'asset' ? '言語別デフォルト設定' : '言語別設定オーバーライド'}</h4>
-                <div className="form-help">
-                  {mode === 'asset' 
-                    ? '特定の言語でのみ異なる設定にしたい場合に使用します'
-                    : '現在のページでのみ、この言語の設定を変更したい場合に使用します'
-                  }
-                </div>
-                {project.metadata.supportedLanguages.map((lang) => (
-                  <div key={lang} className="language-settings-group">
-                    <h5>{lang === 'ja' ? '日本語' : lang === 'en' ? 'English' : lang}</h5>
-                    <div className="language-settings">
-                      <div className="form-row form-row-compact">
-                        <label>
-                          フォント:
-                          <select
-                            value={mode === 'asset' 
-                              ? (editingAsset.default_language_settings?.[lang]?.override_font || '')
-                              : (editingInstance?.override_language_settings?.[lang]?.override_font || '')
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
-                              }
-                            }}
-                          >
-                            <option value="">{mode === 'asset' ? 'デフォルトフォントを使用' : 'アセット設定を使用'}</option>
-                            {availableFonts.map((font) => (
-                              <option key={font.id} value={font.id}>
-                                {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                      <div className="form-row form-row-compact">
-                        <label>
-                          フォントサイズ:
-                          <input
-                            type="number"
-                            min="0.1"
-                            step="0.1"
-                            value={mode === 'asset'
-                              ? (editingAsset.default_language_settings?.[lang]?.override_font_size || '')
-                              : (editingInstance?.override_language_settings?.[lang]?.override_font_size || '')
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
-                              }
-                            }}
-                            placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
-                          />
-                        </label>
-                      </div>
-                      <div className="form-row form-row-compact">
-                        <label>
-                          位置調整:
-                          <div className="position-inputs">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={mode === 'asset'
-                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_x || '')
-                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_x || '')
-                              }
-                              onChange={(e) => {
-                                if (mode === 'asset') {
-                                  handleLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                                } else {
-                                  handleInstanceLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                                }
-                              }}
-                              placeholder="X座標"
-                            />
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={mode === 'asset'
-                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_y || '')
-                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_y || '')
-                              }
-                              onChange={(e) => {
-                                if (mode === 'asset') {
-                                  handleLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                                } else {
-                                  handleInstanceLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                                }
-                              }}
-                              placeholder="Y座標"
-                            />
-                          </div>
-                        </label>
-                      </div>
-                      <div className="form-row form-row-compact">
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={mode === 'asset'
-                              ? (editingAsset.default_language_settings?.[lang]?.override_vertical !== undefined ? editingAsset.default_language_settings[lang].override_vertical : false)
-                              : (editingInstance?.override_language_settings?.[lang]?.override_vertical !== undefined ? editingInstance.override_language_settings[lang].override_vertical : false)
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
-                              }
-                            }}
-                          />
-                          縦書き設定をオーバーライド
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* 色設定 - AssetInstanceモードでは表示しない */}
             {mode === 'asset' && (
               <div className="form-section">
@@ -1038,6 +913,131 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </label>
               </div>
             </div>
+
+            {/* 言語別設定 */}
+            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
+              <div className="form-section">
+                <h4>{mode === 'asset' ? '言語別デフォルト設定' : '言語別設定オーバーライド'}</h4>
+                <div className="form-help">
+                  {mode === 'asset' 
+                    ? '特定の言語でのみ異なる設定にしたい場合に使用します'
+                    : '現在のページでのみ、この言語の設定を変更したい場合に使用します'
+                  }
+                </div>
+                {project.metadata.supportedLanguages.map((lang) => (
+                  <div key={lang} className="language-settings-group">
+                    <h5>{lang === 'ja' ? '日本語' : lang === 'en' ? 'English' : lang}</h5>
+                    <div className="language-settings">
+                      <div className="form-row form-row-compact">
+                        <label>
+                          フォント:
+                          <select
+                            value={mode === 'asset' 
+                              ? (editingAsset.default_language_settings?.[lang]?.override_font || '')
+                              : (editingInstance?.override_language_settings?.[lang]?.override_font || '')
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_font', e.target.value || undefined);
+                              }
+                            }}
+                          >
+                            <option value="">{mode === 'asset' ? 'デフォルトフォントを使用' : 'アセット設定を使用'}</option>
+                            {availableFonts.map((font) => (
+                              <option key={font.id} value={font.id}>
+                                {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          フォントサイズ:
+                          <input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            value={mode === 'asset'
+                              ? (editingAsset.default_language_settings?.[lang]?.override_font_size || '')
+                              : (editingInstance?.override_language_settings?.[lang]?.override_font_size || '')
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_font_size', e.target.value ? parseFloat(e.target.value) : undefined);
+                              }
+                            }}
+                            placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
+                          />
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          位置調整:
+                          <div className="position-inputs">
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={mode === 'asset'
+                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_x || '')
+                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_x || '')
+                              }
+                              onChange={(e) => {
+                                if (mode === 'asset') {
+                                  handleLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
+                                } else {
+                                  handleInstanceLanguageSettingChange(lang, 'override_pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
+                                }
+                              }}
+                              placeholder="X座標"
+                            />
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={mode === 'asset'
+                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_y || '')
+                                : (editingInstance?.override_language_settings?.[lang]?.override_pos_y || '')
+                              }
+                              onChange={(e) => {
+                                if (mode === 'asset') {
+                                  handleLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                                } else {
+                                  handleInstanceLanguageSettingChange(lang, 'override_pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                                }
+                              }}
+                              placeholder="Y座標"
+                            />
+                          </div>
+                        </label>
+                      </div>
+                      <div className="form-row form-row-compact">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={mode === 'asset'
+                              ? (editingAsset.default_language_settings?.[lang]?.override_vertical !== undefined ? editingAsset.default_language_settings[lang].override_vertical : false)
+                              : (editingInstance?.override_language_settings?.[lang]?.override_vertical !== undefined ? editingInstance.override_language_settings[lang].override_vertical : false)
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(lang, 'override_vertical', e.target.checked ? true : undefined);
+                              }
+                            }}
+                          />
+                          縦書き設定をオーバーライド
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
