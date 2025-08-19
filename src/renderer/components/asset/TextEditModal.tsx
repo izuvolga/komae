@@ -615,8 +615,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           <div className="text-edit-preview">
             <h4>プレビュー</h4>
             
-            {/* プレビュータブ */}
-            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
+            {/* プレビュータブ（アセット編集時のみ表示） */}
+            {mode === 'asset' && project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
               <div className="preview-tabs">
                 {getPreviewTabs().map(tab => (
                   <button
@@ -627,6 +627,17 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     {tab.label}
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* インスタンス編集時の言語表示 */}
+            {mode === 'instance' && (
+              <div className="current-language-indicator">
+                編集中の言語: {getCurrentLanguage() === 'ja' ? '日本語' : 
+                              getCurrentLanguage() === 'en' ? 'English' : 
+                              getCurrentLanguage() === 'zh' ? '中文' : 
+                              getCurrentLanguage() === 'ko' ? '한국어' : 
+                              getCurrentLanguage().toUpperCase()}
               </div>
             )}
             
@@ -864,137 +875,276 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               </div>
             )}
 
-            {/* 位置・透明度設定 */}
-            <div className="form-section">
-              <h4>位置・透明度設定</h4>
-              <div className="form-row form-row-double">
-                <label>
-                  X座標:
-                  <NumericInput
-                    value={getCurrentValue('default_pos_x', 'override_pos_x')}
-                    onChange={(value) => {
-                      if (mode === 'asset') {
-                        handleInputChange('default_pos_x', value);
-                      } else {
-                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', value);
-                      }
-                    }}
-                    min={-9999}
-                    max={9999}
-                    decimals={2}
-                    className="small"
-                  />
-                </label>
-                <label>
-                  Y座標:
-                  <NumericInput
-                    value={getCurrentValue('default_pos_y', 'override_pos_y')}
-                    onChange={(value) => {
-                      if (mode === 'asset') {
-                        handleInputChange('default_pos_y', value);
-                      } else {
-                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', value);
-                      }
-                    }}
-                    min={-9999}
-                    max={9999}
-                    decimals={2}
-                    className="small"
-                  />
-                </label>
-              </div>
-              <div className="form-row">
-                <label>
-                  不透明度:
-                  <div className="opacity-controls">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={getCurrentValue('opacity', 'override_opacity')}
-                      onChange={(e) => {
-                        const numValue = parseFloat(e.target.value);
-                        if (mode === 'asset') {
-                          handleInputChange('opacity', numValue);
-                        } else if (editingInstance) {
-                          setEditingInstance({
-                            ...editingInstance,
-                            override_opacity: numValue
-                          });
-                        }
-                      }}
-                      className="opacity-slider"
-                    />
-                    <span className="opacity-value">
-                      {getCurrentValue('opacity', 'override_opacity').toFixed(2)}
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              {/* z_index設定 */}
-              <div className="form-row">
-                <label>
-                  レイヤー順序 (z-index):
-                  <div className="z-index-controls">
+            {/* 現在言語の設定（インスタンス編集時のみ） */}
+            {mode === 'instance' && (
+              <div className="form-section">
+                <h4>現在言語の設定オーバーライド</h4>
+                <div className="form-help">
+                  現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' : 
+                              getCurrentLanguage() === 'en' ? 'English' : 
+                              getCurrentLanguage() === 'zh' ? '中文' : 
+                              getCurrentLanguage() === 'ko' ? '한국어' : 
+                              getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
+                </div>
+                
+                {/* 文脈設定 */}
+                <div className="form-row">
+                  <label>
+                    文脈・用途:
                     <input
                       type="text"
-                      value={tempInputValues.z_index ?? getCurrentZIndex().toString()}
-                      onChange={(e) => {
-                        const sanitized = sanitizeZIndexInput(e.target.value);
-                        setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
-                        
-                        // バリデーション実行
-                        const validation = validateZIndexValue(sanitized);
-                        setZIndexValidation(validation);
-                      }}
-                      onBlur={(e) => {
-                        const validated = validateAndSetValue(e.target.value, -9999, getCurrentZIndex());
-                        updateZIndex(validated);
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.z_index;
-                          return newTemp;
-                        });
-                      }}
-                      className={`z-index-input ${
+                      value={editingInstance?.override_context || ''}
+                      onChange={(e) => setEditingInstance(prev => prev ? {
+                        ...prev,
+                        override_context: e.target.value || undefined
+                      } : null)}
+                      placeholder="例: キャラクターAの叫び声、ナレーション等"
+                    />
+                    <div className="form-help">
+                      このインスタンスでの用途や文脈を記録しておけます
+                    </div>
+                  </label>
+                </div>
+
+                {/* フォント設定 */}
+                <div className="form-row">
+                  <label>
+                    フォント:
+                    <select
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_font || ''}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_font', 
+                        e.target.value || undefined
+                      )}
+                    >
+                      <option value="">アセット設定を使用</option>
+                      {availableFonts.map((font) => (
+                        <option key={font.id} value={font.id}>
+                          {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                {/* フォントサイズ */}
+                <div className="form-row">
+                  <label>
+                    フォントサイズ:
+                    <input
+                      type="number"
+                      min="0.1"
+                      step="0.1"
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_font_size || ''}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_font_size', 
+                        e.target.value ? parseFloat(e.target.value) : undefined
+                      )}
+                      placeholder="アセット設定使用"
+                    />
+                  </label>
+                </div>
+
+                {/* 位置設定 */}
+                <div className="form-row form-row-double">
+                  <label>
+                    X座標:
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_pos_x || ''}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_pos_x', 
+                        e.target.value ? parseFloat(e.target.value) : undefined
+                      )}
+                      placeholder="アセット設定使用"
+                    />
+                  </label>
+                  <label>
+                    Y座標:
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_pos_y || ''}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_pos_y', 
+                        e.target.value ? parseFloat(e.target.value) : undefined
+                      )}
+                      placeholder="アセット設定使用"
+                    />
+                  </label>
+                </div>
+
+                {/* 縦書き設定 */}
+                <div className="form-row">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_vertical !== undefined ? 
+                               editingInstance.override_language_settings[getCurrentLanguage()].override_vertical : false}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_vertical', 
+                        e.target.checked ? true : undefined
+                      )}
+                    />
+                    縦書き設定をオーバーライド
+                  </label>
+                </div>
+
+                {/* 不透明度設定 */}
+                <div className="form-row">
+                  <label>
+                    不透明度:
+                    <div className="opacity-controls">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_opacity || 1}
+                        onChange={(e) => handleInstanceLanguageSettingChange(
+                          getCurrentLanguage(), 
+                          'override_opacity', 
+                          parseFloat(e.target.value)
+                        )}
+                        className="opacity-slider"
+                      />
+                      <span className="opacity-value">
+                        {(editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_opacity || 1).toFixed(2)}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                {/* z-index設定 */}
+                <div className="form-row">
+                  <label>
+                    レイヤー順序 (z-index):
+                    <input
+                      type="number"
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_z_index || ''}
+                      onChange={(e) => handleInstanceLanguageSettingChange(
+                        getCurrentLanguage(), 
+                        'override_z_index', 
+                        e.target.value ? parseInt(e.target.value) : undefined
+                      )}
+                      placeholder="アセット設定使用"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* 位置・透明度設定（アセット編集時のみ） */}
+            {mode === 'asset' && (
+              <div className="form-section">
+                <h4>位置・透明度設定</h4>
+                <div className="form-row form-row-double">
+                  <label>
+                    X座標:
+                    <NumericInput
+                      value={editingAsset.default_pos_x}
+                      onChange={(value) => handleInputChange('default_pos_x', value)}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
+                    />
+                  </label>
+                  <label>
+                    Y座標:
+                    <NumericInput
+                      value={editingAsset.default_pos_y}
+                      onChange={(value) => handleInputChange('default_pos_y', value)}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
+                    />
+                  </label>
+                </div>
+                <div className="form-row">
+                  <label>
+                    不透明度:
+                    <div className="opacity-controls">
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={editingAsset.opacity}
+                        onChange={(e) => {
+                          const numValue = parseFloat(e.target.value);
+                          handleInputChange('opacity', numValue);
+                        }}
+                        className="opacity-slider"
+                      />
+                      <span className="opacity-value">
+                        {editingAsset.opacity.toFixed(2)}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                {/* z_index設定 */}
+                <div className="form-row">
+                  <label>
+                    レイヤー順序 (z-index):
+                    <div className="z-index-controls">
+                      <input
+                        type="text"
+                        value={tempInputValues.z_index ?? editingAsset.default_z_index.toString()}
+                        onChange={(e) => {
+                          const sanitized = sanitizeZIndexInput(e.target.value);
+                          setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
+                          
+                          // バリデーション実行
+                          const validation = validateZIndexValue(sanitized);
+                          setZIndexValidation(validation);
+                        }}
+                        onBlur={(e) => {
+                          const validated = validateAndSetValue(e.target.value, -9999, editingAsset.default_z_index);
+                          handleInputChange('default_z_index', validated);
+                          setTempInputValues(prev => {
+                            const newTemp = { ...prev };
+                            delete newTemp.z_index;
+                            return newTemp;
+                          });
+                        }}
+                        className={`z-index-input ${
+                          !zIndexValidation.isValid ? 'error' : 
+                          zIndexValidation.warning ? 'warning' : ''
+                        }`}
+                        placeholder="0"
+                      />
+                      <span className={`z-index-info ${
                         !zIndexValidation.isValid ? 'error' : 
                         zIndexValidation.warning ? 'warning' : ''
-                      }`}
-                      placeholder="0"
-                    />
-                    <span className={`z-index-info ${
-                      !zIndexValidation.isValid ? 'error' : 
-                      zIndexValidation.warning ? 'warning' : ''
-                    }`}>
-                      {!zIndexValidation.isValid && zIndexValidation.error ? 
-                        zIndexValidation.error :
-                        zIndexValidation.warning ? 
-                        zIndexValidation.warning :
-                        mode === 'instance' 
-                          ? (() => {
-                            return editingInstance?.override_z_index !== undefined
-                              ? `オーバーライド中 (デフォルト: ${editingAsset.default_z_index})`
-                              : `デフォルト値を使用中`;
-                          })()
-                          : '(レイヤー順序: 数値が小さいほど背面)'
-                      }
-                    </span>
-                  </div>
-                </label>
+                      }`}>
+                        {!zIndexValidation.isValid && zIndexValidation.error ? 
+                          zIndexValidation.error :
+                          zIndexValidation.warning ? 
+                          zIndexValidation.warning :
+                          '(レイヤー順序: 数値が小さいほど背面)'
+                        }
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* 言語別設定 */}
-            {project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
+            {/* 言語別設定（アセット編集時のみ） */}
+            {mode === 'asset' && project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
               <div className="form-section">
-                <h4>{mode === 'asset' ? '言語別デフォルト設定' : '言語別設定オーバーライド'}</h4>
+                <h4>言語別デフォルト設定</h4>
                 <div className="form-help">
-                  {mode === 'asset' 
-                    ? '特定の言語でのみ異なる設定にしたい場合に使用します'
-                    : '現在のページでのみ、この言語の設定を変更したい場合に使用します'
-                  }
+                  特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
                 {project.metadata.supportedLanguages.map((lang) => (
                   <div key={lang} className="language-settings-group">

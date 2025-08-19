@@ -470,3 +470,17 @@
   border-bottom-color: #1976d2;
   background-color: rgba(33, 150, 243, 0.15);
 }
+
+/* 現在言語インジケーター */
+.current-language-indicator {
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1565c0;
+  text-align: center;
+  align-self: stretch;
+}
