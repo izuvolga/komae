@@ -57,7 +57,6 @@ default_mask: デフォルトのマスク情報で、4点の値の配列。そ�
 
 作中のテキストを表現するためのテンプレートで、以下の属性をもつ。
 
-新バージョン:
 ```
 id: テンプレートのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
@@ -177,7 +176,6 @@ override_language_settings: インスタンス個別の言語別設定 (optional
 
 言語別の設定で、TextAssetの default_language_settings と TextAssetInstance の override_language_settings で共通して使用される。以下の属性をもつ：
 
-新バージョン:
 ```
 override_pos_x: X座標 (optional)
 override_pos_y: Y座標 (optional)
