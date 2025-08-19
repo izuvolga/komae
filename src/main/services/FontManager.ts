@@ -704,13 +704,18 @@ export class FontManager {
         // デフォルトフォントを追加
         usedFontIds.add('system-ui'); // デフォルトフォント
         
-        // 言語別設定からフォントを収集
-        if (asset.default_language_settings) {
-          Object.values(asset.default_language_settings).forEach(langSettings => {
+        // 言語別設定からフォントを収集（新仕様対応）
+        if (asset.default_language_override) {
+          Object.values(asset.default_language_override).forEach(langSettings => {
             if (langSettings.override_font) {
               usedFontIds.add(langSettings.override_font);
             }
           });
+        }
+        
+        // 共通設定からフォントを収集
+        if (asset.default_settings?.override_font) {
+          usedFontIds.add(asset.default_settings.override_font);
         }
       }
     });

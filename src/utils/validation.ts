@@ -100,7 +100,8 @@ const TextAssetSchema = z.object({
   default_stroke_color: z.string().min(1),
   default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
-  default_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
+  default_settings: LanguageSettingsSchema,
+  default_language_override: z.record(z.string(), LanguageSettingsSchema).optional(),
 });
 
 // VectorAsset スキーマ

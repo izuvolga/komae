@@ -99,10 +99,8 @@ describe('Zodスキーマによるデータバリデーション', () => {
     test('TextAssetで不正なフォントサイズでValidationErrorが発生する', () => {
       const invalidAsset = {
         ...mockTextAsset,
-        default_language_settings: {
-          'ja': {
-            override_font_size: -10 // 負の値は無効
-          }
+        default_settings: {
+          override_font_size: -10 // 負の値は無効
         }
       };
 

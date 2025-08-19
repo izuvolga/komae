@@ -7,6 +7,7 @@ import {
 } from '../src/utils/svgGeneratorCommon';
 import { mockProject, mockImageAsset, mockTextAsset, mockVectorAsset } from './fixtures/sampleProject';
 import type { AssetInstance, FontInfo } from '../src/types/entities';
+import { FontType } from '../src/types/entities';
 
 describe('SVG Generator Common', () => {
   beforeEach(() => {
@@ -280,30 +281,30 @@ describe('SVG Generator Common', () => {
         {
           id: 'custom-font',
           name: 'Custom Font',
+          type: FontType.CUSTOM,
+          path: '/path/to/custom-font.woff2',
           isGoogleFont: false,
-          category: 'sans-serif',
         },
         {
           id: 'google-font',
           name: 'Roboto',
+          type: FontType.BUILTIN,
+          path: '/path/to/roboto.woff2',
           isGoogleFont: true,
-          category: 'sans-serif',
         },
       ];
       setFontInfoCache(fontInfos);
 
       const textAssetWithCustomFont = {
         ...mockTextAsset,
-        default_language_settings: {
-          'ja': {
-            override_font: 'custom-font',
-            override_font_size: 80,
-            override_pos_x: 134.13333333333335,
-            override_pos_y: 400.37333333333333,
-            override_stroke_width: 2,
-            override_leading: 0,
-            override_vertical: false,
-          }
+        default_settings: {
+          override_font: 'custom-font',
+          override_font_size: 80,
+          override_pos_x: 134.13333333333335,
+          override_pos_y: 400.37333333333333,
+          override_stroke_width: 2,
+          override_leading: 0,
+          override_vertical: false,
         }
       };
 

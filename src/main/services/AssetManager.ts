@@ -186,7 +186,8 @@ export class AssetManager {
       assetId: asset.id,
       assetName: asset.name,
       supportedLanguages,
-      hasDefaultLanguageSettings: !!asset.default_language_settings,
+      hasDefaultSettings: !!asset.default_settings,
+      hasDefaultLanguageOverride: !!asset.default_language_override,
     });
 
     return asset;

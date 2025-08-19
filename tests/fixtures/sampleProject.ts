@@ -24,15 +24,18 @@ export const mockTextAsset: Asset = {
   default_stroke_color: '#000000',
   default_opacity: 1,
   default_z_index: 3,
-  default_language_settings: {
+  default_settings: {
+    override_pos_x: 134.13333333333335,
+    override_pos_y: 400.37333333333333,
+    override_font: 'system-ui',
+    override_font_size: 80,
+    override_stroke_width: 2,
+    override_leading: 0,
+    override_vertical: false,
+  },
+  default_language_override: {
     'ja': {
-      override_pos_x: 134.13333333333335,
-      override_pos_y: 400.37333333333333,
-      override_font: 'system-ui',
       override_font_size: 80,
-      override_stroke_width: 2,
-      override_leading: 0,
-      override_vertical: false,
     }
   }
 };

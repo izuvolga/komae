@@ -66,20 +66,26 @@ default_fill_color: テキストの内部の色（RGBA形式の文字列、例: 
 default_stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
 default_opacity: デフォルトの不透明度（0.0〜1.0）
 default_z_index: デフォルトのレイヤー順序
-default_language_settings: 言語別のデフォルト設定
+default_settings: 全言語共通のデフォルト設定
+  - LanguageSettings オブジェクト
+  - 位置、フォント、サイズなどの共通設定を定義
+default_language_override: 言語別のオーバーライド設定 (optional)
   - Record<string, LanguageSettings> 形式
   - キーは言語コード（例: 'ja', 'en'）
   - 値はLanguageSettingsオブジェクト
+  - 特定の言語でのみ異なる設定が必要な場合に使用
 ```
 
 Asset Library では、テキスト自体は保持できず、あくまでフォントサイズや色、位置などの設定を保持できる。
 UI については ui-specification.md の「TextAsset 編集画面」の見出し以下を参照。
 
-default_language_settings では、言語ごとに異なる設定が必要な場合に、各言語コード（例: 'ja', 'en'）ごとに、個別の設定を行うことができる。
-設定意図として、言語によってフォントやサイズ、位置、縦書き・横書きなどが異なる場合に対応できるようにしている。
-この設定により、TextAssetInstanceで個別調整の必要性を最小限に抑えることができる。
-例えば、TextAsset編集で「日本語は縦書き・明朝体」「英語は横書き・サンセリフ」を設定できる。
-TextAssetInstanceでは位置微調整や特殊なケースのみ編集。
+**新しい2層設計の仕組み：**
+1. `default_settings`: 全言語に共通で適用される基本設定（位置、フォントサイズなど）
+2. `default_language_override`: 特定の言語でのみ異なる設定が必要な場合の上書き設定
+
+この設計により、多くの設定は共通化しつつ、必要に応じて言語別の微調整が可能。
+例：共通で「位置(100,200)、サイズ24px」を設定し、日本語のみ「縦書き」、英語のみ「Arial字体」を追加設定。
+TextAssetInstanceでは、さらに個別の微調整や特殊なケースのみ編集。
 
 
 ### VectorAsset
@@ -141,8 +147,6 @@ override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optio
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するTextAssetのID
 override_context: TextAssetのdefault_contextを上書きする文脈情報 (optional)
-override_opacity: TextAssetのdefault_opacityを上書きする不透明度 (optional)
-override_z_index: TextAssetのdefault_z_indexを上書きするレイヤー順序 (optional)
 multilingual_text: 言語別のテキスト内容
   - Record<string, string> 形式
   - キーは言語コード（例: 'ja', 'en'）
@@ -151,12 +155,15 @@ override_language_settings: インスタンス個別の言語別設定 (optional
   - Record<string, LanguageSettings> 形式
   - キーは言語コード（例: 'ja', 'en'）
   - 値はLanguageSettingsオブジェクト
-  - TextAssetのdefault_language_settingsを個別にオーバーライドする場合に使用
+  - TextAssetのdefault_settingsおよびdefault_language_overrideを個別にオーバーライドする場合に使用
+  - 設定の優先順序で最も高い優先度を持つ
 ```
+
+**注意：** TextAssetInstanceには、override_opacityやoverride_z_indexのような直接的なオーバーライドフィールドは存在しません。これらの設定はすべてoverride_language_settingsの中のLanguageSettingsオブジェクトで管理されます。
 
 ### LanguageSettings
 
-言語別の設定で、TextAssetの default_language_settings と TextAssetInstance の override_language_settings で共通して使用される。以下の属性をもつ：
+言語別の設定で、TextAssetの default_settings、default_language_override と TextAssetInstance の override_language_settings で共通して使用される。以下の属性をもつ：
 
 ```
 override_pos_x: X座標 (optional)
@@ -172,10 +179,13 @@ override_fill_color: テキストの内部の色（RGBA形式の文字列） (op
 override_stroke_color: テキストの縁取りの色（RGBA形式の文字列） (optional)
 ```
 
-設定の適用順序：
-1. TextAsset の全言語共通設定（default_fill_color など）
-2. TextAsset の default_language_settings（言語別デフォルト設定）
-3. TextAssetInstance の override_language_settings（個別オーバーライド設定）
+設定の適用順序（優先度の高い順）：
+1. TextAssetInstance の override_language_settings（個別オーバーライド設定）- 最優先
+2. TextAsset の default_language_override（言語別オーバーライド設定）
+3. TextAsset の default_settings（全言語共通設定）
+4. システムのデフォルト値（フォントサイズ64px、位置100,100など）
+
+この階層により、共通設定をベースに、必要に応じて言語別・インスタンス別の細かい調整が可能。
 
 ### VectorAssetInstance
 

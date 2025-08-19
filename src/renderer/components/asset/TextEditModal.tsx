@@ -15,7 +15,9 @@ import {
   getEffectiveColors,
   getEffectiveStrokeWidth,
   getEffectiveLeading,
-  getEffectiveOpacity
+  getEffectiveOpacity,
+  getCommonSetting,
+  getEffectiveLanguageSettingNew
 } from '../../../types/entities';
 import './TextEditModal.css';
 import {current} from 'immer';
@@ -148,15 +150,27 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 位置更新関数
   const updatePosition = (x: number, y: number) => {
     if (mode === 'instance' && editingInstance) {
+      // インスタンス編集では常に現在の言語設定を更新
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', x);
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', y);
     } else {
-      // 新仕様: 言語別設定で位置を管理
-      const currentLang = getCurrentLanguage();
-      handleLanguageSettingChange(currentLang, 'override_pos_x', x);
-      handleLanguageSettingChange(currentLang, 'override_pos_y', y);
+      // アセット編集モード: タブに応じて更新先を決定
+      if (activePreviewTab === 'common') {
+        // 共通設定タブ: default_settings を更新
+        handleCommonSettingChange('override_pos_x', x);
+        handleCommonSettingChange('override_pos_y', y);
+      } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+        // 言語タブ: その言語の default_language_override を更新
+        handleLanguageOverrideChange(activePreviewTab, 'override_pos_x', x);
+        handleLanguageOverrideChange(activePreviewTab, 'override_pos_y', y);
+      } else {
+        // フォールバック: 現在の言語設定を更新（旧方式との互換性）
+        const currentLang = getCurrentLanguage();
+        handleLanguageSettingChange(currentLang, 'override_pos_x', x);
+        handleLanguageSettingChange(currentLang, 'override_pos_y', y);
+      }
     }
-  };
+  };;
 
   // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
   const getCurrentValue = (assetField: string, langOverrideKey?: string): any => {
@@ -257,32 +271,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'asset') return;
     
-    const currentSettings = editingAsset.default_language_settings || {};
-    const languageSettings = currentSettings[language] || {};
-    
-    // 値がundefinedまたは空の場合は設定を削除
-    const updatedLanguageSettings = { ...languageSettings };
-    if (value === undefined || value === '' || value === null) {
-      delete updatedLanguageSettings[settingKey];
-    } else {
-      updatedLanguageSettings[settingKey] = value;
-    }
-    
-    // 言語設定全体が空になった場合は言語エントリを削除
-    const hasAnySettings = Object.keys(updatedLanguageSettings).length > 0;
-    const updatedDefaultLanguageSettings = { ...currentSettings };
-    
-    if (hasAnySettings) {
-      updatedDefaultLanguageSettings[language] = updatedLanguageSettings;
-    } else {
-      delete updatedDefaultLanguageSettings[language];
-    }
-    
-    setEditingAsset({
-      ...editingAsset,
-      default_language_settings: Object.keys(updatedDefaultLanguageSettings).length > 0 ? 
-        updatedDefaultLanguageSettings : undefined
-    });
+    // 新設計では、これは language override として扱われる
+    handleLanguageOverrideChange(language, settingKey, value);
   };
 
   // インスタンス用言語別設定変更ハンドラー
@@ -314,6 +304,59 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       ...editingInstance,
       override_language_settings: Object.keys(updatedOverrideLanguageSettings).length > 0 ? 
         updatedOverrideLanguageSettings : undefined
+    });
+  };
+
+  // 新設計対応: 共通設定変更ハンドラー（Asset編集用）
+  const handleCommonSettingChange = (settingKey: keyof LanguageSettings, value: any) => {
+    if (mode !== 'asset') return;
+    
+    const currentSettings = editingAsset.default_settings || {};
+    
+    // 値がundefinedまたは空の場合は設定を削除
+    const updatedSettings = { ...currentSettings };
+    if (value === undefined || value === '' || value === null) {
+      delete updatedSettings[settingKey];
+    } else {
+      updatedSettings[settingKey] = value;
+    }
+    
+    setEditingAsset({
+      ...editingAsset,
+      default_settings: Object.keys(updatedSettings).length > 0 ? 
+        updatedSettings : {}
+    });
+  };
+
+  // 新設計対応: 言語別オーバーライド変更ハンドラー（Asset編集用）
+  const handleLanguageOverrideChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
+    if (mode !== 'asset') return;
+    
+    const currentOverrides = editingAsset.default_language_override || {};
+    const languageOverrides = currentOverrides[language] || {};
+    
+    // 値がundefinedまたは空の場合は設定を削除
+    const updatedLanguageOverrides = { ...languageOverrides };
+    if (value === undefined || value === '' || value === null) {
+      delete updatedLanguageOverrides[settingKey];
+    } else {
+      updatedLanguageOverrides[settingKey] = value;
+    }
+    
+    // 言語オーバーライド全体が空になった場合は言語エントリを削除
+    const hasAnyOverrides = Object.keys(updatedLanguageOverrides).length > 0;
+    const updatedDefaultLanguageOverride = { ...currentOverrides };
+    
+    if (hasAnyOverrides) {
+      updatedDefaultLanguageOverride[language] = updatedLanguageOverrides;
+    } else {
+      delete updatedDefaultLanguageOverride[language];
+    }
+    
+    setEditingAsset({
+      ...editingAsset,
+      default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ? 
+        updatedDefaultLanguageOverride : undefined
     });
   };
 
@@ -1189,7 +1232,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           フォント:
                           <select
                             value={mode === 'asset' 
-                              ? (editingAsset.default_language_settings?.[lang]?.override_font || '')
+                              ? (editingAsset.default_language_override?.[lang]?.override_font || '')
                               : (editingInstance?.override_language_settings?.[lang]?.override_font || '')
                             }
                             onChange={(e) => {
@@ -1217,7 +1260,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                             min="0.1"
                             step="0.1"
                             value={mode === 'asset'
-                              ? (editingAsset.default_language_settings?.[lang]?.override_font_size || '')
+                              ? (editingAsset.default_language_override?.[lang]?.override_font_size || '')
                               : (editingInstance?.override_language_settings?.[lang]?.override_font_size || '')
                             }
                             onChange={(e) => {
@@ -1239,7 +1282,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               type="number"
                               step="0.1"
                               value={mode === 'asset'
-                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_x || '')
+                                ? (editingAsset.default_language_override?.[lang]?.override_pos_x || '')
                                 : (editingInstance?.override_language_settings?.[lang]?.override_pos_x || '')
                               }
                               onChange={(e) => {
@@ -1255,7 +1298,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               type="number"
                               step="0.1"
                               value={mode === 'asset'
-                                ? (editingAsset.default_language_settings?.[lang]?.override_pos_y || '')
+                                ? (editingAsset.default_language_override?.[lang]?.override_pos_y || '')
                                 : (editingInstance?.override_language_settings?.[lang]?.override_pos_y || '')
                               }
                               onChange={(e) => {
@@ -1275,7 +1318,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           <input
                             type="checkbox"
                             checked={mode === 'asset'
-                              ? (editingAsset.default_language_settings?.[lang]?.override_vertical !== undefined ? editingAsset.default_language_settings[lang].override_vertical : false)
+                              ? (editingAsset.default_language_override?.[lang]?.override_vertical !== undefined ? editingAsset.default_language_override[lang].override_vertical : false)
                               : (editingInstance?.override_language_settings?.[lang]?.override_vertical !== undefined ? editingInstance.override_language_settings[lang].override_vertical : false)
                             }
                             onChange={(e) => {
