@@ -156,7 +156,6 @@ override_mask: ImageAssetのdefault_maskを上書きするマスク情報 (optio
 
 ### TextAssetInstance
 
-新バージョン:
 ```
 id: インスタンスのID (ユーザーが指定する必要はない)
 asset_id: 参照するTextAssetのID
@@ -173,17 +172,6 @@ override_language_settings: インスタンス個別の言語別設定 (optional
   - 値はLanguageSettingsオブジェクト
   - TextAssetのdefault_language_settingsを個別にオーバーライドする場合に使用
 ```
-
-旧バージョン:
-```
-id: インスタンスのID (ユーザーが指定する必要はない)
-asset_id: 参照するTextAssetのID
-multilingual_overrides: 言語別オーバーライド設定 (optional)
-  - Record<string, LanguageOverrides> 形式
-  - キーは言語コード（例: 'ja', 'en'）
-  - 値はLanguageOverridesオブジェクト
-```
-
 
 ### LanguageSettings
 
@@ -208,19 +196,6 @@ override_stroke_color: テキストの縁取りの色（RGBA形式の文字列�
 1. TextAsset の全言語共通設定（default_fill_color など）
 2. TextAsset の default_language_settings（言語別デフォルト設定）
 3. TextAssetInstance の override_language_settings（個別オーバーライド設定）
-
-旧バージョン:
-```
-override_text: TextAssetのdefault_textを上書きするテキスト内容 (optional)
-override_pos_x: TextAssetのdefault_pos_xを上書きするX座標 (optional)
-override_pos_y: TextAssetのdefault_pos_yを上書きするY座標 (optional)
-override_font_size: TextAssetのfont_sizeを上書きするフォントサイズ (optional)
-override_opacity: TextAssetのopacityを上書きする不透明度 (optional)
-override_z_index: TextAssetのdefault_z_indexを上書きするレイヤー順序 (optional)
-override_font: 言語別フォント選択 (optional)
-override_leading: 言語別行間設定 (optional)
-override_vertical: 言語別縦書き設定 (optional)
-```
 
 ### VectorAssetInstance
 
