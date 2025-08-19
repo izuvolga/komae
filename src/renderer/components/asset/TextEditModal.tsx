@@ -62,11 +62,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       
       // プレビュータブの初期化
       if (project?.metadata.supportedLanguages) {
-        // 現在の言語を初期選択にする
-        setActivePreviewTab(getCurrentLanguage());
+        if (mode === 'asset') {
+          // TextAsset編集時は「共通設定」タブを選択
+          setActivePreviewTab('common');
+        } else {
+          // TextAssetInstance編集時は現在の言語を選択
+          setActivePreviewTab(getCurrentLanguage());
+        }
       }
     }
-  }, [isOpen, asset, assetInstance, project, getCurrentLanguage]);
+  }, [isOpen, asset, assetInstance, project, getCurrentLanguage, mode]);
 
   // フォント一覧を読み込み
   useEffect(() => {
