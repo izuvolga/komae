@@ -134,9 +134,6 @@ export interface TextAssetInstance extends BaseAssetInstance {
   override_language_settings?: Record<string, LanguageSettings>;
   // インスタンス個別の文脈設定
   override_context?: string;
-  // インスタンス個別の不透明度・z-index設定
-  override_opacity?: number;
-  override_z_index?: number;
 }
 
 export interface VectorAssetInstance extends BaseAssetInstance {
@@ -206,15 +203,11 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
 export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, currentLang?: string): number {
   if (asset.type === 'TextAsset') {
     const textInstance = instance as TextAssetInstance;
-    // インスタンス固有のz-indexを優先
-    if (textInstance.override_z_index !== undefined) {
-      return textInstance.override_z_index;
-    }
-    // 言語別のz-indexをチェック
+    // TextAssetは言語別設定のみを使用（インスタンス > アセット の順）
     if (currentLang) {
-      const langSettings = textInstance.override_language_settings?.[currentLang];
-      if (langSettings?.override_z_index !== undefined) {
-        return langSettings.override_z_index;
+      const languageSetting = getEffectiveLanguageSetting(asset, textInstance, currentLang, 'override_z_index');
+      if (languageSetting !== undefined) {
+        return languageSetting;
       }
     }
   } else if (asset.type === 'ImageAsset') {
@@ -565,6 +558,7 @@ export function getEffectiveOpacity(
   instance: TextAssetInstance | null,
   currentLang: string
 ): number {
+  // 言語別設定のみをチェック（インスタンス > アセット の順）
   const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_opacity');
   if (languageSetting !== undefined) {
     return languageSetting;
@@ -776,14 +770,6 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
       if (settings.override_leading !== undefined && settings.override_leading < 0) {
         errors.push(`${lang}言語の行間は0以上の値を入力してください。現在の値: ${settings.override_leading}`);
       }
-    }
-  }
-  
-  // インスタンス固有の設定のバリデーション
-  if (instance.override_opacity !== undefined) {
-    const opacityValidation = validateOpacity(instance.override_opacity, '不透明度');
-    if (!opacityValidation.isValid && opacityValidation.error) {
-      errors.push(opacityValidation.error);
     }
   }
   

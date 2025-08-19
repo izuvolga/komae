@@ -374,7 +374,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // z_index関連のヘルパー関数
   const getCurrentZIndex = () => {
     if (mode === 'instance' && editingInstance) {
-      return editingInstance.override_z_index ?? editingAsset.default_z_index;
+      const currentLang = getCurrentLanguage();
+      return getEffectiveZIndex(editingAsset, editingInstance, currentLang);
     }
     return editingAsset.default_z_index;
   };
@@ -382,11 +383,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const updateZIndex = (value: number) => {
     if (mode === 'asset') {
       handleInputChange('default_z_index', value);
-    } else if (editingInstance) {
-      setEditingInstance({
-        ...editingInstance,
-        override_z_index: value
-      });
+    } else {
+      // TextAssetInstanceでは言語設定を使用
+      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_z_index', value);
     }
   };
 
