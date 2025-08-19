@@ -89,23 +89,18 @@ const ImageAssetSchema = z.object({
   default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
-// TextAsset スキーマ
+// TextAsset スキーマ（新仕様）
 const TextAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('TextAsset'),
   name: z.string().min(1),
   default_text: z.string(),
-  font: z.string().min(1),
-  stroke_width: z.number().min(0),
-  font_size: z.number().min(1),
-  stroke_color: z.string().min(1),
-  fill_color: z.string().min(1),
-  default_pos_x: z.number(),
-  default_pos_y: z.number(),
-  opacity: z.number().min(0).max(1),
-  leading: z.number(),
-  vertical: z.boolean(),
+  default_context: z.string().optional(),
+  default_fill_color: z.string().min(1),
+  default_stroke_color: z.string().min(1),
+  default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
+  default_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
 });
 
 // VectorAsset スキーマ

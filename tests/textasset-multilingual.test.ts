@@ -24,8 +24,9 @@ describe('TextAsset Multilingual Features', () => {
       expect(asset.name).toBe('Test Text');
       expect(asset.type).toBe('TextAsset');
       expect(asset.default_text).toBe('');
-      expect(asset.font).toBe('system-ui');
-      expect(asset.font_size).toBe(24);
+      // 新仕様ではこれらのフィールドは言語別設定で管理
+      expect(asset.default_fill_color).toBe('#FFFFFF');
+      expect(asset.default_stroke_color).toBe('#000000');
       expect(asset.default_context).toBe('');
       expect(asset.default_language_settings).toBeUndefined();
     });
@@ -117,7 +118,7 @@ describe('TextAsset Multilingual Features', () => {
 
       it('should use asset base font_size when no language-specific setting', () => {
         const result = getEffectiveFontSize(testAsset, testInstance, 'zh');
-        expect(result).toBe(testAsset.font_size); // Base font size
+        expect(result).toBe(24); // Default font size
       });
     });
 
@@ -126,15 +127,15 @@ describe('TextAsset Multilingual Features', () => {
         const result = getEffectivePosition(testAsset, testInstance, 'en');
         expect(result).toEqual({
           x: 200, // From asset language default
-          y: testAsset.default_pos_y // Base position
+          y: 100 // Default position
         });
       });
 
       it('should return base position when no language-specific override', () => {
         const result = getEffectivePosition(testAsset, testInstance, 'ja');
         expect(result).toEqual({
-          x: testAsset.default_pos_x,
-          y: testAsset.default_pos_y
+          x: 100, // Default position
+          y: 100 // Default position
         });
       });
     });
@@ -147,7 +148,7 @@ describe('TextAsset Multilingual Features', () => {
 
       it('should return base font when no language-specific override', () => {
         const result = getEffectiveFont(testAsset, testInstance, 'ja');
-        expect(result).toBe(testAsset.font); // Base font
+        expect(result).toBe('system-ui'); // Default font
       });
     });
 
@@ -159,7 +160,7 @@ describe('TextAsset Multilingual Features', () => {
 
       it('should return base vertical setting when no language-specific override', () => {
         const result = getEffectiveVertical(testAsset, testInstance, 'en');
-        expect(result).toBe(testAsset.vertical); // Base vertical setting
+        expect(result).toBe(false); // Default vertical setting
       });
     });
   });

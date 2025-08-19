@@ -3,7 +3,20 @@ import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings } from '../../../types/entities';
-import { getEffectiveZIndex, validateTextAssetData, validateTextAssetInstanceData, getEffectiveTextValue } from '../../../types/entities';
+import { 
+  getEffectiveZIndex, 
+  validateTextAssetData, 
+  validateTextAssetInstanceData, 
+  getEffectiveTextValue,
+  getEffectivePosition,
+  getEffectiveFontSize,
+  getEffectiveFont,
+  getEffectiveVertical,
+  getEffectiveColors,
+  getEffectiveStrokeWidth,
+  getEffectiveLeading,
+  getEffectiveOpacity
+} from '../../../types/entities';
 import './TextEditModal.css';
 import {current} from 'immer';
 
@@ -126,18 +139,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 現在の位置を取得（Asset vs Instance）
   const getCurrentPosition = () => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const langSettings = editingInstance.override_language_settings?.[currentLang];
-      return {
-        x: langSettings?.override_pos_x ?? editingAsset.default_pos_x,
-        y: langSettings?.override_pos_y ?? editingAsset.default_pos_y,
-      };
-    }
-    return {
-      x: editingAsset.default_pos_x,
-      y: editingAsset.default_pos_y,
-    };
+    const currentLang = getCurrentLanguage();
+    return getEffectivePosition(editingAsset, editingInstance, currentLang);
   };
 
   const currentPos = getCurrentPosition();
@@ -148,25 +151,39 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', x);
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', y);
     } else {
-      // Phase 2A: 既存フィールドを更新
-      setEditingAsset({
-        ...editingAsset,
-        default_pos_x: x,
-        default_pos_y: y,
-      });
+      // 新仕様: 言語別設定で位置を管理
+      const currentLang = getCurrentLanguage();
+      handleLanguageSettingChange(currentLang, 'override_pos_x', x);
+      handleLanguageSettingChange(currentLang, 'override_pos_y', y);
     }
   };
 
-  // 現在の値を取得する（instanceモードでは多言語overrideを確認）
-  const getCurrentValue = (assetField: keyof TextAsset, langOverrideKey?: string): any => {
-    if (mode === 'instance' && editingInstance && langOverrideKey) {
-      const currentLang = getCurrentLanguage();
-      const langSettings = editingInstance.override_language_settings?.[currentLang];
-      if (langSettings && (langSettings as any)[langOverrideKey] !== undefined) {
-        return (langSettings as any)[langOverrideKey];
-      }
+  // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
+  const getCurrentValue = (assetField: string, langOverrideKey?: string): any => {
+    const currentLang = getCurrentLanguage();
+    
+    // フィールド名に応じて適切なヘルパー関数を使用
+    switch (assetField) {
+      case 'font_size':
+        return getEffectiveFontSize(editingAsset, editingInstance, currentLang);
+      case 'font':
+        return getEffectiveFont(editingAsset, editingInstance, currentLang);
+      case 'vertical':
+        return getEffectiveVertical(editingAsset, editingInstance, currentLang);
+      case 'leading':
+        return getEffectiveLeading(editingAsset, editingInstance, currentLang);
+      case 'opacity':
+        return getEffectiveOpacity(editingAsset, editingInstance, currentLang);
+      case 'stroke_width':
+        return getEffectiveStrokeWidth(editingAsset, editingInstance, currentLang);
+      case 'fill_color':
+        return getEffectiveColors(editingAsset, editingInstance, currentLang).fill;
+      case 'stroke_color':
+        return getEffectiveColors(editingAsset, editingInstance, currentLang).stroke;
+      default:
+        // フォールバック: 直接アセットの値を返す（デフォルト値で代替）
+        return editingAsset[assetField as keyof TextAsset] || '';
     }
-    return editingAsset[assetField];
   };
 
   // テキスト内容を取得する（新しいmultilingual_textシステム対応）
@@ -378,14 +395,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
       const langSettings = editingInstance.override_language_settings?.[currentLang];
-      return langSettings?.override_vertical ?? editingAsset.vertical;
+      return getEffectiveVertical(editingAsset, editingInstance, currentLang);
     }
-    return editingAsset.vertical;
+    return getEffectiveVertical(editingAsset, null, getCurrentLanguage());
   };
 
   const updateVertical = (value: boolean) => {
     if (mode === 'asset') {
-      handleInputChange('vertical', value);
+      // Vertical is now handled through language settings
+      const currentLang = getCurrentLanguage();
+      handleLanguageSettingChange(currentLang, 'override_vertical', value);
     } else {
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_vertical', value);
     }
@@ -396,14 +415,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (mode === 'instance' && editingInstance) {
       const currentLang = getCurrentLanguage();
       const langSettings = editingInstance.override_language_settings?.[currentLang];
-      return langSettings?.override_font ?? editingAsset.font;
+      return getEffectiveFont(editingAsset, editingInstance, currentLang);
     }
-    return editingAsset.font;
+    return getEffectiveFont(editingAsset, null, getCurrentLanguage());
   };
 
   const updateFont = (value: string) => {
     if (mode === 'asset') {
-      handleInputChange('font', value);
+      // Font is now handled through language settings
+      const currentLang = getCurrentLanguage();
+      handleLanguageSettingChange(currentLang, 'override_font', value);
     } else {
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_font', value);
     }
@@ -783,7 +804,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     value={getCurrentValue('font_size', 'override_font_size')}
                     onChange={(value) => {
                       if (mode === 'asset') {
-                        handleInputChange('font_size', value);
+                        // Font size is now handled through language settings
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'override_font_size', value);
                       } else {
                         handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_font_size', value);
                       }
@@ -800,14 +823,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     行間:
                     <input
                       type="text"
-                      value={tempInputValues.leading ?? formatNumberForDisplay(editingAsset.leading)}
+                      value={tempInputValues.leading ?? formatNumberForDisplay(getEffectiveLeading(editingAsset, null, getCurrentLanguage()))}
                       onChange={(e) => {
                         const sanitized = validateNumericInput(e.target.value, true);
                         setTempInputValues(prev => ({ ...prev, leading: sanitized }));
                       }}
                       onBlur={(e) => {
-                        const validated = validateAndSetValue(e.target.value, -9999, editingAsset.leading);
-                        handleInputChange('leading', validated);
+                        const validated = validateAndSetValue(e.target.value, -9999, getEffectiveLeading(editingAsset, null, getCurrentLanguage()));
+                        // Leading is now handled through language settings
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'override_leading', validated);
                         setTempInputValues(prev => {
                           const newTemp = { ...prev };
                           delete newTemp.leading;
@@ -844,8 +869,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     塗りの色:
                     <input
                       type="color"
-                      value={editingAsset.fill_color}
-                      onChange={(e) => handleInputChange('fill_color', e.target.value)}
+                      value={editingAsset.default_fill_color}
+                      onChange={(e) => handleInputChange('default_fill_color', e.target.value)}
                     />
                   </label>
                 </div>
@@ -854,8 +879,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     縁取りの色:
                     <input
                       type="color"
-                      value={editingAsset.stroke_color}
-                      onChange={(e) => handleInputChange('stroke_color', e.target.value)}
+                      value={editingAsset.default_stroke_color}
+                      onChange={(e) => handleInputChange('default_stroke_color', e.target.value)}
                     />
                   </label>
                 </div>
@@ -863,8 +888,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     縁取り幅:
                     <NumericInput
-                      value={editingAsset.stroke_width}
-                      onChange={(value) => handleNumberInputChange('stroke_width', value.toString())}
+                      value={getEffectiveStrokeWidth(editingAsset, null, getCurrentLanguage())}
+                      onChange={(value) => {
+                        // For new spec, stroke width is managed through language settings
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'override_stroke_width', value);
+                      }}
                       min={0}
                       max={1}
                       decimals={2}
@@ -1048,8 +1077,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     X座標:
                     <NumericInput
-                      value={editingAsset.default_pos_x}
-                      onChange={(value) => handleInputChange('default_pos_x', value)}
+                      value={getEffectivePosition(editingAsset, null, getCurrentLanguage()).x}
+                      onChange={(value) => {
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'override_pos_x', value);
+                      }}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1059,8 +1091,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     Y座標:
                     <NumericInput
-                      value={editingAsset.default_pos_y}
-                      onChange={(value) => handleInputChange('default_pos_y', value)}
+                      value={getEffectivePosition(editingAsset, null, getCurrentLanguage()).y}
+                      onChange={(value) => {
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'override_pos_y', value);
+                      }}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1077,15 +1112,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         min="0"
                         max="1"
                         step="0.01"
-                        value={editingAsset.opacity}
+                        value={editingAsset.default_opacity}
                         onChange={(e) => {
                           const numValue = parseFloat(e.target.value);
-                          handleInputChange('opacity', numValue);
+                          handleInputChange('default_opacity', numValue);
                         }}
                         className="opacity-slider"
                       />
                       <span className="opacity-value">
-                        {editingAsset.opacity.toFixed(2)}
+                        {editingAsset.default_opacity.toFixed(2)}
                       </span>
                     </div>
                   </label>

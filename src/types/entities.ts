@@ -41,22 +41,13 @@ export interface ImageAsset extends BaseAsset {
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
   
-  // 後方互換性のため、既存フィールドを必須に保つ
+  // 新仕様: 必要最小限のフィールドのみ
   default_text: string;
-  font: string; // フォントID（FontInfoのidを参照）
-  stroke_width: number;
-  font_size: number;
-  stroke_color: string; // テキストの縁取りの色（RGBA形式の文字列）
-  fill_color: string; // テキストの内部の色（RGBA形式の文字列）
-  default_pos_x: number;
-  default_pos_y: number;
-  opacity: number; // デフォルトの不透明度（0.0〜1.0）
-  leading: number; // テキストの行間（verticalがtrueの場合にのみ利用）
-  vertical: boolean; // true の場合、縦書き
-  default_z_index: number;
-  
-  // 新バージョンフィールド
   default_context?: string; // そのテキストの表す文脈 (例: 'キャラクターAの叫び声')
+  default_fill_color: string; // テキストの内部の色（RGBA形式の文字列）
+  default_stroke_color: string; // テキストの縁取りの色（RGBA形式の文字列）
+  default_opacity: number; // デフォルトの不透明度（0.0〜1.0）
+  default_z_index: number;
   default_language_settings?: Record<string, LanguageSettings>; // 言語別のデフォルト設定
 }
 
@@ -464,8 +455,8 @@ export function getEffectiveFontSize(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.font_size;
+  // デフォルト値: 24ピクセル
+  return 24;
 }
 
 /**
@@ -476,8 +467,8 @@ export function getEffectivePosition(
   instance: TextAssetInstance | null,
   currentLang: string
 ): { x: number; y: number } {
-  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_x') ?? asset.default_pos_x;
-  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_y') ?? asset.default_pos_y;
+  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_x') ?? 100;
+  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_y') ?? 100;
   return { x, y };
 }
 
@@ -494,8 +485,8 @@ export function getEffectiveFont(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.font;
+  // デフォルトフォント
+  return DEFAULT_FONT_ID;
 }
 
 /**
@@ -511,8 +502,8 @@ export function getEffectiveVertical(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.vertical;
+  // デフォルト: 横書き
+  return false;
 }
 
 /**
@@ -526,8 +517,8 @@ export function getEffectiveColors(
   const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_fill_color');
   const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_color');
   
-  const fill = fillOverride ?? asset.fill_color;
-  const stroke = strokeOverride ?? asset.stroke_color;
+  const fill = fillOverride ?? asset.default_fill_color;
+  const stroke = strokeOverride ?? asset.default_stroke_color;
   
   return { fill, stroke };
 }
@@ -545,8 +536,8 @@ export function getEffectiveStrokeWidth(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.stroke_width;
+  // デフォルト: 2.0ピクセル
+  return 2.0;
 }
 
 /**
@@ -562,8 +553,8 @@ export function getEffectiveLeading(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.leading;
+  // デフォルト: 0
+  return 0;
 }
 
 /**
@@ -579,8 +570,8 @@ export function getEffectiveOpacity(
     return languageSetting;
   }
   
-  // 既存フィールドを使用
-  return asset.opacity;
+  // アセットのデフォルト不透明度を使用
+  return asset.default_opacity;
 }
 
 /**
@@ -609,24 +600,17 @@ export function createDefaultTextAsset(params: {
 }): TextAsset {
   const { name, supportedLanguages } = params;
   
-  // Phase 2B: 新機能フィールドを含むTextAssetを作成
+  // 新仕様: 最小限のフィールドでTextAssetを作成
   const asset: TextAsset = {
     id: `text-${uuidv4()}`,
     type: 'TextAsset',
     name,
     default_text: '',
-    font: DEFAULT_FONT_ID,
-    stroke_width: 2.0,
-    font_size: 24,
-    stroke_color: '#000000',
-    fill_color: '#FFFFFF',
-    default_pos_x: 100,
-    default_pos_y: 100,
-    opacity: 1.0,
-    leading: 0,
-    vertical: false,
-    default_z_index: 0,
     default_context: '',
+    default_fill_color: '#FFFFFF',
+    default_stroke_color: '#000000',
+    default_opacity: 1.0,
+    default_z_index: 0,
     // 言語別設定を初期化（supportedLanguagesが提供された場合のみ）
     default_language_settings: supportedLanguages ? 
       supportedLanguages.reduce<Record<string, LanguageSettings>>((acc, lang) => {
@@ -696,7 +680,7 @@ export function validateOpacity(value: number | undefined, fieldName: string): {
 }
 
 /**
- * TextAssetのバリデーション（Phase 2A: 既存フィールド中心）
+ * TextAssetのバリデーション（新仕様）
  * @param asset - バリデーション対象のTextAsset
  * @returns バリデーション結果
  */
@@ -706,18 +690,13 @@ export function validateTextAssetData(asset: TextAsset): {
 } {
   const errors: string[] = [];
   
-  // 既存フィールドのバリデーション
-  const opacityValidation = validateOpacity(asset.opacity, '不透明度');
+  // 基本フィールドのバリデーション
+  const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
   
-  // フォントサイズのバリデーション
-  if (asset.font_size <= 0) {
-    errors.push(`フォントサイズは0より大きい値を入力してください。現在の値: ${asset.font_size}`);
-  }
-  
-  // 新機能: 言語別設定のバリデーション（オプショナル）
+  // 言語別設定のバリデーション（オプショナル）
   if (asset.default_language_settings) {
     Object.entries(asset.default_language_settings).forEach(([langCode, settings]) => {
       if (settings.override_font_size !== undefined && settings.override_font_size <= 0) {

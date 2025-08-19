@@ -698,10 +698,20 @@ export class FontManager {
   getProjectUsedFonts(project: ProjectData): string[] {
     const usedFontIds = new Set<string>();
 
-    // TextAssetで使用されているフォントを収集
+    // TextAssetで使用されているフォントを収集（新仕様: 言語別設定からもチェック）
     Object.values(project.assets).forEach(asset => {
       if (asset.type === 'TextAsset') {
-        usedFontIds.add(asset.font);
+        // デフォルトフォントを追加
+        usedFontIds.add('system-ui'); // デフォルトフォント
+        
+        // 言語別設定からフォントを収集
+        if (asset.default_language_settings) {
+          Object.values(asset.default_language_settings).forEach(langSettings => {
+            if (langSettings.override_font) {
+              usedFontIds.add(langSettings.override_font);
+            }
+          });
+        }
       }
     });
 

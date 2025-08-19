@@ -174,8 +174,8 @@ export function generateSvgStructureCommon(
  */
 function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance): string {
   // インスタンスのオーバーライド値を取得
-  const posX = instance.override_pos_x ?? asset.default_pos_x;
-  const posY = instance.override_pos_y ?? asset.default_pos_y;
+  const posX = instance.override_pos_x ?? 100; // Default position for VectorAsset
+  const posY = instance.override_pos_y ?? 100;
   const width = instance.override_width ?? asset.default_width;
   const height = instance.override_height ?? asset.default_height;
   const opacity = instance.override_opacity ?? asset.default_opacity;
@@ -213,8 +213,8 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
  * 画像アセット定義を生成する（<defs>内で使用）
  */
 function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
-  const x = asset.default_pos_x;
-  const y = asset.default_pos_y;
+  const x = 100; // Default position for ImageAsset definition
+  const y = 100;
   const width = asset.default_width;
   const height = asset.default_height;
   const opacity = asset.default_opacity ?? 1.0;
@@ -236,12 +236,14 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   // 位置調整（ImageAssetInstanceのみ対応）
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
     const imageInstance = instance as ImageAssetInstance;
-    const posX = imageInstance.override_pos_x ?? asset.default_pos_x;
-    const posY = imageInstance.override_pos_y ?? asset.default_pos_y;
+    const defaultX = 100; // Default X position
+    const defaultY = 100; // Default Y position
+    const posX = imageInstance.override_pos_x ?? defaultX;
+    const posY = imageInstance.override_pos_y ?? defaultY;
     
     // アセットのデフォルト位置からの差分を計算してtranslateに追加
-    const translateX = posX - asset.default_pos_x;
-    const translateY = posY - asset.default_pos_y;
+    const translateX = posX - defaultX;
+    const translateY = posY - defaultY;
     if (translateX !== 0 || translateY !== 0) {
       transforms.push(`translate(${translateX},${translateY})`);
     }
@@ -407,8 +409,11 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
 
   // Transform設定（位置調整）
   const transforms: string[] = [];
-  const translateX = finalPosX - asset.default_pos_x;
-  const translateY = finalPosY - asset.default_pos_y;
+  // Calculate position relative to default (100, 100)
+  const defaultPosX = 100;
+  const defaultPosY = 100;
+  const translateX = finalPosX - defaultPosX;
+  const translateY = finalPosY - defaultPosY;
   if (translateX !== 0 || translateY !== 0) {
     transforms.push(`translate(${translateX},${translateY})`);
   }
@@ -421,7 +426,7 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
     
     lines.forEach((line, lineIndex) => {
       // 各行のx座標を計算（右から左に配置）
-      const lineXPos = asset.default_pos_x - (lineIndex * finalFontSize);
+      const lineXPos = defaultPosX - (lineIndex * finalFontSize);
       
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
@@ -429,7 +434,7 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
         // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
         if (i === 0) {
           // 行の最初の文字：初期Y位置を設定
-          textBody.push(`    <tspan x="${lineXPos}" y="${asset.default_pos_y}">${char}</tspan>`);
+          textBody.push(`    <tspan x="${lineXPos}" y="${defaultPosY}">${char}</tspan>`);
         } else {
           // 行内の後続文字：下方向に移動
           textBody.push(`    <tspan x="${lineXPos}" dy="${leading}">${char}</tspan>`);
@@ -438,8 +443,8 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
     });
 
     return `<text
-    x="${asset.default_pos_x}"
-    y="${asset.default_pos_y}"
+    x="${defaultPosX}"
+    y="${defaultPosY}"
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="${strokeColor}"
@@ -450,8 +455,8 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
 ${textBody.join('\n')}
   </text>
   <text
-    x="${asset.default_pos_x}"
-    y="${asset.default_pos_y}"
+    x="${defaultPosX}"
+    y="${defaultPosY}"
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="none"
@@ -467,12 +472,12 @@ ${textBody.join('\n')}
     
     lines.forEach((line, index) => {
       const dyValue = index === 0 ? 0 : finalFontSize + leading;
-      textBody.push(`    <tspan x="${asset.default_pos_x}" dy="${dyValue}">${line}</tspan>`);
+      textBody.push(`    <tspan x="${defaultPosX}" dy="${dyValue}">${line}</tspan>`);
     });
 
     return `<text
-    x="${asset.default_pos_x}"
-    y="${asset.default_pos_y}"
+    x="${defaultPosX}"
+    y="${defaultPosY}"
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="${strokeColor}"
@@ -482,8 +487,8 @@ ${textBody.join('\n')}
 ${textBody.join('\n')}
   </text>
   <text
-    x="${asset.default_pos_x}"
-    y="${asset.default_pos_y}"
+    x="${defaultPosX}"
+    y="${defaultPosY}"
     font-family="${font}"
     font-size="${finalFontSize}"
     stroke="none"
