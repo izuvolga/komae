@@ -82,24 +82,6 @@ default_language_settings では、言語ごとに異なる設定が必要な場
 TextAssetInstanceでは位置微調整や特殊なケースのみ編集。
 
 
-旧バージョン:
-```
-id: テンプレートのID (ユーザーが指定する必要はない)
-name: テキストの名前 (デフォルトは "Text")
-default_text: デフォルトのテキストの内容
-font: フォントID（FontInfoのidを参照）
-stroke_width: テキストの縁取りの幅（0.0以上）
-font_size: テキストのフォントサイズ（ピクセル単位、1以上）
-stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
-fill_color: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
-default_pos_x: デフォルトのX座標
-default_pos_y: デフォルトのY座標
-opacity: デフォルトの不透明度（0.0〜1.0）
-leading: テキストの行間（verticalがtrueの場合にのみ利用）
-vertical: 縦書き設定（true の場合、縦書き）
-default_z_index: デフォルトのレイヤー順序
-```
-
 ### VectorAsset
 
 SVGベクター画像を表現するためのテンプレートで、以下の属性をもつ。
