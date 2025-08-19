@@ -62,6 +62,7 @@ default_mask: デフォルトのマスク情報で、4点の値の配列。そ�
 id: テンプレートのID (ユーザーが指定する必要はない)
 name: テキストの名前 (デフォルトは "Text")
 default_context: そのテキストの表す文脈 (例: 'キャラクターAの叫び声') (optional)
+default_text: デフォルトのテキストの内容
 default_fill_color: テキストの内部の色（RGBA形式の文字列、例: '#FFFFFF'）
 default_stroke_color: テキストの縁取りの色（RGBA形式の文字列、例: '#FF0000'）
 default_opacity: デフォルトの不透明度（0.0〜1.0）
