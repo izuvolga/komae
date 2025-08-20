@@ -3,7 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
-import { getTextAssetDefaultSettings } from '../../../types/entities';
+import { getTextAssetDefaultSettings, createDefaultLanguageSettings } from '../../../types/entities';
 import { 
   getEffectiveZIndex, 
   validateTextAssetData, 
@@ -142,8 +142,33 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 現在の位置を取得（Asset vs Instance）
   const getCurrentPosition = () => {
-    const currentLang = getCurrentLanguage();
-    return getEffectivePosition(editingAsset, editingInstance, currentLang);
+    console.log(`getCurrentPosition called: mode=${mode}, activePreviewTab=${activePreviewTab}`);
+    if (mode === 'instance' && editingInstance) {
+      // インスタンス編集モードでは言語別設定を使用
+      const currentLang = getCurrentLanguage();
+      return getEffectivePosition(editingAsset, editingInstance, currentLang);
+    } else {
+      // アセット編集モード: タブに応じて位置を取得
+      if (activePreviewTab === 'common') {
+        // 共通設定タブ: default_settings から位置を取得
+        const x = editingAsset.default_settings?.override_pos_x ?? 100;
+        const y = editingAsset.default_settings?.override_pos_y ?? 100;
+        console.log(`getCurrentPosition: using common settings for position: x=${x}, y=${y}`);
+        console.log('getCurrentPosition: editingAsset:', editingAsset);
+        return { x, y };
+      } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+        // 言語タブ: その言語のオーバーライド設定から位置を取得
+        const x = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_x ?? 
+                 editingAsset.default_settings?.override_pos_x ?? 100;
+        const y = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_y ?? 
+                 editingAsset.default_settings?.override_pos_y ?? 100;
+        return { x, y };
+      } else {
+        // フォールバック: 現在の言語設定を使用
+        const currentLang = getCurrentLanguage();
+        return getEffectivePosition(editingAsset, editingInstance, currentLang);
+      }
+    }
   };
 
   const currentPos = getCurrentPosition();
@@ -633,19 +658,33 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     try {
       // 選択されたタブに応じて言語を決定
       let previewLanguage: string;
+      let previewAsset: TextAsset;
       if (activePreviewTab === 'common') {
-        // 共通設定の場合は現在の言語を使用
-        previewLanguage = getCurrentLanguage();
+        // 共通設定の場合は default_settings を使用するため、'common' という架空の言語を作成する
+        previewLanguage = 'common';
+        previewAsset = {
+          id: `temp-preview-${editingAsset.id}`,
+          type: editingAsset.type,
+          name: editingAsset.name,
+          default_text: editingAsset.default_text,
+          default_context: editingAsset.default_context,
+          default_settings: editingAsset.default_settings,
+          default_language_override: {
+            'common': editingAsset.default_settings,
+          },
+        };
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
         // 言語タブの場合はそのタブの言語を使用
         previewLanguage = activePreviewTab;
+        previewAsset = editingAsset;
       } else {
         // フォールバック: 現在の言語
         previewLanguage = getCurrentLanguage();
+        previewAsset = editingAsset;
       }
 
       return generateTextPreviewSVG(
-        editingAsset,
+        previewAsset,
         mode === 'instance' ? editingInstance : undefined,
         previewLanguage,
         {

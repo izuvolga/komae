@@ -408,7 +408,7 @@ export function getEffectiveTextValue(
 }
 
 /**
- * 新仕様対応: 言語別設定の有効値を取得
+ * 言語別設定の有効値を取得
  * 優先順位: override_language_settings > default_language_settings > 旧仕様フィールド
  */
 export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
@@ -480,7 +480,7 @@ export function getEffectiveLanguageSettingNew<K extends keyof LanguageSettings>
 }
 
 /**
- * 新仕様対応: 最終的なフォントサイズを取得する
+ * 最終的なフォントサイズを取得する
  */
 export function getEffectiveFontSize(
   asset: TextAsset,
@@ -497,7 +497,7 @@ export function getEffectiveFontSize(
 }
 
 /**
- * 新仕様対応: 最終的な位置を取得する
+ * 最終的な位置を取得する
  */
 export function getEffectivePosition(
   asset: TextAsset,
@@ -510,7 +510,7 @@ export function getEffectivePosition(
 }
 
 /**
- * 新仕様対応: 最終的なフォントを取得する
+ * 最終的なフォントを取得する
  */
 export function getEffectiveFont(
   asset: TextAsset,
@@ -527,7 +527,7 @@ export function getEffectiveFont(
 }
 
 /**
- * 新仕様対応: 最終的な縦書き設定を取得する
+ * 最終的な縦書き設定を取得する
  */
 export function getEffectiveVertical(
   asset: TextAsset,
@@ -544,7 +544,7 @@ export function getEffectiveVertical(
 }
 
 /**
- * 新仕様対応: 最終的な色設定を取得する
+ * 最終的な色設定を取得する
  */
 export function getEffectiveColors(
   asset: TextAsset,
@@ -561,7 +561,7 @@ export function getEffectiveColors(
 }
 
 /**
- * 新仕様対応: 最終的なストローク幅を取得する
+ * 最終的なストローク幅を取得する
  */
 export function getEffectiveStrokeWidth(
   asset: TextAsset,
@@ -577,7 +577,7 @@ export function getEffectiveStrokeWidth(
 }
 
 /**
- * 新仕様対応: 最終的な行間を取得する
+ * 最終的な行間を取得する
  */
 export function getEffectiveLeading(
   asset: TextAsset,
@@ -594,7 +594,7 @@ export function getEffectiveLeading(
 }
 
 /**
- * 新仕様対応: 最終的な不透明度を取得する
+ * 最終的な不透明度を取得する
  */
 export function getEffectiveOpacity(
   asset: TextAsset,
@@ -612,7 +612,7 @@ export function getEffectiveOpacity(
 }
 
 /**
- * 新仕様対応: 最終的なz-indexを取得する
+ * 最終的なz-indexを取得する
  */
 export function getEffectiveZIndexForLanguage(
   asset: TextAsset,
@@ -658,7 +658,7 @@ export function createDefaultTextAsset(params: {
 }): TextAsset {
   const { name, supportedLanguages } = params;
   
-  // 新仕様: 最小限のフィールドでTextAssetを作成
+  // 最小限のフィールドでTextAssetを作成
   const asset: TextAsset = {
     id: `text-${uuidv4()}`,
     type: 'TextAsset',
