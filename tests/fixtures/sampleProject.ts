@@ -20,10 +20,6 @@ export const mockTextAsset: Asset = {
   type: 'TextAsset',
   name: 'New Text',
   default_text: '熱くなれよ！',
-  default_fill_color: '#ff0000',
-  default_stroke_color: '#000000',
-  default_opacity: 1,
-  default_z_index: 3,
   default_settings: {
     override_pos_x: 134.13333333333335,
     override_pos_y: 400.37333333333333,
@@ -32,13 +28,17 @@ export const mockTextAsset: Asset = {
     override_stroke_width: 2,
     override_leading: 0,
     override_vertical: false,
+    override_opacity: 1,
+    override_z_index: 3,
+    override_fill_color: '#ff0000',
+    override_stroke_color: '#000000',
   },
   default_language_override: {
     'ja': {
       override_font_size: 80,
     }
   }
-};
+};;
 
 export const mockVectorAsset: Asset = {
   id: 'vector-7011a954-c8c3-49bc-a48c-2554755d7da7',

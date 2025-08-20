@@ -738,7 +738,7 @@ export function validateTextAssetData(asset: TextAsset): {
   const errors: string[] = [];
   
   // 基本フィールドのバリデーション
-  const opacity = asset.default_settings.override_opacity
+  const opacity = asset.default_settings.override_opacity;
   const opacityValidation = validateOpacity(opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
