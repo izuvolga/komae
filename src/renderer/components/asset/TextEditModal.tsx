@@ -174,20 +174,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const updatePosition = (x: number, y: number) => {
     console.log(`updatePosition called: mode=${mode}, activePreviewTab=${activePreviewTab}, x=${x}, y=${y}`);
     if (mode === 'instance' && editingInstance) {
-      // インスタンス編集では常に現在の言語設定を更新
-      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', x);
-      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_y', y);
+      // インスタンス編集では常に現在の言語設定を同時に更新
+      handleInstanceLanguageSettingChanges(getCurrentLanguage(), {
+        override_pos_x: x,
+        override_pos_y: y
+      });
     } else {
       // アセット編集モード: タブに応じて更新先を決定
       if (activePreviewTab === 'common') {
-        // 共通設定タブ: default_settings を更新
+        // 共通設定タブ: default_settings を同時に更新
         console.log(`updatePosition: updating common settings for position: x=${x}, y=${y}`);
-        handleCommonSettingChange('override_pos_x', x);
-        handleCommonSettingChange('override_pos_y', y);
+        handleCommonSettingsChange({
+          override_pos_x: x,
+          override_pos_y: y
+        });
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
-        // 言語タブ: その言語の default_language_override を更新
-        handleLanguageOverrideChange(activePreviewTab, 'override_pos_x', x);
-        handleLanguageOverrideChange(activePreviewTab, 'override_pos_y', y);
+        // 言語タブ: その言語の default_language_override を同時に更新
+        handleLanguageOverrideChanges(activePreviewTab, {
+          override_pos_x: x,
+          override_pos_y: y
+        });
       } else {
         // フォールバック: 現在の言語設定を更新（旧方式との互換性）
         const currentLang = getCurrentLanguage();
@@ -195,7 +201,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         handleLanguageSettingChange(currentLang, 'override_pos_y', y);
       }
     }
-  };;
+  };
 
   // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
   const getCurrentValue = (assetField: string): any => {
@@ -371,6 +377,103 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     console.log(`handleCommonSettingChange: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };
+  // 複数の共通設定を同時に更新する関数
+  const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
+    if (mode !== 'asset') return;
+    const currentSettings = editingAsset.default_settings || {};
+    const updatedSettings = { ...currentSettings };
+    
+    // 複数の設定を同時に更新
+    Object.entries(settings).forEach(([key, value]) => {
+      const settingKey = key as keyof LanguageSettings;
+      if (value === undefined || value === '' || value === null) {
+        delete updatedSettings[settingKey];
+      } else {
+        console.log(`handleCommonSettingsChange: ${key}=${value}`);
+        (updatedSettings as any)[settingKey] = value;
+      }
+    });
+    
+    // 更新されたアセットデータを作成
+    const updatedAsset = {
+      ...editingAsset,
+      default_settings: updatedSettings
+    };
+    
+    console.log(`handleCommonSettingsChange: updated asset data:`, updatedAsset);
+    setEditingAsset(updatedAsset);
+  };;
+  // 複数の言語オーバーライド設定を同時に更新する関数
+  const handleLanguageOverrideChanges = (language: string, settings: Partial<LanguageSettings>) => {
+    if (mode !== 'asset') return;
+    const currentOverrides = editingAsset.default_language_override || {};
+    const languageSettings = currentOverrides[language] || {};
+    const updatedLanguageSettings = { ...languageSettings };
+    
+    // 複数の設定を同時に更新
+    Object.entries(settings).forEach(([key, value]) => {
+      const settingKey = key as keyof LanguageSettings;
+      if (value === undefined || value === '' || value === null) {
+        delete updatedLanguageSettings[settingKey];
+      } else {
+        console.log(`handleLanguageOverrideChanges: ${language}.${key}=${value}`);
+        (updatedLanguageSettings as any)[settingKey] = value;
+      }
+    });
+    
+    // 更新されたアセットデータを作成
+    const updatedOverrides = { ...currentOverrides };
+    
+    if (Object.keys(updatedLanguageSettings).length > 0) {
+      updatedOverrides[language] = updatedLanguageSettings;
+    } else {
+      delete updatedOverrides[language];
+    }
+    
+    const updatedAsset = {
+      ...editingAsset,
+      default_language_override: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
+    };
+    
+    console.log(`handleLanguageOverrideChanges: updated asset data:`, updatedAsset);
+    setEditingAsset(updatedAsset);
+  };;
+
+  // 複数のインスタンス言語設定を同時に更新する関数
+  const handleInstanceLanguageSettingChanges = (language: string, settings: Partial<LanguageSettings>) => {
+    if (mode !== 'instance' || !editingInstance) return;
+    const currentOverrides = editingInstance.override_language_settings || {};
+    const languageSettings = currentOverrides[language] || {};
+    const updatedLanguageSettings = { ...languageSettings };
+    
+    // 複数の設定を同時に更新
+    Object.entries(settings).forEach(([key, value]) => {
+      const settingKey = key as keyof LanguageSettings;
+      if (value === undefined || value === '' || value === null) {
+        delete updatedLanguageSettings[settingKey];
+      } else {
+        console.log(`handleInstanceLanguageSettingChanges: ${language}.${key}=${value}`);
+        (updatedLanguageSettings as any)[settingKey] = value;
+      }
+    });
+    
+    // 更新されたインスタンスデータを作成
+    const updatedOverrides = { ...currentOverrides };
+    
+    if (Object.keys(updatedLanguageSettings).length > 0) {
+      updatedOverrides[language] = updatedLanguageSettings;
+    } else {
+      delete updatedOverrides[language];
+    }
+    
+    const updatedInstance = {
+      ...editingInstance,
+      override_language_settings: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
+    };
+    
+    console.log(`handleInstanceLanguageSettingChanges: updated instance data:`, updatedInstance);
+    setEditingInstance(updatedInstance);
+  };;
 
   // 言語別オーバーライド変更ハンドラー（Asset編集用）
   const handleLanguageOverrideChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
