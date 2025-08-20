@@ -260,10 +260,23 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
     if (mode === 'asset') {
-      setEditingAsset({
-        ...editingAsset,
-        [field]: value,
-      });
+      const textAssetFields: (keyof TextAsset)[] = ['name', 'default_text', 'default_context'];
+      
+      if (textAssetFields.includes(field as keyof TextAsset)) {
+        // TextAssetの直接フィールド
+        setEditingAsset({
+          ...editingAsset,
+          [field]: value
+        });
+      } else {
+        // LanguageSettingsのフィールド - タブに応じて処理
+        const languageField = field as keyof LanguageSettings;
+        if (activePreviewTab === 'common') {
+          handleCommonSettingChange(languageField, value);
+        } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+          handleLanguageOverrideChange(activePreviewTab, languageField, value);
+        }
+      }
     }
   };
 
@@ -1137,15 +1150,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         min="0"
                         max="1"
                         step="0.01"
-                        value={editingAsset.default_opacity}
+                        value={getTextAssetDefaultSettings(editingAsset, 'override_opacity') || 1.0}
                         onChange={(e) => {
                           const numValue = parseFloat(e.target.value);
-                          handleInputChange('default_opacity', numValue);
+                          handleInputChange('override_opacity', numValue);
                         }}
                         className="opacity-slider"
                       />
                       <span className="opacity-value">
-                        {editingAsset.default_opacity.toFixed(2)}
+                        {(getTextAssetDefaultSettings(editingAsset, 'override_opacity') || 1.0).toFixed(2)}
                       </span>
                     </div>
                   </label>
@@ -1158,7 +1171,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <div className="z-index-controls">
                       <input
                         type="text"
-                        value={tempInputValues.z_index ?? editingAsset.default_z_index.toString()}
+                        value={tempInputValues.z_index ?? (getTextAssetDefaultSettings(editingAsset, 'override_z_index') || 0).toString()}
                         onChange={(e) => {
                           const sanitized = sanitizeZIndexInput(e.target.value);
                           setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
@@ -1168,8 +1181,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           setZIndexValidation(validation);
                         }}
                         onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, -9999, editingAsset.default_z_index);
-                          handleInputChange('default_z_index', validated);
+                          const validated = validateAndSetValue(e.target.value, -9999, getTextAssetDefaultSettings(editingAsset, 'override_z_index') || 0);
+                          handleInputChange('override_z_index', validated);
                           setTempInputValues(prev => {
                             const newTemp = { ...prev };
                             delete newTemp.z_index;

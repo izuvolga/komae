@@ -24,11 +24,21 @@ describe('TextAsset Multilingual Features', () => {
       expect(asset.name).toBe('Test Text');
       expect(asset.type).toBe('TextAsset');
       expect(asset.default_text).toBe('');
-      // 新仕様ではこれらのフィールドは言語別設定で管理
-      expect(asset.default_fill_color).toBe('#FFFFFF');
-      expect(asset.default_stroke_color).toBe('#000000');
       expect(asset.default_context).toBe('');
-      expect(asset.default_settings).toEqual({});
+      // 新仕様では default_settings に完全なデフォルト値が設定される
+      expect(asset.default_settings).toEqual({
+        override_pos_x: 0,
+        override_pos_y: 0,
+        override_font: 'system-ui',
+        override_font_size: 64,
+        override_stroke_width: 2,
+        override_leading: 0,
+        override_vertical: false,
+        override_opacity: 1.0,
+        override_z_index: 2,
+        override_fill_color: '#FFFFFF',
+        override_stroke_color: '#000000',
+      });
       expect(asset.default_language_override).toBeUndefined();
     });
 
@@ -40,8 +50,20 @@ describe('TextAsset Multilingual Features', () => {
       });
       
       // 新しい設計では、supportedLanguagesが提供された場合でも
-      // default_settingsとdefault_language_overrideは最初は空/undefinedから始まる
-      expect(asset.default_settings).toEqual({});
+      // default_settingsには完全なデフォルト値が設定され、default_language_overrideはundefined
+      expect(asset.default_settings).toEqual({
+        override_pos_x: 0,
+        override_pos_y: 0,
+        override_font: 'system-ui',
+        override_font_size: 64,
+        override_stroke_width: 2,
+        override_leading: 0,
+        override_vertical: false,
+        override_opacity: 1.0,
+        override_z_index: 2,
+        override_fill_color: '#FFFFFF',
+        override_stroke_color: '#000000',
+      });
       expect(asset.default_language_override).toBeUndefined();
     });
   });
