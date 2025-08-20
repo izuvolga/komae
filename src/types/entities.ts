@@ -47,6 +47,13 @@ export interface TextAsset extends BaseAsset {
   default_language_override?: Record<string, LanguageSettings>;
 }
 
+export enum TextAssetInstancePhase {
+  AUTO          = 0, // 自動判定（インスタンスの言語設定 > アセットの言語設定 > 共通設定）
+  COMMON        = 1, // 共通設定（アセットのdefault_settingsを使用）
+  LANG          = 2, // アセットの言語別設定（default_language_overrideを使用）
+  INSTANCE_LANG = 3, // インスタンスの言語別設定（override_language_settingsを使用）
+}
+
 export interface VectorAsset extends BaseAsset {
   type: 'VectorAsset';
   original_file_path: string;
@@ -223,9 +230,10 @@ export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, curren
 // AssetInstanceのoverride値をリセットする関数
 export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): Partial<AssetInstance> {
   const resetUpdates: any = {};
-  
+
   if (assetType === 'TextAsset') {
     // TextAssetInstanceは言語別オーバーライドをリセット
+    // TODO: 最新の仕様にあってなさそう
     resetUpdates.override_language_settings = undefined;
     resetUpdates.override_context = undefined;
     resetUpdates.override_opacity = undefined;
@@ -396,49 +404,18 @@ export function createImageAsset(params: {
 export function getEffectiveTextValue(
   asset: TextAsset, 
   instance: TextAssetInstance, 
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
-  // 1. インスタンスの多言語テキストをチェック
-  if (instance.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
-    return instance.multilingual_text[currentLang];
+  if (phase === TextAssetInstancePhase.INSTANCE_LANG || phase === TextAssetInstancePhase.AUTO) {
+    // 1. インスタンスの多言語テキストをチェック
+    if (instance.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
+      return instance.multilingual_text[currentLang];
+    }
   }
-  
   // 2. アセットのデフォルト値を使用
   return asset.default_text || '';
 }
-
-/**
- * 言語別設定の有効値を取得
- * 優先順位: override_language_settings > default_language_settings > 旧仕様フィールド
- */
-export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
-  asset: TextAsset,
-  instance: TextAssetInstance | null,
-  currentLang: string,
-  setting: K
-): LanguageSettings[K] | undefined {
-  // 1. インスタンスのオーバーライド設定をチェック
-  if (instance?.override_language_settings?.[currentLang]?.[setting] !== undefined) {
-    return instance.override_language_settings[currentLang][setting];
-  }
-  
-  // 2. アセットの言語別デフォルト設定をチェック（旧仕様との互換性）
-  // 新仕様では使用されない
-  
-  return undefined;
-}
-
-/**
- * 新設計対応: 共通設定の値を取得
- * default_settings から値を取得する
- */
-export function getCommonSetting<K extends keyof LanguageSettings>(
-  asset: TextAsset,
-  setting: K
-): LanguageSettings[K] | undefined {
-  return asset.default_settings?.[setting];
-}
-
 
 export function getTextAssetDefaultSettings<K extends keyof LanguageSettings>(
   asset: TextAsset,
@@ -459,23 +436,44 @@ export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
   asset: TextAsset,
   instance: TextAssetInstance | null,
   currentLang: string,
-  setting: K
+  setting: K,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): LanguageSettings[K] {
-  // 1. インスタンスの言語別オーバーライド設定をチェック
-  if (instance?.override_language_settings?.[currentLang]?.[setting] !== undefined) {
-    return instance.override_language_settings[currentLang][setting];
+  // phase による処理分岐
+  if (phase === TextAssetInstancePhase.AUTO) {
+    // 1. インスタンスの言語別オーバーライド設定をチェック
+    if (instance?.override_language_settings?.[currentLang]?.[setting] !== undefined) {
+      return instance.override_language_settings[currentLang][setting];
+    }
+    // 2. アセットの言語別オーバーライド設定をチェック
+    if (asset.default_language_override?.[currentLang]?.[setting] !== undefined) {
+      return asset.default_language_override[currentLang][setting];
+    }
+    // 3. アセットの共通設定をチェック
+    if (asset.default_settings?.[setting] !== undefined) {
+      return asset.default_settings[setting];
+    }
+  } else {
+  // phase が指定されている場合の処理
+    if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
+      // インスタンスの言語別オーバーライド設定をチェック
+      if (instance?.override_language_settings?.[currentLang]?.[setting] !== undefined) {
+        return instance.override_language_settings[currentLang][setting];
+      }
+    }
+    if (phase === TextAssetInstancePhase.LANG) {
+      // アセットの言語別オーバーライド設定をチェック
+      if (asset.default_language_override?.[currentLang]?.[setting] !== undefined) {
+        return asset.default_language_override[currentLang][setting];
+      }
+    }
+    if (phase === TextAssetInstancePhase.COMMON) {
+      // アセットの共通設定をチェック
+      if (asset.default_settings?.[setting] !== undefined) {
+        return asset.default_settings[setting];
+      }
+    }
   }
-  
-  // 2. アセットの言語別オーバーライド設定をチェック
-  if (asset.default_language_override?.[currentLang]?.[setting] !== undefined) {
-    return asset.default_language_override[currentLang][setting];
-  }
-  
-  // 3. アセットの共通設定をチェック
-  if (asset.default_settings?.[setting] !== undefined) {
-    return asset.default_settings[setting];
-  }
-  
   return DEFAULT_LANGUAGE_SETTINGS[setting]; // デフォルト設定を返す
 }
 
@@ -485,9 +483,10 @@ export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
 export function getEffectiveFontSize(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): number {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font_size');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font_size', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -502,10 +501,11 @@ export function getEffectiveFontSize(
 export function getEffectivePosition(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): { x: number; y: number } {
-  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_x') ?? 100;
-  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_y') ?? 100;
+  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_x', phase) ?? 100;
+  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_pos_y', phase) ?? 100;
   return { x, y };
 }
 
@@ -515,9 +515,10 @@ export function getEffectivePosition(
 export function getEffectiveFont(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_font', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -532,9 +533,10 @@ export function getEffectiveFont(
 export function getEffectiveVertical(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): boolean {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_vertical');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_vertical', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -549,10 +551,11 @@ export function getEffectiveVertical(
 export function getEffectiveColors(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): { fill: string; stroke: string } {
-  const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_fill_color');
-  const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_color');
+  const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_fill_color', phase);
+  const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_color', phase);
   
   const fill = fillOverride ?? '#FFFFFF'; // デフォルトの塗りつぶし色
   const stroke = strokeOverride ?? '#000000'; // デフォルトのストローク色
@@ -566,9 +569,10 @@ export function getEffectiveColors(
 export function getEffectiveStrokeWidth(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): number {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_width');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_stroke_width', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -582,9 +586,10 @@ export function getEffectiveStrokeWidth(
 export function getEffectiveLeading(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): number {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_leading');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_leading', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -599,10 +604,11 @@ export function getEffectiveLeading(
 export function getEffectiveOpacity(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): number {
   // 言語別設定のみをチェック（インスタンス > アセット の順）
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_opacity');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_opacity', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }
@@ -617,9 +623,10 @@ export function getEffectiveOpacity(
 export function getEffectiveZIndexForLanguage(
   asset: TextAsset,
   instance: TextAssetInstance | null,
-  currentLang: string
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): number {
-  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_z_index');
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'override_z_index', phase);
   if (languageSetting !== undefined) {
     return languageSetting;
   }

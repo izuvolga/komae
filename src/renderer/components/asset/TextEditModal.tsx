@@ -3,11 +3,11 @@ import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
-import { getTextAssetDefaultSettings, createDefaultLanguageSettings } from '../../../types/entities';
-import { 
-  getEffectiveZIndex, 
-  validateTextAssetData, 
-  validateTextAssetInstanceData, 
+import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
+import {
+  getEffectiveZIndex,
+  validateTextAssetData,
+  validateTextAssetInstanceData,
   getEffectiveTextValue,
   getEffectivePosition,
   getEffectiveFontSize,
@@ -17,11 +17,8 @@ import {
   getEffectiveStrokeWidth,
   getEffectiveLeading,
   getEffectiveOpacity,
-  getCommonSetting,
-  getEffectiveLanguageSetting
 } from '../../../types/entities';
 import './TextEditModal.css';
-import {current} from 'immer';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -175,6 +172,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 位置更新関数
   const updatePosition = (x: number, y: number) => {
+    console.log(`updatePosition called: mode=${mode}, activePreviewTab=${activePreviewTab}, x=${x}, y=${y}`);
     if (mode === 'instance' && editingInstance) {
       // インスタンス編集では常に現在の言語設定を更新
       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_pos_x', x);
@@ -183,6 +181,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // アセット編集モード: タブに応じて更新先を決定
       if (activePreviewTab === 'common') {
         // 共通設定タブ: default_settings を更新
+        console.log(`updatePosition: updating common settings for position: x=${x}, y=${y}`);
         handleCommonSettingChange('override_pos_x', x);
         handleCommonSettingChange('override_pos_y', y);
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
@@ -199,27 +198,35 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };;
 
   // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
-  const getCurrentValue = (assetField: string, langOverrideKey?: string): any => {
+  const getCurrentValue = (assetField: string): any => {
     const currentLang = getCurrentLanguage();
-    
+    let phase: TextAssetInstancePhase;
+    if (activePreviewTab === 'common') {
+      phase = TextAssetInstancePhase.COMMON;
+    } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+      phase = TextAssetInstancePhase.LANG;
+    } else {
+      phase = TextAssetInstancePhase.INSTANCE_LANG;
+    }
+
     // フィールド名に応じて適切なヘルパー関数を使用
     switch (assetField) {
       case 'font_size':
-        return getEffectiveFontSize(editingAsset, editingInstance, currentLang);
+        return getEffectiveFontSize(editingAsset, editingInstance, currentLang, phase);
       case 'font':
-        return getEffectiveFont(editingAsset, editingInstance, currentLang);
+        return getEffectiveFont(editingAsset, editingInstance, currentLang, phase);
       case 'vertical':
-        return getEffectiveVertical(editingAsset, editingInstance, currentLang);
+        return getEffectiveVertical(editingAsset, editingInstance, currentLang, phase);
       case 'leading':
-        return getEffectiveLeading(editingAsset, editingInstance, currentLang);
+        return getEffectiveLeading(editingAsset, editingInstance, currentLang, phase);
       case 'opacity':
-        return getEffectiveOpacity(editingAsset, editingInstance, currentLang);
+        return getEffectiveOpacity(editingAsset, editingInstance, currentLang, phase);
       case 'stroke_width':
-        return getEffectiveStrokeWidth(editingAsset, editingInstance, currentLang);
+        return getEffectiveStrokeWidth(editingAsset, editingInstance, currentLang, phase);
       case 'fill_color':
-        return getEffectiveColors(editingAsset, editingInstance, currentLang).fill;
+        return getEffectiveColors(editingAsset, editingInstance, currentLang, phase).fill;
       case 'stroke_color':
-        return getEffectiveColors(editingAsset, editingInstance, currentLang).stroke;
+        return getEffectiveColors(editingAsset, editingInstance, currentLang, phase).stroke;
       default:
         // フォールバック: 直接アセットの値を返す（デフォルト値で代替）
         return editingAsset[assetField as keyof TextAsset] || '';
@@ -254,11 +261,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getTextFrameSize = () => {
     const pos = currentPos;
     const scale = previewDimensions.scale;
-    const fontSize = getCurrentValue('font_size', 'override_font_size')
+    const fontSize = getCurrentValue('font_size')
     const charWidth = fontSize * previewDimensions.scale
     const lines = getCurrentTextValue().split('\n');
-    const vertical = getCurrentValue('vertical', 'override_vertical');
-    const leading = getCurrentValue('leading', 'override_leading') || 1.2; // デフォルトの行間
+    const vertical = getCurrentValue('vertical');
+    const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -309,7 +316,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 言語別設定変更ハンドラー（Asset編集用）
   const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'asset') return;
-    
     // 新設計では、これは language override として扱われる
     handleLanguageOverrideChange(language, settingKey, value);
   };
@@ -346,34 +352,31 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     });
   };
 
-  // 新設計対応: 共通設定変更ハンドラー（Asset編集用）
+  // 共通設定変更ハンドラー（Asset編集用）
   const handleCommonSettingChange = (settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'asset') return;
-    
-    const currentSettings = editingAsset.default_settings || {};
-    
-    // 値がundefinedまたは空の場合は設定を削除
+    const currentSettings = editingAsset.default_settings;
     const updatedSettings = { ...currentSettings };
     if (value === undefined || value === '' || value === null) {
       delete updatedSettings[settingKey];
     } else {
+      console.log(`handleCommonSettingChange: settingKey=${settingKey}, value=${value}`);
       updatedSettings[settingKey] = value;
     }
-    
-    setEditingAsset({
+    // 更新されたアセットデータを作成
+    const updatedAsset = {
       ...editingAsset,
-      default_settings: Object.keys(updatedSettings).length > 0 ? 
-        updatedSettings : {}
-    });
+      default_settings: updatedSettings
+    };
+    console.log(`handleCommonSettingChange: updated asset data:`, updatedAsset);
+    setEditingAsset(updatedAsset);
   };
 
-  // 新設計対応: 言語別オーバーライド変更ハンドラー（Asset編集用）
+  // 言語別オーバーライド変更ハンドラー（Asset編集用）
   const handleLanguageOverrideChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'asset') return;
-    
     const currentOverrides = editingAsset.default_language_override || {};
     const languageOverrides = currentOverrides[language] || {};
-    
     // 値がundefinedまたは空の場合は設定を削除
     const updatedLanguageOverrides = { ...languageOverrides };
     if (value === undefined || value === '' || value === null) {
@@ -381,17 +384,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     } else {
       updatedLanguageOverrides[settingKey] = value;
     }
-    
     // 言語オーバーライド全体が空になった場合は言語エントリを削除
     const hasAnyOverrides = Object.keys(updatedLanguageOverrides).length > 0;
     const updatedDefaultLanguageOverride = { ...currentOverrides };
-    
     if (hasAnyOverrides) {
       updatedDefaultLanguageOverride[language] = updatedLanguageOverrides;
     } else {
       delete updatedDefaultLanguageOverride[language];
     }
-    
     setEditingAsset({
       ...editingAsset,
       default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ? 
@@ -766,7 +766,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     pointerEvents: 'none', // SVG自体はクリック無効
                   }}
                 />
-                
+
                 {/* ドラッグ可能領域（テキスト位置に配置） */}
                 <div
                   className="text-drag-area"
@@ -878,7 +878,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <label>
                   フォントサイズ:
                   <NumericInput
-                    value={getCurrentValue('font_size', 'override_font_size')}
+                    value={getCurrentValue('font_size')}
                     onChange={(value) => {
                       if (mode === 'asset') {
                         // Font size is now handled through language settings
@@ -1154,10 +1154,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     X座標:
                     <NumericInput
-                      value={getEffectivePosition(editingAsset, null, getCurrentLanguage()).x}
+                      value={getEffectivePosition(
+                        editingAsset,
+                        null,
+                        getCurrentLanguage(),
+                        TextAssetInstancePhase.COMMON).x}
                       onChange={(value) => {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'override_pos_x', value);
+                        handleCommonSettingChange('override_pos_x', value);
                       }}
                       min={-9999}
                       max={9999}
@@ -1168,10 +1171,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     Y座標:
                     <NumericInput
-                      value={getEffectivePosition(editingAsset, null, getCurrentLanguage()).y}
+                      value={getEffectivePosition(
+                        editingAsset,
+                        null,
+                        getCurrentLanguage(),
+                        TextAssetInstancePhase.COMMON).y}
                       onChange={(value) => {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'override_pos_y', value);
+                        handleCommonSettingChange('override_pos_y', value);
                       }}
                       min={-9999}
                       max={9999}
@@ -1214,7 +1220,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         onChange={(e) => {
                           const sanitized = sanitizeZIndexInput(e.target.value);
                           setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
-                          
                           // バリデーション実行
                           const validation = validateZIndexValue(sanitized);
                           setZIndexValidation(validation);
