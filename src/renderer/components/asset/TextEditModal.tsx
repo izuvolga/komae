@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
-import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings } from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
+import { getTextAssetDefaultSettings } from '../../../types/entities';
 import { 
   getEffectiveZIndex, 
   validateTextAssetData, 
@@ -257,7 +258,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof TextAsset, value: any) => {
+  const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
     if (mode === 'asset') {
       setEditingAsset({
         ...editingAsset,
@@ -412,24 +413,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     // 空文字列や無効な値の場合のみ0にする（マイナス値は許可）
     const numValue = value === '' ? 0 : (parseFloat(value) || 0);
     handleInputChange(field, numValue);
-  };
-
-  // z_index関連のヘルパー関数
-  const getCurrentZIndex = () => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      return getEffectiveZIndex(editingAsset, editingInstance, currentLang);
-    }
-    return editingAsset.default_z_index;
-  };
-
-  const updateZIndex = (value: number) => {
-    if (mode === 'asset') {
-      handleInputChange('default_z_index', value);
-    } else {
-      // TextAssetInstanceでは言語設定を使用
-      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'override_z_index', value);
-    }
   };
 
   // 縦書き関連のヘルパー関数
@@ -911,8 +894,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     塗りの色:
                     <input
                       type="color"
-                      value={editingAsset.default_fill_color}
-                      onChange={(e) => handleInputChange('default_fill_color', e.target.value)}
+                      value={getTextAssetDefaultSettings(editingAsset, 'override_fill_color')}
+                      onChange={(e) => handleInputChange('override_fill_color', e.target.value)}
                     />
                   </label>
                 </div>
@@ -921,8 +904,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     縁取りの色:
                     <input
                       type="color"
-                      value={editingAsset.default_stroke_color}
-                      onChange={(e) => handleInputChange('default_stroke_color', e.target.value)}
+                      value={getTextAssetDefaultSettings(editingAsset, 'override_stroke_color')}
+                      onChange={(e) => handleInputChange('override_stroke_color', e.target.value)}
                     />
                   </label>
                 </div>
