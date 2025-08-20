@@ -18,7 +18,7 @@ import {
   getEffectiveLeading,
   getEffectiveOpacity,
   getCommonSetting,
-  getEffectiveLanguageSettingNew
+  getEffectiveLanguageSetting
 } from '../../../types/entities';
 import './TextEditModal.css';
 import {current} from 'immer';

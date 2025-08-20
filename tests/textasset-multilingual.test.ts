@@ -5,7 +5,7 @@
 
 import {
   createDefaultTextAsset,
-  getEffectiveLanguageSettingNew,
+  getEffectiveLanguageSetting,
   getEffectiveFontSize,
   getEffectivePosition,
   getEffectiveColors,
@@ -114,19 +114,19 @@ describe('TextAsset Multilingual Features', () => {
       };
     });
 
-    describe('getEffectiveLanguageSettingNew', () => {
+    describe('getEffectiveLanguageSetting', () => {
       it('should return instance override when available', () => {
-        const result = getEffectiveLanguageSettingNew(testAsset, testInstance, 'en', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'en', 'override_font_size');
         expect(result).toBe(16); // From instance override
       });
 
       it('should return asset language override when no instance override', () => {
-        const result = getEffectiveLanguageSettingNew(testAsset, testInstance, 'ja', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'ja', 'override_font_size');
         expect(result).toBe(24); // From asset language override
       });
 
       it('should return common setting when no language-specific setting exists', () => {
-        const result = getEffectiveLanguageSettingNew(testAsset, testInstance, 'zh', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'zh', 'override_font_size');
         expect(result).toBe(20); // From common default_settings
       });
     });
