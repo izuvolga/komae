@@ -298,13 +298,13 @@ describe('SVG Generator Common', () => {
       const textAssetWithCustomFont = {
         ...mockTextAsset,
         default_settings: {
-          override_font: 'custom-font',
-          override_font_size: 80,
+          font: 'custom-font',
+          font_size: 80,
           override_pos_x: 134.13333333333335,
           override_pos_y: 400.37333333333333,
-          override_stroke_width: 2,
-          override_leading: 0,
-          override_vertical: false,
+          stroke_width: 2,
+          leading: 0,
+          vertical: false,
         }
       };
 

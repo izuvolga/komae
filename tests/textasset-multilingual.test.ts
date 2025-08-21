@@ -27,17 +27,17 @@ describe('TextAsset Multilingual Features', () => {
       expect(asset.default_context).toBe('');
       // 新仕様では default_settings に完全なデフォルト値が設定される
       expect(asset.default_settings).toEqual({
-        override_pos_x: 0,
-        override_pos_y: 0,
-        override_font: 'system-ui',
-        override_font_size: 64,
-        override_stroke_width: 2,
-        override_leading: 0,
-        override_vertical: false,
-        override_opacity: 1.0,
-        override_z_index: 2,
-        override_fill_color: '#FFFFFF',
-        override_stroke_color: '#000000',
+        pos_x: 0,
+        pos_y: 0,
+        font: 'system-ui',
+        font_size: 64,
+        stroke_width: 2,
+        leading: 0,
+        vertical: false,
+        opacity: 1.0,
+        z_index: 2,
+        fill_color: '#FFFFFF',
+        stroke_color: '#000000',
       });
       expect(asset.default_language_override).toBeUndefined();
     });
@@ -52,17 +52,17 @@ describe('TextAsset Multilingual Features', () => {
       // 新しい設計では、supportedLanguagesが提供された場合でも
       // default_settingsには完全なデフォルト値が設定され、default_language_overrideはundefined
       expect(asset.default_settings).toEqual({
-        override_pos_x: 0,
-        override_pos_y: 0,
-        override_font: 'system-ui',
-        override_font_size: 64,
-        override_stroke_width: 2,
-        override_leading: 0,
-        override_vertical: false,
-        override_opacity: 1.0,
-        override_z_index: 2,
-        override_fill_color: '#FFFFFF',
-        override_stroke_color: '#000000',
+        pos_x: 0,
+        pos_y: 0,
+        font: 'system-ui',
+        font_size: 64,
+        stroke_width: 2,
+        leading: 0,
+        vertical: false,
+        opacity: 1.0,
+        z_index: 2,
+        fill_color: '#FFFFFF',
+        stroke_color: '#000000',
       });
       expect(asset.default_language_override).toBeUndefined();
     });
@@ -81,20 +81,20 @@ describe('TextAsset Multilingual Features', () => {
       
       // Set up asset with new design: default_settings + default_language_override
       testAsset.default_settings = {
-        override_font_size: 20, // Common default
-        override_pos_x: 100,
-        override_pos_y: 100,
+        font_size: 20, // Common default
+        pos_x: 100,
+        pos_y: 100,
       };
       
       testAsset.default_language_override = {
         'en': {
-          override_font_size: 18,
-          override_pos_x: 200,
-          override_font: 'Arial',
+          font_size: 18,
+          pos_x: 200,
+          font: 'Arial',
         },
         'ja': {
-          override_font_size: 24,
-          override_vertical: true,
+          font_size: 24,
+          vertical: true,
         }
       };
 
@@ -107,8 +107,8 @@ describe('TextAsset Multilingual Features', () => {
         },
         override_language_settings: {
           'en': {
-            override_font_size: 16, // Override asset's default
-            override_opacity: 0.5,
+            font_size: 16, // Override asset's default
+            opacity: 0.5,
           }
         }
       };
@@ -116,17 +116,17 @@ describe('TextAsset Multilingual Features', () => {
 
     describe('getEffectiveLanguageSetting', () => {
       it('should return instance override when available', () => {
-        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'en', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'en', 'font_size');
         expect(result).toBe(16); // From instance override
       });
 
       it('should return asset language override when no instance override', () => {
-        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'ja', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'ja', 'font_size');
         expect(result).toBe(24); // From asset language override
       });
 
       it('should return common setting when no language-specific setting exists', () => {
-        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'zh', 'override_font_size');
+        const result = getEffectiveLanguageSetting(testAsset, testInstance, 'zh', 'font_size');
         expect(result).toBe(20); // From common default_settings
       });
     });
@@ -201,8 +201,8 @@ describe('TextAsset Multilingual Features', () => {
         
         asset.default_language_override = {
           'en': {
-            override_font_size: 20,
-            override_opacity: 0.8,
+            font_size: 20,
+            opacity: 0.8,
           }
         };
 
@@ -219,7 +219,7 @@ describe('TextAsset Multilingual Features', () => {
         
         asset.default_language_override = {
           'en': {
-            override_font_size: -5, // Invalid
+            font_size: -5, // Invalid
           }
         };
 
@@ -236,7 +236,7 @@ describe('TextAsset Multilingual Features', () => {
         
         asset.default_language_override = {
           'ja': {
-            override_opacity: 1.5, // Invalid (> 1.0)
+            opacity: 1.5, // Invalid (> 1.0)
           }
         };
 
@@ -254,8 +254,8 @@ describe('TextAsset Multilingual Features', () => {
           multilingual_text: { 'ja': 'テスト' },
           override_language_settings: {
             'en': {
-              override_font_size: 18,
-              override_opacity: 0.9,
+              font_size: 18,
+              opacity: 0.9,
             }
           }
         };
@@ -272,8 +272,8 @@ describe('TextAsset Multilingual Features', () => {
           multilingual_text: { 'ja': 'テスト' },
           override_language_settings: {
             'en': {
-              override_font_size: -10, // Invalid
-              override_stroke_width: -1, // Invalid
+              font_size: -10, // Invalid
+              stroke_width: -1, // Invalid
             }
           }
         };

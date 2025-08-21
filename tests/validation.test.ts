@@ -100,7 +100,7 @@ describe('Zodスキーマによるデータバリデーション', () => {
       const invalidAsset = {
         ...mockTextAsset,
         default_settings: {
-          override_font_size: -10 // 負の値は無効
+          font_size: -10 // 負の値は無効
         }
       };
 

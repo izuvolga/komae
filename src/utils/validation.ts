@@ -7,17 +7,17 @@ import { ProjectData, Asset, Page, LanguageSettings } from '../types/entities';
 
 // LanguageSettings スキーマ
 const LanguageSettingsSchema = z.object({
-  override_pos_x: z.number().optional(),
-  override_pos_y: z.number().optional(),
-  override_font: z.string().optional(),
-  override_font_size: z.number().min(1).optional(),
-  override_stroke_width: z.number().min(0).optional(),
-  override_leading: z.number().optional(),
-  override_vertical: z.boolean().optional(),
-  override_opacity: z.number().min(0).max(1).optional(),
-  override_z_index: z.number().optional(),
-  override_fill_color: z.string().optional(),
-  override_stroke_color: z.string().optional(),
+  pos_x: z.number().optional(),
+  pos_y: z.number().optional(),
+  font: z.string().optional(),
+  font_size: z.number().min(1).optional(),
+  stroke_width: z.number().min(0).optional(),
+  leading: z.number().optional(),
+  vertical: z.boolean().optional(),
+  opacity: z.number().min(0).max(1).optional(),
+  z_index: z.number().optional(),
+  fill_color: z.string().optional(),
+  stroke_color: z.string().optional(),
 });
 
 // AssetInstance 基本スキーマ

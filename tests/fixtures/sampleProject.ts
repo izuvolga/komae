@@ -21,21 +21,21 @@ export const mockTextAsset: Asset = {
   name: 'New Text',
   default_text: '熱くなれよ！',
   default_settings: {
-    override_pos_x: 134.13333333333335,
-    override_pos_y: 400.37333333333333,
-    override_font: 'system-ui',
-    override_font_size: 80,
-    override_stroke_width: 2,
-    override_leading: 0,
-    override_vertical: false,
-    override_opacity: 1,
-    override_z_index: 3,
-    override_fill_color: '#ff0000',
-    override_stroke_color: '#000000',
+    pos_x: 134.13333333333335,
+    pos_y: 400.37333333333333,
+    font: 'system-ui',
+    font_size: 80,
+    stroke_width: 2,
+    leading: 0,
+    vertical: false,
+    opacity: 1,
+    z_index: 3,
+    fill_color: '#ff0000',
+    stroke_color: '#000000',
   },
   default_language_override: {
     'ja': {
-      override_font_size: 80,
+      font_size: 80,
     }
   }
 };;
@@ -66,7 +66,7 @@ export const mockPage1: Page = {
     'instance-1755323995449': {
       id: 'instance-1755323995449',
       asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
-      override_z_index: 1,
+      z_index: 1,
     },
     'instance-1755353627147': {
       id: 'instance-1755353627147',

@@ -135,7 +135,7 @@ describe('YAML プロジェクトファイルの保存・読み込み', () => {
       }
       
       if (textAsset && textAsset.type === 'TextAsset') {
-        expect(textAsset.default_settings?.override_fill_color).toBe('#ff0000');
+        expect(textAsset.default_settings?.fill_color).toBe('#ff0000');
       }
     });
   });

@@ -707,15 +707,15 @@ export class FontManager {
         // 言語別設定からフォントを収集（新仕様対応）
         if (asset.default_language_override) {
           Object.values(asset.default_language_override).forEach(langSettings => {
-            if (langSettings.override_font) {
-              usedFontIds.add(langSettings.override_font);
+            if (langSettings.font) {
+              usedFontIds.add(langSettings.font);
             }
           });
         }
         
         // 共通設定からフォントを収集
-        if (asset.default_settings?.override_font) {
-          usedFontIds.add(asset.default_settings.override_font);
+        if (asset.default_settings?.font) {
+          usedFontIds.add(asset.default_settings.font);
         }
       }
     });
