@@ -66,7 +66,7 @@ export const mockPage1: Page = {
     'instance-1755323995449': {
       id: 'instance-1755323995449',
       asset_id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
-      z_index: 1,
+      override_z_index: 1,
     },
     'instance-1755353627147': {
       id: 'instance-1755353627147',
