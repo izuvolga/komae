@@ -14,7 +14,7 @@
   - HTML でエクスポートしてもマスクが適用されていない
   - ImageEditModal でのマスクの編集は不要
 - [x]: 後方互換性は保たなくて良いので、TextAsset/TextAssetInstance/LanguageOverride 旧バージョンでしか使われていない項目を削除してください。エンティティ定義、ProjectManager、移行判定ロジックなど全て。
-- [ ]: TextEditModal の言語別の設定が一気に表示されるとプレビューをどうして良いかわからないので、プレビュー画面を増やす？
+- [x]: TextEditModal の言語別の設定が一気に表示されるとプレビューをどうして良いかわからないので、プレビュー画面を増やす？
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: pages[].title の編集を可能にする
 - [ ]: pages[].title が空のときに、ページタイトルを自動で生成する
