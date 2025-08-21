@@ -421,11 +421,12 @@ export function getTextAssetDefaultSettings<K extends keyof LanguageSettings>(
   asset: TextAsset,
   setting: K
 ): LanguageSettings[K] {
-  // 3. アセットの共通設定をチェック
-  if (asset.default_settings?.[setting] === undefined) {
-    asset.default_settings[setting] = DEFAULT_LANGUAGE_SETTINGS[setting];
+  // アセットの共通設定をチェック
+  if (asset.default_settings?.[setting] !== undefined) {
+    return asset.default_settings[setting];
   }
-  return asset.default_settings[setting];
+  // デフォルト値を返す（オブジェクトを変更せず）
+  return DEFAULT_LANGUAGE_SETTINGS[setting];
 }
 
 /**
