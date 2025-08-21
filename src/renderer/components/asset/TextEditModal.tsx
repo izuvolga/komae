@@ -139,7 +139,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 現在の位置を取得（Asset vs Instance）
   const getCurrentPosition = () => {
-    console.log(`getCurrentPosition called: mode=${mode}, activePreviewTab=${activePreviewTab}`);
     if (mode === 'instance' && editingInstance) {
       // インスタンス編集モードでは言語別設定を使用
       const currentLang = getCurrentLanguage();
@@ -150,8 +149,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         // 共通設定タブ: default_settings から位置を取得
         const x = editingAsset.default_settings?.override_pos_x ?? 100;
         const y = editingAsset.default_settings?.override_pos_y ?? 100;
-        console.log(`getCurrentPosition: using common settings for position: x=${x}, y=${y}`);
-        console.log('getCurrentPosition: editingAsset:', editingAsset);
         return { x, y };
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
         // 言語タブ: その言語のオーバーライド設定から位置を取得
@@ -172,7 +169,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 位置更新関数
   const updatePosition = (x: number, y: number) => {
-    console.log(`updatePosition called: mode=${mode}, activePreviewTab=${activePreviewTab}, x=${x}, y=${y}`);
     if (mode === 'instance' && editingInstance) {
       // インスタンス編集では常に現在の言語設定を同時に更新
       handleInstanceLanguageSettingChanges(getCurrentLanguage(), {
@@ -183,7 +179,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // アセット編集モード: タブに応じて更新先を決定
       if (activePreviewTab === 'common') {
         // 共通設定タブ: default_settings を同時に更新
-        console.log(`updatePosition: updating common settings for position: x=${x}, y=${y}`);
         handleCommonSettingsChange({
           override_pos_x: x,
           override_pos_y: y
@@ -217,7 +212,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
-    console.log(`getCurrentValue called: mode=${mode}, activePreviewTab=${activePreviewTab}, assetField=${assetField}, currentLang=${currentLang}, phase=${phase}`);
 
     // フィールド名に応じて適切なヘルパー関数を使用
     switch (assetField) {
@@ -276,7 +270,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const lines = getCurrentTextValue().split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
-    console.log(`getTextFrameSize called: pos=${JSON.stringify(pos)}, scale=${scale}, fontSize=${fontSize}, charWidth=${charWidth}, lines=${lines.length}, vertical=${vertical}, leading=${leading}`);
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -371,7 +364,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (value === undefined || value === '' || value === null) {
       delete updatedSettings[settingKey];
     } else {
-      console.log(`handleCommonSettingChange: settingKey=${settingKey}, value=${value}`);
       updatedSettings[settingKey] = value;
     }
     // 更新されたアセットデータを作成
@@ -379,7 +371,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       ...editingAsset,
       default_settings: updatedSettings
     };
-    console.log(`handleCommonSettingChange: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };
   // 複数の共通設定を同時に更新する関数
@@ -394,7 +385,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (value === undefined || value === '' || value === null) {
         delete updatedSettings[settingKey];
       } else {
-        console.log(`handleCommonSettingsChange: ${key}=${value}`);
         (updatedSettings as any)[settingKey] = value;
       }
     });
@@ -405,7 +395,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       default_settings: updatedSettings
     };
 
-    console.log(`handleCommonSettingsChange: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };;
   // 複数の言語オーバーライド設定を同時に更新する関数
@@ -421,7 +410,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (value === undefined || value === '' || value === null) {
         delete updatedLanguageSettings[settingKey];
       } else {
-        console.log(`handleLanguageOverrideChanges: ${language}.${key}=${value}`);
         (updatedLanguageSettings as any)[settingKey] = value;
       }
     });
@@ -440,7 +428,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       default_language_override: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
     };
 
-    console.log(`handleLanguageOverrideChanges: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };;
 
@@ -457,7 +444,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (value === undefined || value === '' || value === null) {
         delete updatedLanguageSettings[settingKey];
       } else {
-        console.log(`handleInstanceLanguageSettingChanges: ${language}.${key}=${value}`);
         (updatedLanguageSettings as any)[settingKey] = value;
       }
     });
@@ -476,9 +462,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       override_language_settings: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
     };
 
-    console.log(`handleInstanceLanguageSettingChanges: updated instance data:`, updatedInstance);
     setEditingInstance(updatedInstance);
-  };;
+  };
 
   // 言語別オーバーライド変更ハンドラー（Asset編集用）
   const handleLanguageOverrideChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
