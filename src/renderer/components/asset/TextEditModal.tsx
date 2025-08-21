@@ -205,15 +205,19 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
   const getCurrentValue = (assetField: string): any => {
-    const currentLang = getCurrentLanguage();
+    let currentLang: string;
     let phase: TextAssetInstancePhase;
-    if (activePreviewTab === 'common') {
+    if (mode === 'asset' && activePreviewTab === 'common') {
+      currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
       phase = TextAssetInstancePhase.COMMON;
-    } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
+    } else if (mode === 'asset' && activePreviewTab) {
+      currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
       phase = TextAssetInstancePhase.LANG;
     } else {
+      currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
+    console.log(`getCurrentValue called: mode=${mode}, activePreviewTab=${activePreviewTab}, assetField=${assetField}, currentLang=${currentLang}, phase=${phase}`);
 
     // フィールド名に応じて適切なヘルパー関数を使用
     switch (assetField) {
@@ -272,6 +276,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const lines = getCurrentTextValue().split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
+    console.log(`getTextFrameSize called: pos=${JSON.stringify(pos)}, scale=${scale}, fontSize=${fontSize}, charWidth=${charWidth}, lines=${lines.length}, vertical=${vertical}, leading=${leading}`);
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -1472,7 +1477,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               }
                             }}
                           />
-                          縦書き設定をオーバーライド
+                          縦書き
                         </label>
                       </div>
                     </div>
