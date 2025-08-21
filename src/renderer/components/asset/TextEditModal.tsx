@@ -807,6 +807,34 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [editingAsset, editingInstance, mode, canvasConfig, getCurrentLanguage, activePreviewTab, project]);
 
+  // SVG形式のテキストドラッグエリアを生成
+  const textDragAreaSVG = useMemo(() => {
+    const frameSize = getTextFrameSize();
+    const canvasWidth = canvasConfig?.width || 800;
+    const canvasHeight = canvasConfig?.height || 600;
+    
+    return `<svg 
+      width="100%" 
+      height="100%" 
+      viewBox="0 0 ${canvasWidth} ${canvasHeight}"
+      xmlns="http://www.w3.org/2000/svg"
+      style="position: absolute; top: 0; left: 0; pointer-events: none;"
+    >
+      <rect
+        x="${frameSize.left / previewDimensions.scale}"
+        y="${frameSize.top / previewDimensions.scale}"
+        width="${frameSize.width / previewDimensions.scale}"
+        height="${frameSize.height / previewDimensions.scale}"
+        fill="${isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent'}"
+        stroke="${isDragging ? '#007bff' : 'rgba(0, 123, 255, 0.3)'}"
+        stroke-width="${isDragging ? '2' : '1'}"
+        stroke-dasharray="${isDragging ? '5,5' : '3,3'}"
+        style="pointer-events: all; cursor: move;"
+        data-drag-area="true"
+      />
+    </svg>`;
+  }, [getTextFrameSize, previewDimensions.scale, canvasConfig, isDragging]);
+
   // モーダル外側クリックでの閉じる処理を削除
 
   return (
@@ -875,29 +903,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   }}
                 />
 
-                {/* ドラッグ可能領域（テキスト位置に配置） */}
-                {(() => {
-                  const frameSize = getTextFrameSize();
-                  return (
-                    <div
-                      className="text-drag-area"
-                      style={{
-                        position: 'absolute',
-                        left: `${frameSize.left}px`,
-                        top: `${frameSize.top}px`,
-                        width: `${frameSize.width}px`,
-                        height: `${frameSize.height}px`,
-                        backgroundColor: isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent',
-                        border: isDragging ? '2px dashed #007bff' : '1px dashed rgba(0, 123, 255, 0.3)',
-                        cursor: 'move',
-                        pointerEvents: 'all',
-                        zIndex: 2,
-                      }}
-                      onMouseDown={handleTextMouseDown}
-                      title="ドラッグしてテキスト位置を変更"
-                    />
-                  );
-                })()}
+                {/* SVG形式のドラッグ可能領域 */}
+                <div
+                  className="svg-drag-area"
+                  dangerouslySetInnerHTML={{ __html: textDragAreaSVG }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    pointerEvents: 'all',
+                    zIndex: 2,
+                  }}
+                  onMouseDown={handleTextMouseDown}
+                  title="ドラッグしてテキスト位置を変更"
+                />
               </div>
             </div>
           </div>
