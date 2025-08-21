@@ -56,10 +56,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }>({ isValid: true });
   const [availableFonts, setAvailableFonts] = useState<FontInfo[]>([]);
   const [fontsLoading, setFontsLoading] = useState(false);
-  
+
   // プレビュータブ関連の状態
   const [activePreviewTab, setActivePreviewTab] = useState<string>('');
-  
+
   // ドラッグ操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
@@ -72,7 +72,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (isOpen) {
       setEditingAsset({ ...asset });
       setEditingInstance(assetInstance ? { ...assetInstance } : null);
-      
+
       // プレビュータブの初期化
       if (project?.metadata.supportedLanguages) {
         if (mode === 'asset') {
@@ -90,7 +90,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   useEffect(() => {
     const loadFonts = async () => {
       if (!isOpen) return;
-      
+
       setFontsLoading(true);
       try {
         const fonts = await window.electronAPI.font.getAvailableFonts(project);
@@ -111,24 +111,24 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // プレビュータブのリストを生成
   const getPreviewTabs = () => {
     const tabs: Array<{id: string, label: string, type: 'common' | 'language'}> = [];
-    
+
     // アセット編集時は「共通設定」タブを追加
     if (mode === 'asset') {
       tabs.push({ id: 'common', label: '共通設定', type: 'common' });
     }
-    
+
     // 各対応言語のタブを追加
     if (project?.metadata.supportedLanguages) {
       project.metadata.supportedLanguages.forEach(lang => {
-        const label = lang === 'ja' ? '日本語' : 
-                     lang === 'en' ? 'English' : 
-                     lang === 'zh' ? '中文' : 
-                     lang === 'ko' ? '한국어' : 
+        const label = lang === 'ja' ? '日本語' :
+                     lang === 'en' ? 'English' :
+                     lang === 'zh' ? '中文' :
+                     lang === 'ko' ? '한국어' :
                      lang.toUpperCase();
         tabs.push({ id: lang, label, type: 'language' });
       });
     }
-    
+
     return tabs;
   };
 
@@ -155,9 +155,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         return { x, y };
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
         // 言語タブ: その言語のオーバーライド設定から位置を取得
-        const x = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_x ?? 
+        const x = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_x ??
                  editingAsset.default_settings?.override_pos_x ?? 100;
-        const y = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_y ?? 
+        const y = editingAsset.default_language_override?.[activePreviewTab]?.override_pos_y ??
                  editingAsset.default_settings?.override_pos_y ?? 100;
         return { x, y };
       } else {
@@ -299,7 +299,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
     if (mode === 'asset') {
       const textAssetFields: (keyof TextAsset)[] = ['name', 'default_text', 'default_context'];
-      
+
       if (textAssetFields.includes(field as keyof TextAsset)) {
         // TextAssetの直接フィールド
         setEditingAsset({
@@ -329,10 +329,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // インスタンス用言語別設定変更ハンドラー
   const handleInstanceLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'instance' || !editingInstance) return;
-    
+
     const currentSettings = editingInstance.override_language_settings || {};
     const languageSettings = currentSettings[language] || {};
-    
+
     // 値がundefinedまたは空の場合は設定を削除
     const updatedLanguageSettings = { ...languageSettings };
     if (value === undefined || value === '' || value === null) {
@@ -340,20 +340,20 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     } else {
       updatedLanguageSettings[settingKey] = value;
     }
-    
+
     // 言語設定全体が空になった場合は言語エントリを削除
     const hasAnySettings = Object.keys(updatedLanguageSettings).length > 0;
     const updatedOverrideLanguageSettings = { ...currentSettings };
-    
+
     if (hasAnySettings) {
       updatedOverrideLanguageSettings[language] = updatedLanguageSettings;
     } else {
       delete updatedOverrideLanguageSettings[language];
     }
-    
+
     setEditingInstance({
       ...editingInstance,
-      override_language_settings: Object.keys(updatedOverrideLanguageSettings).length > 0 ? 
+      override_language_settings: Object.keys(updatedOverrideLanguageSettings).length > 0 ?
         updatedOverrideLanguageSettings : undefined
     });
   };
@@ -382,7 +382,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (mode !== 'asset') return;
     const currentSettings = editingAsset.default_settings || {};
     const updatedSettings = { ...currentSettings };
-    
+
     // 複数の設定を同時に更新
     Object.entries(settings).forEach(([key, value]) => {
       const settingKey = key as keyof LanguageSettings;
@@ -393,13 +393,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         (updatedSettings as any)[settingKey] = value;
       }
     });
-    
+
     // 更新されたアセットデータを作成
     const updatedAsset = {
       ...editingAsset,
       default_settings: updatedSettings
     };
-    
+
     console.log(`handleCommonSettingsChange: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };;
@@ -409,7 +409,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const currentOverrides = editingAsset.default_language_override || {};
     const languageSettings = currentOverrides[language] || {};
     const updatedLanguageSettings = { ...languageSettings };
-    
+
     // 複数の設定を同時に更新
     Object.entries(settings).forEach(([key, value]) => {
       const settingKey = key as keyof LanguageSettings;
@@ -420,21 +420,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         (updatedLanguageSettings as any)[settingKey] = value;
       }
     });
-    
+
     // 更新されたアセットデータを作成
     const updatedOverrides = { ...currentOverrides };
-    
+
     if (Object.keys(updatedLanguageSettings).length > 0) {
       updatedOverrides[language] = updatedLanguageSettings;
     } else {
       delete updatedOverrides[language];
     }
-    
+
     const updatedAsset = {
       ...editingAsset,
       default_language_override: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
     };
-    
+
     console.log(`handleLanguageOverrideChanges: updated asset data:`, updatedAsset);
     setEditingAsset(updatedAsset);
   };;
@@ -445,7 +445,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const currentOverrides = editingInstance.override_language_settings || {};
     const languageSettings = currentOverrides[language] || {};
     const updatedLanguageSettings = { ...languageSettings };
-    
+
     // 複数の設定を同時に更新
     Object.entries(settings).forEach(([key, value]) => {
       const settingKey = key as keyof LanguageSettings;
@@ -456,21 +456,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         (updatedLanguageSettings as any)[settingKey] = value;
       }
     });
-    
+
     // 更新されたインスタンスデータを作成
     const updatedOverrides = { ...currentOverrides };
-    
+
     if (Object.keys(updatedLanguageSettings).length > 0) {
       updatedOverrides[language] = updatedLanguageSettings;
     } else {
       delete updatedOverrides[language];
     }
-    
+
     const updatedInstance = {
       ...editingInstance,
       override_language_settings: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
     };
-    
+
     console.log(`handleInstanceLanguageSettingChanges: updated instance data:`, updatedInstance);
     setEditingInstance(updatedInstance);
   };;
@@ -497,7 +497,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
     setEditingAsset({
       ...editingAsset,
-      default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ? 
+      default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ?
         updatedDefaultLanguageOverride : undefined
     });
   };
@@ -506,12 +506,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
     // 数字、-、.のみを許可
     let sanitized = value.replace(/[^0-9\-\.]/g, '');
-    
+
     // 負数を許可しない場合は-を除去
     if (!allowNegative) {
       sanitized = sanitized.replace(/-/g, '');
     }
-    
+
     // 最初の文字以外の-を除去
     if (sanitized.indexOf('-') > 0) {
       sanitized = sanitized.replace(/-/g, '');
@@ -519,7 +519,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         sanitized = '-' + sanitized;
       }
     }
-    
+
     // 複数の.を除去（最初の.のみ残す）
     const dotIndex = sanitized.indexOf('.');
     if (dotIndex !== -1) {
@@ -527,7 +527,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
       sanitized = beforeDot + '.' + afterDot;
     }
-    
+
     return sanitized;
   };
 
@@ -536,12 +536,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (value === '' || value === '-' || value === '.') {
       return fallbackValue;
     }
-    
+
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < minValue) {
       return fallbackValue;
     }
-    
+
     // 小数点以下2位まで丸める
     return Math.round(numValue * 100) / 100;
   };
@@ -600,7 +600,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const sanitizeZIndexInput = (value: string): string => {
     // 数字と-のみを許可（小数点は除外）
     let sanitized = value.replace(/[^0-9\-]/g, '');
-    
+
     // 最初の文字以外の-を除去
     if (sanitized.indexOf('-') > 0) {
       sanitized = sanitized.replace(/-/g, '');
@@ -608,7 +608,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         sanitized = '-' + sanitized;
       }
     }
-    
+
     return sanitized;
   };
 
@@ -619,7 +619,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     warning?: string;
   } => {
     const numValue = parseInt(value.trim());
-    
+
     // 空文字列または無効な数値
     if (isNaN(numValue)) {
       return {
@@ -627,7 +627,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         error: 'z-indexは数値である必要があります'
       };
     }
-    
+
     // 範囲チェック（-9999 〜 9999）
     if (numValue < -9999 || numValue > 9999) {
       return {
@@ -635,35 +635,35 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         error: 'z-indexは-9999から9999の範囲で入力してください'
       };
     }
-    
+
     // 競合チェック（同じページ内での重複）
     let warning: string | undefined;
     if (page) {
       const project = useProjectStore.getState().project;
       if (project) {
         const conflicts: string[] = [];
-        
+
         Object.values(page.asset_instances).forEach((instance) => {
           // 自分自身は除外
           if (instance.id === assetInstance?.id) return;
-          
+
           const instanceAsset = project.assets[instance.asset_id];
           if (!instanceAsset) return;
-          
+
           const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance, getCurrentLanguage());
-          
+
           if (effectiveZIndex === numValue) {
             const assetName = instanceAsset.name || instanceAsset.id;
             conflicts.push(assetName);
           }
         });
-        
+
         if (conflicts.length > 0) {
           warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
         }
       }
     }
-    
+
     return {
       isValid: true,
       warning
@@ -674,7 +674,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const handleTextMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setIsDragging(true);
     setDragStartPos({ x: e.clientX, y: e.clientY });
     setDragStartValues({ x: currentPos.x, y: currentPos.y });
@@ -686,12 +686,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const canvasHeight = canvasConfig?.height || 600;
     const maxPreviewWidth = 360;
     const maxPreviewHeight = 300;
-    
+
     // 縦横比を保持しながら最大サイズ内に収める
     const widthRatio = maxPreviewWidth / canvasWidth;
     const heightRatio = maxPreviewHeight / canvasHeight;
     const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
-    
+
     return {
       width: Math.round(canvasWidth * scale),
       height: Math.round(canvasHeight * scale),
@@ -705,14 +705,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (isDragging) {
         const deltaX = (e.clientX - dragStartPos.x) / previewDimensions.scale;
         const deltaY = (e.clientY - dragStartPos.y) / previewDimensions.scale;
-        
+
         // キャンバス境界内に制限
         const canvasWidth = canvasConfig?.width || 800;
         const canvasHeight = canvasConfig?.height || 600;
-        
+
         const newX = Math.max(0, Math.min(canvasWidth - 50, dragStartValues.x + deltaX)); // 50px余裕を持たせる
         const newY = Math.max(0, Math.min(canvasHeight - 50, dragStartValues.y + deltaY));
-        
+
         updatePosition(newX, newY);
       }
     };
@@ -811,11 +811,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           <h3>{mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集'}</h3>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="text-edit-modal-content">
           <div className="text-edit-preview">
             <h4>プレビュー</h4>
-            
+
             {/* プレビュータブ（アセット編集時のみ表示） */}
             {mode === 'asset' && project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
               <div className="preview-tabs">
@@ -834,20 +834,20 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {/* インスタンス編集時の言語表示 */}
             {mode === 'instance' && (
               <div className="current-language-indicator">
-                編集中の言語: {getCurrentLanguage() === 'ja' ? '日本語' : 
-                              getCurrentLanguage() === 'en' ? 'English' : 
-                              getCurrentLanguage() === 'zh' ? '中文' : 
-                              getCurrentLanguage() === 'ko' ? '한국어' : 
+                編集中の言語: {getCurrentLanguage() === 'ja' ? '日本語' :
+                              getCurrentLanguage() === 'en' ? 'English' :
+                              getCurrentLanguage() === 'zh' ? '中文' :
+                              getCurrentLanguage() === 'ko' ? '한국어' :
                               getCurrentLanguage().toUpperCase()}
               </div>
             )}
-            
+
             <div className="preview-container" style={{
               width: previewDimensions.width,
               height: previewDimensions.height,
             }}>
-              <div className={`canvas-frame ${isDragging ? 'dragging' : ''}`} style={{ 
-                position: 'relative', 
+              <div className={`canvas-frame ${isDragging ? 'dragging' : ''}`} style={{
+                position: 'relative',
                 width: previewDimensions.width,
                 height: previewDimensions.height,
                 border: '2px solid #007bff',
@@ -1089,13 +1089,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-section">
                 <h4>現在言語の設定オーバーライド</h4>
                 <div className="form-help">
-                  現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' : 
-                              getCurrentLanguage() === 'en' ? 'English' : 
-                              getCurrentLanguage() === 'zh' ? '中文' : 
-                              getCurrentLanguage() === 'ko' ? '한국어' : 
+                  現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' :
+                              getCurrentLanguage() === 'en' ? 'English' :
+                              getCurrentLanguage() === 'zh' ? '中文' :
+                              getCurrentLanguage() === 'ko' ? '한국어' :
                               getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
                 </div>
-                
+
                 {/* 文脈設定 */}
                 <div className="form-row">
                   <label>
@@ -1122,8 +1122,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <select
                       value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_font || ''}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_font', 
+                        getCurrentLanguage(),
+                        'override_font',
                         e.target.value || undefined
                       )}
                     >
@@ -1147,8 +1147,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       step="0.1"
                       value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_font_size || ''}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_font_size', 
+                        getCurrentLanguage(),
+                        'override_font_size',
                         e.target.value ? parseFloat(e.target.value) : undefined
                       )}
                       placeholder="アセット設定使用"
@@ -1165,8 +1165,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       step="0.1"
                       value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_pos_x || ''}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_pos_x', 
+                        getCurrentLanguage(),
+                        'override_pos_x',
                         e.target.value ? parseFloat(e.target.value) : undefined
                       )}
                       placeholder="アセット設定使用"
@@ -1179,8 +1179,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       step="0.1"
                       value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_pos_y || ''}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_pos_y', 
+                        getCurrentLanguage(),
+                        'override_pos_y',
                         e.target.value ? parseFloat(e.target.value) : undefined
                       )}
                       placeholder="アセット設定使用"
@@ -1193,15 +1193,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     <input
                       type="checkbox"
-                      checked={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_vertical !== undefined ? 
+                      checked={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_vertical !== undefined ?
                                editingInstance.override_language_settings[getCurrentLanguage()].override_vertical : false}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_vertical', 
+                        getCurrentLanguage(),
+                        'override_vertical',
                         e.target.checked ? true : undefined
                       )}
                     />
-                    縦書き設定をオーバーライド
+                    縦書き
                   </label>
                 </div>
 
@@ -1217,8 +1217,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         step="0.01"
                         value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_opacity || 1}
                         onChange={(e) => handleInstanceLanguageSettingChange(
-                          getCurrentLanguage(), 
-                          'override_opacity', 
+                          getCurrentLanguage(),
+                          'override_opacity',
                           parseFloat(e.target.value)
                         )}
                         className="opacity-slider"
@@ -1238,8 +1238,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       type="number"
                       value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.override_z_index || ''}
                       onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(), 
-                        'override_z_index', 
+                        getCurrentLanguage(),
+                        'override_z_index',
                         e.target.value ? parseInt(e.target.value) : undefined
                       )}
                       placeholder="アセット設定使用"
@@ -1337,18 +1337,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           });
                         }}
                         className={`z-index-input ${
-                          !zIndexValidation.isValid ? 'error' : 
+                          !zIndexValidation.isValid ? 'error' :
                           zIndexValidation.warning ? 'warning' : ''
                         }`}
                         placeholder="0"
                       />
                       <span className={`z-index-info ${
-                        !zIndexValidation.isValid ? 'error' : 
+                        !zIndexValidation.isValid ? 'error' :
                         zIndexValidation.warning ? 'warning' : ''
                       }`}>
-                        {!zIndexValidation.isValid && zIndexValidation.error ? 
+                        {!zIndexValidation.isValid && zIndexValidation.error ?
                           zIndexValidation.error :
-                          zIndexValidation.warning ? 
+                          zIndexValidation.warning ?
                           zIndexValidation.warning :
                           '(レイヤー順序: 数値が小さいほど背面)'
                         }
@@ -1374,7 +1374,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         <label>
                           フォント:
                           <select
-                            value={mode === 'asset' 
+                            value={mode === 'asset'
                               ? (editingAsset.default_language_override?.[lang]?.override_font || '')
                               : (editingInstance?.override_language_settings?.[lang]?.override_font || '')
                             }
