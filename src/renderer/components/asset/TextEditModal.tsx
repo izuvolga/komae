@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
@@ -263,7 +263,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  const getTextFrameSize = () => {
+  // プレビューサイズを計算
+  const previewDimensions = useMemo(() => {
+    const canvasWidth = canvasConfig?.width || 800;
+    const canvasHeight = canvasConfig?.height || 600;
+    const maxPreviewWidth = 360;
+    const maxPreviewHeight = 300;
+
+    // 縦横比を保持しながら最大サイズ内に収める
+    const widthRatio = maxPreviewWidth / canvasWidth;
+    const heightRatio = maxPreviewHeight / canvasHeight;
+    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
+
+    return {
+      width: Math.round(canvasWidth * scale),
+      height: Math.round(canvasHeight * scale),
+      scale,
+    };
+  }, [canvasConfig]);
+
+  const getTextFrameSize = useCallback(() => {
     const pos = currentPos;
     const scale = previewDimensions.scale;
     const fontSize = getCurrentValue('font_size')
@@ -271,7 +290,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const lines = getCurrentTextValue().split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
-    console.log('debug: getTextFrameSize (x,y):', pos.x, pos.y,);
+    // console.log('debug: getTextFrameSize (x,y):', pos.x, pos.y,);
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -294,7 +313,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         width: maxWidth * charWidth,
       }
     }
-  };
+  }, [currentPos, previewDimensions.scale, getCurrentValue, getCurrentTextValue]);
 
   const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
     if (mode === 'asset') {
@@ -683,24 +702,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     setDragStartValues({ x: currentPos.x, y: currentPos.y });
   };
 
-  // プレビューサイズを計算
-  const previewDimensions = useMemo(() => {
-    const canvasWidth = canvasConfig?.width || 800;
-    const canvasHeight = canvasConfig?.height || 600;
-    const maxPreviewWidth = 360;
-    const maxPreviewHeight = 300;
-
-    // 縦横比を保持しながら最大サイズ内に収める
-    const widthRatio = maxPreviewWidth / canvasWidth;
-    const heightRatio = maxPreviewHeight / canvasHeight;
-    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
-
-    return {
-      width: Math.round(canvasWidth * scale),
-      height: Math.round(canvasHeight * scale),
-      scale,
-    };
-  }, [canvasConfig]);
 
   // グローバルマウスイベントの処理
   useEffect(() => {
@@ -788,7 +789,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         previewLanguage = getCurrentLanguage();
         previewAsset = editingAsset;
       }
-      console.log('debug: previewSVG (x,y):', currentPos.x, currentPos.y);
+      // console.log('debug: previewSVG (x,y):', currentPos.x, currentPos.y);
 
       return generateTextPreviewSVG(
         previewAsset,
@@ -875,24 +876,28 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 />
 
                 {/* ドラッグ可能領域（テキスト位置に配置） */}
-                <div
-                  className="text-drag-area"
-                  style={{
-                    position: 'absolute',
-                    left: `${getTextFrameSize().left}px`,
-                    top: `${getTextFrameSize().top}px`,
-                    width: `${getTextFrameSize().width}px`,
-                    height: `${getTextFrameSize().height}px`,
-                    // TODO: ドラッグ中にこの要素がアニメーションがひどく遅れるのが気になるので一旦透明にしておく
-                    backgroundColor: isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent',
-                    border: isDragging ? '2px dashed #007bff' : '1px dashed rgba(0, 123, 255, 0.3)',
-                    cursor: 'move',
-                    pointerEvents: 'all',
-                    zIndex: 2,
-                  }}
-                  onMouseDown={handleTextMouseDown}
-                  title="ドラッグしてテキスト位置を変更"
-                />
+                {(() => {
+                  const frameSize = getTextFrameSize();
+                  return (
+                    <div
+                      className="text-drag-area"
+                      style={{
+                        position: 'absolute',
+                        left: `${frameSize.left}px`,
+                        top: `${frameSize.top}px`,
+                        width: `${frameSize.width}px`,
+                        height: `${frameSize.height}px`,
+                        backgroundColor: isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent',
+                        border: isDragging ? '2px dashed #007bff' : '1px dashed rgba(0, 123, 255, 0.3)',
+                        cursor: 'move',
+                        pointerEvents: 'all',
+                        zIndex: 2,
+                      }}
+                      onMouseDown={handleTextMouseDown}
+                      title="ドラッグしてテキスト位置を変更"
+                    />
+                  );
+                })()}
               </div>
             </div>
           </div>
