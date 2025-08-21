@@ -655,7 +655,7 @@ export function createDefaultLanguageSettings(): LanguageSettings {
   };
 }
 
-const DEFAULT_LANGUAGE_SETTINGS: LanguageSettings = createDefaultLanguageSettings();
+export const DEFAULT_LANGUAGE_SETTINGS: LanguageSettings = createDefaultLanguageSettings();
 
 /**
  * TextAssetのデフォルト値を作成する

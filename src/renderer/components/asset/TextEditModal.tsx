@@ -17,6 +17,7 @@ import {
   getEffectiveStrokeWidth,
   getEffectiveLeading,
   getEffectiveOpacity,
+  DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
 import './TextEditModal.css';
 
@@ -147,15 +148,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // アセット編集モード: タブに応じて位置を取得
       if (activePreviewTab === 'common') {
         // 共通設定タブ: default_settings から位置を取得
-        const x = editingAsset.default_settings?.pos_x ?? 100;
-        const y = editingAsset.default_settings?.pos_y ?? 100;
+        const x = editingAsset.default_settings?.pos_x ?? DEFAULT_LANGUAGE_SETTINGS.pos_x!;
+        const y = editingAsset.default_settings?.pos_y ?? DEFAULT_LANGUAGE_SETTINGS.pos_y!;
         return { x, y };
       } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
         // 言語タブ: その言語のオーバーライド設定から位置を取得
         const x = editingAsset.default_language_override?.[activePreviewTab]?.pos_x ??
-                 editingAsset.default_settings?.pos_x ?? 100;
+                 editingAsset.default_settings?.pos_x ?? DEFAULT_LANGUAGE_SETTINGS.pos_x!;
         const y = editingAsset.default_language_override?.[activePreviewTab]?.pos_y ??
-                 editingAsset.default_settings?.pos_y ?? 100;
+                 editingAsset.default_settings?.pos_y ?? DEFAULT_LANGUAGE_SETTINGS.pos_y!;
         return { x, y };
       } else {
         // フォールバック: 現在の言語設定を使用
@@ -270,6 +271,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const lines = getCurrentTextValue().split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
+    console.log('debug: getTextFrameSize (x,y):', pos.x, pos.y,);
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -786,6 +788,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         previewLanguage = getCurrentLanguage();
         previewAsset = editingAsset;
       }
+      console.log('debug: previewSVG (x,y):', currentPos.x, currentPos.y);
 
       return generateTextPreviewSVG(
         previewAsset,
