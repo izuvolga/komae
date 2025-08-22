@@ -132,6 +132,38 @@
   font-size: 12px;
 }
 
+.page-number.clickable {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.page-number.clickable:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.page-title-edit-input {
+  background: white;
+  border: 1px solid #007bff;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  min-width: 60px;
+  max-width: 120px;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+.page-title-edit-input:focus {
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  border-color: #0056b3;
+}
+
 .delete-page-btn {
   width: 18px;
   height: 18px;

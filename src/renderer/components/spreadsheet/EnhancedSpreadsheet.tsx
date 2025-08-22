@@ -22,6 +22,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const addPage = useProjectStore((state) => state.addPage);
   const insertPageAt = useProjectStore((state) => state.insertPageAt);
   const deletePage = useProjectStore((state) => state.deletePage);
+  const updatePage = useProjectStore((state) => state.updatePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
   const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
@@ -104,6 +105,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
     assetInstanceId: null,
     pageId: null,
     text: '',
+  });
+
+  // ページタイトル編集用のstate
+  const [titleEditState, setTitleEditState] = useState<{
+    isEditing: boolean;
+    pageId: string | null;
+    title: string;
+  }>({
+    isEditing: false,
+    pageId: null,
+    title: '',
   });
 
   // パン機能用のstate
@@ -216,7 +228,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     const pageNumber = pages.length + 1;
     const newPage = {
       id: `page-${Date.now()}`,
-      title: `Page ${pageNumber}`,
+      title: '',
       asset_instances: {},
     };
     addPage(newPage);
@@ -421,6 +433,45 @@ export const EnhancedSpreadsheet: React.FC = () => {
     });
   };
 
+  // ページタイトル編集のハンドラー
+  const handleStartTitleEdit = (page: Page) => {
+    setTitleEditState({
+      isEditing: true,
+      pageId: page.id,
+      title: page.title || '',
+    });
+  };
+
+  const handleSaveTitleEdit = () => {
+    if (!titleEditState.pageId) return;
+    
+    updatePage(titleEditState.pageId, { title: titleEditState.title });
+    
+    setTitleEditState({
+      isEditing: false,
+      pageId: null,
+      title: '',
+    });
+  };
+
+  const handleCancelTitleEdit = () => {
+    setTitleEditState({
+      isEditing: false,
+      pageId: null,
+      title: '',
+    });
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveTitleEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelTitleEdit();
+    }
+  };
+
   // 列全体の操作ハンドラー
   const handleShowAllInColumn = () => {
     if (!contextMenu.asset) return;
@@ -548,7 +599,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     
     const newPage = {
       id: `page-${Date.now()}`,
-      title: `Page ${rowContextMenu.pageIndex + 1}`,
+      title: '',
       asset_instances: {},
     };
     
@@ -560,7 +611,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     
     const newPage = {
       id: `page-${Date.now()}`,
-      title: `Page ${rowContextMenu.pageIndex + 2}`,
+      title: '',
       asset_instances: {},
     };
     
@@ -592,6 +643,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
     return Object.values(page.asset_instances).some(
       (instance: any) => instance.asset_id === assetId
     );
+  };
+
+  // ページタイトルまたはページ番号を表示するヘルパー関数
+  const getPageDisplayText = (page: Page, pageIndex: number): string => {
+    if (page.title && page.title.trim() !== '') {
+      return page.title;
+    }
+    return `${pageIndex + 1}`;
   };
 
   return (
@@ -647,7 +706,26 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   >
                     ×
                   </button>
-                  <span className="page-number">{pageIndex + 1}</span>
+                  {titleEditState.isEditing && titleEditState.pageId === page.id ? (
+                    <input
+                      type="text"
+                      className="page-title-edit-input"
+                      value={titleEditState.title}
+                      onChange={(e) => setTitleEditState(prev => ({...prev, title: e.target.value}))}
+                      onKeyDown={handleTitleKeyDown}
+                      onBlur={handleSaveTitleEdit}
+                      autoFocus
+                      placeholder={`${pageIndex + 1}`}
+                    />
+                  ) : (
+                    <span 
+                      className="page-number clickable"
+                      onClick={() => handleStartTitleEdit(page)}
+                      title="クリックしてページタイトルを編集"
+                    >
+                      {getPageDisplayText(page, pageIndex)}
+                    </span>
+                  )}
                 </div>
               </div>
               

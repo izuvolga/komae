@@ -117,7 +117,7 @@ export class ProjectManager {
     const defaultPageId = `page-${uuidv4()}`;
     projectData.pages.push({
       id: defaultPageId,
-      title: 'Page 1',
+      title: '',
       asset_instances: {},
     });
 
