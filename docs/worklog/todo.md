@@ -33,6 +33,7 @@
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## 大きめの改善
+- [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
 - [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
 - [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
