@@ -15,11 +15,13 @@
   - ImageEditModal でのマスクの編集は不要
 - [x]: 後方互換性は保たなくて良いので、TextAsset/TextAssetInstance/LanguageOverride 旧バージョンでしか使われていない項目を削除してください。エンティティ定義、ProjectManager、移行判定ロジックなど全て。
 - [x]: TextEditModal の言語別の設定が一気に表示されるとプレビューをどうして良いかわからないので、プレビュー画面を増やす？
-- [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: pages[].title の編集を可能にする
+  - Spread Sheet Window の最も左側
 - [ ]: pages[].title が空のときに、ページタイトルを自動で生成する
   - 例: ページ1, ページ2, ページ3...
+  - ただしデータ上は空のままにしておく
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
+- [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 
 ## テスト
 - [x]: テストをしっかり通す
