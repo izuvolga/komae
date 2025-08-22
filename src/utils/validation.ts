@@ -117,13 +117,25 @@ const VectorAssetSchema = z.object({
   svg_content: z.string(),
 });
 
+// ValueAsset スキーマ
+const ValueAssetSchema = z.object({
+  id: z.string().min(1),
+  type: z.literal('ValueAsset'),
+  name: z.string().min(1),
+  value_type: z.enum(['string', 'number', 'formula']),
+  initial_value: z.any(),
+  new_page_behavior: z.enum(['reset', 'inherit']),
+});
+
+  // initial_value: z.union([z.string(), z.number()]),
+
 // Asset Union スキーマ
-const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema]);
+const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema, ValueAssetSchema]);
 
 // Page スキーマ
 const PageSchema = z.object({
   id: z.string().min(1),
-  title: z.string().min(1),
+  title: z.string().min(0),
   asset_instances: z.record(z.string(), AssetInstanceSchema),
 });
 

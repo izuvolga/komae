@@ -20,7 +20,7 @@ export interface CanvasConfig {
 // Asset定義（テンプレート）
 export interface BaseAsset {
   id: string;
-  type: 'ImageAsset' | 'TextAsset' | 'VectorAsset';
+  type: 'ImageAsset' | 'TextAsset' | 'VectorAsset' | 'ValueAsset';
   name: string;
 }
 
@@ -68,7 +68,14 @@ export interface VectorAsset extends BaseAsset {
   svg_content: string; // SVGの内容をテキストとして保持
 }
 
-export type Asset = ImageAsset | TextAsset | VectorAsset;
+export interface ValueAsset extends BaseAsset {
+  type: 'ValueAsset';
+  value_type: 'string' | 'number' | 'formula';
+  initial_value: any;
+  new_page_behavior: 'reset' | 'inherit';
+}
+
+export type Asset = ImageAsset | TextAsset | VectorAsset | ValueAsset;
 
 // Font管理定義
 export enum FontType {
@@ -145,6 +152,10 @@ export interface VectorAssetInstance extends BaseAssetInstance {
   override_z_index?: number;
 }
 
+export interface ValueAssetInstance extends BaseAssetInstance {
+  override_value?: any;
+}
+
 // 多言語対応のための言語別オーバーライド設定
 // 言語別設定のオーバーライド用統一型
 export interface LanguageSettings {
@@ -161,7 +172,7 @@ export interface LanguageSettings {
   stroke_color?: string;
 }
 
-export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance;
+export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance | ValueAssetInstance;
 
 // AssetInstanceのoverride値チェック用ヘルパー関数
 export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
@@ -191,6 +202,9 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
       vectorInstance.override_opacity !== undefined ||
       vectorInstance.override_z_index !== undefined
     );
+  } else if (assetType === 'ValueAsset') {
+    const valueInstance = instance as ValueAssetInstance;
+    return !!(valueInstance.override_value !== undefined);
   }
   
   return false;
@@ -255,6 +269,9 @@ export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: 
     resetUpdates.override_height = undefined;
     resetUpdates.override_opacity = undefined;
     resetUpdates.override_z_index = undefined;
+  } else if (assetType === 'ValueAsset') {
+    // ValueAssetInstanceのoverride項目をリセット
+    resetUpdates.override_value = undefined;
   }
   
   return resetUpdates;
@@ -708,6 +725,25 @@ export function createVectorAsset(params: {
   };
 }
 
+/**
+ * ValueAssetの初期データを作成
+ */
+export function createValueAsset(params: {
+  name: string;
+  value_type: 'string' | 'number' | 'formula';
+  initial_value: any;
+  new_page_behavior: 'reset' | 'inherit';
+}): ValueAsset {
+  return {
+    id: `value-${uuidv4()}`,
+    type: 'ValueAsset',
+    name: params.name,
+    value_type: params.value_type,
+    initial_value: params.initial_value,
+    new_page_behavior: params.new_page_behavior,
+  };
+}
+
 // バリデーション関数
 
 /**
@@ -955,6 +991,71 @@ export function validateVectorAssetInstanceData(instance: VectorAssetInstance): 
   if (instance.override_height !== undefined && instance.override_height <= 0) {
     errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
   }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * ValueAssetのバリデーション
+ * @param asset - バリデーション対象のValueAsset
+ * @returns バリデーション結果
+ */
+export function validateValueAssetData(asset: ValueAsset): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 基本フィールドのバリデーション
+  if (!asset.name || asset.name.trim() === '') {
+    errors.push('アセット名は必須です。');
+  }
+  
+  if (!asset.value_type) {
+    errors.push('値の型は必須です。');
+  }
+  
+  if (asset.initial_value === null || asset.initial_value === undefined) {
+    errors.push('初期値は必須です。');
+  }
+  
+  if (!asset.new_page_behavior) {
+    errors.push('新規ページでの動作設定は必須です。');
+  }
+  
+  // 値の型に応じた初期値のバリデーション
+  if (asset.value_type === 'number' && typeof asset.initial_value !== 'number') {
+    if (typeof asset.initial_value === 'string' && isNaN(parseFloat(asset.initial_value))) {
+      errors.push('数値型の初期値は有効な数値を入力してください。');
+    }
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * ValueAssetInstanceのバリデーション
+ * @param instance - バリデーション対象のValueAssetInstance
+ * @returns バリデーション結果
+ */
+export function validateValueAssetInstanceData(instance: ValueAssetInstance): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 基本フィールドのバリデーション
+  if (!instance.asset_id || instance.asset_id.trim() === '') {
+    errors.push('アセットIDは必須です。');
+  }
+  
+  // オーバーライド値は任意なのでバリデーション不要
   
   return {
     isValid: errors.length === 0,

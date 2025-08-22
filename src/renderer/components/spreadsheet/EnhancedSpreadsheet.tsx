@@ -4,8 +4,10 @@ import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
 import { VectorEditModal } from '../asset/VectorEditModal';
-import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
+import { ValueEditModal } from '../asset/ValueEditModal';
+import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
+import { getEffectiveValueAssetValue } from '../../../utils/valueEvaluation';
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
 import { CellContextMenu } from './CellContextMenu';
@@ -52,6 +54,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const [editingVectorInstance, setEditingVectorInstance] = useState<{
     instance: VectorAssetInstance;
     asset: VectorAsset;
+    page: Page;
+  } | null>(null);
+  
+  const [editingValueInstance, setEditingValueInstance] = useState<{
+    instance: ValueAssetInstance;
+    asset: ValueAsset;
     page: Page;
   } | null>(null);
   
@@ -280,6 +288,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
           asset: asset as VectorAsset,
           page,
         });
+      } else if (asset.type === 'ValueAsset') {
+        setEditingValueInstance({
+          instance: instance as ValueAssetInstance,
+          asset: asset as ValueAsset,
+          page,
+        });
       }
     }
   };
@@ -315,6 +329,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleVectorModalClose = () => {
     setEditingVectorInstance(null);
+  };
+
+  const handleValueInstanceSave = (updatedInstance: ValueAssetInstance) => {
+    if (editingValueInstance) {
+      updateAssetInstance(editingValueInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingValueInstance(null);
+  };
+
+  const handleValueModalClose = () => {
+    setEditingValueInstance(null);
   };
 
   // 右クリックメニュー関連のハンドラー
@@ -681,7 +706,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 </span>
                 <span className="asset-type">
                   {asset.type === 'ImageAsset' ? '画像' : 
-                   asset.type === 'VectorAsset' ? 'SVG' : 'テキスト'}
+                   asset.type === 'VectorAsset' ? 'SVG' : 
+                   asset.type === 'ValueAsset' ? '値' : 'テキスト'}
                 </span>
               </div>
             </div>
@@ -775,7 +801,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       >
                         {isUsed ? '✓' : '×'}
                       </button>
-                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset') && (
+                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'ValueAsset') && (
                         <button
                           className="edit-button"
                           onClick={(e) => {
@@ -874,6 +900,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           />
                         </div>
                       )}
+                      {isUsed && asset.type === 'ValueAsset' && (
+                        <div className="value-content">
+                          <span 
+                            className="value-display"
+                            title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex)}`}
+                          >
+                            {String(getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex))}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -931,12 +967,25 @@ export const EnhancedSpreadsheet: React.FC = () => {
         />
       )}
 
-      {/* 列の右クリックメニュー */}
-      {contextMenu.asset && (
+      {/* ValueAssetInstance編集モーダル */}
+      {editingValueInstance && (
+        <ValueEditModal
+          mode="instance"
+          asset={editingValueInstance.asset}
+          assetInstance={editingValueInstance.instance}
+          page={editingValueInstance.page}
+          isOpen={!!editingValueInstance}
+          onClose={handleValueModalClose}
+          onSaveInstance={handleValueInstanceSave}
+        />
+      )}
+
+      {/* コンテキストメニュー */}
+      {contextMenu.isVisible && (
         <ColumnContextMenu
           isVisible={contextMenu.isVisible}
-          position={contextMenu.position}
           asset={contextMenu.asset}
+          position={contextMenu.position}
           onClose={handleContextMenuClose}
           onShowAll={handleShowAllInColumn}
           onHideAll={handleHideAllInColumn}
@@ -945,13 +994,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
       )}
 
       {/* 行の右クリックメニュー */}
-      {rowContextMenu.page && (
+      {rowContextMenu.isVisible && rowContextMenu.page && (
         <RowContextMenu
           isVisible={rowContextMenu.isVisible}
-          position={rowContextMenu.position}
           page={rowContextMenu.page}
           pageIndex={rowContextMenu.pageIndex}
           totalPages={pages.length}
+          position={rowContextMenu.position}
           onClose={handleContextMenuClose}
           onShowAll={handleShowAllInRow}
           onHideAll={handleHideAllInRow}
@@ -963,14 +1012,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
       )}
 
       {/* セルの右クリックメニュー */}
-      <CellContextMenu
-        isVisible={cellContextMenu.isVisible}
-        position={cellContextMenu.position}
-        assetInstance={cellContextMenu.assetInstance}
-        page={cellContextMenu.page}
-        onClose={handleContextMenuClose}
-        onReset={handleResetCell}
-      />
+      {cellContextMenu.isVisible && (
+        <CellContextMenu
+          isVisible={cellContextMenu.isVisible}
+          assetInstance={cellContextMenu.assetInstance}
+          page={cellContextMenu.page}
+          position={cellContextMenu.position}
+          onClose={handleContextMenuClose}
+          onReset={handleResetCell}
+        />
+      )}
     </div>
   );
 };

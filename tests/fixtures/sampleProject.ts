@@ -59,6 +59,15 @@ export const mockVectorAsset: Asset = {
 </svg>`,
 };
 
+export const mockValueAsset: Asset = {
+  id: 'value-5c2720fe-5b73-4fa3-b9c4-1df49c83491a',
+  type: 'ValueAsset',
+  name: 'test',
+  value_type: 'number',
+  initial_value: 0,
+  new_page_behavior: 'reset',
+};
+
 export const mockPage1: Page = {
   id: 'page-6356f254-ca44-4700-ab0f-429955fe9472',
   title: 'Page 1',
@@ -118,6 +127,7 @@ export const mockProject: ProjectData = {
     'img-f3227b66-61ec-428d-adb2-e4f1526e378c': mockImageAsset,
     'text-1c835411-9001-4633-a120-2a8ae273b8cb': mockTextAsset,
     'vector-7011a954-c8c3-49bc-a48c-2554755d7da7': mockVectorAsset,
+    'value-5c2720fe-5b73-4fa3-b9c4-1df49c83491a': mockValueAsset,
   },
   pages: [mockPage1, mockPage2],
 };

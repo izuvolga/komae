@@ -6,7 +6,9 @@ import { AssetThumbnail } from './AssetThumbnail';
 import { ImageEditModal } from './ImageEditModal';
 import { TextEditModal } from './TextEditModal';
 import { VectorEditModal } from './VectorEditModal';
-import type { Asset, ImageAsset, TextAsset, VectorAsset } from '../../../types/entities';
+import { ValueEditModal } from './ValueEditModal';
+import type { Asset, ImageAsset, TextAsset, VectorAsset, ValueAsset } from '../../../types/entities';
+import { createValueAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -27,6 +29,7 @@ export const AssetLibrary: React.FC = () => {
   const [editingImageAsset, setEditingImageAsset] = useState<ImageAsset | null>(null);
   const [editingTextAsset, setEditingTextAsset] = useState<TextAsset | null>(null);
   const [editingVectorAsset, setEditingVectorAsset] = useState<VectorAsset | null>(null);
+  const [editingValueAsset, setEditingValueAsset] = useState<ValueAsset | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -114,6 +117,8 @@ export const AssetLibrary: React.FC = () => {
         setEditingTextAsset(contextMenu.asset as TextAsset);
       } else if (contextMenu.asset.type === 'VectorAsset') {
         setEditingVectorAsset(contextMenu.asset as VectorAsset);
+      } else if (contextMenu.asset.type === 'ValueAsset') {
+        setEditingValueAsset(contextMenu.asset as ValueAsset);
       }
     }
     setContextMenu(null);
@@ -159,6 +164,12 @@ export const AssetLibrary: React.FC = () => {
         assetName: asset.name,
       });
       setEditingVectorAsset(asset as VectorAsset);
+    } else if (asset.type === 'ValueAsset') {
+      logger.logUserInteraction('asset_edit_open', 'ValueAsset', {
+        assetId: asset.id,
+        assetName: asset.name,
+      });
+      setEditingValueAsset(asset as ValueAsset);
     }
   };
 
@@ -201,6 +212,19 @@ export const AssetLibrary: React.FC = () => {
     });
   };
 
+  const handleValueAssetSave = (updatedAsset: ValueAsset) => {
+    updateAsset(updatedAsset.id, updatedAsset);
+    logger.logUserInteraction('asset_save', 'AssetLibrary', {
+      assetId: updatedAsset.id,
+      assetName: updatedAsset.name,
+      assetType: 'ValueAsset',
+    });
+  };
+
+  const handleValueModalClose = () => {
+    setEditingValueAsset(null);
+  };
+
   const handleCreateMenuClick = () => {
     setShowCreateMenu(!showCreateMenu);
   };
@@ -232,6 +256,25 @@ export const AssetLibrary: React.FC = () => {
     } finally {
       setShowCreateMenu(false);
     }
+  };
+
+  const handleCreateValueAsset = async () => {
+      await logger.logUserInteraction('value_asset_create', 'AssetLibrary', {
+        currentAssetCount: assetList.length,
+      });
+      // ValueAssetを作成
+      const result = createValueAsset({
+          name: 'New Value',
+          value_type: 'string',
+          initial_value: 'Initial Value',
+          new_page_behavior: 'reset',
+        });
+      addAsset(result);
+      await logger.logUserInteraction('value_asset_create_success', 'AssetLibrary', {
+        assetId: result.id,
+        assetName: result.name,
+      });
+      setShowCreateMenu(false);
   };
 
   const handleImportImageAsset = async () => {
@@ -545,6 +588,9 @@ export const AssetLibrary: React.FC = () => {
                 <button className="create-menu-item" onClick={handleCreateTextAsset}>
                   🔤 テキスト
                 </button>
+                <button className="create-menu-item" onClick={handleCreateValueAsset}>
+                  🔢 値アセット
+                </button>
               </div>
             )}
           </div>
@@ -599,7 +645,7 @@ export const AssetLibrary: React.FC = () => {
             zIndex: 1000,
           }}
         >
-          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset') && (
+          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset' || contextMenu.asset.type === 'ValueAsset') && (
             <button
               className="context-menu-item"
               onClick={handleContextMenuEdit}
@@ -646,6 +692,17 @@ export const AssetLibrary: React.FC = () => {
           isOpen={!!editingVectorAsset}
           onClose={handleVectorModalClose}
           onSaveAsset={handleVectorAssetSave}
+        />
+      )}
+
+      {/* ValueAsset編集モーダル */}
+      {editingValueAsset && (
+        <ValueEditModal
+          mode="asset"
+          asset={editingValueAsset}
+          isOpen={!!editingValueAsset}
+          onClose={handleValueModalClose}
+          onSaveAsset={handleValueAssetSave}
         />
       )}
     </div>
