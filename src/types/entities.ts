@@ -1012,6 +1012,12 @@ export function validateValueAssetData(asset: ValueAsset): {
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
+  } else {
+    // 変数名として使える文字のみを許可
+    const variableNamePattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    if (!variableNamePattern.test(asset.name)) {
+      errors.push('アセット名は変数名として使用されるため、英字またはアンダースコアで始まり、英数字とアンダースコアのみを含む必要があります。');
+    }
   }
   
   if (!asset.value_type) {

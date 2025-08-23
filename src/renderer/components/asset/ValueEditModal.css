@@ -324,3 +324,23 @@
   color: #155724;
   margin-top: 8px;
 }
+
+/* バリデーションエラー用スタイル */
+.input-error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+}
+
+.validation-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.save-button:disabled {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 0.65;
+}

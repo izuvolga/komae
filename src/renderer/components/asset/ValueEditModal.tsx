@@ -54,6 +54,28 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   // プレビュー値
   const [previewValue, setPreviewValue] = useState<any>('');
   const [previewError, setPreviewError] = useState<string>('');
+  // バリデーション状態
+  const [nameValidation, setNameValidation] = useState<{
+    isValid: boolean;
+    errorMessage: string;
+  }>({ isValid: true, errorMessage: '' });
+
+  // 変数名バリデーション関数
+  const validateVariableName = useCallback((name: string) => {
+    if (!name || name.trim() === '') {
+      return { isValid: false, errorMessage: 'アセット名は必須です。' };
+    }
+    
+    const variableNamePattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    if (!variableNamePattern.test(name)) {
+      return { 
+        isValid: false, 
+        errorMessage: '変数名として使用されるため、英字またはアンダースコアで始まり、英数字とアンダースコアのみを含む必要があります。' 
+      };
+    }
+    
+    return { isValid: true, errorMessage: '' };
+  }, []);
 
   // プロップスが変更されたときにローカル状態を更新
   useEffect(() => {
@@ -72,6 +94,9 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
         new_page_behavior: asset.new_page_behavior,
         override_value: '',
       });
+      
+      // 名前のバリデーションを実行
+      setNameValidation(validateVariableName(asset.name));
     } else {
       const currentValue = assetInstance?.override_value !== undefined 
         ? assetInstance.override_value 
@@ -85,7 +110,14 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
         override_value: String(currentValue),
       });
     }
-  }, [asset, assetInstance, mode]);
+  }, [asset, assetInstance, mode, validateVariableName]);
+
+  // 名前が変更されたときのバリデーション
+  useEffect(() => {
+    if (mode === 'asset') {
+      setNameValidation(validateVariableName(tempInputValues.name));
+    }
+  }, [tempInputValues.name, mode, validateVariableName]);
 
   // プレビュー値を更新
   useEffect(() => {
@@ -161,6 +193,12 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
 
   const handleSave = useCallback(() => {
     if (mode === 'asset') {
+      // バリデーションチェック
+      if (!nameValidation.isValid) {
+        alert(`バリデーションエラー:\n${nameValidation.errorMessage}`);
+        return;
+      }
+
       // Asset保存
       const updatedAsset: ValueAsset = {
         ...editingAsset,
@@ -201,7 +239,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
       onSaveInstance?.(updatedInstance);
     }
     onClose();
-  }, [mode, editingAsset, editingInstance, tempInputValues, asset.value_type, onSaveAsset, onSaveInstance, onClose]);
+  }, [mode, editingAsset, editingInstance, tempInputValues, asset.value_type, nameValidation, onSaveAsset, onSaveInstance, onClose]);;
 
   const getTitle = () => {
     if (mode === 'asset') {
@@ -213,8 +251,8 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
 
   const getHelpText = (field: string) => {
     switch (field) {
-      case 'id':
-        return 'IDは英数字とアンダースコア(_)のみ使用可能で、数字で開始することはできません。';
+      case 'name':
+        return '変数名として使用されます。英字またはアンダースコア(_)で始まり、英数字とアンダースコア(_)のみを含む必要があります。';
       case 'new_page_behavior':
         return '新しいページが追加された時の動作を設定します。「初期値にリセット」は常に初期値を使用し、「前のページの値を継承」は前のページの値を引き継ぎます。';
       case 'formula':
@@ -222,7 +260,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
       default:
         return '';
     }
-  };
+  };;
 
   if (!isOpen) return null;
 
@@ -275,12 +313,19 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
                   <div className="form-group">
                     <label>
                       アセット名
+                      <span className="help-icon" title={getHelpText('name')}>?</span>
                       <input
                         type="text"
                         value={tempInputValues.name}
                         onChange={(e) => setTempInputValues(prev => ({...prev, name: e.target.value}))}
                         placeholder="アセット名を入力"
+                        className={!nameValidation.isValid ? 'input-error' : ''}
                       />
+                      {!nameValidation.isValid && (
+                        <div className="validation-error">
+                          {nameValidation.errorMessage}
+                        </div>
+                      )}
                     </label>
                   </div>
 
@@ -416,7 +461,11 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
           <button onClick={onClose} className="cancel-button">
             キャンセル
           </button>
-          <button onClick={handleSave} className="save-button">
+          <button 
+            onClick={handleSave} 
+            className="save-button"
+            disabled={mode === 'asset' && !nameValidation.isValid}
+          >
             保存
           </button>
         </div>
