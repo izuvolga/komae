@@ -115,6 +115,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
     text: '',
   });
 
+  // ValueAsset用インライン編集用のstate
+  const [valueInlineEditState, setValueInlineEditState] = useState<{
+    isEditing: boolean;
+    assetInstanceId: string | null;
+    pageId: string | null;
+    value: any;
+  }>({
+    isEditing: false,
+    assetInstanceId: null,
+    pageId: null,
+    value: '',
+  });
+
   // ページタイトル編集用のstate
   const [titleEditState, setTitleEditState] = useState<{
     isEditing: boolean;
@@ -455,6 +468,51 @@ export const EnhancedSpreadsheet: React.FC = () => {
       assetInstanceId: null,
       pageId: null,
       text: '',
+    });
+  };
+
+  // ValueAssetインライン編集のハンドラー
+  const handleStartValueInlineEdit = (assetInstance: ValueAssetInstance, asset: ValueAsset, page: Page) => {
+    const currentValue = getEffectiveValueAssetValue(asset, project, page, pages.findIndex(p => p.id === page.id));
+    
+    setValueInlineEditState({
+      isEditing: true,
+      assetInstanceId: assetInstance.id,
+      pageId: page.id,
+      value: currentValue,
+    });
+  };
+
+  const handleSaveValueInlineEdit = () => {
+    if (!valueInlineEditState.assetInstanceId || !valueInlineEditState.pageId) return;
+    
+    const assetInstance = Object.values(project.pages).find(p => p.id === valueInlineEditState.pageId)
+      ?.asset_instances[valueInlineEditState.assetInstanceId] as ValueAssetInstance;
+    
+    if (!assetInstance) return;
+    
+    // ValueAssetInstanceのoverride_valueを更新
+    const updatedInstance = {
+      ...assetInstance,
+      override_value: valueInlineEditState.value
+    };
+    
+    updateAssetInstance(valueInlineEditState.pageId, valueInlineEditState.assetInstanceId, updatedInstance);
+    
+    setValueInlineEditState({
+      isEditing: false,
+      assetInstanceId: null,
+      pageId: null,
+      value: '',
+    });
+  };
+
+  const handleCancelValueInlineEdit = () => {
+    setValueInlineEditState({
+      isEditing: false,
+      assetInstanceId: null,
+      pageId: null,
+      value: '',
     });
   };
 
@@ -900,14 +958,55 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           />
                         </div>
                       )}
-                      {isUsed && asset.type === 'ValueAsset' && (
-                        <div className="value-content">
-                          <span 
-                            className="value-display"
-                            title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex)}`}
-                          >
-                            {String(getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex))}
-                          </span>
+                      {isUsed && asset.type === 'ValueAsset' && instance && (
+                        <div 
+                          className="value-content"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!valueInlineEditState.isEditing) {
+                              handleStartValueInlineEdit(instance as ValueAssetInstance, asset as ValueAsset, page);
+                            }
+                          }}
+                          style={{ cursor: valueInlineEditState.isEditing ? 'default' : 'pointer' }}
+                          title="クリックして値を編集"
+                        >
+                          {valueInlineEditState.isEditing && 
+                           valueInlineEditState.assetInstanceId === instance.id && 
+                           valueInlineEditState.pageId === page.id ? (
+                            <div className="inline-edit-container">
+                              <input
+                                className="inline-edit-input"
+                                type={(asset as ValueAsset).value_type === 'number' ? 'number' : 'text'}
+                                value={valueInlineEditState.value}
+                                onChange={(e) => setValueInlineEditState(prev => ({ 
+                                  ...prev, 
+                                  value: (asset as ValueAsset).value_type === 'number' ? 
+                                    parseFloat(e.target.value) || 0 : e.target.value 
+                                }))}
+                                onBlur={() => {
+                                  handleSaveValueInlineEdit();
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleSaveValueInlineEdit();
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    handleCancelValueInlineEdit();
+                                  }
+                                }}
+                                autoFocus
+                                placeholder={(asset as ValueAsset).value_type === 'formula' ? '数式を入力 (例: %{変数} + 10)' : '値を入力'}
+                              />
+                            </div>
+                          ) : (
+                            <span 
+                              className="value-display"
+                              title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex)}`}
+                            >
+                              {String(getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex))}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
