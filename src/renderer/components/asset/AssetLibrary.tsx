@@ -263,11 +263,12 @@ export const AssetLibrary: React.FC = () => {
         currentAssetCount: assetList.length,
       });
       // ValueAssetを作成
+      const project = useProjectStore.getState().project;
       const result = createValueAsset({
-          name: 'New Value',
           value_type: 'string',
           initial_value: 'Initial Value',
           new_page_behavior: 'reset',
+          project: project,
         });
       addAsset(result);
       await logger.logUserInteraction('value_asset_create_success', 'AssetLibrary', {

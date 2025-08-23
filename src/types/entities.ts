@@ -728,16 +728,42 @@ export function createVectorAsset(params: {
 /**
  * ValueAssetの初期データを作成
  */
+/**
+ * プロジェクト内で一意なValueAsset名を生成する
+ * @param project - プロジェクトデータ
+ * @param baseName - ベース名（デフォルト: "value"）
+ * @returns 一意な名前（例: "value_1", "value_2", ...）
+ */
+export function generateUniqueValueAssetName(project?: ProjectData | null, baseName: string = 'value'): string {
+  if (!project || !project.assets) {
+    return `${baseName}_1`;
+  }
+
+  const existingNames = Object.values(project.assets)
+    .filter(asset => asset.type === 'ValueAsset')
+    .map(asset => asset.name);
+
+  let counter = 1;
+  while (existingNames.includes(`${baseName}_${counter}`)) {
+    counter++;
+  }
+
+  return `${baseName}_${counter}`;
+}
+
 export function createValueAsset(params: {
-  name: string;
+  name?: string; // Optional now - will be generated if not provided
   value_type: 'string' | 'number' | 'formula';
   initial_value: any;
   new_page_behavior: 'reset' | 'inherit';
+  project?: ProjectData | null; // Add project parameter for unique name generation
 }): ValueAsset {
+  const name = params.name || generateUniqueValueAssetName(params.project);
+  
   return {
     id: `value-${uuidv4()}`,
     type: 'ValueAsset',
-    name: params.name,
+    name: name,
     value_type: params.value_type,
     initial_value: params.initial_value,
     new_page_behavior: params.new_page_behavior,

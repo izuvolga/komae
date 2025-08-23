@@ -17,7 +17,7 @@ export interface EvaluationResult {
 /**
  * 数式内の変数参照を解析する
  * @param formula - 数式文字列 (例: "%{value1} + %{value2}")
- * @returns 参照される変数のIDの配列
+ * @returns 参照される変数名の配列
  */
 export function parseFormulaReferences(formula: string): string[] {
   const references: string[] = [];
@@ -25,9 +25,9 @@ export function parseFormulaReferences(formula: string): string[] {
   let match;
   
   while ((match = regex.exec(formula)) !== null) {
-    const variableId = match[1];
-    if (!references.includes(variableId)) {
-      references.push(variableId);
+    const variableName = match[1];
+    if (!references.includes(variableName)) {
+      references.push(variableName);
     }
   }
   
@@ -36,35 +36,38 @@ export function parseFormulaReferences(formula: string): string[] {
 
 /**
  * 循環参照を検出する
- * @param valueAssetId - チェック対象のValueAssetのID
+ * @param valueAssetName - チェック対象のValueAssetの名前
  * @param project - プロジェクトデータ
- * @param visited - 既に訪問したアセットID（再帰用）
+ * @param visited - 既に訪問したアセット名（再帰用）
  * @returns 循環参照が検出された場合true
  */
 export function hasCircularReference(
-  valueAssetId: string,
+  valueAssetName: string,
   project: ProjectData,
   visited: Set<string> = new Set()
 ): boolean {
-  if (visited.has(valueAssetId)) {
+  if (visited.has(valueAssetName)) {
     return true;
   }
   
-  const asset = project.assets[valueAssetId];
-  if (!asset || asset.type !== 'ValueAsset') {
+  // 名前でValueAssetを検索
+  const asset = Object.values(project.assets).find(
+    asset => asset.type === 'ValueAsset' && asset.name === valueAssetName
+  ) as ValueAsset | undefined;
+  
+  if (!asset) {
     return false;
   }
   
-  const valueAsset = asset as ValueAsset;
-  if (valueAsset.value_type !== 'formula') {
+  if (asset.value_type !== 'formula') {
     return false;
   }
   
-  const references = parseFormulaReferences(valueAsset.initial_value);
-  visited.add(valueAssetId);
+  const references = parseFormulaReferences(asset.initial_value);
+  visited.add(valueAssetName);
   
-  for (const refId of references) {
-    if (hasCircularReference(refId, project, new Set(visited))) {
+  for (const refName of references) {
+    if (hasCircularReference(refName, project, new Set(visited))) {
       return true;
     }
   }
@@ -132,42 +135,47 @@ export function evaluateFormula(
   try {
     // 数式内の変数参照を置換
     let processedFormula = formula;
-    // %{variableId} パターンを置換
+    // %{variableName} パターンを置換
     const regex = /%\{([^}]+)\}/g;
     let match;
     
     while ((match = regex.exec(formula)) !== null) {
-      const variableId = match[0]; // %{value1} 全体
-      const assetId = match[1]; // value1 部分
+      const variableReference = match[0]; // %{value1} 全体
+      const variableName = match[1]; // value1 部分
       
-      const referencedAsset = project.assets[assetId];
-      if (!referencedAsset || referencedAsset.type !== 'ValueAsset') {
+      // 名前でValueAssetを検索
+      const referencedAsset = Object.values(project.assets).find(
+        asset => asset.type === 'ValueAsset' && asset.name === variableName
+      ) as ValueAsset | undefined;
+      
+      if (!referencedAsset) {
         return {
           value: '#ERROR',
           isError: true,
-          errorMessage: `参照されたアセット '${assetId}' が見つからないか、ValueAssetではありません。`
+          errorMessage: `参照された変数 '${variableName}' が見つからません。`
         };
       }
+      
       // 循環参照チェック
-      if (hasCircularReference(assetId, project)) {
+      if (hasCircularReference(variableName, project)) {
         return {
           value: '#ERROR',
           isError: true,
-          errorMessage: `'${assetId}' は循環参照を含んでいます。`
+          errorMessage: `'${variableName}' は循環参照を含んでいます。`
         };
       }
       
-      const referencedValue = getValueAssetValue(referencedAsset as ValueAsset, page);
+      const referencedValue = getValueAssetValue(referencedAsset, page);
       
       // 参照値が数式の場合は再帰的に評価
-      if ((referencedAsset as ValueAsset).value_type === 'formula') {
+      if (referencedAsset.value_type === 'formula') {
         const nestedResult = evaluateFormula(referencedValue, project, page, pageIndex);
         if (nestedResult.isError) {
           return nestedResult;
         }
-        processedFormula = processedFormula.replace(variableId, String(nestedResult.value));
+        processedFormula = processedFormula.replace(variableReference, String(nestedResult.value));
       } else {
-        processedFormula = processedFormula.replace(variableId, String(referencedValue));
+        processedFormula = processedFormula.replace(variableReference, String(referencedValue));
       }
     }
     
@@ -235,7 +243,7 @@ export function getEffectiveValueAssetValue(
   pageIndex: number
 ): any {
   // 循環参照チェック
-  if (valueAsset.value_type === 'formula' && hasCircularReference(valueAsset.id, project)) {
+  if (valueAsset.value_type === 'formula' && hasCircularReference(valueAsset.name, project)) {
     return '#ERROR';
   }
 

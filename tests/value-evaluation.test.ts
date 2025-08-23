@@ -14,7 +14,7 @@ describe('Value Evaluation Engine', () => {
     let project = mockProject
     project.assets['string-asset'] = {
       id: 'string-asset',
-      name: 'String Asset',
+      name: 'string_var',
       type: 'ValueAsset',
       value_type: 'string',
       initial_value: 'Hello',
@@ -22,7 +22,7 @@ describe('Value Evaluation Engine', () => {
     } as ValueAsset
     project.assets['number-asset'] = {
       id: 'number-asset',
-      name: 'Number Asset',
+      name: 'number_var',
       type: 'ValueAsset',
       value_type: 'number',
       initial_value: 42,
@@ -30,26 +30,26 @@ describe('Value Evaluation Engine', () => {
     } as ValueAsset
     project.assets['formula-asset'] = {
       id: 'formula-asset',
-      name: 'Formula Asset',
+      name: 'formula_var',
       type: 'ValueAsset',
       value_type: 'formula',
-      initial_value: '%{number-asset} + 10',
+      initial_value: '%{number_var} + 10',
       new_page_behavior: 'reset'
     } as ValueAsset
     project.assets['circular-a'] = {
       id: 'circular-a',
-      name: 'Circular A',
+      name: 'circular_a',
       type: 'ValueAsset',
       value_type: 'formula',
-      initial_value: '%{circular-b} + 1',
+      initial_value: '%{circular_b} + 1',
       new_page_behavior: 'reset'
     } as ValueAsset
     project.assets['circular-b'] = {
       id: 'circular-b',
-      name: 'Circular B',
+      name: 'circular_b',
       type: 'ValueAsset',
       value_type: 'formula',
-      initial_value: '%{circular-a} + 1',
+      initial_value: '%{circular_a} + 1',
       new_page_behavior: 'reset'
     } as ValueAsset
     project.pages = [
@@ -120,13 +120,13 @@ describe('Value Evaluation Engine', () => {
     });
 
     test('変数参照を正しく評価する', () => {
-      const result = evaluateFormula('%{number-asset}', project, project.pages[0], 0);
+      const result = evaluateFormula('%{number_var}', project, project.pages[0], 0);
       expect(result.isError).toBe(false);
       expect(result.value).toBe(100); // オーバーライド値
     });
 
     test('変数参照を含む数式を正しく評価する', () => {
-      const result = evaluateFormula('%{number-asset} + 50', project, project.pages[0], 0);
+      const result = evaluateFormula('%{number_var} + 50', project, project.pages[0], 0);
       expect(result.isError).toBe(false);
       expect(result.value).toBe(150); // 100 + 50
     });
@@ -156,7 +156,7 @@ describe('Value Evaluation Engine', () => {
     });
 
     test('循環参照はエラーを返す', () => {
-      const result = evaluateFormula('%{circular-a}', project, project.pages[0], 0);
+      const result = evaluateFormula('%{circular_a}', project, project.pages[0], 0);
       expect(result.isError).toBe(true);
       expect(result.errorMessage).toContain('循環参照');
     });
@@ -168,9 +168,9 @@ describe('Value Evaluation Engine', () => {
     });
 
     test('複雑な数式を正しく評価する', () => {
-      const result = evaluateFormula('(%{number-asset} * 2) + %p + %P', project, project.pages[1], 1);
+      const result = evaluateFormula('(%{number_var} * 2) + %p + %P', project, project.pages[1], 1);
       expect(result.isError).toBe(false);
-      expect(result.value).toBe(89); // (42 * 2) + 2 + 3 = 205
+      expect(result.value).toBe(89); // (42 * 2) + 2 + 3 = 89
     });
   });
 
@@ -338,32 +338,32 @@ describe('Value Evaluation Engine', () => {
           ...project.assets,
           'deep-a': {
             id: 'deep-a',
-            name: 'Deep A',
+            name: 'deep_a',
             type: 'ValueAsset',
             value_type: 'formula',
-            initial_value: '%{deep-b}',
+            initial_value: '%{deep_b}',
             new_page_behavior: 'reset'
           } as ValueAsset,
           'deep-b': {
             id: 'deep-b',
-            name: 'Deep B',
+            name: 'deep_b',
             type: 'ValueAsset',
             value_type: 'formula',
-            initial_value: '%{deep-c}',
+            initial_value: '%{deep_c}',
             new_page_behavior: 'reset'
           } as ValueAsset,
           'deep-c': {
             id: 'deep-c',
-            name: 'Deep C',
+            name: 'deep_c',
             type: 'ValueAsset',
             value_type: 'formula',
-            initial_value: '%{deep-a}',
+            initial_value: '%{deep_a}',
             new_page_behavior: 'reset'
           } as ValueAsset
         }
       };
 
-      const result = evaluateFormula('%{deep-a}', projectWithDeepCircular, project.pages[0], 0);
+      const result = evaluateFormula('%{deep_a}', projectWithDeepCircular, project.pages[0], 0);
       expect(result.isError).toBe(true);
       expect(result.errorMessage).toContain('循環参照');
     });
@@ -403,7 +403,7 @@ describe('Value Evaluation Engine', () => {
       const project = createTestProject();
       
       // 100個の変数を含む数式を作成
-      const formula = Array.from({ length: 100 }, (_, i) => `%{number-asset}`).join(' + ');
+      const formula = Array.from({ length: 100 }, (_, i) => `%{number_var}`).join(' + ');
       
       const start = performance.now();
       const result = evaluateFormula(formula, project, project.pages[0], 0);
@@ -416,7 +416,7 @@ describe('Value Evaluation Engine', () => {
 
     test('複雑な入れ子数式を処理できる', () => {
       const project = createTestProject();
-      const complexFormula = '(((%{number-asset} + 5) * 2) - 10) / 3';
+      const complexFormula = '(((%{number_var} + 5) * 2) - 10) / 3';
       
       const result = evaluateFormula(complexFormula, project, project.pages[1], 1);
       expect(result.isError).toBe(false);
