@@ -66,19 +66,19 @@ SVG形式のベクター画像を表すアセット。
 例えばこんな感じのスクリプトを登録する。
 
 ```
-
 function createSquareSVG(x, y, sideLength) {
   // SVGの文字列を構築
   const svgString = `<rect x="${x}" y="${y}" width="${sideLength}" height="${sideLength}" stroke="black" fill="transparent" />`;
   // 例: <rect x="50" y="50" width="100" height="100" stroke="black" fill="transparent" />
   return svgString;
 }
+return createSquareSVG(asset_value_1, asset_value_2, asset_value_3);
 ```
 
 引数となる値（上記の例だとx, y, sideLength）は、 Dynamic SVG の AssetInstance 側で指定できる。
-AssetInstance 側では、引数名と、ValueAsset のIDを紐づけることで、ページ内の他の要素の値を引数として渡すことができる。
+AssetInstance 側では、ValueAsset のname をそのまま変数として利用できる（`asset_value_1` のように）。
 スクリプトは vm （Node.jsのvmモジュール）のサンドボックス環境で実行される。
-HTML エクスポート時には、関数実行後の文字列が埋め込まれており、HTML ビューワーの視聴環境ではスクリプトは実行されない。
+HTML エクスポート時には、関数実行後の文字列が埋め込まれており、HTML ビューワーの視聴環境ではスクリプトは直接は実行されない。
 
 ## Script
 
