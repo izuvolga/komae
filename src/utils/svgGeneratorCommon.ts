@@ -174,8 +174,8 @@ export function generateSvgStructureCommon(
  */
 function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance): string {
   // インスタンスのオーバーライド値を取得
-  const posX = instance.override_pos_x ?? 100; // Default position for VectorAsset
-  const posY = instance.override_pos_y ?? 100;
+  const posX = instance.override_pos_x ?? asset.default_pos_x;
+  const posY = instance.override_pos_y ?? asset.default_pos_y;
   const width = instance.override_width ?? asset.default_width;
   const height = instance.override_height ?? asset.default_height;
   const opacity = instance.override_opacity ?? asset.default_opacity;
@@ -213,11 +213,11 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
  * 画像アセット定義を生成する（<defs>内で使用）
  */
 function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
-  const x = 100; // Default position for ImageAsset definition
-  const y = 100;
+  const x = asset.default_pos_x;
+  const y = asset.default_pos_y;
   const width = asset.default_width;
   const height = asset.default_height;
-  const opacity = asset.default_opacity ?? 1.0;
+  const opacity = asset.default_opacity;
   
   return [
     `<g id="${asset.id}" opacity="${opacity}">`,
@@ -236,11 +236,10 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   // 位置調整（ImageAssetInstanceのみ対応）
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
     const imageInstance = instance as ImageAssetInstance;
-    const defaultX = 100; // Default X position
-    const defaultY = 100; // Default Y position
+    const defaultX = asset.default_pos_x;
+    const defaultY = asset.default_pos_y;
     const posX = imageInstance.override_pos_x ?? defaultX;
     const posY = imageInstance.override_pos_y ?? defaultY;
-    
     // アセットのデフォルト位置からの差分を計算してtranslateに追加
     const translateX = posX - defaultX;
     const translateY = posY - defaultY;
