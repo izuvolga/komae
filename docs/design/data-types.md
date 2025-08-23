@@ -22,6 +22,7 @@
     - ImageAsset ... 画像を表現するためのテンプレート
     - TextAsset ... テキストを表現するためのテンプレート
     - VectorAsset ... SVGベクター画像を表現するためのテンプレート
+    - ValueAsset ... 値（変数）を表現するためのテンプレート
 
 - AssetInstance
   - 背景: 実態として全く同じ画像を複数のページで何度も使うことは少なく、微妙に位置を変えたり、サイズを変えたりすることが多い。そのため、ちょっとした位置の変更のたびに Asset が増えるのは非効率的である。そこで、Asset の属性情報を極力使いまわしつつ、 Page ごとに微妙に異なる配置情報を持つことができるようにするための概念。
@@ -204,6 +205,52 @@ VectorAssetInstanceの特徴：
 - z_indexによる他アセットとの重なり順制御
 - インスタンスごとにSVG要素として直接レンダリング
 - オーバーライドされた値はSVGのx, y, width, height, opacity属性に直接適用
+
+### ValueAsset
+
+値（変数）を表現するためのテンプレートで、以下の属性をもつ。
+
+```
+id: テンプレートのID (ユーザーが指定する必要はない)
+name: 値アセットの名前 (例: "キャラクター年齢", "スコア", "計算結果")
+value_type: 値の型 ('string' | 'number' | 'formula')
+  - 'string': 文字列値
+  - 'number': 数値
+  - 'formula': 数式（他のValueAssetを参照可能）
+initial_value: 初期値
+  - string型: 文字列
+  - number型: 数値
+  - formula型: 数式文字列（例: "%{変数名} + 10", "%p * 2"）
+new_page_behavior: 新しいページでの値の挙動 ('reset' | 'inherit')
+  - 'reset': 新しいページでは初期値を使用
+  - 'inherit': 前のページの値を継承
+```
+
+ValueAssetの特徴：
+- ページ間で共有される変数として機能
+- 数式では他のValueAssetを`%{アセットID}`で参照可能
+- ページ番号は`%p`（現在のページ）、`%P`（総ページ数）で参照可能
+- 循環参照は自動検出してエラー表示
+- スプレッドシート上でインライン編集によるリアルタイム値変更が可能
+
+### ValueAssetInstance
+
+ValueAssetを実際のPageで使用する際のインスタンス。以下の属性をもつ。
+
+```
+id: インスタンスのID (ユーザーが指定する必要はない)
+asset_id: 参照するValueAssetのID
+override_value: ValueAssetのinitial_valueを上書きする値 (optional)
+  - 指定した場合、そのページでのみ異なる値を使用
+  - 未指定の場合、ValueAssetのinitial_valueまたは継承値を使用
+```
+
+ValueAssetInstanceの特徴：
+- ページごとに異なる値を設定可能（override_value）
+- new_page_behaviorの設定により値の継承/リセット動作が決定
+- 数式型の場合、override_valueに設定した数式が評価される
+- スプレッドシート上のセルクリックでインライン編集が可能
+- 編集時は値の型に応じて適切な入力フィールド（テキスト/数値）を表示
 
 ## DynamicSvgAssetInstance
 

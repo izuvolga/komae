@@ -94,6 +94,28 @@ export function getValueAssetValue(valueAsset: ValueAsset, page: Page): any {
 }
 
 /**
+ * ValueAssetの生の値を取得する（数式評価を行わない）
+ * 編集時に数式文字列を取得したい場合に使用
+ * @param valueAsset - ValueAsset
+ * @param page - 現在のページ
+ * @returns 生の値（数式文字列や未評価の値）
+ */
+export function getRawValueAssetValue(valueAsset: ValueAsset, page: Page): any {
+  // ページ内のValueAssetInstanceを検索
+  const instance = Object.values(page.asset_instances).find(
+    inst => inst.asset_id === valueAsset.id
+  ) as ValueAssetInstance | undefined;
+  
+  // インスタンスでオーバーライドされている場合はそちらを使用
+  if (instance && instance.override_value !== undefined) {
+    return instance.override_value;
+  }
+  
+  // アセットの初期値を使用
+  return valueAsset.initial_value;
+}
+
+/**
  * 数式を評価する
  * @param formula - 数式文字列
  * @param project - プロジェクトデータ

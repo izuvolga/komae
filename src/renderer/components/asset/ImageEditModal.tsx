@@ -4,7 +4,7 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
-import './ImageAssetEditModal.css';
+import './ImageEditModal.css';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -390,7 +390,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   };
 
-  // マウス操作のハンドラー（既存のImageAssetEditModalから移植）
+  // マウス操作のハンドラー
   const handleImageMouseDown = (e: React.MouseEvent) => {
     if (maskEditMode) return;
     

@@ -7,7 +7,7 @@ import { VectorEditModal } from '../asset/VectorEditModal';
 import { ValueEditModal } from '../asset/ValueEditModal';
 import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
-import { getEffectiveValueAssetValue } from '../../../utils/valueEvaluation';
+import { getEffectiveValueAssetValue, getRawValueAssetValue } from '../../../utils/valueEvaluation';
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
 import { CellContextMenu } from './CellContextMenu';
@@ -473,7 +473,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   // ValueAssetインライン編集のハンドラー
   const handleStartValueInlineEdit = (assetInstance: ValueAssetInstance, asset: ValueAsset, page: Page) => {
-    const currentValue = getEffectiveValueAssetValue(asset, project, page, pages.findIndex(p => p.id === page.id));
+    // 数式型の場合は生の値を取得、それ以外は評価後の値を取得
+    const currentValue = asset.value_type === 'formula' 
+      ? getRawValueAssetValue(asset, page)
+      : getEffectiveValueAssetValue(asset, project, page, pages.findIndex(p => p.id === page.id));
     
     setValueInlineEditState({
       isEditing: true,
@@ -481,7 +484,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       pageId: page.id,
       value: currentValue,
     });
-  };
+  };;
 
   const handleSaveValueInlineEdit = () => {
     if (!valueInlineEditState.assetInstanceId || !valueInlineEditState.pageId) return;
