@@ -80,4 +80,5 @@
 
 ## CI/CD パイプライン
 - [ ]: GitHub Actions での CI/CD パイプラインを構築
+- [ ]: CLA 同意を導入 https://qiita.com/suin/items/5d53afb397e1788be61d
 - [ ]: ビルド済みアプリケーションを GitHub Releases にアップロード
