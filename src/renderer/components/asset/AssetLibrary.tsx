@@ -8,6 +8,7 @@ import { TextEditModal } from './TextEditModal';
 import { VectorEditModal } from './VectorEditModal';
 import { DynamicVectorEditModal } from './DynamicVectorEditModal';
 import { ValueEditModal } from './ValueEditModal';
+import CustomAssetSelectionModal from './CustomAssetSelectionModal';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ValueAsset } from '../../../types/entities';
 import { createValueAsset, createDynamicVectorAsset } from '../../../types/entities';
 import './AssetLibrary.css';
@@ -39,6 +40,7 @@ export const AssetLibrary: React.FC = () => {
   } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [showCustomAssetSelectionModal, setShowCustomAssetSelectionModal] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const createMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
@@ -302,32 +304,58 @@ export const AssetLibrary: React.FC = () => {
   };
 
   const handleCreateDynamicVectorAsset = async () => {
+    await logger.logUserInteraction('dynamic_vector_asset_create', 'AssetLibrary', {
+      currentAssetCount: assetList.length,
+    });
+    
+    setShowCreateMenu(false);
+    setShowCustomAssetSelectionModal(true);
+  };
+
+  const handleCustomAssetSelectionModalClose = () => {
+    setShowCustomAssetSelectionModal(false);
+  };
+
+  const handleCustomAssetSelect = async (customAssetInfo: any) => {
     try {
-      await logger.logUserInteraction('dynamic_vector_asset_create', 'AssetLibrary', {
+      await logger.logUserInteraction('dynamic_vector_asset_create_from_custom', 'AssetLibrary', {
+        customAssetId: customAssetInfo.id,
+        customAssetName: customAssetInfo.name,
         currentAssetCount: assetList.length,
       });
 
-      // DynamicVectorAssetを作成
+      // CustomAssetベースのDynamicVectorAssetを作成
       const result = createDynamicVectorAsset({
-        name: 'New Dynamic SVG'
+        name: `${customAssetInfo.name} (Dynamic SVG)`,
+        customAssetId: customAssetInfo.id,
+        // CustomAssetのパラメータをデフォルト値で初期化
+        customParameters: customAssetInfo.parameters.reduce((params: Record<string, any>, param: any) => {
+          params[param.name] = param.defaultValue;
+          return params;
+        }, {}),
+        // CustomAssetフラグを設定
+        isCustomAsset: true,
+        customAssetInfo: customAssetInfo,
       });
       
       addAsset(result);
       
-      await logger.logUserInteraction('dynamic_vector_asset_create_success', 'AssetLibrary', {
+      await logger.logUserInteraction('dynamic_vector_asset_create_from_custom_success', 'AssetLibrary', {
         assetId: result.id,
         assetName: result.name,
+        customAssetId: customAssetInfo.id,
       });
       
-      setShowCreateMenu(false);
+      setShowCustomAssetSelectionModal(false);
       
       // 作成後すぐに編集モードで開く
       setEditingDynamicVectorAsset(result);
     } catch (error) {
-      await logger.logUserInteraction('dynamic_vector_asset_create_error', 'AssetLibrary', {
+      await logger.logUserInteraction('dynamic_vector_asset_create_from_custom_error', 'AssetLibrary', {
         error: error instanceof Error ? error.message : String(error),
+        customAssetId: customAssetInfo.id,
       });
-      console.error('DynamicVectorAsset作成エラー:', error);
+      console.error('CustomAssetベースのDynamicVectorAsset作成エラー:', error);
     }
   };
 
@@ -773,6 +801,13 @@ export const AssetLibrary: React.FC = () => {
           onSaveAsset={handleValueAssetSave}
         />
       )}
+
+      {/* CustomAsset選択モーダル */}
+      <CustomAssetSelectionModal
+        isOpen={showCustomAssetSelectionModal}
+        onClose={handleCustomAssetSelectionModalClose}
+        onSelect={handleCustomAssetSelect}
+      />
     </div>
   );
 };

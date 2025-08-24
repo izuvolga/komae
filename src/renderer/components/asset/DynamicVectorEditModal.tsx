@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
+import AssetParameterEditor from './AssetParameterEditor';
 import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page } from '../../../types/entities';
 import { 
   getEffectiveZIndex, 
@@ -66,10 +67,27 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
+  // CustomAsset関連の状態
+  const [customAssetInfo, setCustomAssetInfo] = useState<any>(null);
+
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
+    
+    // CustomAssetの場合、情報を取得
+    if (asset.isCustomAsset && asset.customAssetId) {
+      loadCustomAssetInfo(asset.customAssetId);
+    }
   }, [asset, assetInstance]);
+
+  const loadCustomAssetInfo = async (customAssetId: string) => {
+    try {
+      const info = await window.electronAPI.customAsset.getAssetInfo(customAssetId);
+      setCustomAssetInfo(info);
+    } catch (error) {
+      console.error('Failed to load custom asset info:', error);
+    }
+  };
 
   if (!isOpen || !project) return null;
 
@@ -114,10 +132,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
   // 初回プレビュー生成
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !editedAsset.isCustomAsset) {
       updatePreview(editedAsset.script);
     }
-  }, [isOpen, updatePreview, editedAsset.script]);
+  }, [isOpen, updatePreview, editedAsset.script, editedAsset.isCustomAsset]);
 
   // クリーンアップ
   useEffect(() => {
@@ -184,7 +202,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   };
 
   const handleScriptChange = (value: string) => {
-    if (mode === 'asset') {
+    if (mode === 'asset' && !editedAsset.isCustomAsset) {
       setEditedAsset(prev => ({
         ...prev,
         script: value,
@@ -195,7 +213,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   };
 
   const handleUsePageVariablesChange = (checked: boolean) => {
-    if (mode === 'asset') {
+    if (mode === 'asset' && !editedAsset.isCustomAsset) {
       const updatedAsset = {
         ...editedAsset,
         use_page_variables: checked,
@@ -207,7 +225,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   };
 
   const handleUseValueVariablesChange = (checked: boolean) => {
-    if (mode === 'asset') {
+    if (mode === 'asset' && !editedAsset.isCustomAsset) {
       const updatedAsset = {
         ...editedAsset,
         use_value_variables: checked,
@@ -215,6 +233,17 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       setEditedAsset(updatedAsset);
       // プレビューを即座に更新
       updatePreview(updatedAsset.script);
+    }
+  };
+
+  const handleCustomAssetParameterChange = (parameters: Record<string, number | string>) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({
+        ...prev,
+        customAssetParameters: parameters,
+      }));
+      // CustomAssetの場合、パラメータ変更時にプレビューを更新
+      // TODO: CustomAssetのスクリプトを実行してプレビューを更新する必要がある
     }
   };
 
@@ -240,7 +269,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       };
       setEditedAsset(updatedAsset);
       // サイズ変更時はプレビューを更新（SVGのラッピングサイズが変わるため）
-      updatePreview(updatedAsset.script);
+      if (!updatedAsset.isCustomAsset) {
+        updatePreview(updatedAsset.script);
+      }
     } else if (editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
@@ -350,95 +381,144 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
           <h2>
             {mode === 'asset' ? 'Dynamic SVGアセット編集' : 'Dynamic SVGインスタンス編集'}
             {mode === 'instance' && page && ` - ${page.title}`}
+            {editedAsset.isCustomAsset && customAssetInfo && (
+              <span className="custom-asset-badge"> (CustomAsset: {customAssetInfo?.metadata?.name || 'Loading...'})</span>
+            )}
           </h2>
           <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="modal-content">
           <div className="edit-panels">
-            {/* 左側：スクリプトエディタ */}
+            {/* 左側：スクリプトエディタ or CustomAssetパラメータエディタ */}
             <div className="script-panel">
-              <div className="script-header">
-                <h3>JavaScript スクリプト</h3>
-                <div className="script-controls">
-                  <button 
-                    className={`console-toggle ${showConsole ? 'active' : ''}`}
-                    onClick={() => setShowConsole(!showConsole)}
-                  >
-                    Console
-                  </button>
-                </div>
-              </div>
-              
-              {/* 変数設定 */}
-              {mode === 'asset' && (
-                <div className="variable-settings">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={editedAsset.use_page_variables}
-                      onChange={(e) => handleUsePageVariablesChange(e.target.checked)}
-                    />
-                    ページ変数を使用 (page_current, page_total)
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={editedAsset.use_value_variables}
-                      onChange={(e) => handleUseValueVariablesChange(e.target.checked)}
-                    />
-                    ValueAsset変数を使用
-                  </label>
-                </div>
-              )}
+              {editedAsset.isCustomAsset ? (
+                <>
+                  {/* CustomAsset情報表示 */}
+                  <div className="custom-asset-info">
+                    <h3>CustomAsset 設定</h3>
+                    {customAssetInfo && (
+                      <div className="asset-info-details">
+                        <div className="info-item">
+                          <strong>名前:</strong> {customAssetInfo?.metadata?.name || 'N/A'}
+                        </div>
+                        <div className="info-item">
+                          <strong>バージョン:</strong> {customAssetInfo?.metadata?.version || 'N/A'}
+                        </div>
+                        {customAssetInfo?.metadata?.description && (
+                          <div className="info-item">
+                            <strong>説明:</strong> {customAssetInfo.metadata.description}
+                          </div>
+                        )}
+                        {customAssetInfo?.metadata?.author && (
+                          <div className="info-item">
+                            <strong>作者:</strong> {customAssetInfo.metadata.author}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-              {/* スクリプトエディタ */}
-              <div className="script-editor-container">
-                <div className="line-numbers" ref={lineNumbersRef}>
-                  <pre>{getLineNumbers(editedAsset.script)}</pre>
-                </div>
-                <textarea
-                  ref={textareaRef}
-                  className="script-editor"
-                  value={editedAsset.script}
-                  onChange={(e) => handleScriptChange(e.target.value)}
-                  onScroll={handleScroll}
-                  placeholder={'// SVG要素を返すJavaScriptを記述してください\n// 例:\nreturn \'<circle cx="50" cy="50" r="25" fill="red" />\';\n// 利用可能な変数:\n// - page_current, page_total (ページ変数が有効な場合)\n// - ValueAsset名 (Value変数が有効な場合)'}
-                  spellCheck={false}
-                  disabled={mode === 'instance'}
-                />
-              </div>
-
-              {/* エラー・警告表示 */}
-              {scriptExecutionResult && !scriptExecutionResult.success && (
-                <div className="execution-error">
-                  <h4>実行エラー</h4>
-                  <p>{scriptExecutionResult.error}</p>
-                  {scriptExecutionResult.debugInfo?.lineNumber && (
-                    <p>行 {scriptExecutionResult.debugInfo.lineNumber}</p>
+                  {/* CustomAssetパラメータエディタ */}
+                  {mode === 'asset' && customAssetInfo && customAssetInfo?.metadata?.params && (
+                    <div className="custom-asset-parameters">
+                      <h4>パラメータ</h4>
+                      <AssetParameterEditor
+                        parameters={customAssetInfo?.metadata?.params || []}
+                        values={editedAsset.customAssetParameters || {}}
+                        onChange={handleCustomAssetParameterChange}
+                      />
+                    </div>
                   )}
-                </div>
-              )}
 
-              {scriptExecutionResult && scriptExecutionResult.warnings && scriptExecutionResult.warnings.length > 0 && (
-                <div className="execution-warnings">
-                  <h4>警告</h4>
-                  <ul>
-                    {scriptExecutionResult.warnings.map((warning, index) => (
-                      <li key={index}>{warning}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                  {/* CustomAssetの場合はコンソール表示は無し */}
+                </>
+              ) : (
+                <>
+                  {/* 通常のスクリプトエディタ */}
+                  <div className="script-header">
+                    <h3>JavaScript スクリプト</h3>
+                    <div className="script-controls">
+                      <button 
+                        className={`console-toggle ${showConsole ? 'active' : ''}`}
+                        onClick={() => setShowConsole(!showConsole)}
+                      >
+                        Console
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* 変数設定 */}
+                  {mode === 'asset' && (
+                    <div className="variable-settings">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={editedAsset.use_page_variables}
+                          onChange={(e) => handleUsePageVariablesChange(e.target.checked)}
+                        />
+                        ページ変数を使用 (page_current, page_total)
+                      </label>
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={editedAsset.use_value_variables}
+                          onChange={(e) => handleUseValueVariablesChange(e.target.checked)}
+                        />
+                        ValueAsset変数を使用
+                      </label>
+                    </div>
+                  )}
 
-              {/* コンソール出力 */}
-              {showConsole && scriptExecutionResult?.debugInfo?.consoleOutput && (
-                <div className="console-output">
-                  <h4>Console Output</h4>
-                  <pre>
-                    {scriptExecutionResult.debugInfo.consoleOutput.join('\n')}
-                  </pre>
-                </div>
+                  {/* スクリプトエディタ */}
+                  <div className="script-editor-container">
+                    <div className="line-numbers" ref={lineNumbersRef}>
+                      <pre>{getLineNumbers(editedAsset.script)}</pre>
+                    </div>
+                    <textarea
+                      ref={textareaRef}
+                      className="script-editor"
+                      value={editedAsset.script}
+                      onChange={(e) => handleScriptChange(e.target.value)}
+                      onScroll={handleScroll}
+                      placeholder={'// SVG要素を返すJavaScriptを記述してください\n// 例:\nreturn \'<circle cx="50" cy="50" r="25" fill="red" />\';\n// 利用可能な変数:\n// - page_current, page_total (ページ変数が有効な場合)\n// - ValueAsset名 (Value変数が有効な場合)'}
+                      spellCheck={false}
+                      disabled={mode === 'instance'}
+                    />
+                  </div>
+
+                  {/* エラー・警告表示 */}
+                  {scriptExecutionResult && !scriptExecutionResult.success && (
+                    <div className="execution-error">
+                      <h4>実行エラー</h4>
+                      <p>{scriptExecutionResult.error}</p>
+                      {scriptExecutionResult.debugInfo?.lineNumber && (
+                        <p>行 {scriptExecutionResult.debugInfo.lineNumber}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {scriptExecutionResult && scriptExecutionResult.warnings && scriptExecutionResult.warnings.length > 0 && (
+                    <div className="execution-warnings">
+                      <h4>警告</h4>
+                      <ul>
+                        {scriptExecutionResult.warnings.map((warning, index) => (
+                          <li key={index}>{warning}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* コンソール出力 */}
+                  {showConsole && scriptExecutionResult?.debugInfo?.consoleOutput && (
+                    <div className="console-output">
+                      <h4>Console Output</h4>
+                      <pre>
+                        {scriptExecutionResult.debugInfo.consoleOutput.join('\n')}
+                      </pre>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             
@@ -497,7 +577,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   
                   {!previewSVG && (
                     <div className="no-preview">
-                      {scriptExecutionResult?.error ? 'エラーのため表示できません' : '実行中...'}
+                      {editedAsset.isCustomAsset ? 'CustomAssetのプレビューは現在対応中です' : 
+                       scriptExecutionResult?.error ? 'エラーのため表示できません' : '実行中...'}
                     </div>
                   )}
                 </div>

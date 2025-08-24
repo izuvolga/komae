@@ -84,6 +84,8 @@ export interface DynamicVectorAsset extends BaseAsset {
   customAssetId?: string; // CustomAssetを使用する場合のID
   isCustomAsset: boolean; // CustomAssetを使用するかどうか
   customAssetParameters?: Record<string, number | string>; // CustomAssetのパラメータ値
+  customParameters?: Record<string, number | string>; // CustomAssetのパラメータ値（別名）
+  customAssetInfo?: any; // CustomAssetの情報
 }
 
 export interface ValueAsset extends BaseAsset {
@@ -793,6 +795,8 @@ export function createDynamicVectorAsset(params: {
   customAssetId?: string;
   isCustomAsset?: boolean;
   customAssetParameters?: Record<string, number | string>;
+  customParameters?: Record<string, number | string>;
+  customAssetInfo?: any;
 }): DynamicVectorAsset {
   const defaultScript = `// DynamicVectorAsset スクリプト
 // 戻り値はSVG文字列である必要があります
@@ -826,6 +830,8 @@ return generateSVG();`;
     customAssetId: params.customAssetId,
     isCustomAsset: params.isCustomAsset || false,
     customAssetParameters: params.customAssetParameters || {},
+    customParameters: params.customParameters || {},
+    customAssetInfo: params.customAssetInfo,
   };
 }
 
