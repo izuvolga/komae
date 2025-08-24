@@ -80,7 +80,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     if (!project) return;
 
     const pageIndex = getCurrentPageIndex();
-    const { context, warnings } = createExecutionContext(editedAsset, project, pageIndex);
+    const context = createExecutionContext(editedAsset, project, pageIndex);
     
     // スクリプト実行
     const result = executeScript(script, context);
@@ -160,6 +160,15 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   };
 
   // 値更新ハンドラー
+  const handleNameChange = (value: string) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({
+        ...prev,
+        name: value,
+      }));
+    }
+  };
+
   const handleScriptChange = (value: string) => {
     if (mode === 'asset') {
       setEditedAsset(prev => ({
@@ -289,10 +298,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const handleSave = () => {
     try {
       if (mode === 'asset') {
-        validateDynamicVectorAssetData(editedAsset);
+        const validation = validateDynamicVectorAssetData(editedAsset);
+        if (!validation.isValid) {
+          alert(`保存に失敗しました: ${validation.errors.join(', ')}`);
+          return;
+        }
         onSaveAsset?.(editedAsset);
       } else if (mode === 'instance' && editedInstance) {
-        validateDynamicVectorAssetInstanceData(editedInstance);
+        const validation = validateDynamicVectorAssetInstanceData(editedInstance);
+        if (!validation.isValid) {
+          alert(`保存に失敗しました: ${validation.errors.join(', ')}`);
+          return;
+        }
         onSaveInstance?.(editedInstance);
       }
       onClose(); // 保存後にモーダルを閉じる
@@ -487,9 +504,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 <label>アセット名</label>
                 <input
                   type="text"
-                  value={asset.name}
-                  readOnly
-                  className="readonly-input"
+                  value={editedAsset.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  disabled={mode === 'instance'}
+                  className={mode === 'instance' ? 'readonly-input' : ''}
                 />
               </div>
 
