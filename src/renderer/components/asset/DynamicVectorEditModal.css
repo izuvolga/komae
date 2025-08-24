@@ -143,20 +143,18 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 14px;
   line-height: 1.5;
+  display: flex;
 }
 
 .dynamic-vector-edit-modal .line-numbers {
-  position: absolute;
-  left: 0;
-  top: 0;
   width: 50px;
-  height: 100%;
   background: #f8fafc;
   border-right: 1px solid #e5e7eb;
   padding: 8px 4px;
   box-sizing: border-box;
-  z-index: 1;
   user-select: none;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .dynamic-vector-edit-modal .line-numbers pre {
@@ -167,23 +165,25 @@
   text-align: right;
   font-family: inherit;
   line-height: inherit;
+  white-space: pre;
 }
 
 .dynamic-vector-edit-modal .script-editor {
-  width: 100%;
+  flex: 1;
   height: 300px;
   min-height: 300px;
   border: none;
   outline: none;
   resize: vertical;
-  padding: 8px 8px 8px 58px;
+  padding: 8px;
   background: transparent;
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
   color: #111827;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
 }
 
 .dynamic-vector-edit-modal .script-editor:disabled {

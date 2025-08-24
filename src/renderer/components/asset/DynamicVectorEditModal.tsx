@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page } from '../../../types/entities';
@@ -62,6 +62,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   // プレビュー更新のデバウンス用
   const [previewUpdateTimer, setPreviewUpdateTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // スクリプトエディタのスクロール同期用ref
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
@@ -123,6 +127,16 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       }
     };
   }, [previewUpdateTimer]);
+
+  // スクロール同期ハンドラー
+  const handleScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target as HTMLTextAreaElement;
+    const lineNumbers = lineNumbersRef.current;
+    
+    if (lineNumbers) {
+      lineNumbers.scrollTop = textarea.scrollTop;
+    }
+  }, []);
 
   // 現在の値を取得（Asset vs Instance）
   const getCurrentPosition = () => {
@@ -380,13 +394,15 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
               {/* スクリプトエディタ */}
               <div className="script-editor-container">
-                <div className="line-numbers">
+                <div className="line-numbers" ref={lineNumbersRef}>
                   <pre>{getLineNumbers(editedAsset.script)}</pre>
                 </div>
                 <textarea
+                  ref={textareaRef}
                   className="script-editor"
                   value={editedAsset.script}
                   onChange={(e) => handleScriptChange(e.target.value)}
+                  onScroll={handleScroll}
                   placeholder={'// SVG要素を返すJavaScriptを記述してください\n// 例:\nreturn \'<circle cx="50" cy="50" r="25" fill="red" />\';\n// 利用可能な変数:\n// - page_current, page_total (ページ変数が有効な場合)\n// - ValueAsset名 (Value変数が有効な場合)'}
                   spellCheck={false}
                   disabled={mode === 'instance'}
