@@ -6,9 +6,10 @@ import { AssetThumbnail } from './AssetThumbnail';
 import { ImageEditModal } from './ImageEditModal';
 import { TextEditModal } from './TextEditModal';
 import { VectorEditModal } from './VectorEditModal';
+import { DynamicVectorEditModal } from './DynamicVectorEditModal';
 import { ValueEditModal } from './ValueEditModal';
-import type { Asset, ImageAsset, TextAsset, VectorAsset, ValueAsset } from '../../../types/entities';
-import { createValueAsset } from '../../../types/entities';
+import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ValueAsset } from '../../../types/entities';
+import { createValueAsset, createDynamicVectorAsset } from '../../../types/entities';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -29,6 +30,7 @@ export const AssetLibrary: React.FC = () => {
   const [editingImageAsset, setEditingImageAsset] = useState<ImageAsset | null>(null);
   const [editingTextAsset, setEditingTextAsset] = useState<TextAsset | null>(null);
   const [editingVectorAsset, setEditingVectorAsset] = useState<VectorAsset | null>(null);
+  const [editingDynamicVectorAsset, setEditingDynamicVectorAsset] = useState<DynamicVectorAsset | null>(null);
   const [editingValueAsset, setEditingValueAsset] = useState<ValueAsset | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -117,6 +119,8 @@ export const AssetLibrary: React.FC = () => {
         setEditingTextAsset(contextMenu.asset as TextAsset);
       } else if (contextMenu.asset.type === 'VectorAsset') {
         setEditingVectorAsset(contextMenu.asset as VectorAsset);
+      } else if (contextMenu.asset.type === 'DynamicVectorAsset') {
+        setEditingDynamicVectorAsset(contextMenu.asset as DynamicVectorAsset);
       } else if (contextMenu.asset.type === 'ValueAsset') {
         setEditingValueAsset(contextMenu.asset as ValueAsset);
       }
@@ -164,6 +168,12 @@ export const AssetLibrary: React.FC = () => {
         assetName: asset.name,
       });
       setEditingVectorAsset(asset as VectorAsset);
+    } else if (asset.type === 'DynamicVectorAsset') {
+      logger.logUserInteraction('asset_edit_open', 'DynamicVectorAsset', {
+        assetId: asset.id,
+        assetName: asset.name,
+      });
+      setEditingDynamicVectorAsset(asset as DynamicVectorAsset);
     } else if (asset.type === 'ValueAsset') {
       logger.logUserInteraction('asset_edit_open', 'ValueAsset', {
         assetId: asset.id,
@@ -212,6 +222,15 @@ export const AssetLibrary: React.FC = () => {
     });
   };
 
+  const handleDynamicVectorAssetSave = (updatedAsset: DynamicVectorAsset) => {
+    updateAsset(updatedAsset.id, updatedAsset);
+    logger.logUserInteraction('asset_save', 'AssetLibrary', {
+      assetId: updatedAsset.id,
+      assetName: updatedAsset.name,
+      assetType: 'DynamicVectorAsset',
+    });
+  };
+
   const handleValueAssetSave = (updatedAsset: ValueAsset) => {
     updateAsset(updatedAsset.id, updatedAsset);
     logger.logUserInteraction('asset_save', 'AssetLibrary', {
@@ -219,6 +238,10 @@ export const AssetLibrary: React.FC = () => {
       assetName: updatedAsset.name,
       assetType: 'ValueAsset',
     });
+  };
+
+  const handleDynamicVectorModalClose = () => {
+    setEditingDynamicVectorAsset(null);
   };
 
   const handleValueModalClose = () => {
@@ -276,6 +299,36 @@ export const AssetLibrary: React.FC = () => {
         assetName: result.name,
       });
       setShowCreateMenu(false);
+  };
+
+  const handleCreateDynamicVectorAsset = async () => {
+    try {
+      await logger.logUserInteraction('dynamic_vector_asset_create', 'AssetLibrary', {
+        currentAssetCount: assetList.length,
+      });
+
+      // DynamicVectorAssetを作成
+      const result = createDynamicVectorAsset({
+        name: 'New Dynamic SVG'
+      });
+      
+      addAsset(result);
+      
+      await logger.logUserInteraction('dynamic_vector_asset_create_success', 'AssetLibrary', {
+        assetId: result.id,
+        assetName: result.name,
+      });
+      
+      setShowCreateMenu(false);
+      
+      // 作成後すぐに編集モードで開く
+      setEditingDynamicVectorAsset(result);
+    } catch (error) {
+      await logger.logUserInteraction('dynamic_vector_asset_create_error', 'AssetLibrary', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      console.error('DynamicVectorAsset作成エラー:', error);
+    }
   };
 
   const handleImportImageAsset = async () => {
@@ -586,6 +639,9 @@ export const AssetLibrary: React.FC = () => {
                 <button className="create-menu-item" onClick={handleImportVectorAsset}>
                   📐 SVG
                 </button>
+                <button className="create-menu-item" onClick={handleCreateDynamicVectorAsset}>
+                  ⚡ Dynamic SVG
+                </button>
                 <button className="create-menu-item" onClick={handleCreateTextAsset}>
                   🔤 テキスト
                 </button>
@@ -646,7 +702,7 @@ export const AssetLibrary: React.FC = () => {
             zIndex: 1000,
           }}
         >
-          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset' || contextMenu.asset.type === 'ValueAsset') && (
+          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset' || contextMenu.asset.type === 'DynamicVectorAsset' || contextMenu.asset.type === 'ValueAsset') && (
             <button
               className="context-menu-item"
               onClick={handleContextMenuEdit}
@@ -693,6 +749,17 @@ export const AssetLibrary: React.FC = () => {
           isOpen={!!editingVectorAsset}
           onClose={handleVectorModalClose}
           onSaveAsset={handleVectorAssetSave}
+        />
+      )}
+
+      {/* DynamicVectorAsset編集モーダル */}
+      {editingDynamicVectorAsset && (
+        <DynamicVectorEditModal
+          mode="asset"
+          asset={editingDynamicVectorAsset}
+          isOpen={!!editingDynamicVectorAsset}
+          onClose={handleDynamicVectorModalClose}
+          onSaveAsset={handleDynamicVectorAssetSave}
         />
       )}
 

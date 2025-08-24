@@ -20,7 +20,7 @@ export interface CanvasConfig {
 // Asset定義（テンプレート）
 export interface BaseAsset {
   id: string;
-  type: 'ImageAsset' | 'TextAsset' | 'VectorAsset' | 'ValueAsset';
+  type: 'ImageAsset' | 'TextAsset' | 'VectorAsset' | 'DynamicVectorAsset' | 'ValueAsset';
   name: string;
 }
 
@@ -68,6 +68,19 @@ export interface VectorAsset extends BaseAsset {
   svg_content: string; // SVGの内容をテキストとして保持
 }
 
+export interface DynamicVectorAsset extends BaseAsset {
+  type: 'DynamicVectorAsset';
+  default_pos_x: number;
+  default_pos_y: number;
+  default_width: number;
+  default_height: number;
+  default_opacity: number;
+  default_z_index: number;
+  script: string; // JavaScriptスクリプトの内容
+  use_page_variables: boolean; // page_current, page_totalの利用可否
+  use_value_variables: boolean; // ValueAssetの変数利用可否
+}
+
 export interface ValueAsset extends BaseAsset {
   type: 'ValueAsset';
   value_type: 'string' | 'number' | 'formula';
@@ -75,7 +88,7 @@ export interface ValueAsset extends BaseAsset {
   new_page_behavior: 'reset' | 'inherit';
 }
 
-export type Asset = ImageAsset | TextAsset | VectorAsset | ValueAsset;
+export type Asset = ImageAsset | TextAsset | VectorAsset | DynamicVectorAsset | ValueAsset;
 
 // Font管理定義
 export enum FontType {
@@ -152,6 +165,15 @@ export interface VectorAssetInstance extends BaseAssetInstance {
   override_z_index?: number;
 }
 
+export interface DynamicVectorAssetInstance extends BaseAssetInstance {
+  override_pos_x?: number;
+  override_pos_y?: number;
+  override_width?: number;
+  override_height?: number;
+  override_opacity?: number;
+  override_z_index?: number;
+}
+
 export interface ValueAssetInstance extends BaseAssetInstance {
   override_value?: any;
 }
@@ -172,7 +194,7 @@ export interface LanguageSettings {
   stroke_color?: string;
 }
 
-export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance | ValueAssetInstance;
+export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance | DynamicVectorAssetInstance | ValueAssetInstance;
 
 // AssetInstanceのoverride値チェック用ヘルパー関数
 export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
@@ -201,6 +223,16 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
       vectorInstance.override_height !== undefined ||
       vectorInstance.override_opacity !== undefined ||
       vectorInstance.override_z_index !== undefined
+    );
+  } else if (assetType === 'DynamicVectorAsset') {
+    const dynamicVectorInstance = instance as DynamicVectorAssetInstance;
+    return !!(
+      dynamicVectorInstance.override_pos_x !== undefined ||
+      dynamicVectorInstance.override_pos_y !== undefined ||
+      dynamicVectorInstance.override_width !== undefined ||
+      dynamicVectorInstance.override_height !== undefined ||
+      dynamicVectorInstance.override_opacity !== undefined ||
+      dynamicVectorInstance.override_z_index !== undefined
     );
   } else if (assetType === 'ValueAsset') {
     const valueInstance = instance as ValueAssetInstance;
@@ -237,6 +269,15 @@ export function getEffectiveZIndex(asset: Asset, instance: AssetInstance, curren
       return vectorInstance.override_z_index;
     }
     return asset.default_z_index; // VectorAssetのデフォルトz-indexを使用
+  } else if (asset.type === 'DynamicVectorAsset') {
+    const dynamicVectorInstance = instance as DynamicVectorAssetInstance;
+    if (dynamicVectorInstance.override_z_index !== undefined) {
+      return dynamicVectorInstance.override_z_index;
+    }
+    return asset.default_z_index; // DynamicVectorAssetのデフォルトz-indexを使用
+  } else if (asset.type === 'ValueAsset') {
+    // ValueAssetはz-indexを持たないため、デフォルト値を返す
+    return 0;
   }
   return 0;
 }
@@ -263,6 +304,14 @@ export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: 
     resetUpdates.override_mask = undefined;
   } else if (assetType === 'VectorAsset') {
     // VectorAssetInstanceのoverride項目をリセット
+    resetUpdates.override_pos_x = undefined;
+    resetUpdates.override_pos_y = undefined;
+    resetUpdates.override_width = undefined;
+    resetUpdates.override_height = undefined;
+    resetUpdates.override_opacity = undefined;
+    resetUpdates.override_z_index = undefined;
+  } else if (assetType === 'DynamicVectorAsset') {
+    // DynamicVectorAssetInstanceのoverride項目をリセット
     resetUpdates.override_pos_x = undefined;
     resetUpdates.override_pos_y = undefined;
     resetUpdates.override_width = undefined;
@@ -726,6 +775,47 @@ export function createVectorAsset(params: {
 }
 
 /**
+ * DynamicVectorAssetの初期データを作成
+ */
+export function createDynamicVectorAsset(params: {
+  name: string;
+  width?: number;
+  height?: number;
+  script?: string;
+  usePageVariables?: boolean;
+  useValueVariables?: boolean;
+}): DynamicVectorAsset {
+  const defaultScript = `// DynamicVectorAsset スクリプト
+// 戻り値はSVG文字列である必要があります
+// 利用可能な変数:
+// - page_current: 現在のページ番号 (use_page_variables が有効な場合)
+// - page_total: 総ページ数 (use_page_variables が有効な場合)
+// - ValueAssetの名前: 対応する値 (use_value_variables が有効な場合)
+
+function generateSVG() {
+  const rect = \`<rect x="10" y="10" width="100" height="100" fill="blue" />\`;
+  return rect;
+}
+
+return generateSVG();`;
+
+  return {
+    id: `dynamic-vector-${uuidv4()}`,
+    type: 'DynamicVectorAsset',
+    name: params.name,
+    default_pos_x: 50,
+    default_pos_y: 50,
+    default_width: params.width || 400,
+    default_height: params.height || 300,
+    default_opacity: 1.0,
+    default_z_index: 0,
+    script: params.script || defaultScript,
+    use_page_variables: params.usePageVariables || false,
+    use_value_variables: params.useValueVariables || false,
+  };
+}
+
+/**
  * ValueAssetの初期データを作成
  */
 /**
@@ -998,6 +1088,87 @@ export function validateVectorAssetData(asset: VectorAsset): {
  * @returns バリデーション結果
  */
 export function validateVectorAssetInstanceData(instance: VectorAssetInstance): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // オーバーライド不透明度のバリデーション
+  const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  // オーバーライドサイズのバリデーション
+  if (instance.override_width !== undefined && instance.override_width <= 0) {
+    errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
+  }
+  
+  if (instance.override_height !== undefined && instance.override_height <= 0) {
+    errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * DynamicVectorAssetのバリデーション
+ * @param asset - バリデーション対象のDynamicVectorAsset
+ * @returns バリデーション結果
+ */
+export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  // 基本フィールドのバリデーション
+  if (!asset.name || asset.name.trim() === '') {
+    errors.push('アセット名は必須です。');
+  }
+  
+  if (!asset.script || asset.script.trim() === '') {
+    errors.push('JavaScriptスクリプトは必須です。');
+  }
+  
+  // サイズのバリデーション
+  if (asset.default_width <= 0) {
+    errors.push(`デフォルト幅は0より大きい値を入力してください。現在の値: ${asset.default_width}`);
+  }
+  
+  if (asset.default_height <= 0) {
+    errors.push(`デフォルト高さは0より大きい値を入力してください。現在の値: ${asset.default_height}`);
+  }
+  
+  // 不透明度のバリデーション
+  const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
+  if (!opacityValidation.isValid && opacityValidation.error) {
+    errors.push(opacityValidation.error);
+  }
+  
+  // スクリプトの構文チェック（基本的なチェックのみ）
+  try {
+    // スクリプトが構文的に正しいかを簡易チェック
+    new Function(asset.script);
+  } catch (syntaxError) {
+    errors.push(`JavaScriptの構文エラー: ${syntaxError}`);
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * DynamicVectorAssetInstanceのバリデーション
+ * @param instance - バリデーション対象のDynamicVectorAssetInstance
+ * @returns バリデーション結果
+ */
+export function validateDynamicVectorAssetInstanceData(instance: DynamicVectorAssetInstance): {
   isValid: boolean;
   errors: string[];
 } {

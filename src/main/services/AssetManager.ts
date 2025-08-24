@@ -11,8 +11,8 @@ import {
   resolveDuplicateAssetConflict,
   DuplicateResolutionStrategy 
 } from '../../utils/duplicateAssetHandler';
-import type { Asset, ImageAsset, TextAsset, VectorAsset, ProjectData } from '../../types/entities';
-import { createImageAsset, createDefaultTextAsset, createVectorAsset } from '../../types/entities';
+import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ProjectData } from '../../types/entities';
+import { createImageAsset, createDefaultTextAsset, createVectorAsset, createDynamicVectorAsset } from '../../types/entities';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -192,6 +192,20 @@ export class AssetManager {
 
     return asset;
   }
+
+  async createDynamicVectorAsset(name: string): Promise<DynamicVectorAsset> {
+    const asset = createDynamicVectorAsset({ name });
+    
+    await this.logger.logDevelopment('dynamic_vector_asset_created', 'DynamicVectorAsset created', {
+      assetId: asset.id,
+      assetName: asset.name,
+      usePageVariables: asset.use_page_variables,
+      useValueVariables: asset.use_value_variables,
+      scriptLength: asset.script.length,
+    });
+    
+    return asset;
+  }
   
   private async importVectorAsset(filePath: string, fileName: string, extension: string): Promise<VectorAsset> {
     // ファイルをプロジェクトにコピー
@@ -232,7 +246,11 @@ export class AssetManager {
         const asset = project.assets[assetId];
         assetInfo = {
           name: asset.name,
-          filePath: asset.type === 'ImageAsset' ? asset.original_file_path : undefined,
+          filePath: asset.type === 'ImageAsset' 
+            ? asset.original_file_path 
+            : asset.type === 'VectorAsset' 
+              ? asset.original_file_path 
+              : undefined,
           type: asset.type,
         };
       }
@@ -241,11 +259,13 @@ export class AssetManager {
         assetId,
         assetName: assetInfo.name,
         filePath: assetInfo.filePath,
+        assetType: assetInfo.type,
         projectPath: this.currentProjectPath,
       });
 
-      // 物理ファイルを削除（ImageAssetの場合のみ）
-      if (assetInfo.filePath && project?.assets[assetId]?.type === 'ImageAsset') {
+      // 物理ファイルを削除（ImageAssetとVectorAssetの場合のみ、DynamicVectorAssetは除外）
+      if (assetInfo.filePath && project?.assets[assetId]?.type && 
+          (project.assets[assetId].type === 'ImageAsset' || project.assets[assetId].type === 'VectorAsset')) {
         try {
           await deleteAssetFromProject(this.currentProjectPath, assetInfo.filePath);
           

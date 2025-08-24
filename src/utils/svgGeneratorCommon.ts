@@ -1,5 +1,6 @@
-import type { ProjectData, ImageAsset, TextAsset, VectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, FontInfo } from '../types/entities';
+import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
 import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFont, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
+import { executeScript, createExecutionContext, wrapSVGContent } from './dynamicVectorEngine';
 
 /**
  * フォント情報のキャッシュ
@@ -115,7 +116,8 @@ export function generateSvgStructureCommon(
   instances: AssetInstance[], 
   getProtocolUrl: (filePath: string) => string,
   availableLanguages: string[],
-  currentLanguage: string
+  currentLanguage: string,
+  pageIndex: number = 0
 ): SvgStructureResult {
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
@@ -163,6 +165,15 @@ export function generateSvgStructureCommon(
       // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
       const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
       useElements.push(vectorElement);
+      
+    } else if (asset.type === 'DynamicVectorAsset') {
+      const dynamicVectorAsset = asset as DynamicVectorAsset;
+      
+      // DynamicVectorAssetはスクリプト実行によりSVGを生成してインライン要素として追加
+      const dynamicVectorElement = generateDynamicVectorElement(dynamicVectorAsset, instance as DynamicVectorAssetInstance, project, pageIndex);
+      if (dynamicVectorElement) {
+        useElements.push(dynamicVectorElement);
+      }
     }
   }
 
@@ -207,6 +218,94 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
     `  ${wrappedSVG}`,
     `</g>`
   ].join('\n    ');
+}
+
+/**
+ * DynamicVectorAsset要素を生成する
+ */
+function generateDynamicVectorElement(
+  asset: DynamicVectorAsset, 
+  instance: DynamicVectorAssetInstance, 
+  project: ProjectData, 
+  pageIndex: number
+): string | null {
+  try {
+    // スクリプトの実行コンテキストを作成
+    const { context: executionContext, warnings: contextWarnings } = createExecutionContext(asset, project, pageIndex);
+    
+    // JavaScriptスクリプトを実行してSVGコンテンツを生成
+    const executionResult = executeScript(asset.script, executionContext);
+    
+    if (!executionResult.success || !executionResult.svgContent) {
+      let errorMessage = `DynamicVectorAsset "${asset.name}" script execution failed: ${executionResult.error}`;
+      
+      // コンテキスト警告があれば追加
+      if (contextWarnings.length > 0) {
+        errorMessage += ` (Context warnings: ${contextWarnings.join(', ')})`;
+      }
+      
+      // 実行結果の警告があれば追加
+      if (executionResult.warnings && executionResult.warnings.length > 0) {
+        errorMessage += ` (Script warnings: ${executionResult.warnings.join(', ')})`;
+      }
+      
+      // デバッグ情報があれば追加
+      if (executionResult.debugInfo?.consoleOutput && executionResult.debugInfo.consoleOutput.length > 0) {
+        errorMessage += ` (Console: ${executionResult.debugInfo.consoleOutput.join('; ')})`;
+      }
+      
+      console.warn(errorMessage);
+      return null;
+    }
+    
+    // 警告がある場合はログに出力
+    if (contextWarnings.length > 0 || (executionResult.warnings && executionResult.warnings.length > 0)) {
+      const allWarnings = [
+        ...contextWarnings,
+        ...(executionResult.warnings || [])
+      ];
+      console.warn(`DynamicVectorAsset "${asset.name}" has warnings:`, allWarnings.join(', '));
+    }
+    
+    // インスタンスのオーバーライド値を取得
+    const posX = instance.override_pos_x ?? asset.default_pos_x;
+    const posY = instance.override_pos_y ?? asset.default_pos_y;
+    const width = instance.override_width ?? asset.default_width;
+    const height = instance.override_height ?? asset.default_height;
+    const opacity = instance.override_opacity ?? asset.default_opacity;
+    
+    // SVGコンテンツを適切な形式にラップ
+    const wrappedSVG = wrapSVGContent(executionResult.svgContent, width, height);
+    
+    // Transform設定（位置とスケールの調整）
+    const transforms: string[] = [];
+    
+    // 位置調整
+    if (posX !== 0 || posY !== 0) {
+      transforms.push(`translate(${posX}, ${posY})`);
+    }
+    
+    // サイズが元のサイズと異なる場合はスケールを適用
+    if (width !== asset.default_width || height !== asset.default_height) {
+      const scaleX = width / asset.default_width;
+      const scaleY = height / asset.default_height;
+      transforms.push(`scale(${scaleX}, ${scaleY})`);
+    }
+    
+    const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
+    const opacityAttr = opacity !== undefined ? ` opacity="${opacity}"` : '';
+    
+    // グループ要素でラップ（ID付き）
+    return [
+      `<g id="dynamic-vector-instance-${instance.id}"${transformAttr}${opacityAttr}>`,
+      `  ${wrappedSVG}`,
+      `</g>`
+    ].join('\n    ');
+    
+  } catch (error) {
+    console.error(`DynamicVectorAsset "${asset.name}" rendering error:`, error);
+    return null;
+  }
 }
 
 /**
