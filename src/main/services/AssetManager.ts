@@ -194,7 +194,10 @@ export class AssetManager {
   }
 
   async createDynamicVectorAsset(name: string): Promise<DynamicVectorAsset> {
-    const asset = createDynamicVectorAsset({ name });
+    const asset = createDynamicVectorAsset({ 
+      name,
+      isCustomAsset: false // デフォルトは通常のDynamicVectorAsset
+    });
     
     await this.logger.logDevelopment('dynamic_vector_asset_created', 'DynamicVectorAsset created', {
       assetId: asset.id,
@@ -202,6 +205,7 @@ export class AssetManager {
       usePageVariables: asset.use_page_variables,
       useValueVariables: asset.use_value_variables,
       scriptLength: asset.script.length,
+      isCustomAsset: asset.isCustomAsset,
     });
     
     return asset;

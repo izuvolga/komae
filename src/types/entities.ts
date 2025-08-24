@@ -79,6 +79,11 @@ export interface DynamicVectorAsset extends BaseAsset {
   script: string; // JavaScriptスクリプトの内容
   use_page_variables: boolean; // page_current, page_totalの利用可否
   use_value_variables: boolean; // ValueAssetの変数利用可否
+  
+  // CustomAsset関連フィールド
+  customAssetId?: string; // CustomAssetを使用する場合のID
+  isCustomAsset: boolean; // CustomAssetを使用するかどうか
+  customAssetParameters?: Record<string, number | string>; // CustomAssetのパラメータ値
 }
 
 export interface ValueAsset extends BaseAsset {
@@ -352,6 +357,7 @@ export interface UIState {
   showAssetLibrary: boolean;
   showPreview: boolean;
   showFontManagement: boolean;
+  showCustomAssetManagement: boolean;
   assetLibraryWidth: number;
   previewWidth: number;
   previewScrollX: number;
@@ -784,6 +790,9 @@ export function createDynamicVectorAsset(params: {
   script?: string;
   usePageVariables?: boolean;
   useValueVariables?: boolean;
+  customAssetId?: string;
+  isCustomAsset?: boolean;
+  customAssetParameters?: Record<string, number | string>;
 }): DynamicVectorAsset {
   const defaultScript = `// DynamicVectorAsset スクリプト
 // 戻り値はSVG文字列である必要があります
@@ -812,6 +821,11 @@ return generateSVG();`;
     script: params.script || defaultScript,
     use_page_variables: params.usePageVariables || false,
     use_value_variables: params.useValueVariables || false,
+    
+    // CustomAsset関連のデフォルト値
+    customAssetId: params.customAssetId,
+    isCustomAsset: params.isCustomAsset || false,
+    customAssetParameters: params.customAssetParameters || {},
   };
 }
 
@@ -1130,8 +1144,25 @@ export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
     errors.push('アセット名は必須です。');
   }
   
-  if (!asset.script || asset.script.trim() === '') {
+  // CustomAssetの場合はscriptの必須チェックをスキップ
+  if (!asset.isCustomAsset && (!asset.script || asset.script.trim() === '')) {
     errors.push('JavaScriptスクリプトは必須です。');
+  }
+  
+  // CustomAssetの場合のバリデーション
+  if (asset.isCustomAsset) {
+    if (!asset.customAssetId || asset.customAssetId.trim() === '') {
+      errors.push('CustomAsset IDは必須です。');
+    }
+    
+    // カスタムアセットパラメータの基本チェック（存在する場合）
+    if (asset.customAssetParameters) {
+      for (const [key, value] of Object.entries(asset.customAssetParameters)) {
+        if (typeof value !== 'string' && typeof value !== 'number') {
+          errors.push(`カスタムアセットパラメータ "${key}" の値は文字列または数値である必要があります。`);
+        }
+      }
+    }
   }
   
   // サイズのバリデーション
@@ -1149,12 +1180,14 @@ export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
     errors.push(opacityValidation.error);
   }
   
-  // スクリプトの構文チェック（基本的なチェックのみ）
-  try {
-    // スクリプトが構文的に正しいかを簡易チェック
-    new Function(asset.script);
-  } catch (syntaxError) {
-    errors.push(`JavaScriptの構文エラー: ${syntaxError}`);
+  // スクリプトの構文チェック（CustomAssetでない場合のみ）
+  if (!asset.isCustomAsset && asset.script) {
+    try {
+      // スクリプトが構文的に正しいかを簡易チェック
+      new Function(asset.script);
+    } catch (syntaxError) {
+      errors.push(`JavaScriptの構文エラー: ${syntaxError}`);
+    }
   }
   
   return {

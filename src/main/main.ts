@@ -5,6 +5,7 @@ import { ProjectManager } from './services/ProjectManager';
 import { FileSystemService } from './services/FileSystemService';
 import { AssetManager } from './services/AssetManager';
 import { FontManager } from './services/FontManager';
+import { CustomAssetManager } from './services/CustomAssetManager';
 import { ExportService } from './services/ExportService';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
@@ -15,6 +16,7 @@ class KomaeApp {
   private fileSystemService: FileSystemService;
   private assetManager: AssetManager;
   private fontManager: FontManager;
+  private customAssetManager: CustomAssetManager;
   private exportService: ExportService;
   private logger = getLogger();
 
@@ -23,6 +25,7 @@ class KomaeApp {
     this.fileSystemService = new FileSystemService();
     this.assetManager = new AssetManager();
     this.fontManager = new FontManager();
+    this.customAssetManager = new CustomAssetManager();
     this.exportService = new ExportService(this.fontManager);
     
     this.setupEventHandlers();
@@ -177,6 +180,12 @@ class KomaeApp {
             label: 'Custom Fonts',
             click: () => {
               this.mainWindow?.webContents.send('menu:custom-fonts');
+            },
+          },
+          {
+            label: 'Custom Assets',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:custom-assets');
             },
           },
         ],
@@ -412,6 +421,53 @@ class KomaeApp {
         return fontInfo;
       } catch (error) {
         console.error('Failed to get font info:', error);
+        throw error;
+      }
+    });
+
+    // CustomAsset Operations
+    ipcMain.handle('customAsset:getAvailableAssets', async (event, type: string = 'DynamicVector') => {
+      try {
+        return await this.customAssetManager.getAvailableCustomAssets(type);
+      } catch (error) {
+        console.error('Failed to get available custom assets:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('customAsset:addAsset', async (event, filePath: string) => {
+      try {
+        return await this.customAssetManager.addCustomAsset(filePath);
+      } catch (error) {
+        console.error('Failed to add custom asset:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('customAsset:removeAsset', async (event, assetId: string) => {
+      try {
+        await this.customAssetManager.removeCustomAsset(assetId);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to remove custom asset:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('customAsset:getAssetInfo', async (event, assetId: string) => {
+      try {
+        return await this.customAssetManager.getCustomAssetInfo(assetId);
+      } catch (error) {
+        console.error('Failed to get custom asset info:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('customAsset:getAssetCode', async (event, assetId: string) => {
+      try {
+        return await this.customAssetManager.getCustomAssetCode(assetId);
+      } catch (error) {
+        console.error('Failed to get custom asset code:', error);
         throw error;
       }
     });

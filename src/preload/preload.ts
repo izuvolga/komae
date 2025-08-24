@@ -79,6 +79,23 @@ const electronAPI = {
     getFontInfo: (fontId: string) => 
       ipcRenderer.invoke('font:getFontInfo', fontId),
   },
+  // CustomAsset Operations
+  customAsset: {
+    getAvailableAssets: (type: string = 'DynamicVector') => 
+      ipcRenderer.invoke('customAsset:getAvailableAssets', type),
+    
+    addAsset: (filePath: string) => 
+      ipcRenderer.invoke('customAsset:addAsset', filePath),
+    
+    removeAsset: (assetId: string) => 
+      ipcRenderer.invoke('customAsset:removeAsset', assetId),
+    
+    getAssetInfo: (assetId: string) => 
+      ipcRenderer.invoke('customAsset:getAssetInfo', assetId),
+    
+    getAssetCode: (assetId: string) => 
+      ipcRenderer.invoke('customAsset:getAssetCode', assetId),
+  },
 
   // File System Operations
   fileSystem: {
@@ -177,6 +194,12 @@ const electronAPI = {
       const handler = () => callback();
       ipcRenderer.on('menu:custom-fonts', handler);
       return () => ipcRenderer.removeListener('menu:custom-fonts', handler);
+    },
+    
+    onCustomAssets: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('menu:custom-assets', handler);
+      return () => ipcRenderer.removeListener('menu:custom-assets', handler);
     },
   },
 };

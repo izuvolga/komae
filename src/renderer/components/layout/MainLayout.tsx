@@ -5,6 +5,7 @@ import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
 import { ExportDialog } from '../export/ExportDialog';
 import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
 import { FontManagementModal } from '../font/FontManagementModal';
+import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import { BulkEditModal } from '../text/BulkEditModal';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
@@ -19,6 +20,7 @@ export const MainLayout: React.FC = () => {
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const showFontManagement = useProjectStore((state) => state.ui.showFontManagement);
+  const showCustomAssetManagement = useProjectStore((state) => state.ui.showCustomAssetManagement);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
   const setProject = useProjectStore((state) => state.setProject);
@@ -26,6 +28,7 @@ export const MainLayout: React.FC = () => {
   const toggleAssetLibrary = useProjectStore((state) => state.toggleAssetLibrary);
   const togglePreview = useProjectStore((state) => state.togglePreview);
   const toggleFontManagement = useProjectStore((state) => state.toggleFontManagement);
+  const toggleCustomAssetManagement = useProjectStore((state) => state.toggleCustomAssetManagement);
   const setAssetLibraryWidth = useProjectStore((state) => state.setAssetLibraryWidth);
   const setPreviewWidth = useProjectStore((state) => state.setPreviewWidth);
   const saveProject = useProjectStore((state) => state.saveProject);
@@ -179,12 +182,17 @@ export const MainLayout: React.FC = () => {
       toggleFontManagement();
     });
 
+    const unsubscribeCustomAssets = window.electronAPI.menu.onCustomAssets(() => {
+      toggleCustomAssetManagement();
+    });
+
     return () => {
       unsubscribeSave();
       unsubscribeOpen();
       unsubscribeNew();
       unsubscribeExportProject();
       unsubscribeCustomFonts();
+      unsubscribeCustomAssets();
     };
   }, [handleSaveProject]);
 
@@ -280,7 +288,7 @@ export const MainLayout: React.FC = () => {
   };
 
   const handleCreateSampleProject = () => {
-    // アセットを20個生成
+    // アセット20個生成
     const assets: any = {};
     const imageTypes = ['キャラクター', '背景', 'アイテム', 'エフェクト'];
     const textTypes = ['セリフ', 'ナレーション', 'モノローグ', 'タイトル'];
@@ -326,7 +334,7 @@ export const MainLayout: React.FC = () => {
       }
     }
 
-    // ページを20個生成
+    // ページ20個生成
     const pages: any[] = [];
     for (let i = 1; i <= 20; i++) {
       const asset_instances: any = {};
@@ -606,6 +614,12 @@ export const MainLayout: React.FC = () => {
       <FontManagementModal
         isOpen={showFontManagement}
         onClose={() => toggleFontManagement()}
+      />
+      
+      {/* CustomAsset 管理ダイアログ */}
+      <CustomAssetManagementModal
+        isOpen={showCustomAssetManagement}
+        onClose={() => toggleCustomAssetManagement()}
       />
       
       {/* TextAsset Bulk Edit ダイアログ */}

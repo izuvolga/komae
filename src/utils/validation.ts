@@ -139,7 +139,12 @@ const DynamicVectorAssetSchema = z.object({
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
-});
+  
+  // CustomAsset関連フィールド
+  customAssetId: z.string().optional(),
+  isCustomAsset: z.boolean(),
+  customAssetParameters: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+});;
 
 // ValueAsset スキーマ
 const ValueAssetSchema = z.object({

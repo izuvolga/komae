@@ -67,6 +67,7 @@ interface ProjectStore {
   toggleAssetLibrary: () => void;
   togglePreview: () => void;
   toggleFontManagement: () => void;
+  toggleCustomAssetManagement: () => void;
   setAssetLibraryWidth: (width: number) => void;
   setPreviewWidth: (width: number) => void;
   setPreviewScroll: (x: number, y: number) => void;
@@ -112,6 +113,7 @@ export const useProjectStore = create<ProjectStore>()(
           showAssetLibrary: true,
           showPreview: true,
           showFontManagement: false,
+          showCustomAssetManagement: false,
           assetLibraryWidth: 280,
           previewWidth: 320,
           previewScrollX: 0,
@@ -291,6 +293,9 @@ export const useProjectStore = create<ProjectStore>()(
         }),
         toggleFontManagement: () => set((state) => {
           state.ui.showFontManagement = !state.ui.showFontManagement;
+        }),
+        toggleCustomAssetManagement: () => set((state) => {
+          state.ui.showCustomAssetManagement = !state.ui.showCustomAssetManagement;
         }),
 
         setAssetLibraryWidth: (width) => set((state) => {
