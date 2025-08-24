@@ -1,5 +1,12 @@
 // Jest テストセットアップファイル
 
+// TextDecoder/TextEncoder ポリフィル（Node.js環境用）
+if (typeof global.TextDecoder === 'undefined') {
+  const { TextDecoder, TextEncoder } = require('util');
+  global.TextDecoder = TextDecoder;
+  global.TextEncoder = TextEncoder;
+}
+
 // Electron API モックの設定
 Object.defineProperty(window, 'electronAPI', {
   value: {

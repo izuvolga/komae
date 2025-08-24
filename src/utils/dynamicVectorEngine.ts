@@ -321,13 +321,13 @@ export function createExecutionContext(
   asset: DynamicVectorAsset,
   project: ProjectData,
   currentPageIndex: number = 0
-): { context: ScriptContext; warnings: string[] } {
+): ScriptContext {
   const context: ScriptContext = {};
   const warnings: string[] = [];
 
   // ページインデックスの検証
   if (currentPageIndex < 0 || currentPageIndex >= project.pages.length) {
-    warnings.push(`無効なページインデックス: ${currentPageIndex} (総ページ数: ${project.pages.length})`);
+    console.warn(`無効なページインデックス: ${currentPageIndex} (総ページ数: ${project.pages.length})`);
   }
 
   // ページ変数の注入
@@ -336,18 +336,20 @@ export function createExecutionContext(
     context.page_total = project.pages.length;
     
     if (project.pages.length === 0) {
-      warnings.push('プロジェクトにページが存在しません');
+      console.warn('プロジェクトにページが存在しません');
     }
   }
 
   // ValueAsset変数の注入
   if (asset.use_value_variables) {
+    context.values = {};
+    
     const valueAssets = Object.values(project.assets).filter(
       (asset): asset is ValueAsset => asset.type === 'ValueAsset'
     );
 
     if (valueAssets.length === 0) {
-      warnings.push('ValueAssetが存在しないため、変数は注入されませんでした');
+      console.warn('ValueAssetが存在しないため、変数は注入されませんでした');
     }
 
     const invalidNames: string[] = [];
@@ -364,7 +366,7 @@ export function createExecutionContext(
         // ValueAssetの値を取得
         const currentPage = project.pages[currentPageIndex];
         if (!currentPage) {
-          warnings.push(`ページ ${currentPageIndex} が存在しません`);
+          console.warn(`ページ ${currentPageIndex} が存在しません`);
           continue;
         }
         
@@ -376,33 +378,35 @@ export function createExecutionContext(
         );
 
         // 変数を注入
-        context[valueAsset.name] = effectiveValue;
+        context.values![valueAsset.name] = effectiveValue;
 
         // 値の型チェックと警告
         if (effectiveValue === '#ERROR') {
           errorValues.push(valueAsset.name);
         } else if (typeof effectiveValue === 'undefined') {
-          warnings.push(`ValueAsset "${valueAsset.name}" の値が未定義です`);
+          console.warn(`ValueAsset "${valueAsset.name}" の値が未定義です`);
+          // 未定義の場合はnullに変換してスクリプトで扱いやすくする
+          context.values![valueAsset.name] = null;
         }
 
       } catch (error) {
         // ValueAssetの値取得でエラーが発生した場合
         errorValues.push(valueAsset.name);
-        context[valueAsset.name] = '#ERROR';
-        warnings.push(`ValueAsset "${valueAsset.name}" の値取得でエラー: ${error instanceof Error ? error.message : String(error)}`);
+        context.values![valueAsset.name] = null; // より安全なデフォルト値
+        console.warn(`ValueAsset "${valueAsset.name}" の値取得でエラー: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
     // 警告メッセージの追加
     if (invalidNames.length > 0) {
-      warnings.push(`無効な変数名のValueAssetが除外されました: ${invalidNames.join(', ')}`);
+      console.warn(`無効な変数名のValueAssetが除外されました: ${invalidNames.join(', ')}`);
     }
     if (errorValues.length > 0) {
-      warnings.push(`エラー値が設定されたValueAsset: ${errorValues.join(', ')}`);
+      console.warn(`エラー値が設定されたValueAsset: ${errorValues.join(', ')}`);
     }
   }
 
-  return { context, warnings };
+  return context;
 }
 
 /**

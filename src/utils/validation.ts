@@ -55,6 +55,15 @@ const VectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_opacity: z.number().min(0).max(1).optional(),
   override_z_index: z.number().optional(),
 });
+// DynamicVectorAssetInstance スキーマ
+const DynamicVectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
+  override_pos_x: z.number().optional(),
+  override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_z_index: z.number().optional(),
+});
 
 // AssetInstance Union スキーマ（判別子なし、全フィールドを許可）
 const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
@@ -116,6 +125,21 @@ const VectorAssetSchema = z.object({
   default_z_index: z.number(),
   svg_content: z.string(),
 });
+// DynamicVectorAsset スキーマ
+const DynamicVectorAssetSchema = z.object({
+  id: z.string().min(1),
+  type: z.literal('DynamicVectorAsset'),
+  name: z.string().min(1),
+  script: z.string(),
+  use_page_variables: z.boolean(),
+  use_value_variables: z.boolean(),
+  default_pos_x: z.number(),
+  default_pos_y: z.number(),
+  default_width: z.number().min(0.01),
+  default_height: z.number().min(0.01),
+  default_opacity: z.number().min(0).max(1),
+  default_z_index: z.number(),
+});
 
 // ValueAsset スキーマ
 const ValueAssetSchema = z.object({
@@ -130,7 +154,7 @@ const ValueAssetSchema = z.object({
   // initial_value: z.union([z.string(), z.number()]),
 
 // Asset Union スキーマ
-const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema, ValueAssetSchema]);
+const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema, DynamicVectorAssetSchema, ValueAssetSchema]);
 
 // Page スキーマ
 const PageSchema = z.object({

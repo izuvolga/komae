@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
-import type { Asset, ImageAsset, VectorAsset } from '../../../types/entities';
+import type { Asset, ImageAsset, VectorAsset, DynamicVectorAsset } from '../../../types/entities';
 import './AssetThumbnail.css';
 
 interface AssetThumbnailProps {
@@ -62,6 +62,13 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       maxWidth,
       maxHeight
     );
+  } else if (asset.type === 'DynamicVectorAsset') {
+    thumbnailSize = calculateThumbnailSize(
+      (asset as DynamicVectorAsset).default_width,
+      (asset as DynamicVectorAsset).default_height,
+      maxWidth,
+      maxHeight
+    );
   }
 
   if (isLoading) {
@@ -90,24 +97,55 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     );
   }
 
+  // DynamicVectorAssetの場合は専用の表示
+  if (asset.type === 'DynamicVectorAsset') {
+    return (
+      <div 
+        className="asset-thumbnail dynamic-vector-asset"
+        style={{ width: maxWidth, height: maxHeight }}
+      >
+        <div className="dynamic-vector-placeholder">
+          <span>⚡</span>
+          <small>Dynamic SVG</small>
+        </div>
+      </div>
+    );
+  }
+
   // ImageAssetまたはVectorAssetでエラーまたはURLなしの場合
   if (hasError || !customProtocolUrl) {
+    let placeholderText = 'IMG';
+    const assetType = (asset as any).type;
+    if (assetType === 'VectorAsset') {
+      placeholderText = 'SVG';
+    } else if (assetType === 'DynamicVectorAsset') {
+      placeholderText = '⚡SVG';
+    }
+    
     return (
       <div 
         className="asset-thumbnail error"
         style={{ width: maxWidth, height: maxHeight }}
       >
         <div className="error-placeholder">
-          <span>{asset.type === 'VectorAsset' ? 'SVG' : 'IMG'}</span>
+          <span>{placeholderText}</span>
           <small>読み込み失敗</small>
         </div>
       </div>
     );
   }
 
+  let thumbnailClass = 'image-asset';
+  const assetType = (asset as any).type;
+  if (assetType === 'VectorAsset') {
+    thumbnailClass = 'vector-asset';
+  } else if (assetType === 'DynamicVectorAsset') {
+    thumbnailClass = 'dynamic-vector-asset';
+  }
+
   return (
     <div 
-      className={`asset-thumbnail ${asset.type === 'VectorAsset' ? 'vector-asset' : 'image-asset'}`}
+      className={`asset-thumbnail ${thumbnailClass}`}
       style={{ width: maxWidth, height: maxHeight }}
     >
       <img

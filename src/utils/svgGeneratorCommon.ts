@@ -1,6 +1,6 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
 import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFont, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
-import { executeScript, createExecutionContext, wrapSVGContent } from './dynamicVectorEngine';
+import { executeScript, createExecutionContext } from './dynamicVectorEngine';
 
 /**
  * フォント情報のキャッシュ
@@ -223,6 +223,19 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
 /**
  * DynamicVectorAsset要素を生成する
  */
+/**
+ * SVGコンテンツを適切にラップする関数
+ */
+function wrapSVGContent(svgContent: string, width: number, height: number): string {
+  // SVGコンテンツがすでに<svg>タグで囲まれている場合はそのまま返す
+  if (svgContent.trim().startsWith('<svg')) {
+    return svgContent;
+  }
+  
+  // そうでない場合はSVGグループ要素でラップ
+  return `<g>${svgContent}</g>`;
+}
+
 function generateDynamicVectorElement(
   asset: DynamicVectorAsset, 
   instance: DynamicVectorAssetInstance, 
@@ -231,18 +244,13 @@ function generateDynamicVectorElement(
 ): string | null {
   try {
     // スクリプトの実行コンテキストを作成
-    const { context: executionContext, warnings: contextWarnings } = createExecutionContext(asset, project, pageIndex);
+    const executionContext = createExecutionContext(asset, project, pageIndex);
     
     // JavaScriptスクリプトを実行してSVGコンテンツを生成
     const executionResult = executeScript(asset.script, executionContext);
     
     if (!executionResult.success || !executionResult.svgContent) {
       let errorMessage = `DynamicVectorAsset "${asset.name}" script execution failed: ${executionResult.error}`;
-      
-      // コンテキスト警告があれば追加
-      if (contextWarnings.length > 0) {
-        errorMessage += ` (Context warnings: ${contextWarnings.join(', ')})`;
-      }
       
       // 実行結果の警告があれば追加
       if (executionResult.warnings && executionResult.warnings.length > 0) {
@@ -259,12 +267,8 @@ function generateDynamicVectorElement(
     }
     
     // 警告がある場合はログに出力
-    if (contextWarnings.length > 0 || (executionResult.warnings && executionResult.warnings.length > 0)) {
-      const allWarnings = [
-        ...contextWarnings,
-        ...(executionResult.warnings || [])
-      ];
-      console.warn(`DynamicVectorAsset "${asset.name}" has warnings:`, allWarnings.join(', '));
+    if (executionResult.warnings && executionResult.warnings.length > 0) {
+      console.warn(`DynamicVectorAsset "${asset.name}" has warnings:`, executionResult.warnings.join(', '));
     }
     
     // インスタンスのオーバーライド値を取得
