@@ -321,10 +321,10 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
   const width = asset.default_width;
   const height = asset.default_height;
   const opacity = asset.default_opacity;
-  
+
   return [
     `<g id="${asset.id}" opacity="${opacity}">`,
-    `  <image id="image-${asset.id}" xlink:href="${protocolUrl}" width="${width}" height="${height}" x="${x}" y="${y}" />`,
+    `  <image id="image-${asset.id}" xlink:href="${protocolUrl}" width="${width}" height="${height}" x="${x}" y="${y}" preserveAspectRatio="none"/>`,
     `</g>`
   ].join('\n      ');
 }
