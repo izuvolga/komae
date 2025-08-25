@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page, ProjectData } from '../../../types/entities';
@@ -44,6 +44,7 @@ export function DynamicVectorEditModal({
   const [previewSVG, setPreviewSVG] = useState<string | null>(null);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [autoPreview, setAutoPreview] = useState<boolean>(true);
 
   // Current values (Asset or Instance)
   const currentPos = mode === 'instance' && editedInstance 
@@ -71,6 +72,9 @@ export function DynamicVectorEditModal({
       name: valueAsset.name
     })) : [];
 
+  // debounce用のRef
+  const previewTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (asset.customAssetId) {
       console.log('Fetching CustomAsset info for:', asset.customAssetId);
@@ -93,19 +97,51 @@ export function DynamicVectorEditModal({
     }
   }, [asset.customAssetId]);
 
+  // リアルタイムプレビュー更新のuseEffect
+  useEffect(() => {
+    if (!autoPreview || !customAssetInfo || !project) return;
+
+    // debounce処理
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+    }
+
+    previewTimeoutRef.current = setTimeout(() => {
+      generatePreviewSVG();
+    }, 300); // 300ms delay
+
+    return () => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
+    };
+  }, [
+    editedAsset.customAssetParameters,
+    editedAsset.parameterVariableBindings,
+    currentPos.x,
+    currentPos.y,
+    currentSize.width,
+    currentSize.height,
+    currentOpacity,
+    currentZIndex,
+    autoPreview,
+    customAssetInfo,
+    project
+  ]);
+
   const generatePreviewSVG = async () => {
-    if (!customAssetInfo || !asset.customAssetId) return;
+    if (!project) return;
     
     setIsGeneratingPreview(true);
     setPreviewError(null);
     
     try {
-      const currentParams = editedAsset.customAssetParameters || {};
-      
-      // 新しいgenerateSVG APIを使用
-      const svgContent = await window.electronAPI.customAsset.generateSVG(
-        asset.customAssetId,
-        currentParams
+      // 統一されたdynamicVector APIを使用
+      const svgContent = await window.electronAPI.dynamicVector.generateSVG(
+        editedAsset,
+        editedInstance,
+        project,
+        0 // pageIndex
       );
       
       setPreviewSVG(svgContent);
@@ -222,105 +258,26 @@ export function DynamicVectorEditModal({
           <button className="close-button" onClick={onClose}>×</button>
         </div>
 
-        {/* コンテンツ */}
-        <div className="modal-body">
-          {/* アセット名編集 (asset mode only) */}
-          {mode === 'asset' && (
-            <div className="section">
-              <h3>アセット設定</h3>
-              <div className="form-group">
-                <label>アセット名:</label>
-                <input
-                  type="text"
-                  value={editedAsset.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="アセット名を入力"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* CustomAsset Parameters Section (asset mode only) */}
-          {mode === 'asset' && customAssetInfo && (
-            <div className="section">
-              <h3>@parameters</h3>
-              {isLoadingCustomAsset ? (
-                <p>カスタムアセット情報を読み込み中...</p>
-              ) : (
-                customAssetInfo.parameters && customAssetInfo.parameters.length > 0 ? (
-                  <div className="parameters-grid">
-                    {customAssetInfo.parameters.map((paramInfo: any, index: number) => {
-                      const displayName = paramInfo.editName || paramInfo.displayName || paramInfo.name;
-                      const currentValue = editedAsset.customAssetParameters?.[paramInfo.name] || paramInfo.defaultValue || '';
-                      const variableBinding = editedAsset.parameterVariableBindings?.[paramInfo.name] || '';
-                      
-                      return (
-                        <div key={paramInfo.name} className="parameter-item">
-                          <div className="parameter-header">
-                            <label>{displayName}:</label>
-                            <small>({paramInfo.name})</small>
-                          </div>
-                          <div className="parameter-controls">
-                            <div className="parameter-value">
-                              <label>値:</label>
-                              <input
-                                type={paramInfo.type === 'number' ? 'number' : 'text'}
-                                value={currentValue}
-                                onChange={(e) => {
-                                  const newValue = paramInfo.type === 'number' ? 
-                                    (e.target.value === '' ? '' : parseFloat(e.target.value)) : 
-                                    e.target.value;
-                                  handleCustomAssetParameterChange({
-                                    ...editedAsset.customAssetParameters,
-                                    [paramInfo.name]: newValue
-                                  });
-                                }}
-                                placeholder={`デフォルト: ${paramInfo.defaultValue}`}
-                              />
-                            </div>
-                            <div className="parameter-variable">
-                              <label>変数バインド:</label>
-                              <select
-                                value={variableBinding}
-                                onChange={(e) => handleParameterVariableChange(paramInfo.name, e.target.value || null)}
-                              >
-                                <option value="">-- 変数を選択 --</option>
-                                <optgroup label="ページ変数">
-                                  <option value="page_current">page_current</option>
-                                  <option value="page_total">page_total</option>
-                                </optgroup>
-                                <optgroup label="値アセット変数">
-                                  {availableVariables.map((variable) => (
-                                    <option key={variable.id} value={variable.name}>
-                                      {variable.name}
-                                    </option>
-                                  ))}
-                                </optgroup>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="parameter-description">
-                            <small>{paramInfo.description || 'パラメータの説明なし'}</small>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p>このカスタムアセットに@parametersが定義されていません。</p>
-                )
-              )}
-            </div>
-          )}
-
-          {/* プレビュー Section */}
-          {asset.customAssetId && (
-            <div className="section">
+        {/* 2パネル構成のメインコンテンツ */}
+        <div className="modal-body two-panel-layout">
+          {/* 左パネル: プレビューエリア */}
+          <div className="left-panel">
+            <div className="preview-section">
               <h3>プレビュー</h3>
               <div className="preview-controls">
-                <button onClick={generatePreviewSVG} disabled={isGeneratingPreview}>
-                  {isGeneratingPreview ? 'プレビュー生成中...' : 'プレビュー更新'}
-                </button>
+                <div className="preview-control-group">
+                  <button onClick={generatePreviewSVG} disabled={isGeneratingPreview}>
+                    {isGeneratingPreview ? 'プレビュー生成中...' : 'プレビュー更新'}
+                  </button>
+                  <label className="auto-preview-toggle">
+                    <input
+                      type="checkbox"
+                      checked={autoPreview}
+                      onChange={(e) => setAutoPreview(e.target.checked)}
+                    />
+                    自動更新
+                  </label>
+                </div>
               </div>
               {previewError && (
                 <div className="preview-error">
@@ -328,90 +285,196 @@ export function DynamicVectorEditModal({
                 </div>
               )}
               {previewSVG && (
-                <div className="preview-container">
-                  <div dangerouslySetInnerHTML={{ __html: previewSVG }} />
+                <div className="dynamic-vector-preview-container">
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: previewSVG }}
+                    style={{
+                      transform: `translate(${currentPos.x}px, ${currentPos.y}px)`,
+                      opacity: currentOpacity,
+                      zIndex: currentZIndex
+                    }}
+                  />
+                </div>
+              )}
+              {!previewSVG && !previewError && !isGeneratingPreview && (
+                <div className="preview-placeholder">
+                  プレビューを生成するには「プレビュー更新」ボタンをクリックしてください
                 </div>
               )}
             </div>
-          )}
-
-          {/* Position Section */}
-          <div className="section">
-            <h3>位置 (Position)</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>X座標:</label>
-                <input
-                  type="number"
-                  value={currentPos.x}
-                  onChange={(e) => handlePositionChange('x', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Y座標:</label>
-                <input
-                  type="number"
-                  value={currentPos.y}
-                  onChange={(e) => handlePositionChange('y', parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
           </div>
 
-          {/* Size Section */}
-          <div className="section">
-            <h3>サイズ (Size)</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>幅 (Width):</label>
-                <input
-                  type="number"
-                  value={currentSize.width}
-                  onChange={(e) => handleSizeChange('width', parseFloat(e.target.value) || 0)}
-                  min="0"
-                />
-              </div>
-              <div className="form-group">
-                <label>高さ (Height):</label>
-                <input
-                  type="number"
-                  value={currentSize.height}
-                  onChange={(e) => handleSizeChange('height', parseFloat(e.target.value) || 0)}
-                  min="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Opacity Section */}
-          <div className="section">
-            <h3>不透明度 (Opacity)</h3>
-            <div className="form-group">
-              <label>不透明度 (0-1):</label>
-              <input
-                type="number"
-                value={currentOpacity}
-                onChange={(e) => handleOpacityChange(parseFloat(e.target.value) || 0)}
-                min="0"
-                max="1"
-                step="0.1"
-              />
-            </div>
-          </div>
-
-          {/* Z-Index Section */}
-          <div className="section">
-            <h3>レイヤー順序 (Z-Index)</h3>
-            <div className="form-group">
-              <label>Z-Index:</label>
-              <input
-                type="number"
-                value={currentZIndex}
-                onChange={(e) => handleZIndexChange(parseInt(e.target.value) || 0)}
-              />
-              {zIndexValidation.warning && (
-                <div className="validation-warning">{zIndexValidation.warning}</div>
+          {/* 右パネル: 編集フォーム */}
+          <div className="right-panel">
+            <div className="edit-forms">
+              {/* アセット名編集 (asset mode only) */}
+              {mode === 'asset' && (
+                <div className="section">
+                  <h3>アセット設定</h3>
+                  <div className="form-group">
+                    <label>アセット名:</label>
+                    <input
+                      type="text"
+                      value={editedAsset.name}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                      placeholder="アセット名を入力"
+                    />
+                  </div>
+                </div>
               )}
+
+              {/* CustomAsset Parameters Section (asset mode only) */}
+              {mode === 'asset' && customAssetInfo && (
+                <div className="section">
+                  <h3>@parameters</h3>
+                  {isLoadingCustomAsset ? (
+                    <p>カスタムアセット情報を読み込み中...</p>
+                  ) : (
+                    customAssetInfo.parameters && customAssetInfo.parameters.length > 0 ? (
+                      <div className="parameters-grid">
+                        {customAssetInfo.parameters.map((paramInfo: any, index: number) => {
+                          const displayName = paramInfo.editName || paramInfo.displayName || paramInfo.name;
+                          const currentValue = editedAsset.customAssetParameters?.[paramInfo.name] || paramInfo.defaultValue || '';
+                          const variableBinding = editedAsset.parameterVariableBindings?.[paramInfo.name] || '';
+                          
+                          return (
+                            <div key={paramInfo.name} className="parameter-item">
+                              <div className="parameter-header">
+                                <label>{displayName}:</label>
+                                <small>({paramInfo.name})</small>
+                              </div>
+                              <div className="parameter-controls">
+                                <div className="parameter-value">
+                                  <label>値:</label>
+                                  <input
+                                    type={paramInfo.type === 'number' ? 'number' : 'text'}
+                                    value={currentValue}
+                                    onChange={(e) => {
+                                      const newValue = paramInfo.type === 'number' ? 
+                                        (e.target.value === '' ? '' : parseFloat(e.target.value)) : 
+                                        e.target.value;
+                                      handleCustomAssetParameterChange({
+                                        ...editedAsset.customAssetParameters,
+                                        [paramInfo.name]: newValue
+                                      });
+                                    }}
+                                    placeholder={`デフォルト: ${paramInfo.defaultValue}`}
+                                  />
+                                </div>
+                                <div className="parameter-variable">
+                                  <label>変数バインド:</label>
+                                  <select
+                                    value={variableBinding}
+                                    onChange={(e) => handleParameterVariableChange(paramInfo.name, e.target.value || null)}
+                                  >
+                                    <option value="">-- 変数を選択 --</option>
+                                    <optgroup label="ページ変数">
+                                      <option value="page_current">page_current</option>
+                                      <option value="page_total">page_total</option>
+                                    </optgroup>
+                                    <optgroup label="値アセット変数">
+                                      {availableVariables.map((variable) => (
+                                        <option key={variable.id} value={variable.name}>
+                                          {variable.name}
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="parameter-description">
+                                <small>{paramInfo.description || 'パラメータの説明なし'}</small>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p>このカスタムアセットに@parametersが定義されていません。</p>
+                    )
+                  )}
+                </div>
+              )}
+
+              {/* Position Section */}
+              <div className="section">
+                <h3>位置 (Position)</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>X座標:</label>
+                    <input
+                      type="number"
+                      value={currentPos.x}
+                      onChange={(e) => handlePositionChange('x', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Y座標:</label>
+                    <input
+                      type="number"
+                      value={currentPos.y}
+                      onChange={(e) => handlePositionChange('y', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Size Section */}
+              <div className="section">
+                <h3>サイズ (Size)</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>幅 (Width):</label>
+                    <input
+                      type="number"
+                      value={currentSize.width}
+                      onChange={(e) => handleSizeChange('width', parseFloat(e.target.value) || 0)}
+                      min="0"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>高さ (Height):</label>
+                    <input
+                      type="number"
+                      value={currentSize.height}
+                      onChange={(e) => handleSizeChange('height', parseFloat(e.target.value) || 0)}
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Opacity Section */}
+              <div className="section">
+                <h3>不透明度 (Opacity)</h3>
+                <div className="form-group">
+                  <label>不透明度 (0-1):</label>
+                  <input
+                    type="number"
+                    value={currentOpacity}
+                    onChange={(e) => handleOpacityChange(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    max="1"
+                    step="0.1"
+                  />
+                </div>
+              </div>
+
+              {/* Z-Index Section */}
+              <div className="section">
+                <h3>レイヤー順序 (Z-Index)</h3>
+                <div className="form-group">
+                  <label>Z-Index:</label>
+                  <input
+                    type="number"
+                    value={currentZIndex}
+                    onChange={(e) => handleZIndexChange(parseInt(e.target.value) || 0)}
+                  />
+                  {zIndexValidation.warning && (
+                    <div className="validation-warning">{zIndexValidation.warning}</div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
