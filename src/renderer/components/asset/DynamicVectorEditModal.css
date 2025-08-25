@@ -1,0 +1,523 @@
+/* DynamicVectorEditModal専用のスタイル - 他のモーダルとの競合を避けるためにdve-プレフィックスを使用 */
+
+/* Modal Overlay */
+.dve-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal Container */
+.dve-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal Header */
+.dve-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.dve-modal-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dve-close-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.dve-close-button:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+/* Modal Content */
+.dve-modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Edit Layout - 2パネル構成 */
+.dve-edit-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel - Preview */
+.dve-preview-panel {
+  flex: 0 0 380px;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
+  background-color: #fafbfc;
+  overflow: hidden;
+}
+
+.dve-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.dve-canvas-frame {
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+/* Preview States */
+.dve-empty-preview,
+.dve-error-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.dve-empty-icon,
+.dve-error-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.dve-error-display {
+  color: #dc3545;
+  max-width: 80%;
+}
+
+.dve-error-message {
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.dve-execution-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 123, 255, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dve-spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-top: 1.5px solid white;
+  border-radius: 50%;
+  animation: dve-spin 0.8s linear infinite;
+}
+
+@keyframes dve-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Right Panel - Settings */
+.dve-settings-panel {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #fff;
+}
+
+/* Parameter Groups */
+.dve-param-group {
+  margin-bottom: 20px;
+}
+
+/* Name Section */
+.dve-name-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dve-name-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.dve-name-input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: border-color 0.2s;
+}
+
+.dve-name-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Parameters Section */
+.dve-parameters-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dve-parameters-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.dve-parameters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dve-parameter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.dve-parameter-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dve-parameter-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dve-parameter-type {
+  font-size: 11px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.dve-parameter-input {
+  flex: 0 0 120px;
+}
+
+.dve-number-input,
+.dve-text-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.dve-text-input {
+  text-align: left;
+}
+
+.dve-number-input:focus,
+.dve-text-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Size Display Components */
+.dve-size-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dve-size-display > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.dve-size-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.dve-size-inputs input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.dve-size-inputs input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Opacity Section */
+.dve-opacity-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dve-opacity-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.dve-opacity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dve-opacity-slider {
+  flex: 1;
+  height: 4px;
+  background: #dee2e6;
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.dve-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dve-opacity-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.dve-opacity-value {
+  font-size: 12px;
+  color: #6c757d;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Z-Index Section */
+.dve-z-index-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dve-z-index-section > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.dve-z-index-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dve-z-index-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.dve-z-index-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.dve-z-index-input.error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
+}
+
+.dve-z-index-input.warning {
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25) !important;
+}
+
+.dve-z-index-info {
+  font-size: 11px;
+  color: #6c757d;
+  font-style: italic;
+  flex: 1;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.dve-z-index-info.error {
+  color: #dc3545;
+}
+
+.dve-z-index-info.warning {
+  color: #856404;
+}
+
+/* Modal Footer */
+.dve-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.dve-btn-secondary,
+.dve-btn-primary {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dve-btn-secondary {
+  background-color: white;
+  color: #666;
+}
+
+.dve-btn-secondary:hover {
+  background-color: #f8f9fa;
+  border-color: #bbb;
+}
+
+.dve-btn-primary {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.dve-btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dve-modal {
+    width: 95vw;
+    height: 95vh;
+  }
+  
+  .dve-edit-layout {
+    flex-direction: column;
+  }
+  
+  .dve-preview-panel {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .dve-settings-panel {
+    flex: 1;
+  }
+
+  .dve-parameter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .dve-parameter-input {
+    flex: 1;
+  }
+}
+
+/* NumericInput Integration */
+.dve-size-inputs .numeric-input {
+  flex: 1;
+}
+
+.dve-size-inputs .numeric-input input {
+  width: 100%;
+}
+
+/* Scrollbar Styling */
+.dve-settings-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dve-settings-panel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.dve-settings-panel::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.dve-settings-panel::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
