@@ -1,22 +1,27 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
-import { NumericInput } from '../common/NumericInput';
-import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page, ProjectData } from '../../../types/entities';
-import { getEffectiveZIndex, validateDynamicVectorAssetData, validateDynamicVectorAssetInstanceData } from '../../../types/entities';
+import type { 
+  DynamicVectorAsset, 
+  DynamicVectorAssetInstance, 
+  Page, 
+  ProjectData 
+} from '../../../types/entities';
+import { 
+  getEffectiveZIndex, 
+  validateDynamicVectorAssetData,
+  validateDynamicVectorAssetInstanceData 
+} from '../../../types/entities';
 import './DynamicVectorEditModal.css';
 
-// 編集モードの種類
-type EditMode = 'asset' | 'instance';
-
-interface DynamicVectorEditModalProps {
-  mode: EditMode;
+export interface DynamicVectorEditModalProps {
+  mode: 'asset' | 'instance';
   asset: DynamicVectorAsset;
   assetInstance?: DynamicVectorAssetInstance;
   page?: Page;
   isOpen: boolean;
   onClose: () => void;
-  onSaveAsset?: (updatedAsset: DynamicVectorAsset) => void;
-  onSaveInstance?: (updatedInstance: DynamicVectorAssetInstance) => void;
+  onSaveAsset?: (asset: DynamicVectorAsset) => void;
+  onSaveInstance?: (instance: DynamicVectorAssetInstance) => void;
 }
 
 interface SVGExecutionResult {
@@ -36,18 +41,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 }) => {
   const project = useProjectStore((state) => state.project);
   
-  // 編集中のデータ（モードに応じて切り替え）
+  // 編集中のデータ
   const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
   const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(
     assetInstance || null
   );
-
-  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
-  const [zIndexValidation, setZIndexValidation] = useState<{
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  }>({ isValid: true });
 
   // SVG実行結果
   const [svgResult, setSvgResult] = useState<SVGExecutionResult>({ svg: null, error: null });
@@ -55,6 +53,13 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
   // パラメータ値の状態管理
   const [parameterValues, setParameterValues] = useState<Record<string, number | string>>({});
+
+  // バリデーション状態
+  const [zIndexValidation, setZIndexValidation] = useState<{
+    isValid: boolean;
+    error?: string;
+    warning?: string;
+  }>({ isValid: true });
 
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -81,7 +86,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     
     executionTimerRef.current = setTimeout(() => {
       executeScript();
-    }, 300); // 300ms後に実行
+    }, 300);
   }, [parameterValues, editedAsset.script]);
 
   useEffect(() => {
@@ -108,16 +113,15 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       // パラメータを構築
       const scriptParameters = { ...parameterValues };
       
-      // ページ変数を追加（use_page_variablesがtrueの場合）
+      // ページ変数を追加
       if (editedAsset.use_page_variables && page && project) {
         const pageIndex = project.pages.findIndex(p => p.id === page.id);
         scriptParameters['page_current'] = pageIndex + 1;
         scriptParameters['page_total'] = project.pages.length;
       }
 
-      // ValueAsset変数を追加（use_value_variablesがtrueの場合）
+      // ValueAsset変数を追加
       if (editedAsset.use_value_variables && page && project) {
-        // ValueAssetの値を取得して変数として追加
         Object.values(project.assets).forEach(assetItem => {
           if (assetItem.type === 'ValueAsset') {
             const valueInstance = page.asset_instances[assetItem.id];
@@ -132,7 +136,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         });
       }
 
-      // スクリプト実行用の関数を作成
+      // スクリプト実行
       const scriptFunction = new Function(...Object.keys(scriptParameters), editedAsset.script);
       const result = scriptFunction(...Object.values(scriptParameters));
 
@@ -151,7 +155,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
-  // 現在の値を取得（Asset vs Instance）
+  // 現在の値を取得
   const getCurrentPosition = () => {
     if (mode === 'instance' && editedInstance) {
       return {
@@ -197,7 +201,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
 
-  // 値の更新（Asset vs Instance）
+  // 値の更新
   const updatePosition = (x: number, y: number) => {
     if (mode === 'instance' && editedInstance) {
       setEditedInstance(prev => prev ? {
@@ -258,82 +262,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
-  // z_index専用のサニタイズ関数（整数のみ）
-  const sanitizeZIndexInput = (value: string): string => {
-    // 数字と-のみを許可（小数点は除外）
-    let sanitized = value.replace(/[^0-9\-]/g, '');
-    
-    // 最初の文字以外の-を除去
-    if (sanitized.indexOf('-') > 0) {
-      sanitized = sanitized.replace(/-/g, '');
-      if (value.startsWith('-')) {
-        sanitized = '-' + sanitized;
-      }
-    }
-    
-    return sanitized;
-  };
-
-  // z_indexバリデーション関数
-  const validateZIndexValue = (value: string): {
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  } => {
-    const numValue = parseInt(value.trim());
-    
-    // 空文字列または無効な数値
-    if (isNaN(numValue)) {
-      return {
-        isValid: false,
-        error: 'z-indexは数値である必要があります'
-      };
-    }
-    
-    // 範囲チェック（-9999 〜 9999）
-    if (numValue < -9999 || numValue > 9999) {
-      return {
-        isValid: false,
-        error: 'z-indexは-9999から9999の範囲で入力してください'
-      };
-    }
-    
-    // 競合チェック（同じページ内での重複）
-    let warning: string | undefined;
-    if (page && project) {
-      const conflicts: string[] = [];
-      
-      Object.values(page.asset_instances).forEach((instance) => {
-        // 自分自身は除外
-        if (instance.id === assetInstance?.id) return;
-        
-        const instanceAsset = project.assets[instance.asset_id];
-        if (!instanceAsset) return;
-        
-        const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance);
-        
-        if (effectiveZIndex === numValue) {
-          const assetName = instanceAsset.name || instanceAsset.id;
-          conflicts.push(assetName);
-        }
-      });
-      
-      if (conflicts.length > 0) {
-        warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
-      }
-    }
-    
-    return {
-      isValid: true,
-      warning
-    };
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (mode === 'instance' && editedInstance) {
-      // DynamicVectorAssetInstanceの全体バリデーション
       const validation = validateDynamicVectorAssetInstanceData(editedInstance);
       if (!validation.isValid) {
         alert(validation.errors.join('\n'));
@@ -343,13 +275,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         onSaveInstance(editedInstance);
       }
     } else if (mode === 'asset') {
-      // パラメータ値を保存
       const updatedAsset = {
         ...editedAsset,
         customAssetParameters: { ...parameterValues },
       };
       
-      // DynamicVectorAssetの全体バリデーション
       const validation = validateDynamicVectorAssetData(updatedAsset);
       if (!validation.isValid) {
         alert(validation.errors.join('\n'));
@@ -360,14 +290,6 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       }
     }
     onClose();
-  };
-
-  // Enterキーでフォーカスを外すハンドラー
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      (e.target as HTMLInputElement).blur();
-    }
   };
 
   // パラメータ変更ハンドラー
@@ -382,9 +304,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     ? `DynamicVectorAssetInstance 編集: ${asset.name}` 
     : `DynamicVectorAsset 編集: ${asset.name}`;
 
-  // CustomAssetのパラメータ情報を取得
-  const customAssetParams = asset.customAssetInfo?.parameters || {};
-  const hasParameters = Object.keys(customAssetParams).length > 0;
+  // CustomAssetのパラメータ情報を取得（配列として処理）
+  const customAssetParameters = asset.customAssetInfo?.parameters || [];
+  const hasParameters = Array.isArray(customAssetParameters) && customAssetParameters.length > 0;
 
   return (
     <div className="dve-modal-overlay">
@@ -464,7 +386,6 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       type="text"
                       value={editedAsset.name}
                       onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
-                      onKeyDown={handleKeyDown}
                       className="dve-name-input"
                     />
                   </div>
@@ -477,41 +398,35 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <div className="dve-parameters-section">
                     <span>@parameters</span>
                     <div className="dve-parameters-list">
-                      {Object.entries(customAssetParams).map(([paramName, paramDef]: [string, any]) => (
-                        <div key={paramName} className="dve-parameter-row">
+                      {customAssetParameters.map((paramDef: any, index: number) => (
+                        <div key={paramDef.name || `param-${index}`} className="dve-parameter-row">
                           <div className="dve-parameter-info">
-                            <label className="dve-parameter-name">{paramName}</label>
+                            <label className="dve-parameter-name">{paramDef.name || `param_${index}`}</label>
                             <span className="dve-parameter-type">({paramDef.type || 'any'})</span>
                           </div>
                           <div className="dve-parameter-input">
                             {paramDef.type === 'number' ? (
                               <input
                                 type="number"
-                                value={parameterValues[paramName] || paramDef.default || 0}
+                                value={parameterValues[paramDef.name] || paramDef.default || 0}
                                 onChange={(e) => {
                                   const value = parseFloat(e.target.value);
                                   if (!isNaN(value)) {
-                                    handleParameterChange(paramName, value);
+                                    handleParameterChange(paramDef.name, value);
                                   }
                                 }}
-                                onBlur={() => {
-                                  // フォーカスアウト時に再実行をスケジュール
-                                  scheduleExecution();
-                                }}
+                                onBlur={() => scheduleExecution()}
                                 className="dve-number-input"
                                 step="any"
                               />
                             ) : (
                               <input
                                 type="text"
-                                value={parameterValues[paramName] || paramDef.default || ''}
+                                value={parameterValues[paramDef.name] || paramDef.default || ''}
                                 onChange={(e) => {
-                                  handleParameterChange(paramName, e.target.value);
+                                  handleParameterChange(paramDef.name, e.target.value);
                                 }}
-                                onBlur={() => {
-                                  // フォーカスアウト時に再実行をスケジュール
-                                  scheduleExecution();
-                                }}
+                                onBlur={() => scheduleExecution()}
                                 className="dve-text-input"
                               />
                             )}
@@ -523,63 +438,75 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 </div>
               )}
 
-              {/* 位置設定 */}
+              {/* PosX / PosY */}
               <div className="dve-param-group">
-                <div className="dve-size-display">
+                <div className="dve-position-section">
                   <span>PosX / PosY</span>
-                  <div className="dve-size-inputs">
-                    <NumericInput
+                  <div className="dve-input-row">
+                    <input
+                      type="number"
                       value={currentPos.x}
-                      onChange={(value) => {
-                        updatePosition(value, currentPos.y);
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value)) {
+                          updatePosition(value, currentPos.y);
+                        }
                       }}
-                      min={-9999}
-                      max={9999}
-                      decimals={2}
-                      className="small"
+                      className="dve-number-input"
+                      step="0.01"
                     />
-                    <NumericInput
+                    <input
+                      type="number"
                       value={currentPos.y}
-                      onChange={(value) => {
-                        updatePosition(currentPos.x, value);
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value)) {
+                          updatePosition(currentPos.x, value);
+                        }
                       }}
-                      min={-9999}
-                      max={9999}
-                      decimals={2}
-                      className="small"
+                      className="dve-number-input"
+                      step="0.01"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* サイズ設定 */}
+              {/* Width / Height */}
               <div className="dve-param-group">
-                <div className="dve-size-display">
+                <div className="dve-size-section">
                   <span>Width / Height</span>
-                  <div className="dve-size-inputs">
-                    <NumericInput
+                  <div className="dve-input-row">
+                    <input
+                      type="number"
                       value={currentSize.width}
-                      onChange={(value) => {
-                        updateSize(value, currentSize.height);
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value) && value >= 0) {
+                          updateSize(value, currentSize.height);
+                        }
                       }}
-                      min={0.01}
-                      decimals={2}
-                      className="small"
+                      className="dve-number-input"
+                      step="0.01"
+                      min="0"
                     />
-                    <NumericInput
+                    <input
+                      type="number"
                       value={currentSize.height}
-                      onChange={(value) => {
-                        updateSize(currentSize.width, value);
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value) && value >= 0) {
+                          updateSize(currentSize.width, value);
+                        }
                       }}
-                      min={0.01}
-                      decimals={2}
-                      className="small"
+                      className="dve-number-input"
+                      step="0.01"
+                      min="0"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 透明度 */}
+              {/* Opacity */}
               <div className="dve-param-group">
                 <div className="dve-opacity-section">
                   <span>Opacity</span>
@@ -590,61 +517,50 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       max="1"
                       step="0.01"
                       value={currentOpacity}
-                      onChange={(e) => updateOpacity(parseFloat(e.target.value))}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        updateOpacity(value);
+                      }}
                       className="dve-opacity-slider"
                     />
-                    <span className="dve-opacity-value">{currentOpacity.toFixed(2)}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={currentOpacity}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        if (!isNaN(value)) {
+                          const clampedValue = Math.max(0, Math.min(1, value));
+                          updateOpacity(clampedValue);
+                        }
+                      }}
+                      className="dve-opacity-number"
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Z-Index */}
               <div className="dve-param-group">
-                <div className="dve-z-index-section">
+                <div className="dve-zindex-section">
                   <span>Z-Index</span>
-                  <div className="dve-z-index-controls">
-                    <input
-                      type="text"
-                      value={tempInputValues.z_index ?? currentZIndex.toString()}
-                      onChange={(e) => {
-                        const sanitized = sanitizeZIndexInput(e.target.value);
-                        setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
-                        
-                        // バリデーション実行
-                        const validation = validateZIndexValue(sanitized);
-                        setZIndexValidation(validation);
-                      }}
-                      onBlur={(e) => {
-                        const validated = parseInt(e.target.value) || currentZIndex;
-                        updateZIndex(validated);
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.z_index;
-                          return newTemp;
-                        });
-                      }}
-                      onKeyDown={handleKeyDown}
-                      className={`dve-z-index-input ${
-                        !zIndexValidation.isValid ? 'error' : 
-                        zIndexValidation.warning ? 'warning' : ''
-                      }`}
-                    />
-                    <span className={`dve-z-index-info ${
-                      !zIndexValidation.isValid ? 'error' : 
-                      zIndexValidation.warning ? 'warning' : ''
-                    }`}>
-                      {!zIndexValidation.isValid && zIndexValidation.error ? 
-                        zIndexValidation.error :
-                        zIndexValidation.warning ? 
-                        zIndexValidation.warning :
-                        mode === 'instance' && editedInstance?.override_z_index !== undefined 
-                          ? `(overriding default: ${asset.default_z_index})`
-                          : mode === 'instance' 
-                          ? `(using default: ${asset.default_z_index})`
-                          : '(layer order: lower = background)'
+                  <span className="dve-zindex-hint">(layer order: lower = background)</span>
+                  <input
+                    type="number"
+                    value={currentZIndex}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value)) {
+                        updateZIndex(value);
                       }
-                    </span>
-                  </div>
+                    }}
+                    className="dve-zindex-input"
+                  />
+                  {zIndexValidation.warning && (
+                    <div className="dve-validation-warning">{zIndexValidation.warning}</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -652,11 +568,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         </div>
 
         <div className="dve-modal-footer">
-          <button type="button" onClick={onClose} className="dve-btn-secondary">
-            キャンセル
+          <button type="button" onClick={onClose} className="dve-button-secondary">
+            Cancel
           </button>
-          <button type="button" onClick={handleSubmit} className="dve-btn-primary">
-            保存
+          <button type="button" onClick={handleSubmit} className="dve-button-primary">
+            Save
           </button>
         </div>
       </div>
