@@ -75,7 +75,7 @@
 /* 2パネルレイアウト */
 .edit-panels {
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
   height: 100%;
   min-height: 500px;
@@ -690,17 +690,11 @@
   border-color: #1d4ed8;
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 1200px) {
-  .edit-panels {
-    grid-template-columns: 1fr 320px;
-  }
-}
-
-@media (max-width: 1000px) {
+/* シンプルなレスポンシブ対応（極小画面のみ） */
+@media (max-width: 768px) {
   .edit-panels {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
     height: auto;
   }
   
@@ -708,44 +702,6 @@
     border-bottom: 1px solid #e5e7eb;
     padding-bottom: 20px;
     margin-bottom: 20px;
-  }
-  
-  .preview-container {
-    min-height: 250px;
-  }
-}
-
-@media (max-width: 768px) {
-  .dynamic-vector-edit-modal {
-    width: 100vw;
-    height: 100vh;
-    max-width: none;
-    max-height: none;
-    border-radius: 0;
-  }
-  
-  .modal-content {
-    padding: 16px;
-  }
-  
-  .edit-panels {
-    gap: 16px;
-  }
-  
-  .modal-header {
-    padding: 16px;
-  }
-  
-  .modal-footer {
-    padding: 16px;
-  }
-  
-  .modal-header h2 {
-    font-size: 16px;
-  }
-  
-  .custom-asset-badge {
-    display: none;
   }
   
   .preview-container {

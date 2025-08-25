@@ -380,8 +380,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     className="canvas-container"
                     style={{
                       position: 'relative',
-                      width: Math.min(280, 280 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                      height: Math.min(280, 280 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                      width: Math.min(240, 240 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                      height: Math.min(240, 240 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
                       border: '2px solid #d1d5db',
                       backgroundColor: '#ffffff',
                       overflow: 'visible',
