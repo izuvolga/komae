@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
-import AssetParameterEditor from './AssetParameterEditor';
 import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page, ProjectData } from '../../../types/entities';
 import { 
   getEffectiveZIndex, 
@@ -9,7 +8,6 @@ import {
   validateDynamicVectorAssetInstanceData 
 } from '../../../types/entities';
 import { createExecutionContext, executeScript } from '../../../utils/dynamicVectorEngine';
-import { ParameterVariableEditor } from './ParameterVariableEditor';
 import './DynamicVectorEditModal.css';
 
 export interface DynamicVectorEditModalProps {
@@ -184,6 +182,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         ...prev,
         [`default_pos_${field}`]: value,
       }));
+      // プレビューを更新（位置変更は表示位置のみなのでSVG内容は再生成不要）
     } else if (editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
@@ -198,6 +197,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         ...prev,
         [`default_${field}`]: value,
       }));
+      // サイズ変更は表示サイズのみなのでSVG内容は再生成不要
     } else if (editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
@@ -212,6 +212,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         ...prev,
         default_opacity: value,
       }));
+      // 不透明度変更は表示スタイルのみなのでSVG内容は再生成不要
     } else if (editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
@@ -471,39 +472,86 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               {/* CustomAssetパラメータ（Asset編集時のみ） */}
               {mode === 'asset' && customAssetInfo?.metadata?.params && (
                 <div className="property-group">
-                  <label>CustomAssetパラメータ</label>
-                  <div className="parameter-editor-container">
-                    <AssetParameterEditor
-                      parameters={customAssetInfo.metadata.params}
-                      values={editedAsset.customAssetParameters || {}}
-                      onChange={handleCustomAssetParameterChange}
-                    />
+                  <div className="parameters-section">
+                    {Object.entries(customAssetInfo.metadata.params).map(([paramName, paramInfo], index) => {
+                      // paramInfoの型アサーション
+                      const param = paramInfo as { type: string; defaultValue: any; min?: number; max?: number; step?: number };
+                      const currentValue = editedAsset.customAssetParameters?.[paramName] ?? param.defaultValue;
+                      const variableBinding = editedAsset.parameterVariableBindings?.[paramName];
+                      const displayName = `var_${index + 1}`;
+                      
+                      return (
+                        <div key={paramName} className="parameter-row">
+                          <div className="parameter-label">
+                            <span className="parameter-display-name">{displayName}</span>
+                            <span className="parameter-actual-name">({paramName})</span>
+                          </div>
+                          <div className="parameter-controls">
+                            {param.type === 'number' ? (
+                              <NumericInput
+                                value={typeof currentValue === 'number' ? currentValue : parseFloat(String(currentValue)) || 0}
+                                onChange={(value) => {
+                                  const newParams = { ...editedAsset.customAssetParameters, [paramName]: value };
+                                  handleCustomAssetParameterChange(newParams);
+                                }}
+                                min={param.min}
+                                max={param.max}
+                                step={param.step || 1}
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={String(currentValue)}
+                                onChange={(e) => {
+                                  const newParams = { ...editedAsset.customAssetParameters, [paramName]: e.target.value };
+                                  handleCustomAssetParameterChange(newParams);
+                                }}
+                                className="parameter-text-input"
+                              />
+                            )}
+                            {/* 変数バインディング選択 */}
+                            <select
+                              value={variableBinding || ''}
+                              onChange={(e) => {
+                                const newBinding = e.target.value || null;
+                                handleParameterVariableChange(paramName, newBinding);
+                              }}
+                              className="variable-binding-select"
+                            >
+                              <option value="">固定値</option>
+                              <optgroup label="ページ変数">
+                                <option value="page_current">page_current</option>
+                                <option value="page_total">page_total</option>
+                              </optgroup>
+                              <optgroup label="値アセット変数">
+                                {Object.entries(project.assets)
+                                  .filter(([_, asset]) => asset.type === 'ValueAsset')
+                                  .filter(([_, valueAsset]) => {
+                                    const name = valueAsset.name;
+                                    return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+                                  })
+                                  .map(([assetId, valueAsset]) => (
+                                    <option key={assetId} value={valueAsset.name}>
+                                      {valueAsset.name}
+                                    </option>
+                                  ))
+                                }
+                              </optgroup>
+                            </select>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* パラメータ変数編集（Asset編集時のみ） */}
-              {mode === 'asset' && customAssetInfo?.metadata?.params && (
-                <div className="property-group">
-                  <label>パラメータ変数編集</label>
-                  <div className="parameter-variable-container">
-                    <ParameterVariableEditor
-                      customAssetParams={customAssetInfo.metadata.params}
-                      currentParameterValues={editedAsset.customAssetParameters || {}}
-                      currentParameterVariableBindings={editedAsset.parameterVariableBindings || {}}
-                      project={project}
-                      onParameterVariableChange={handleParameterVariableChange}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* 位置 */}
+              {/* 位置・サイズ・外観設定 */}
               <div className="property-group">
                 <label>位置</label>
                 <div className="property-row">
                   <div className="input-group">
-                    <label>X (px)</label>
+                    <label>PosX</label>
                     <NumericInput
                       value={currentPos.x}
                       onChange={(value) => handlePositionChange('x', value)}
@@ -511,7 +559,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     />
                   </div>
                   <div className="input-group">
-                    <label>Y (px)</label>
+                    <label>PosY</label>
                     <NumericInput
                       value={currentPos.y}
                       onChange={(value) => handlePositionChange('y', value)}
@@ -521,12 +569,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 </div>
               </div>
 
-              {/* サイズ */}
               <div className="property-group">
                 <label>サイズ</label>
                 <div className="property-row">
                   <div className="input-group">
-                    <label>幅 (px)</label>
+                    <label>Width</label>
                     <NumericInput
                       value={currentSize.width}
                       onChange={(value) => handleSizeChange('width', value)}
@@ -535,7 +582,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     />
                   </div>
                   <div className="input-group">
-                    <label>高さ (px)</label>
+                    <label>Height</label>
                     <NumericInput
                       value={currentSize.height}
                       onChange={(value) => handleSizeChange('height', value)}
@@ -546,16 +593,17 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 </div>
               </div>
 
-              {/* 不透明度 */}
               <div className="property-group">
-                <label>不透明度</label>
+                <label>Opacity</label>
                 <div className="opacity-control">
-                  <NumericInput
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
                     value={currentOpacity}
-                    onChange={handleOpacityChange}
-                    min={0}
-                    max={1}
-                    step={0.01}
+                    onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
+                    className="opacity-slider"
                   />
                   <span className="opacity-percentage">
                     {Math.round(currentOpacity * 100)}%
@@ -563,7 +611,6 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 </div>
               </div>
 
-              {/* Z-Index */}
               <div className="property-group">
                 <label>Z-Index</label>
                 <NumericInput
