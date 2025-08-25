@@ -334,4 +334,268 @@ export class CustomAssetManager {
       throw error;
     }
   }
+
+  async generateCustomAssetSVG(assetId: string, parameters: Record<string, any>): Promise<string> {
+    try {
+      const assetInfo = await this.getCustomAssetInfo(assetId);
+      if (!assetInfo) {
+        throw new Error(`Custom asset with ID "${assetId}" not found`);
+      }
+
+      const fileContent = fs.readFileSync(assetInfo.filePath, 'utf-8');
+      const parsedAsset = parseCustomAsset(fileContent);
+      
+      // パラメータをデフォルト値とマージ
+      const mergedParameters = { ...assetInfo.parameters.reduce((acc, param) => {
+        acc[param.name] = param.defaultValue;
+        return acc;
+      }, {} as Record<string, any>), ...parameters };
+
+      // JavaScript コードの実行環境を作成
+      const sandbox = {
+        // パラメータを展開
+        ...mergedParameters,
+        
+        // SVG生成のためのヘルパー関数
+        createSVGElement: (tagName: string, attributes: Record<string, string | number> = {}, children: string = '') => {
+          const attrs = Object.entries(attributes)
+            .map(([key, value]) => `${key}="${value}"`)
+            .join(' ');
+          return children 
+            ? `<${tagName} ${attrs}>${children}</${tagName}>`
+            : `<${tagName} ${attrs}/>`;
+        },
+        
+        // よく使用されるSVG関数
+        rect: (x: number, y: number, width: number, height: number, fill: string = '#000') => 
+          `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"/>`,
+        circle: (cx: number, cy: number, r: number, fill: string = '#000') => 
+          `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`,
+        text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') => 
+          `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${content}</text>`,
+        path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) => 
+          `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`,
+        
+        // コンソール出力をキャプチャ
+        console: {
+          log: (...args: any[]) => console.log('[CustomAsset]', ...args),
+          error: (...args: any[]) => console.error('[CustomAsset]', ...args),
+          warn: (...args: any[]) => console.warn('[CustomAsset]', ...args)
+        }
+      };
+
+      // コードを実行してSVGを生成
+      const vm = require('vm');
+      const context = vm.createContext(sandbox);
+      
+      // コードを実行し、結果を取得
+      let result: string;
+      try {
+        result = vm.runInContext(`
+          (function() {
+            ${parsedAsset.code}
+            // generateSVG関数が定義されていることを想定
+            if (typeof generateSVG === 'function') {
+              return generateSVG();
+            } else {
+              throw new Error('generateSVG function not found in custom asset code');
+            }
+          })()
+        `, context, { timeout: 5000 });
+      } catch (executionError) {
+        throw new Error(`Failed to execute custom asset code: ${executionError instanceof Error ? executionError.message : String(executionError)}`);
+      }
+
+      // 結果がSVG文字列であることを確認
+      if (typeof result !== 'string') {
+        throw new Error('Custom asset generateSVG function must return a string');
+      }
+
+      // SVGタグで囲まれていない場合は追加
+      if (!result.trim().startsWith('<svg')) {
+        result = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${result}</svg>`;
+      }
+
+      await this.logger.logDevelopment('custom_asset_svg_generated', 'SVG generated successfully', {
+        assetId,
+        parametersCount: Object.keys(parameters).length,
+        svgLength: result.length
+      });
+
+      return result;
+    } catch (error) {
+      await this.logger.logError('custom_asset_svg_generation', error as Error, { 
+        assetId, 
+        parameters 
+      });
+      throw error;
+    }
+  }
+
+  async generateDynamicVectorSVG(
+    asset: any, // DynamicVectorAsset
+    instance: any, // DynamicVectorAssetInstance
+    project: any, // ProjectData
+    pageIndex: number = 0
+  ): Promise<string> {
+    try {
+      // DynamicVectorAssetの場合は既存のscriptを実行
+      if (asset.script) {
+        return await this.executeDynamicVectorScript(asset, instance, project, pageIndex);
+      }
+      
+      // CustomAssetの場合は generateCustomAssetSVG を使用
+      if (asset.customAssetId) {
+        const parameters = asset.customAssetParameters || {};
+        return await this.generateCustomAssetSVG(asset.customAssetId, parameters);
+      }
+      
+      throw new Error('No script or customAssetId found in DynamicVectorAsset');
+    } catch (error) {
+      await this.logger.logError('dynamic_vector_svg_generation', error as Error, { 
+        assetId: asset.id,
+        assetType: asset.customAssetId ? 'CustomAsset' : 'Script',
+        pageIndex
+      });
+      throw error;
+    }
+  }
+
+  private async executeDynamicVectorScript(
+    asset: any, // DynamicVectorAsset
+    instance: any, // DynamicVectorAssetInstance
+    project: any, // ProjectData
+    pageIndex: number
+  ): Promise<string> {
+    // 実行コンテキストを作成
+    const context = this.createDynamicVectorContext(asset, instance, project, pageIndex);
+    
+    // Node.jsのvmモジュールを使用してスクリプトを安全に実行
+    const vm = require('vm');
+    const sandbox = {
+      ...context,
+      
+      // SVG生成のためのヘルパー関数
+      createSVGElement: (tagName: string, attributes: Record<string, string | number> = {}, children: string = '') => {
+        const attrs = Object.entries(attributes)
+          .map(([key, value]) => `${key}="${value}"`)
+          .join(' ');
+        return children 
+          ? `<${tagName} ${attrs}>${children}</${tagName}>`
+          : `<${tagName} ${attrs}/>`;
+      },
+      
+      // よく使用されるSVG関数
+      rect: (x: number, y: number, width: number, height: number, fill: string = '#000') => 
+        `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"/>`,
+      circle: (cx: number, cy: number, r: number, fill: string = '#000') => 
+        `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`,
+      text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') => 
+        `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${content}</text>`,
+      path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) => 
+        `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`,
+      
+      // Math関数
+      Math,
+      
+      // コンソール出力をキャプチャ
+      console: {
+        log: (...args: any[]) => console.log('[DynamicVector]', ...args),
+        error: (...args: any[]) => console.error('[DynamicVector]', ...args),
+        warn: (...args: any[]) => console.warn('[DynamicVector]', ...args)
+      }
+    };
+
+    const vmContext = vm.createContext(sandbox);
+    
+    // スクリプトを実行してSVGを生成
+    let result: string;
+    try {
+      result = vm.runInContext(`
+        (function() {
+          ${asset.script}
+          // generateSVG関数またはscriptの結果を取得
+          if (typeof generateSVG === 'function') {
+            return generateSVG();
+          } else {
+            // スクリプト自体が値を返す場合
+            return eval('(' + ${JSON.stringify(asset.script)} + ')');
+          }
+        })()
+      `, vmContext, { timeout: 5000 });
+    } catch (executionError) {
+      throw new Error(`Failed to execute DynamicVector script: ${executionError instanceof Error ? executionError.message : String(executionError)}`);
+    }
+
+    // 結果がSVG文字列であることを確認
+    if (typeof result !== 'string') {
+      throw new Error('DynamicVector script must return a string');
+    }
+
+    // SVGタグで囲まれていない場合は追加
+    if (!result.trim().startsWith('<svg') && !result.trim().startsWith('<g')) {
+      result = `<g>${result}</g>`;
+    }
+
+    await this.logger.logDevelopment('dynamic_vector_svg_generated', 'DynamicVector SVG generated successfully', {
+      assetId: asset.id,
+      svgLength: result.length,
+      pageIndex
+    });
+
+    return result;
+  }
+
+  private createDynamicVectorContext(
+    asset: any, // DynamicVectorAsset
+    instance: any, // DynamicVectorAssetInstance
+    project: any, // ProjectData
+    pageIndex: number
+  ): Record<string, any> {
+    // 位置・サイズ・オパシティを取得
+    const posX = instance?.override_pos_x ?? asset.default_pos_x;
+    const posY = instance?.override_pos_y ?? asset.default_pos_y;
+    const width = instance?.override_width ?? asset.default_width;
+    const height = instance?.override_height ?? asset.default_height;
+    const opacity = instance?.override_opacity ?? asset.default_opacity;
+    
+    // ページ変数
+    const pageVariables = {
+      page_current: pageIndex + 1,
+      page_total: project.pages?.length || 1
+    };
+    
+    // ValueAsset変数
+    const valueVariables: Record<string, any> = {};
+    if (project.assets) {
+      Object.values(project.assets).forEach((projAsset: any) => {
+        if (projAsset.type === 'ValueAsset' && projAsset.name) {
+          valueVariables[projAsset.name] = projAsset.value;
+        }
+      });
+    }
+    
+    return {
+      // アセット情報
+      asset_name: asset.name,
+      asset_id: asset.id,
+      
+      // 位置・サイズ情報
+      pos_x: posX,
+      pos_y: posY,
+      width,
+      height,
+      opacity,
+      
+      // ページ情報
+      ...pageVariables,
+      
+      // 値アセット変数
+      ...valueVariables,
+      
+      // プロジェクト情報
+      canvas_width: project.canvas?.width || 800,
+      canvas_height: project.canvas?.height || 600
+    };
+  }
 }

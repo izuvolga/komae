@@ -95,6 +95,14 @@ const electronAPI = {
     
     getAssetCode: (assetId: string) => 
       ipcRenderer.invoke('customAsset:getAssetCode', assetId),
+    
+    generateSVG: (assetId: string, parameters: Record<string, any>) =>
+      ipcRenderer.invoke('customAsset:generateSVG', assetId, parameters),
+  },
+  
+  dynamicVector: {
+    generateSVG: (asset: any, instance: any, project: any, pageIndex: number = 0) =>
+      ipcRenderer.invoke('dynamicVector:generateSVG', asset, instance, project, pageIndex),
   },
 
   // File System Operations

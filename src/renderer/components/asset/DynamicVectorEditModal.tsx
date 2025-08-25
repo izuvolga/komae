@@ -102,9 +102,13 @@ export function DynamicVectorEditModal({
     try {
       const currentParams = editedAsset.customAssetParameters || {};
       
-      // TODO: Implement generateCustomAssetSVG API
-      // For now, show placeholder message
-      setPreviewError('SVG generation not yet implemented');
+      // 新しいgenerateSVG APIを使用
+      const svgContent = await window.electronAPI.customAsset.generateSVG(
+        asset.customAssetId,
+        currentParams
+      );
+      
+      setPreviewSVG(svgContent);
     } catch (error) {
       console.error('Preview generation failed:', error);
       setPreviewError(error instanceof Error ? error.message : 'プレビュー生成に失敗しました');

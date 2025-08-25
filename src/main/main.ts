@@ -472,6 +472,24 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('customAsset:generateSVG', async (event, assetId: string, parameters: Record<string, any>) => {
+      try {
+        return await this.customAssetManager.generateCustomAssetSVG(assetId, parameters);
+      } catch (error) {
+        console.error('Failed to generate custom asset SVG:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('dynamicVector:generateSVG', async (event, asset: any, instance: any, project: any, pageIndex: number) => {
+      try {
+        return await this.customAssetManager.generateDynamicVectorSVG(asset, instance, project, pageIndex);
+      } catch (error) {
+        console.error('Failed to generate dynamic vector SVG:', error);
+        throw error;
+      }
+    });
+
     // File System Operations
     ipcMain.handle('dialog:showOpen', async (event, options: Electron.OpenDialogOptions) => {
       try {
