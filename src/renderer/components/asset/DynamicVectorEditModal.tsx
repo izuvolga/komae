@@ -21,283 +21,153 @@ export interface DynamicVectorEditModalProps {
   onSaveInstance?: (instance: DynamicVectorAssetInstance) => void;
 }
 
-export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
+export function DynamicVectorEditModal({ 
   mode,
   asset,
   assetInstance,
   page,
-  isOpen,
-  onClose,
+  isOpen, 
+  onClose, 
   onSaveAsset,
-  onSaveInstance,
-}) => {
-  const project = useProjectStore((state) => state.project);
-
-  // 編集中のデータ（モードに応じて切り替え）
-  const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(() => ({
-    ...asset,
-    // ページ変数をデフォルトでONに設定
-    use_page_variables: asset.use_page_variables ?? true,
-    use_value_variables: asset.use_value_variables ?? true,
-  }));
-  const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(
-    assetInstance || null
-  );
-
-  // CustomAsset関連の状態
+  onSaveInstance
+}: DynamicVectorEditModalProps) {
+  const { project } = useProjectStore();
+  
+  // Position, Size, Opacity types from entities
+  type Position = { x: number; y: number };
+  type Size = { width: number; height: number };
+  
+  const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
+  const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(assetInstance || null);
   const [customAssetInfo, setCustomAssetInfo] = useState<any>(null);
   const [isLoadingCustomAsset, setIsLoadingCustomAsset] = useState(false);
-  
-  // プレビューSVG生成の状態
   const [previewSVG, setPreviewSVG] = useState<string | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // バリデーション状態
-  const [zIndexValidation, setZIndexValidation] = useState<{
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  }>({ isValid: true });
+  // Current values (Asset or Instance)
+  const currentPos = mode === 'instance' && editedInstance 
+    ? { x: editedInstance.override_pos_x ?? editedAsset.default_pos_x, y: editedInstance.override_pos_y ?? editedAsset.default_pos_y }
+    : { x: editedAsset.default_pos_x, y: editedAsset.default_pos_y };
+  const currentSize = mode === 'instance' && editedInstance 
+    ? { width: editedInstance.override_width ?? editedAsset.default_width, height: editedInstance.override_height ?? editedAsset.default_height }
+    : { width: editedAsset.default_width, height: editedAsset.default_height };  
+  const currentOpacity = mode === 'instance' && editedInstance ? (editedInstance.override_opacity ?? editedAsset.default_opacity) : editedAsset.default_opacity;
+  const currentZIndex = mode === 'instance' && editedInstance 
+    ? (editedInstance.override_z_index ?? editedAsset.default_z_index) 
+    : editedAsset.default_z_index;
 
-  // 初期化とCustomAsset情報の取得
+  const zIndexValidation = { warning: null as string | null };
+
   useEffect(() => {
-    setEditedAsset(asset);
-    setEditedInstance(assetInstance || null);
-    
-    // DynamicVectorAssetは常にCustomAssetなので情報を取得
     if (asset.customAssetId) {
-      loadCustomAssetInfo(asset.customAssetId);
-    }
-  }, [asset, assetInstance]);
-
-  // CustomAsset情報が読み込まれたらプレビューを生成
-  useEffect(() => {
-    if (customAssetInfo && editedAsset.script) {
-      generatePreviewSVG();
-    }
-  }, [customAssetInfo, editedAsset.script, editedAsset.customAssetParameters]);
-
-  const loadCustomAssetInfo = async (customAssetId: string) => {
-    try {
+      console.log('Fetching CustomAsset info for:', asset.customAssetId);
       setIsLoadingCustomAsset(true);
-      const info = await window.electronAPI.customAsset.getAssetInfo(customAssetId);
-      setCustomAssetInfo(info);
-    } catch (error) {
-      console.error('Failed to load custom asset info:', error);
-      setCustomAssetInfo(null);
-    } finally {
-      setIsLoadingCustomAsset(false);
+      window.electronAPI.customAsset.getAssetInfo(asset.customAssetId)
+        .then((info: any) => {
+          console.log('Received CustomAsset info:', info);
+          console.log('Parameters found:', info?.parameters);
+          if (info?.parameters) {
+            console.log('Parameter details:', info.parameters);
+          }
+          setCustomAssetInfo(info);
+        })
+        .catch((error: any) => {
+          console.error('Failed to load custom asset info:', error);
+        })
+        .finally(() => {
+          setIsLoadingCustomAsset(false);
+        });
     }
-  };
+  }, [asset.customAssetId]);
 
   const generatePreviewSVG = async () => {
-    if (!project || !editedAsset.customAssetId) {
-      setPreviewSVG(null);
-      setPreviewError('プロジェクトまたはCustomAsset IDが見つかりません');
-      return;
-    }
-
+    if (!customAssetInfo || !asset.customAssetId) return;
+    
+    setIsGeneratingPreview(true);
+    setPreviewError(null);
+    
     try {
-      setIsGeneratingPreview(true);
-      setPreviewError(null);
-
-      // スクリプト実行コンテキストを作成（ページインデックス0でプレビュー）
-      const executionContext = createExecutionContext(editedAsset, project, 0);
+      const currentParams = editedAsset.customAssetParameters || {};
       
-      // スクリプトを実行してSVGコンテンツを生成
-      const executionResult = executeScript(editedAsset.script, executionContext);
-      
-      if (!executionResult.success || !executionResult.svgContent) {
-        setPreviewSVG(null);
-        setPreviewError(executionResult.error || 'SVG生成に失敗しました');
-        return;
-      }
-
-      // 警告がある場合は表示
-      if (executionResult.warnings && executionResult.warnings.length > 0) {
-        console.warn('Preview generation warnings:', executionResult.warnings);
-      }
-
-      setPreviewSVG(executionResult.svgContent);
+      // TODO: Implement generateCustomAssetSVG API
+      // For now, show placeholder message
+      setPreviewError('SVG generation not yet implemented');
     } catch (error) {
-      console.error('Preview generation error:', error);
-      setPreviewSVG(null);
-      setPreviewError(error instanceof Error ? error.message : 'プレビュー生成中にエラーが発生しました');
+      console.error('Preview generation failed:', error);
+      setPreviewError(error instanceof Error ? error.message : 'プレビュー生成に失敗しました');
     } finally {
       setIsGeneratingPreview(false);
     }
   };
 
-  if (!isOpen || !project) return null;
-
-  // 現在の値を取得（Asset vs Instance）
-  const getCurrentPosition = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        x: editedInstance.override_pos_x ?? asset.default_pos_x,
-        y: editedInstance.override_pos_y ?? asset.default_pos_y,
-      };
-    }
-    return { x: editedAsset.default_pos_x, y: editedAsset.default_pos_y };
+  const handleNameChange = (name: string) => {
+    setEditedAsset(prev => ({ ...prev, name }));
   };
 
-  const getCurrentSize = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        width: editedInstance.override_width ?? asset.default_width,
-        height: editedInstance.override_height ?? asset.default_height,
-      };
+  const handleCustomAssetParameterChange = (newParams: Record<string, any>) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({ ...prev, customAssetParameters: newParams }));
     }
-    return { width: editedAsset.default_width, height: editedAsset.default_height };
   };
 
-  const getCurrentOpacity = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_opacity ?? asset.default_opacity;
-    }
-    return editedAsset.default_opacity;
-  };
-
-  const getCurrentZIndex = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_z_index ?? asset.default_z_index;
-    }
-    return editedAsset.default_z_index;
-  };
-
-  // イベントハンドラー
-  const handleNameChange = (value: string) => {
+  const handleParameterVariableChange = (paramName: string, variableName: string | null) => {
     if (mode === 'asset') {
       setEditedAsset(prev => ({
         ...prev,
-        name: value,
-      }));
-    }
-  };
-
-  const handlePositionChange = (field: 'x' | 'y', value: number) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        [`default_pos_${field}`]: value,
-      }));
-      // プレビューを更新（位置変更は表示位置のみなのでSVG内容は再生成不要）
-    } else if (editedInstance) {
-      setEditedInstance(prev => prev ? {
-        ...prev,
-        [`override_pos_${field}`]: value,
-      } : null);
-    }
-  };
-
-  const handleSizeChange = (field: 'width' | 'height', value: number) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        [`default_${field}`]: value,
-      }));
-      // サイズ変更は表示サイズのみなのでSVG内容は再生成不要
-    } else if (editedInstance) {
-      setEditedInstance(prev => prev ? {
-        ...prev,
-        [`override_${field}`]: value,
-      } : null);
-    }
-  };
-
-  const handleOpacityChange = (value: number) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        default_opacity: value,
-      }));
-      // 不透明度変更は表示スタイルのみなのでSVG内容は再生成不要
-    } else if (editedInstance) {
-      setEditedInstance(prev => prev ? {
-        ...prev,
-        override_opacity: value,
-      } : null);
-    }
-  };
-
-  const handleZIndexChange = (value: number) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        default_z_index: value,
-      }));
-    } else if (editedInstance) {
-      setEditedInstance(prev => prev ? {
-        ...prev,
-        override_z_index: value,
-      } : null);
-    }
-
-    // Z-Index バリデーション
-    validateZIndex(value);
-  };
-
-  const handleCustomAssetParameterChange = (parameters: Record<string, number | string>) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        customAssetParameters: parameters,
-        customParameters: parameters, // 別名フィールドも更新
-      }));
-      // パラメータ変更時にプレビューを再生成
-      setTimeout(() => generatePreviewSVG(), 100);
-    }
-  };
-
-  const handleParameterVariableChange = (parameterName: string, variableBinding: string | null) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => {
-        const newBindings = { ...prev.parameterVariableBindings };
-        if (variableBinding === null) {
-          // null の場合は削除
-          delete newBindings[parameterName];
-        } else {
-          // string の場合は設定
-          newBindings[parameterName] = variableBinding;
+        parameterVariableBindings: {
+          ...prev.parameterVariableBindings,
+          [paramName]: variableName!
         }
-        
-        return {
-          ...prev,
-          parameterVariableBindings: newBindings,
-        };
-      });
-      // パラメータ変数の変更時にプレビューを再生成
-      setTimeout(() => generatePreviewSVG(), 100);
+      }));
     }
   };
 
-  const validateZIndex = (zIndex: number) => {
-    if (!project || !page || mode === 'asset') {
-      setZIndexValidation({ isValid: true });
-      return;
-    }
-
-    // 同じページの他のアセットインスタンスとの重複チェック
-    const otherInstances = Object.values(page.asset_instances)
-      .filter(inst => inst.id !== editedInstance?.id);
-
-    const conflicts = otherInstances.filter(inst => {
-      const otherAsset = project.assets[inst.asset_id];
-      if (!otherAsset) return false;
-      
-      const effectiveZIndex = getEffectiveZIndex(otherAsset, inst);
-      return effectiveZIndex === zIndex;
-    });
-
-    if (conflicts.length > 0) {
-      const conflictNames = conflicts.map(inst => project.assets[inst.asset_id]?.name).join(', ');
-      setZIndexValidation({
-        isValid: true,
-        warning: `Z-Index ${zIndex} は他のアセット (${conflictNames}) と重複しています`
-      });
+  const handlePositionChange = (axis: 'x' | 'y', value: number) => {
+    if (mode === 'instance' && editedInstance) {
+      const property = axis === 'x' ? 'override_pos_x' : 'override_pos_y';
+      setEditedInstance(prev => prev ? {
+        ...prev,
+        [property]: value
+      } : null);
     } else {
-      setZIndexValidation({ isValid: true });
+      const property = axis === 'x' ? 'default_pos_x' : 'default_pos_y';
+      setEditedAsset(prev => ({
+        ...prev,
+        [property]: value
+      }));
+    }
+  };
+
+  const handleSizeChange = (dimension: 'width' | 'height', value: number) => {
+    if (mode === 'instance' && editedInstance) {
+      const property = dimension === 'width' ? 'override_width' : 'override_height';
+      setEditedInstance(prev => prev ? {
+        ...prev,
+        [property]: value
+      } : null);
+    } else {
+      const property = dimension === 'width' ? 'default_width' : 'default_height';
+      setEditedAsset(prev => ({
+        ...prev,
+        [property]: value
+      }));
+    }
+  };
+
+  const handleOpacityChange = (opacity: number) => {
+    if (mode === 'instance' && editedInstance) {
+      setEditedInstance(prev => prev ? { ...prev, override_opacity: opacity } : null);
+    } else {
+      setEditedAsset(prev => ({ ...prev, default_opacity: opacity }));
+    }
+  };
+
+  const handleZIndexChange = (zIndex: number) => {
+    if (mode === 'instance' && editedInstance) {
+      setEditedInstance(prev => prev ? { ...prev, override_z_index: zIndex } : null);
+    } else {
+      setEditedAsset(prev => ({ ...prev, default_z_index: zIndex }));
     }
   };
 
@@ -306,32 +176,30 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       if (mode === 'asset') {
         const validation = validateDynamicVectorAssetData(editedAsset);
         if (!validation.isValid) {
-          alert(`保存に失敗しました: ${validation.errors.join(', ')}`);
+          alert(`アセットデータが無効です: ${validation.errors.join(', ')}`);
           return;
         }
         onSaveAsset?.(editedAsset);
       } else if (mode === 'instance' && editedInstance) {
         const validation = validateDynamicVectorAssetInstanceData(editedInstance);
         if (!validation.isValid) {
-          alert(`保存に失敗しました: ${validation.errors.join(', ')}`);
+          alert(`インスタンスデータが無効です: ${validation.errors.join(', ')}`);
           return;
         }
         onSaveInstance?.(editedInstance);
       }
       onClose();
     } catch (error) {
-      alert(`保存に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
+      console.error('Save failed:', error);
+      alert('保存に失敗しました');
     }
   };
 
-  const currentPos = getCurrentPosition();
-  const currentSize = getCurrentSize();
-  const currentOpacity = getCurrentOpacity();
-  const currentZIndex = getCurrentZIndex();
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="dynamic-vector-edit-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content dynamic-vector-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
             {mode === 'asset' ? 'Dynamic SVGアセット編集' : 'Dynamic SVGインスタンス編集'}
@@ -345,7 +213,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
           <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-content">
+        <div className="modal-body">
           <div className="edit-panels">
             {/* 左側：プレビューとCustomAsset情報 */}
             <div className="preview-panel">
@@ -470,13 +338,22 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               )}
 
               {/* CustomAssetパラメータ（Asset編集時のみ） */}
-              {mode === 'asset' && customAssetInfo?.metadata?.params && (
+              {console.log('Parameter rendering check:', { 
+                mode, 
+                customAssetInfo: !!customAssetInfo, 
+                metadata: !!customAssetInfo?.metadata, 
+                params: !!customAssetInfo?.metadata?.params,
+                directParams: !!customAssetInfo?.params,
+                parametersArray: !!customAssetInfo?.parameters,
+                parametersLength: customAssetInfo?.parameters?.length || 0
+              })}
+              {mode === 'asset' && customAssetInfo?.parameters && customAssetInfo.parameters.length > 0 && (
                 <div className="property-group">
                   <div className="parameters-section">
-                    {Object.entries(customAssetInfo.metadata.params).map(([paramName, paramInfo], index) => {
-                      // paramInfoの型アサーション
-                      const param = paramInfo as { type: string; defaultValue: any; min?: number; max?: number; step?: number };
-                      const currentValue = editedAsset.customAssetParameters?.[paramName] ?? param.defaultValue;
+                    {customAssetInfo.parameters.map((paramInfo: any, index: number) => {
+                      // parameters配列の各要素を処理
+                      const paramName = paramInfo.name;
+                      const currentValue = editedAsset.customAssetParameters?.[paramName] ?? paramInfo.defaultValue;
                       const variableBinding = editedAsset.parameterVariableBindings?.[paramName];
                       const displayName = `var_${index + 1}`;
                       
@@ -487,16 +364,16 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                             <span className="parameter-actual-name">({paramName})</span>
                           </div>
                           <div className="parameter-controls">
-                            {param.type === 'number' ? (
+                            {paramInfo.type === 'number' ? (
                               <NumericInput
                                 value={typeof currentValue === 'number' ? currentValue : parseFloat(String(currentValue)) || 0}
                                 onChange={(value) => {
                                   const newParams = { ...editedAsset.customAssetParameters, [paramName]: value };
                                   handleCustomAssetParameterChange(newParams);
                                 }}
-                                min={param.min}
-                                max={param.max}
-                                step={param.step || 1}
+                                min={paramInfo.min}
+                                max={paramInfo.max}
+                                step={paramInfo.step || 1}
                               />
                             ) : (
                               <input
@@ -524,7 +401,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                                 <option value="page_total">page_total</option>
                               </optgroup>
                               <optgroup label="値アセット変数">
-                                {Object.entries(project.assets)
+                                {project ? Object.entries(project.assets)
                                   .filter(([_, asset]) => asset.type === 'ValueAsset')
                                   .filter(([_, valueAsset]) => {
                                     const name = valueAsset.name;
@@ -534,7 +411,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                                     <option key={assetId} value={valueAsset.name}>
                                       {valueAsset.name}
                                     </option>
-                                  ))
+                                  )) : []
                                 }
                               </optgroup>
                             </select>
@@ -542,6 +419,21 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* デバッグ情報（Asset編集時のみ、パラメータが表示されない場合の診断用） */}
+              {mode === 'asset' && !(customAssetInfo?.parameters && customAssetInfo.parameters.length > 0) && (
+                <div className="property-group">
+                  <label>デバッグ情報</label>
+                  <div style={{ fontSize: '12px', color: '#666', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
+                    <div>CustomAsset ID: {editedAsset.customAssetId || 'なし'}</div>
+                    <div>CustomAsset情報: {customAssetInfo ? '読み込み済み' : 'なし'}</div>
+                    <div>メタデータ: {customAssetInfo?.metadata ? '存在' : 'なし'}</div>
+                    <div>メタデータパラメータ: {customAssetInfo?.metadata?.params ? 'あり' : 'なし'}</div>
+                    <div>直接パラメータ: {customAssetInfo?.params ? 'あり' : 'なし'}</div>
+                    {isLoadingCustomAsset && <div>ローディング中...</div>}
                   </div>
                 </div>
               )}
@@ -626,20 +518,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               </div>
             </div>
           </div>
+        </div>
 
-          {/* フッター：アクションボタン */}
-          <div className="modal-footer">
-            <button className="btn-secondary" onClick={onClose}>
-              キャンセル
-            </button>
-            <button className="btn-primary" onClick={handleSave}>
-              保存
-            </button>
-          </div>
+        {/* フッター：アクションボタン */}
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>
+            キャンセル
+          </button>
+          <button className="btn btn-primary" onClick={handleSave}>
+            保存
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default DynamicVectorEditModal;
+}
