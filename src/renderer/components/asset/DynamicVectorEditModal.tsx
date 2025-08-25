@@ -8,6 +8,7 @@ import {
   validateDynamicVectorAssetData,
   validateDynamicVectorAssetInstanceData 
 } from '../../../types/entities';
+import { createExecutionContext, executeScript } from '../../../utils/dynamicVectorEngine';
 import './DynamicVectorEditModal.css';
 
 export interface DynamicVectorEditModalProps {
@@ -42,6 +43,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   // CustomAsset関連の状態
   const [customAssetInfo, setCustomAssetInfo] = useState<any>(null);
   const [isLoadingCustomAsset, setIsLoadingCustomAsset] = useState(false);
+  
+  // プレビューSVG生成の状態
+  const [previewSVG, setPreviewSVG] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
   // バリデーション状態
   const [zIndexValidation, setZIndexValidation] = useState<{
@@ -61,6 +67,13 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   }, [asset, assetInstance]);
 
+  // CustomAsset情報が読み込まれたらプレビューを生成
+  useEffect(() => {
+    if (customAssetInfo && editedAsset.script) {
+      generatePreviewSVG();
+    }
+  }, [customAssetInfo, editedAsset.script, editedAsset.customAssetParameters]);
+
   const loadCustomAssetInfo = async (customAssetId: string) => {
     try {
       setIsLoadingCustomAsset(true);
@@ -71,6 +84,44 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       setCustomAssetInfo(null);
     } finally {
       setIsLoadingCustomAsset(false);
+    }
+  };
+
+  const generatePreviewSVG = async () => {
+    if (!project || !editedAsset.customAssetId) {
+      setPreviewSVG(null);
+      setPreviewError('プロジェクトまたはCustomAsset IDが見つかりません');
+      return;
+    }
+
+    try {
+      setIsGeneratingPreview(true);
+      setPreviewError(null);
+
+      // スクリプト実行コンテキストを作成（ページインデックス0でプレビュー）
+      const executionContext = createExecutionContext(editedAsset, project, 0);
+      
+      // スクリプトを実行してSVGコンテンツを生成
+      const executionResult = executeScript(editedAsset.script, executionContext);
+      
+      if (!executionResult.success || !executionResult.svgContent) {
+        setPreviewSVG(null);
+        setPreviewError(executionResult.error || 'SVG生成に失敗しました');
+        return;
+      }
+
+      // 警告がある場合は表示
+      if (executionResult.warnings && executionResult.warnings.length > 0) {
+        console.warn('Preview generation warnings:', executionResult.warnings);
+      }
+
+      setPreviewSVG(executionResult.svgContent);
+    } catch (error) {
+      console.error('Preview generation error:', error);
+      setPreviewSVG(null);
+      setPreviewError(error instanceof Error ? error.message : 'プレビュー生成中にエラーが発生しました');
+    } finally {
+      setIsGeneratingPreview(false);
     }
   };
 
@@ -187,6 +238,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         customAssetParameters: parameters,
         customParameters: parameters, // 別名フィールドも更新
       }));
+      // パラメータ変更時にプレビューを再生成
+      setTimeout(() => generatePreviewSVG(), 100);
     }
   };
 
@@ -336,15 +389,53 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       }}
                     />
                     
-                    <div className="asset-preview-placeholder">
-                      <div className="preview-info">
-                        <p>⚡ Dynamic SVG</p>
-                        <p>位置: ({currentPos.x}, {currentPos.y})</p>
-                        <p>サイズ: {currentSize.width} × {currentSize.height}</p>
-                        <p>不透明度: {Math.round(currentOpacity * 100)}%</p>
-                        <p>Z-Index: {currentZIndex}</p>
+                    {/* SVGプレビュー表示 */}
+                    {isGeneratingPreview ? (
+                      <div className="preview-loading">
+                        <div className="loading-spinner">生成中...</div>
                       </div>
-                    </div>
+                    ) : previewError ? (
+                      <div className="preview-error">
+                        <div className="error-message">
+                          <p>⚠️ プレビュー生成エラー</p>
+                          <p>{previewError}</p>
+                        </div>
+                      </div>
+                    ) : previewSVG ? (
+                      <div className="svg-preview-content">
+                        <svg
+                          width="100%"
+                          height="100%"
+                          viewBox={`0 0 ${currentSize.width} ${currentSize.height}`}
+                          style={{
+                            position: 'absolute',
+                            top: `${(currentPos.y / (project?.canvas.height || 600)) * 100}%`,
+                            left: `${(currentPos.x / (project?.canvas.width || 800)) * 100}%`,
+                            width: `${(currentSize.width / (project?.canvas.width || 800)) * 100}%`,
+                            height: `${(currentSize.height / (project?.canvas.height || 600)) * 100}%`,
+                            opacity: currentOpacity,
+                            zIndex: currentZIndex,
+                          }}
+                          dangerouslySetInnerHTML={{ __html: previewSVG }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="asset-preview-placeholder">
+                        <div className="preview-info">
+                          <p>⚡ Dynamic SVG</p>
+                          <p>位置: ({currentPos.x}, {currentPos.y})</p>
+                          <p>サイズ: {currentSize.width} × {currentSize.height}</p>
+                          <p>不透明度: {Math.round(currentOpacity * 100)}%</p>
+                          <p>Z-Index: {currentZIndex}</p>
+                          <button 
+                            className="generate-preview-btn"
+                            onClick={generatePreviewSVG}
+                          >
+                            プレビューを生成
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
