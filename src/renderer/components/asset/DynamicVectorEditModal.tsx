@@ -9,6 +9,7 @@ import {
   validateDynamicVectorAssetInstanceData 
 } from '../../../types/entities';
 import { createExecutionContext, executeScript } from '../../../utils/dynamicVectorEngine';
+import { ParameterVariableEditor } from './ParameterVariableEditor';
 import './DynamicVectorEditModal.css';
 
 export interface DynamicVectorEditModalProps {
@@ -35,7 +36,12 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const project = useProjectStore((state) => state.project);
 
   // 編集中のデータ（モードに応じて切り替え）
-  const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
+  const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(() => ({
+    ...asset,
+    // ページ変数をデフォルトでONに設定
+    use_page_variables: asset.use_page_variables ?? true,
+    use_value_variables: asset.use_value_variables ?? true,
+  }));
   const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(
     assetInstance || null
   );
@@ -243,21 +249,25 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
-  const handleUsePageVariablesChange = (checked: boolean) => {
+  const handleParameterVariableChange = (parameterName: string, variableBinding: string | null) => {
     if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        use_page_variables: checked,
-      }));
-    }
-  };
-
-  const handleUseValueVariablesChange = (checked: boolean) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        use_value_variables: checked,
-      }));
+      setEditedAsset(prev => {
+        const newBindings = { ...prev.parameterVariableBindings };
+        if (variableBinding === null) {
+          // null の場合は削除
+          delete newBindings[parameterName];
+        } else {
+          // string の場合は設定
+          newBindings[parameterName] = variableBinding;
+        }
+        
+        return {
+          ...prev,
+          parameterVariableBindings: newBindings,
+        };
+      });
+      // パラメータ変数の変更時にプレビューを再生成
+      setTimeout(() => generatePreviewSVG(), 100);
     }
   };
 
@@ -472,27 +482,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 </div>
               )}
 
-              {/* 変数設定（Asset編集時のみ） */}
-              {mode === 'asset' && (
+              {/* パラメータ変数編集（Asset編集時のみ） */}
+              {mode === 'asset' && customAssetInfo?.metadata?.params && (
                 <div className="property-group">
-                  <label>変数設定</label>
-                  <div className="checkbox-container">
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={editedAsset.use_page_variables}
-                        onChange={(e) => handleUsePageVariablesChange(e.target.checked)}
-                      />
-                      ページ変数を使用 (page_current, page_total)
-                    </label>
-                    <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={editedAsset.use_value_variables}
-                        onChange={(e) => handleUseValueVariablesChange(e.target.checked)}
-                      />
-                      ValueAsset変数を使用
-                    </label>
+                  <label>パラメータ変数編集</label>
+                  <div className="parameter-variable-container">
+                    <ParameterVariableEditor
+                      customAssetParams={customAssetInfo.metadata.params}
+                      currentParameterValues={editedAsset.customAssetParameters || {}}
+                      currentParameterVariableBindings={editedAsset.parameterVariableBindings || {}}
+                      project={project}
+                      onParameterVariableChange={handleParameterVariableChange}
+                    />
                   </div>
                 </div>
               )}

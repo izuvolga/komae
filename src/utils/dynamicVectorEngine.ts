@@ -29,7 +29,8 @@ export interface ScriptExecutionResult {
 export interface ScriptContext {
   page_current?: number;
   page_total?: number;
-  valueAssets?: Record<string, any>;
+  values?: Record<string, any>; // ValueAsset変数
+  params?: Record<string, any>; // CustomAssetパラメータ（変数バインディング適用済み）
   [key: string]: any;
 }
 
@@ -330,80 +331,105 @@ export function createExecutionContext(
     console.warn(`無効なページインデックス: ${currentPageIndex} (総ページ数: ${project.pages.length})`);
   }
 
-  // ページ変数の注入
-  if (asset.use_page_variables) {
-    context.page_current = Math.max(1, currentPageIndex + 1); // 1から開始、最小値1
-    context.page_total = project.pages.length;
-    
-    if (project.pages.length === 0) {
-      console.warn('プロジェクトにページが存在しません');
+  // ページ変数の注入（常に有効）
+  context.page_current = Math.max(1, currentPageIndex + 1); // 1から開始、最小値1
+  context.page_total = project.pages.length;
+  
+  if (project.pages.length === 0) {
+    console.warn('プロジェクトにページが存在しません');
+  }
+
+  // ValueAsset変数の注入（常に有効）
+  context.values = {};
+  
+  const valueAssets = Object.values(project.assets).filter(
+    (asset): asset is ValueAsset => asset.type === 'ValueAsset'
+  );
+
+  if (valueAssets.length === 0) {
+    console.warn('ValueAssetが存在しないため、変数は注入されませんでした');
+  }
+
+  const invalidNames: string[] = [];
+  const errorValues: string[] = [];
+
+  for (const valueAsset of valueAssets) {
+    try {
+      // 変数名の有効性をチェック
+      if (!isValidVariableName(valueAsset.name)) {
+        invalidNames.push(valueAsset.name);
+        continue;
+      }
+
+      // ValueAssetの値を取得
+      const currentPage = project.pages[currentPageIndex];
+      if (!currentPage) {
+        console.warn(`ページ ${currentPageIndex} が存在しません`);
+        continue;
+      }
+      
+      const effectiveValue = getEffectiveValueAssetValue(
+        valueAsset,
+        project,
+        currentPage,
+        currentPageIndex
+      );
+
+      // 変数を注入
+      context.values![valueAsset.name] = effectiveValue;
+
+      // 値の型チェックと警告
+      if (effectiveValue === '#ERROR') {
+        errorValues.push(valueAsset.name);
+      } else if (typeof effectiveValue === 'undefined') {
+        console.warn(`ValueAsset "${valueAsset.name}" の値が未定義です`);
+        // 未定義の場合はnullに変換してスクリプトで扱いやすくする
+        context.values![valueAsset.name] = null;
+      }
+
+    } catch (error) {
+      // ValueAssetの値取得でエラーが発生した場合
+      errorValues.push(valueAsset.name);
+      context.values![valueAsset.name] = null; // より安全なデフォルト値
+      console.warn(`ValueAsset "${valueAsset.name}" の値取得でエラー: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
-  // ValueAsset変数の注入
-  if (asset.use_value_variables) {
-    context.values = {};
-    
-    const valueAssets = Object.values(project.assets).filter(
-      (asset): asset is ValueAsset => asset.type === 'ValueAsset'
-    );
+  // CustomAssetのパラメータ（まず固定値を設定）
+  if (asset.customAssetParameters) {
+    context.params = { ...asset.customAssetParameters };
+  } else {
+    context.params = {};
+  }
 
-    if (valueAssets.length === 0) {
-      console.warn('ValueAssetが存在しないため、変数は注入されませんでした');
-    }
-
-    const invalidNames: string[] = [];
-    const errorValues: string[] = [];
-
-    for (const valueAsset of valueAssets) {
+  // パラメータ変数バインディングの処理（固定値を上書き）
+  if (asset.parameterVariableBindings) {
+    for (const [paramName, variableBinding] of Object.entries(asset.parameterVariableBindings)) {
       try {
-        // 変数名の有効性をチェック
-        if (!isValidVariableName(valueAsset.name)) {
-          invalidNames.push(valueAsset.name);
-          continue;
+        if (variableBinding === 'page_current') {
+          context.params[paramName] = context.page_current;
+        } else if (variableBinding === 'page_total') {
+          context.params[paramName] = context.page_total;
+        } else if (context.values && context.values[variableBinding] !== undefined) {
+          // ValueAsset変数からの値
+          context.params[paramName] = context.values[variableBinding];
+        } else {
+          // 未定義の変数への参照の場合、固定値を使用（既に設定済み）
+          console.warn(`パラメータ "${paramName}" の変数バインディング "${variableBinding}" が見つからないため、固定値を使用します`);
         }
-
-        // ValueAssetの値を取得
-        const currentPage = project.pages[currentPageIndex];
-        if (!currentPage) {
-          console.warn(`ページ ${currentPageIndex} が存在しません`);
-          continue;
-        }
-        
-        const effectiveValue = getEffectiveValueAssetValue(
-          valueAsset,
-          project,
-          currentPage,
-          currentPageIndex
-        );
-
-        // 変数を注入
-        context.values![valueAsset.name] = effectiveValue;
-
-        // 値の型チェックと警告
-        if (effectiveValue === '#ERROR') {
-          errorValues.push(valueAsset.name);
-        } else if (typeof effectiveValue === 'undefined') {
-          console.warn(`ValueAsset "${valueAsset.name}" の値が未定義です`);
-          // 未定義の場合はnullに変換してスクリプトで扱いやすくする
-          context.values![valueAsset.name] = null;
-        }
-
       } catch (error) {
-        // ValueAssetの値取得でエラーが発生した場合
-        errorValues.push(valueAsset.name);
-        context.values![valueAsset.name] = null; // より安全なデフォルト値
-        console.warn(`ValueAsset "${valueAsset.name}" の値取得でエラー: ${error instanceof Error ? error.message : String(error)}`);
+        // パラメータバインディング処理でエラーが発生した場合、固定値を使用（既に設定済み）
+        console.warn(`パラメータ "${paramName}" のバインディング処理でエラー: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
+  }
 
-    // 警告メッセージの追加
-    if (invalidNames.length > 0) {
-      console.warn(`無効な変数名のValueAssetが除外されました: ${invalidNames.join(', ')}`);
-    }
-    if (errorValues.length > 0) {
-      console.warn(`エラー値が設定されたValueAsset: ${errorValues.join(', ')}`);
-    }
+  // 警告メッセージの追加
+  if (invalidNames.length > 0) {
+    console.warn(`無効な変数名のValueAssetが除外されました: ${invalidNames.join(', ')}`);
+  }
+  if (errorValues.length > 0) {
+    console.warn(`エラー値が設定されたValueAsset: ${errorValues.join(', ')}`);
   }
 
   return context;

@@ -186,9 +186,11 @@ describe('DynamicVectorEngine', () => {
 
       const context = createExecutionContext(asset, mockProject, 0);
 
-      expect(context.page_current).toBeUndefined();
-      expect(context.page_total).toBeUndefined();
-      expect(context.values).toBeUndefined();
+      // 常にページ変数が注入される（新仕様）
+      expect(context.page_current).toBe(1);
+      expect(context.page_total).toBe(2);
+      // 常にvaluesオブジェクトが注入される（新仕様）
+      expect(context.values).toBeDefined();
     });
 
     test('ページ変数を含むコンテキストを作成できる', () => {
@@ -203,7 +205,8 @@ describe('DynamicVectorEngine', () => {
 
       expect(context.page_current).toBe(2); // 1-based
       expect(context.page_total).toBe(2);
-      expect(context.values).toBeUndefined();
+      // 常にvaluesオブジェクトが注入される（新仕様）
+      expect(context.values).toBeDefined();
     });
 
     test('ValueAsset変数を含むコンテキストを作成できる', () => {
@@ -216,8 +219,9 @@ describe('DynamicVectorEngine', () => {
 
       const context = createExecutionContext(asset, mockProject, 0);
 
-      expect(context.page_current).toBeUndefined();
-      expect(context.page_total).toBeUndefined();
+      // 常にページ変数が注入される（新仕様）
+      expect(context.page_current).toBe(1);
+      expect(context.page_total).toBe(2);
       expect(context.values).toBeDefined();
       expect(Object.keys(context.values || {}).length).toBe(0); // "Test Counter"は無効な変数名で除外される
     });
@@ -335,6 +339,57 @@ describe('DynamicVectorEngine', () => {
       expect(result.success).toBe(true);
       expect(result.svgContent).toContain('cx="71.21"');
       expect(result.svgContent).toContain('cy="71.21"');
+    });
+
+    test('パラメータ変数バインディングを使用できる', () => {
+      const asset = createDynamicVectorAsset({
+        name: 'Parameter Asset',
+        script: 'return `<rect width="${params.width}" height="${params.height}" fill="${params.color}" />`;',
+        usePageVariables: true,
+        useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
+        customAssetParameters: {
+          width: 100,
+          height: 50,
+          color: 'red',
+        },
+        parameterVariableBindings: {
+          width: 'page_current',
+          height: 'page_total',
+        },
+      });
+
+      const context = createExecutionContext(asset, mockProject, 0);
+      const result = executeScript(asset.script, context);
+
+      expect(result.success).toBe(true);
+      expect(result.svgContent).toContain('width="1"'); // page_current = 1
+      expect(result.svgContent).toContain('height="2"'); // page_total = 2
+      expect(result.svgContent).toContain('fill="red"'); // 固定値
+    });
+
+    test('存在しない変数バインディングは固定値にフォールバックする', () => {
+      const asset = createDynamicVectorAsset({
+        name: 'Fallback Asset',
+        script: 'return `<circle r="${params.radius}" fill="${params.color}" />`;',
+        usePageVariables: true,
+        useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
+        customAssetParameters: {
+          radius: 25,
+          color: 'blue',
+        },
+        parameterVariableBindings: {
+          radius: 'nonexistent_variable',
+        },
+      });
+
+      const context = createExecutionContext(asset, mockProject, 0);
+      const result = executeScript(asset.script, context);
+
+      expect(result.success).toBe(true);
+      expect(result.svgContent).toContain('r="25"'); // 固定値にフォールバック
+      expect(result.svgContent).toContain('fill="blue"'); // 固定値
     });
   });
 });
