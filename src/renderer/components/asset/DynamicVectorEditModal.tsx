@@ -59,6 +59,18 @@ export function DynamicVectorEditModal({
 
   const zIndexValidation = { warning: null as string | null };
 
+  // Get available variables from ValueAssets
+  const availableVariables = project ? Object.entries(project.assets)
+    .filter(([_, asset]) => asset.type === 'ValueAsset')
+    .filter(([_, valueAsset]) => {
+      const name = valueAsset.name;
+      return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+    })
+    .map(([assetId, valueAsset]) => ({
+      id: assetId,
+      name: valueAsset.name
+    })) : [];
+
   useEffect(() => {
     if (asset.customAssetId) {
       console.log('Fetching CustomAsset info for:', asset.customAssetId);
@@ -200,329 +212,209 @@ export function DynamicVectorEditModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content dynamic-vector-edit-modal" onClick={(e) => e.stopPropagation()}>
+        {/* ヘッダー */}
         <div className="modal-header">
-          <h2>
-            {mode === 'asset' ? 'Dynamic SVGアセット編集' : 'Dynamic SVGインスタンス編集'}
-            {mode === 'instance' && page && ` - ${page.title}`}
-            {customAssetInfo && (
-              <span className="custom-asset-badge">
-                CustomAsset: {customAssetInfo?.metadata?.name || 'Loading...'}
-              </span>
-            )}
-          </h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
+          <h2>DynamicVectorAsset {mode === 'instance' ? 'インスタンス' : 'アセット'} 編集</h2>
+          <button className="close-button" onClick={onClose}>×</button>
         </div>
 
+        {/* コンテンツ */}
         <div className="modal-body">
-          <div className="edit-panels">
-            {/* 左側：プレビューとCustomAsset情報 */}
-            <div className="preview-panel">
-              <h3>プレビュー</h3>
-              
-              {/* CustomAsset情報表示 */}
-              <div className="custom-asset-info">
-                {isLoadingCustomAsset ? (
-                  <div className="loading-state">CustomAsset情報を読み込み中...</div>
-                ) : customAssetInfo ? (
-                  <div className="asset-info-card">
-                    <div className="info-header">
-                      <strong>{customAssetInfo.metadata?.name || 'Unknown'}</strong>
-                      <span className="version">v{customAssetInfo.metadata?.version || '1.0'}</span>
-                    </div>
-                    {customAssetInfo.metadata?.description && (
-                      <p className="description">{customAssetInfo.metadata.description}</p>
-                    )}
-                    {customAssetInfo.metadata?.author && (
-                      <p className="author">作者: {customAssetInfo.metadata.author}</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="error-state">CustomAsset情報の取得に失敗しました</div>
-                )}
-              </div>
-
-              {/* プレビュー領域 */}
-              <div className="preview-container">
-                <div className="canvas-preview">
-                  <div 
-                    className="canvas-container"
-                    style={{
-                      position: 'relative',
-                      width: Math.min(240, 240 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                      height: Math.min(240, 240 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                      border: '2px solid #d1d5db',
-                      backgroundColor: '#ffffff',
-                      overflow: 'visible',
-                    }}
-                  >
-                    <div 
-                      className="canvas-background"
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: '#f8fafc',
-                        border: '1px dashed #cbd5e1',
-                      }}
-                    />
-                    
-                    {/* SVGプレビュー表示 */}
-                    {isGeneratingPreview ? (
-                      <div className="preview-loading">
-                        <div className="loading-spinner">生成中...</div>
-                      </div>
-                    ) : previewError ? (
-                      <div className="preview-error">
-                        <div className="error-message">
-                          <p>⚠️ プレビュー生成エラー</p>
-                          <p>{previewError}</p>
-                        </div>
-                      </div>
-                    ) : previewSVG ? (
-                      <div className="svg-preview-content">
-                        <svg
-                          width="100%"
-                          height="100%"
-                          viewBox={`0 0 ${currentSize.width} ${currentSize.height}`}
-                          style={{
-                            position: 'absolute',
-                            top: `${(currentPos.y / (project?.canvas.height || 600)) * 100}%`,
-                            left: `${(currentPos.x / (project?.canvas.width || 800)) * 100}%`,
-                            width: `${(currentSize.width / (project?.canvas.width || 800)) * 100}%`,
-                            height: `${(currentSize.height / (project?.canvas.height || 600)) * 100}%`,
-                            opacity: currentOpacity,
-                            zIndex: currentZIndex,
-                          }}
-                          dangerouslySetInnerHTML={{ __html: previewSVG }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="asset-preview-placeholder">
-                        <div className="preview-info">
-                          <p>⚡ Dynamic SVG</p>
-                          <p>位置: ({currentPos.x}, {currentPos.y})</p>
-                          <p>サイズ: {currentSize.width} × {currentSize.height}</p>
-                          <p>不透明度: {Math.round(currentOpacity * 100)}%</p>
-                          <p>Z-Index: {currentZIndex}</p>
-                          <button 
-                            className="generate-preview-btn"
-                            onClick={generatePreviewSVG}
-                          >
-                            プレビューを生成
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          {/* アセット名編集 (asset mode only) */}
+          {mode === 'asset' && (
+            <div className="section">
+              <h3>アセット設定</h3>
+              <div className="form-group">
+                <label>アセット名:</label>
+                <input
+                  type="text"
+                  value={editedAsset.name}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="アセット名を入力"
+                />
               </div>
             </div>
+          )}
 
-            {/* 右側：すべてのパラメータ */}
-            <div className="properties-panel">
-              <h3>プロパティ</h3>
-              
-              {/* アセット名（Asset編集時のみ） */}
-              {mode === 'asset' && (
-                <div className="property-group">
-                  <label>アセット名</label>
-                  <input
-                    type="text"
-                    value={editedAsset.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    className="property-input"
-                  />
-                </div>
-              )}
-
-              {/* CustomAssetパラメータ（Asset編集時のみ） */}
-              {console.log('Parameter rendering check:', { 
-                mode, 
-                customAssetInfo: !!customAssetInfo, 
-                metadata: !!customAssetInfo?.metadata, 
-                params: !!customAssetInfo?.metadata?.params,
-                directParams: !!customAssetInfo?.params,
-                parametersArray: !!customAssetInfo?.parameters,
-                parametersLength: customAssetInfo?.parameters?.length || 0
-              })}
-              {mode === 'asset' && customAssetInfo?.parameters && customAssetInfo.parameters.length > 0 && (
-                <div className="property-group">
-                  <div className="parameters-section">
+          {/* CustomAsset Parameters Section (asset mode only) */}
+          {mode === 'asset' && customAssetInfo && (
+            <div className="section">
+              <h3>@parameters</h3>
+              {isLoadingCustomAsset ? (
+                <p>カスタムアセット情報を読み込み中...</p>
+              ) : (
+                customAssetInfo.parameters && customAssetInfo.parameters.length > 0 ? (
+                  <div className="parameters-grid">
                     {customAssetInfo.parameters.map((paramInfo: any, index: number) => {
-                      // parameters配列の各要素を処理
-                      const paramName = paramInfo.name;
-                      const currentValue = editedAsset.customAssetParameters?.[paramName] ?? paramInfo.defaultValue;
-                      const variableBinding = editedAsset.parameterVariableBindings?.[paramName];
-                      const displayName = `var_${index + 1}`;
+                      const displayName = paramInfo.editName || paramInfo.displayName || paramInfo.name;
+                      const currentValue = editedAsset.customAssetParameters?.[paramInfo.name] || paramInfo.defaultValue || '';
+                      const variableBinding = editedAsset.parameterVariableBindings?.[paramInfo.name] || '';
                       
                       return (
-                        <div key={paramName} className="parameter-row">
-                          <div className="parameter-label">
-                            <span className="parameter-display-name">{displayName}</span>
-                            <span className="parameter-actual-name">({paramName})</span>
+                        <div key={paramInfo.name} className="parameter-item">
+                          <div className="parameter-header">
+                            <label>{displayName}:</label>
+                            <small>({paramInfo.name})</small>
                           </div>
                           <div className="parameter-controls">
-                            {paramInfo.type === 'number' ? (
-                              <NumericInput
-                                value={typeof currentValue === 'number' ? currentValue : parseFloat(String(currentValue)) || 0}
-                                onChange={(value) => {
-                                  const newParams = { ...editedAsset.customAssetParameters, [paramName]: value };
-                                  handleCustomAssetParameterChange(newParams);
-                                }}
-                                min={paramInfo.min}
-                                max={paramInfo.max}
-                                step={paramInfo.step || 1}
-                              />
-                            ) : (
+                            <div className="parameter-value">
+                              <label>値:</label>
                               <input
-                                type="text"
-                                value={String(currentValue)}
+                                type={paramInfo.type === 'number' ? 'number' : 'text'}
+                                value={currentValue}
                                 onChange={(e) => {
-                                  const newParams = { ...editedAsset.customAssetParameters, [paramName]: e.target.value };
-                                  handleCustomAssetParameterChange(newParams);
+                                  const newValue = paramInfo.type === 'number' ? 
+                                    (e.target.value === '' ? '' : parseFloat(e.target.value)) : 
+                                    e.target.value;
+                                  handleCustomAssetParameterChange({
+                                    ...editedAsset.customAssetParameters,
+                                    [paramInfo.name]: newValue
+                                  });
                                 }}
-                                className="parameter-text-input"
+                                placeholder={`デフォルト: ${paramInfo.defaultValue}`}
                               />
-                            )}
-                            {/* 変数バインディング選択 */}
-                            <select
-                              value={variableBinding || ''}
-                              onChange={(e) => {
-                                const newBinding = e.target.value || null;
-                                handleParameterVariableChange(paramName, newBinding);
-                              }}
-                              className="variable-binding-select"
-                            >
-                              <option value="">固定値</option>
-                              <optgroup label="ページ変数">
-                                <option value="page_current">page_current</option>
-                                <option value="page_total">page_total</option>
-                              </optgroup>
-                              <optgroup label="値アセット変数">
-                                {project ? Object.entries(project.assets)
-                                  .filter(([_, asset]) => asset.type === 'ValueAsset')
-                                  .filter(([_, valueAsset]) => {
-                                    const name = valueAsset.name;
-                                    return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
-                                  })
-                                  .map(([assetId, valueAsset]) => (
-                                    <option key={assetId} value={valueAsset.name}>
-                                      {valueAsset.name}
+                            </div>
+                            <div className="parameter-variable">
+                              <label>変数バインド:</label>
+                              <select
+                                value={variableBinding}
+                                onChange={(e) => handleParameterVariableChange(paramInfo.name, e.target.value || null)}
+                              >
+                                <option value="">-- 変数を選択 --</option>
+                                <optgroup label="ページ変数">
+                                  <option value="page_current">page_current</option>
+                                  <option value="page_total">page_total</option>
+                                </optgroup>
+                                <optgroup label="値アセット変数">
+                                  {availableVariables.map((variable) => (
+                                    <option key={variable.id} value={variable.name}>
+                                      {variable.name}
                                     </option>
-                                  )) : []
-                                }
-                              </optgroup>
-                            </select>
+                                  ))}
+                                </optgroup>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="parameter-description">
+                            <small>{paramInfo.description || 'パラメータの説明なし'}</small>
                           </div>
                         </div>
                       );
                     })}
                   </div>
+                ) : (
+                  <p>このカスタムアセットに@parametersが定義されていません。</p>
+                )
+              )}
+            </div>
+          )}
+
+          {/* プレビュー Section */}
+          {asset.customAssetId && (
+            <div className="section">
+              <h3>プレビュー</h3>
+              <div className="preview-controls">
+                <button onClick={generatePreviewSVG} disabled={isGeneratingPreview}>
+                  {isGeneratingPreview ? 'プレビュー生成中...' : 'プレビュー更新'}
+                </button>
+              </div>
+              {previewError && (
+                <div className="preview-error">
+                  エラー: {previewError}
                 </div>
               )}
-
-              {/* デバッグ情報（Asset編集時のみ、パラメータが表示されない場合の診断用） */}
-              {mode === 'asset' && !(customAssetInfo?.parameters && customAssetInfo.parameters.length > 0) && (
-                <div className="property-group">
-                  <label>デバッグ情報</label>
-                  <div style={{ fontSize: '12px', color: '#666', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
-                    <div>CustomAsset ID: {editedAsset.customAssetId || 'なし'}</div>
-                    <div>CustomAsset情報: {customAssetInfo ? '読み込み済み' : 'なし'}</div>
-                    <div>メタデータ: {customAssetInfo?.metadata ? '存在' : 'なし'}</div>
-                    <div>メタデータパラメータ: {customAssetInfo?.metadata?.params ? 'あり' : 'なし'}</div>
-                    <div>直接パラメータ: {customAssetInfo?.params ? 'あり' : 'なし'}</div>
-                    {isLoadingCustomAsset && <div>ローディング中...</div>}
-                  </div>
+              {previewSVG && (
+                <div className="preview-container">
+                  <div dangerouslySetInnerHTML={{ __html: previewSVG }} />
                 </div>
               )}
+            </div>
+          )}
 
-              {/* 位置・サイズ・外観設定 */}
-              <div className="property-group">
-                <label>位置</label>
-                <div className="property-row">
-                  <div className="input-group">
-                    <label>PosX</label>
-                    <NumericInput
-                      value={currentPos.x}
-                      onChange={(value) => handlePositionChange('x', value)}
-                      step={1}
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label>PosY</label>
-                    <NumericInput
-                      value={currentPos.y}
-                      onChange={(value) => handlePositionChange('y', value)}
-                      step={1}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="property-group">
-                <label>サイズ</label>
-                <div className="property-row">
-                  <div className="input-group">
-                    <label>Width</label>
-                    <NumericInput
-                      value={currentSize.width}
-                      onChange={(value) => handleSizeChange('width', value)}
-                      min={1}
-                      step={1}
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label>Height</label>
-                    <NumericInput
-                      value={currentSize.height}
-                      onChange={(value) => handleSizeChange('height', value)}
-                      min={1}
-                      step={1}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="property-group">
-                <label>Opacity</label>
-                <div className="opacity-control">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={currentOpacity}
-                    onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
-                    className="opacity-slider"
-                  />
-                  <span className="opacity-percentage">
-                    {Math.round(currentOpacity * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="property-group">
-                <label>Z-Index</label>
-                <NumericInput
-                  value={currentZIndex}
-                  onChange={handleZIndexChange}
-                  step={1}
+          {/* Position Section */}
+          <div className="section">
+            <h3>位置 (Position)</h3>
+            <div className="form-row">
+              <div className="form-group">
+                <label>X座標:</label>
+                <input
+                  type="number"
+                  value={currentPos.x}
+                  onChange={(e) => handlePositionChange('x', parseFloat(e.target.value) || 0)}
                 />
-                {zIndexValidation.warning && (
-                  <div className="validation-warning">
-                    ⚠️ {zIndexValidation.warning}
-                  </div>
-                )}
               </div>
+              <div className="form-group">
+                <label>Y座標:</label>
+                <input
+                  type="number"
+                  value={currentPos.y}
+                  onChange={(e) => handlePositionChange('y', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Size Section */}
+          <div className="section">
+            <h3>サイズ (Size)</h3>
+            <div className="form-row">
+              <div className="form-group">
+                <label>幅 (Width):</label>
+                <input
+                  type="number"
+                  value={currentSize.width}
+                  onChange={(e) => handleSizeChange('width', parseFloat(e.target.value) || 0)}
+                  min="0"
+                />
+              </div>
+              <div className="form-group">
+                <label>高さ (Height):</label>
+                <input
+                  type="number"
+                  value={currentSize.height}
+                  onChange={(e) => handleSizeChange('height', parseFloat(e.target.value) || 0)}
+                  min="0"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Opacity Section */}
+          <div className="section">
+            <h3>不透明度 (Opacity)</h3>
+            <div className="form-group">
+              <label>不透明度 (0-1):</label>
+              <input
+                type="number"
+                value={currentOpacity}
+                onChange={(e) => handleOpacityChange(parseFloat(e.target.value) || 0)}
+                min="0"
+                max="1"
+                step="0.1"
+              />
+            </div>
+          </div>
+
+          {/* Z-Index Section */}
+          <div className="section">
+            <h3>レイヤー順序 (Z-Index)</h3>
+            <div className="form-group">
+              <label>Z-Index:</label>
+              <input
+                type="number"
+                value={currentZIndex}
+                onChange={(e) => handleZIndexChange(parseInt(e.target.value) || 0)}
+              />
+              {zIndexValidation.warning && (
+                <div className="validation-warning">{zIndexValidation.warning}</div>
+              )}
             </div>
           </div>
         </div>
 
         {/* フッター：アクションボタン */}
         <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+          <button className="btn btn-secondary" onClick={onClose} style={{ color: '#000' }}>
             キャンセル
           </button>
           <button className="btn btn-primary" onClick={handleSave}>
