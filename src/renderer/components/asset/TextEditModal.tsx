@@ -875,7 +875,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               </div>
             )}
 
-            <div className="preview-container" style={{
+            <div className="text-preview-container" style={{
               width: previewDimensions.width,
               height: previewDimensions.height,
             }}>
