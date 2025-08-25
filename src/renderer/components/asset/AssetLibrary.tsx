@@ -324,17 +324,15 @@ export const AssetLibrary: React.FC = () => {
         currentAssetCount: assetList.length,
       });
 
-      // CustomAssetベースのDynamicVectorAssetを作成
+      // CustomAssetベースのDynamicVectorAssetを作成（常にCustomAsset）
       const result = createDynamicVectorAsset({
         name: `${customAssetInfo.name} (Dynamic SVG)`,
-        customAssetId: customAssetInfo.id,
+        customAssetId: customAssetInfo.id, // 必須パラメータ
         // CustomAssetのパラメータをデフォルト値で初期化
         customParameters: customAssetInfo.parameters.reduce((params: Record<string, any>, param: any) => {
           params[param.name] = param.defaultValue;
           return params;
         }, {}),
-        // CustomAssetフラグを設定
-        isCustomAsset: true,
         customAssetInfo: customAssetInfo,
       });
       

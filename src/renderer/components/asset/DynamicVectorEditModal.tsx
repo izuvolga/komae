@@ -1,34 +1,24 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import AssetParameterEditor from './AssetParameterEditor';
-import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page } from '../../../types/entities';
+import type { DynamicVectorAsset, DynamicVectorAssetInstance, Page, ProjectData } from '../../../types/entities';
 import { 
   getEffectiveZIndex, 
-  validateDynamicVectorAssetData, 
+  validateDynamicVectorAssetData,
   validateDynamicVectorAssetInstanceData 
 } from '../../../types/entities';
-import { 
-  executeScript, 
-  createExecutionContext, 
-  wrapSVGContent,
-  type ScriptExecutionResult 
-} from '../../../utils/dynamicVectorEngine';
 import './DynamicVectorEditModal.css';
 
-// 編集モードの種類
-type EditMode = 'asset' | 'instance';
-
-// 統合されたプロパティ
-interface DynamicVectorEditModalProps {
-  mode: EditMode;
+export interface DynamicVectorEditModalProps {
+  mode: 'asset' | 'instance';
   asset: DynamicVectorAsset;
   assetInstance?: DynamicVectorAssetInstance;
   page?: Page;
   isOpen: boolean;
   onClose: () => void;
-  onSaveAsset?: (updatedAsset: DynamicVectorAsset) => void;
-  onSaveInstance?: (updatedInstance: DynamicVectorAssetInstance) => void;
+  onSaveAsset?: (asset: DynamicVectorAsset) => void;
+  onSaveInstance?: (instance: DynamicVectorAssetInstance) => void;
 }
 
 export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
@@ -42,119 +32,49 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   onSaveInstance,
 }) => {
   const project = useProjectStore((state) => state.project);
-  
+
   // 編集中のデータ（モードに応じて切り替え）
   const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
   const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(
     assetInstance || null
   );
 
+  // CustomAsset関連の状態
+  const [customAssetInfo, setCustomAssetInfo] = useState<any>(null);
+  const [isLoadingCustomAsset, setIsLoadingCustomAsset] = useState(false);
+
+  // バリデーション状態
   const [zIndexValidation, setZIndexValidation] = useState<{
     isValid: boolean;
     error?: string;
     warning?: string;
   }>({ isValid: true });
 
-  // スクリプト関連の状態
-  const [scriptExecutionResult, setScriptExecutionResult] = useState<ScriptExecutionResult | null>(null);
-  const [previewSVG, setPreviewSVG] = useState<string>('');
-  const [showConsole, setShowConsole] = useState(false);
-
-  // プレビュー更新のデバウンス用
-  const [previewUpdateTimer, setPreviewUpdateTimer] = useState<NodeJS.Timeout | null>(null);
-
-  // スクリプトエディタのスクロール同期用ref
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const lineNumbersRef = useRef<HTMLDivElement>(null);
-
-  // CustomAsset関連の状態
-  const [customAssetInfo, setCustomAssetInfo] = useState<any>(null);
-
+  // 初期化とCustomAsset情報の取得
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
     
-    // CustomAssetの場合、情報を取得
-    if (asset.isCustomAsset && asset.customAssetId) {
+    // DynamicVectorAssetは常にCustomAssetなので情報を取得
+    if (asset.customAssetId) {
       loadCustomAssetInfo(asset.customAssetId);
     }
   }, [asset, assetInstance]);
 
   const loadCustomAssetInfo = async (customAssetId: string) => {
     try {
+      setIsLoadingCustomAsset(true);
       const info = await window.electronAPI.customAsset.getAssetInfo(customAssetId);
       setCustomAssetInfo(info);
     } catch (error) {
       console.error('Failed to load custom asset info:', error);
+      setCustomAssetInfo(null);
+    } finally {
+      setIsLoadingCustomAsset(false);
     }
   };
 
   if (!isOpen || !project) return null;
-
-  // 現在のページインデックスを取得
-  const getCurrentPageIndex = useCallback(() => {
-    if (!project || !page) return 0;
-    return project.pages.findIndex(p => p.id === page.id);
-  }, [project, page]);
-
-  // プレビュー更新関数
-  const updatePreview = useCallback((script: string) => {
-    if (!project) return;
-
-    const pageIndex = getCurrentPageIndex();
-    const context = createExecutionContext(editedAsset, project, pageIndex);
-    
-    // スクリプト実行
-    const result = executeScript(script, context);
-    setScriptExecutionResult(result);
-
-    if (result.success && result.svgContent) {
-      // SVGをラップしてプレビュー用に準備
-      const wrappedSVG = wrapSVGContent(result.svgContent, editedAsset.default_width, editedAsset.default_height);
-      setPreviewSVG(wrappedSVG);
-    } else {
-      setPreviewSVG('');
-    }
-  }, [editedAsset, project, getCurrentPageIndex]);
-
-  // デバウンス付きプレビュー更新
-  const debouncedUpdatePreview = useCallback((script: string) => {
-    if (previewUpdateTimer) {
-      clearTimeout(previewUpdateTimer);
-    }
-    
-    const timer = setTimeout(() => {
-      updatePreview(script);
-    }, 500); // 500ms後に更新
-    
-    setPreviewUpdateTimer(timer);
-  }, [previewUpdateTimer, updatePreview]);
-
-  // 初回プレビュー生成
-  useEffect(() => {
-    if (isOpen && !editedAsset.isCustomAsset) {
-      updatePreview(editedAsset.script);
-    }
-  }, [isOpen, updatePreview, editedAsset.script, editedAsset.isCustomAsset]);
-
-  // クリーンアップ
-  useEffect(() => {
-    return () => {
-      if (previewUpdateTimer) {
-        clearTimeout(previewUpdateTimer);
-      }
-    };
-  }, [previewUpdateTimer]);
-
-  // スクロール同期ハンドラー
-  const handleScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
-    const textarea = e.target as HTMLTextAreaElement;
-    const lineNumbers = lineNumbersRef.current;
-    
-    if (lineNumbers) {
-      lineNumbers.scrollTop = textarea.scrollTop;
-    }
-  }, []);
 
   // 現在の値を取得（Asset vs Instance）
   const getCurrentPosition = () => {
@@ -191,59 +111,13 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     return editedAsset.default_z_index;
   };
 
-  // 値更新ハンドラー
+  // イベントハンドラー
   const handleNameChange = (value: string) => {
     if (mode === 'asset') {
       setEditedAsset(prev => ({
         ...prev,
         name: value,
       }));
-    }
-  };
-
-  const handleScriptChange = (value: string) => {
-    if (mode === 'asset' && !editedAsset.isCustomAsset) {
-      setEditedAsset(prev => ({
-        ...prev,
-        script: value,
-      }));
-    }
-    // プレビューをデバウンス更新
-    debouncedUpdatePreview(value);
-  };
-
-  const handleUsePageVariablesChange = (checked: boolean) => {
-    if (mode === 'asset' && !editedAsset.isCustomAsset) {
-      const updatedAsset = {
-        ...editedAsset,
-        use_page_variables: checked,
-      };
-      setEditedAsset(updatedAsset);
-      // プレビューを即座に更新
-      updatePreview(updatedAsset.script);
-    }
-  };
-
-  const handleUseValueVariablesChange = (checked: boolean) => {
-    if (mode === 'asset' && !editedAsset.isCustomAsset) {
-      const updatedAsset = {
-        ...editedAsset,
-        use_value_variables: checked,
-      };
-      setEditedAsset(updatedAsset);
-      // プレビューを即座に更新
-      updatePreview(updatedAsset.script);
-    }
-  };
-
-  const handleCustomAssetParameterChange = (parameters: Record<string, number | string>) => {
-    if (mode === 'asset') {
-      setEditedAsset(prev => ({
-        ...prev,
-        customAssetParameters: parameters,
-      }));
-      // CustomAssetの場合、パラメータ変更時にプレビューを更新
-      // TODO: CustomAssetのスクリプトを実行してプレビューを更新する必要がある
     }
   };
 
@@ -263,15 +137,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
   const handleSizeChange = (field: 'width' | 'height', value: number) => {
     if (mode === 'asset') {
-      const updatedAsset = {
-        ...editedAsset,
+      setEditedAsset(prev => ({
+        ...prev,
         [`default_${field}`]: value,
-      };
-      setEditedAsset(updatedAsset);
-      // サイズ変更時はプレビューを更新（SVGのラッピングサイズが変わるため）
-      if (!updatedAsset.isCustomAsset) {
-        updatePreview(updatedAsset.script);
-      }
+      }));
     } else if (editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
@@ -311,8 +180,36 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     validateZIndex(value);
   };
 
+  const handleCustomAssetParameterChange = (parameters: Record<string, number | string>) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({
+        ...prev,
+        customAssetParameters: parameters,
+        customParameters: parameters, // 別名フィールドも更新
+      }));
+    }
+  };
+
+  const handleUsePageVariablesChange = (checked: boolean) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({
+        ...prev,
+        use_page_variables: checked,
+      }));
+    }
+  };
+
+  const handleUseValueVariablesChange = (checked: boolean) => {
+    if (mode === 'asset') {
+      setEditedAsset(prev => ({
+        ...prev,
+        use_value_variables: checked,
+      }));
+    }
+  };
+
   const validateZIndex = (zIndex: number) => {
-    if (!project || !page) {
+    if (!project || !page || mode === 'asset') {
       setZIndexValidation({ isValid: true });
       return;
     }
@@ -357,7 +254,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         }
         onSaveInstance?.(editedInstance);
       }
-      onClose(); // 保存後にモーダルを閉じる
+      onClose();
     } catch (error) {
       alert(`保存に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -368,21 +265,17 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
 
-  // 行番号付きテキストエリアのヘルパー関数
-  const getLineNumbers = (text: string): string => {
-    const lines = text.split('\n');
-    return Array.from({ length: lines.length }, (_, i) => i + 1).join('\n');
-  };
-
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={onClose}>
       <div className="dynamic-vector-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
             {mode === 'asset' ? 'Dynamic SVGアセット編集' : 'Dynamic SVGインスタンス編集'}
             {mode === 'instance' && page && ` - ${page.title}`}
-            {editedAsset.isCustomAsset && customAssetInfo && (
-              <span className="custom-asset-badge"> (CustomAsset: {customAssetInfo?.metadata?.name || 'Loading...'})</span>
+            {customAssetInfo && (
+              <span className="custom-asset-badge">
+                CustomAsset: {customAssetInfo?.metadata?.name || 'Loading...'}
+              </span>
             )}
           </h2>
           <button className="modal-close-btn" onClick={onClose}>×</button>
@@ -390,229 +283,134 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
         <div className="modal-content">
           <div className="edit-panels">
-            {/* 左側：スクリプトエディタ or CustomAssetパラメータエディタ */}
-            <div className="script-panel">
-              {editedAsset.isCustomAsset ? (
-                <>
-                  {/* CustomAsset情報表示 */}
-                  <div className="custom-asset-info">
-                    <h3>CustomAsset 設定</h3>
-                    {customAssetInfo && (
-                      <div className="asset-info-details">
-                        <div className="info-item">
-                          <strong>名前:</strong> {customAssetInfo?.metadata?.name || 'N/A'}
-                        </div>
-                        <div className="info-item">
-                          <strong>バージョン:</strong> {customAssetInfo?.metadata?.version || 'N/A'}
-                        </div>
-                        {customAssetInfo?.metadata?.description && (
-                          <div className="info-item">
-                            <strong>説明:</strong> {customAssetInfo.metadata.description}
-                          </div>
-                        )}
-                        {customAssetInfo?.metadata?.author && (
-                          <div className="info-item">
-                            <strong>作者:</strong> {customAssetInfo.metadata.author}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* CustomAssetパラメータエディタ */}
-                  {mode === 'asset' && customAssetInfo && customAssetInfo?.metadata?.params && (
-                    <div className="custom-asset-parameters">
-                      <h4>パラメータ</h4>
-                      <AssetParameterEditor
-                        parameters={customAssetInfo?.metadata?.params || []}
-                        values={editedAsset.customAssetParameters || {}}
-                        onChange={handleCustomAssetParameterChange}
-                      />
-                    </div>
-                  )}
-
-                  {/* CustomAssetの場合はコンソール表示は無し */}
-                </>
-              ) : (
-                <>
-                  {/* 通常のスクリプトエディタ */}
-                  <div className="script-header">
-                    <h3>JavaScript スクリプト</h3>
-                    <div className="script-controls">
-                      <button 
-                        className={`console-toggle ${showConsole ? 'active' : ''}`}
-                        onClick={() => setShowConsole(!showConsole)}
-                      >
-                        Console
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* 変数設定 */}
-                  {mode === 'asset' && (
-                    <div className="variable-settings">
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={editedAsset.use_page_variables}
-                          onChange={(e) => handleUsePageVariablesChange(e.target.checked)}
-                        />
-                        ページ変数を使用 (page_current, page_total)
-                      </label>
-                      <label className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          checked={editedAsset.use_value_variables}
-                          onChange={(e) => handleUseValueVariablesChange(e.target.checked)}
-                        />
-                        ValueAsset変数を使用
-                      </label>
-                    </div>
-                  )}
-
-                  {/* スクリプトエディタ */}
-                  <div className="script-editor-container">
-                    <div className="line-numbers" ref={lineNumbersRef}>
-                      <pre>{getLineNumbers(editedAsset.script)}</pre>
-                    </div>
-                    <textarea
-                      ref={textareaRef}
-                      className="script-editor"
-                      value={editedAsset.script}
-                      onChange={(e) => handleScriptChange(e.target.value)}
-                      onScroll={handleScroll}
-                      placeholder={'// SVG要素を返すJavaScriptを記述してください\n// 例:\nreturn \'<circle cx="50" cy="50" r="25" fill="red" />\';\n// 利用可能な変数:\n// - page_current, page_total (ページ変数が有効な場合)\n// - ValueAsset名 (Value変数が有効な場合)'}
-                      spellCheck={false}
-                      disabled={mode === 'instance'}
-                    />
-                  </div>
-
-                  {/* エラー・警告表示 */}
-                  {scriptExecutionResult && !scriptExecutionResult.success && (
-                    <div className="execution-error">
-                      <h4>実行エラー</h4>
-                      <p>{scriptExecutionResult.error}</p>
-                      {scriptExecutionResult.debugInfo?.lineNumber && (
-                        <p>行 {scriptExecutionResult.debugInfo.lineNumber}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {scriptExecutionResult && scriptExecutionResult.warnings && scriptExecutionResult.warnings.length > 0 && (
-                    <div className="execution-warnings">
-                      <h4>警告</h4>
-                      <ul>
-                        {scriptExecutionResult.warnings.map((warning, index) => (
-                          <li key={index}>{warning}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* コンソール出力 */}
-                  {showConsole && scriptExecutionResult?.debugInfo?.consoleOutput && (
-                    <div className="console-output">
-                      <h4>Console Output</h4>
-                      <pre>
-                        {scriptExecutionResult.debugInfo.consoleOutput.join('\n')}
-                      </pre>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-            
-            {/* 中央：プレビュー */}
+            {/* 左側：プレビューとCustomAsset情報 */}
             <div className="preview-panel">
               <h3>プレビュー</h3>
-              <div className="canvas-preview">
-                <div 
-                  className="canvas-container"
-                  style={{
-                    position: 'relative',
-                    width: Math.min(250, 250 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                    height: Math.min(250, 250 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                    border: '2px solid #d1d5db',
-                    backgroundColor: '#ffffff',
-                    overflow: 'visible',
-                  }}
-                >
-                  {/* キャンバス背景 */}
+              
+              {/* CustomAsset情報表示 */}
+              <div className="custom-asset-info">
+                {isLoadingCustomAsset ? (
+                  <div className="loading-state">CustomAsset情報を読み込み中...</div>
+                ) : customAssetInfo ? (
+                  <div className="asset-info-card">
+                    <div className="info-header">
+                      <strong>{customAssetInfo.metadata?.name || 'Unknown'}</strong>
+                      <span className="version">v{customAssetInfo.metadata?.version || '1.0'}</span>
+                    </div>
+                    {customAssetInfo.metadata?.description && (
+                      <p className="description">{customAssetInfo.metadata.description}</p>
+                    )}
+                    {customAssetInfo.metadata?.author && (
+                      <p className="author">作者: {customAssetInfo.metadata.author}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="error-state">CustomAsset情報の取得に失敗しました</div>
+                )}
+              </div>
+
+              {/* プレビュー領域 */}
+              <div className="preview-container">
+                <div className="canvas-preview">
                   <div 
-                    className="canvas-background"
+                    className="canvas-container"
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: '#f8fafc',
-                      border: '1px dashed #cbd5e1',
+                      position: 'relative',
+                      width: Math.min(280, 280 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                      height: Math.min(280, 280 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
+                      border: '2px solid #d1d5db',
+                      backgroundColor: '#ffffff',
+                      overflow: 'visible',
                     }}
-                  />
-                  
-                  {/* SVGプレビュー */}
-                  {previewSVG && (
+                  >
                     <div 
-                      className="svg-preview-content"
+                      className="canvas-background"
                       style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         width: '100%',
                         height: '100%',
+                        backgroundColor: '#f8fafc',
+                        border: '1px dashed #cbd5e1',
                       }}
-                    >
-                      <div 
-                        dangerouslySetInnerHTML={{ 
-                          __html: `<svg width="100%" height="100%" viewBox="0 0 ${project?.canvas.width || 800} ${project?.canvas.height || 600}" xmlns="http://www.w3.org/2000/svg">
-                            <g transform="translate(${currentPos.x}, ${currentPos.y})" opacity="${currentOpacity}">
-                              ${previewSVG}
-                            </g>
-                          </svg>`
-                        }}
-                      />
+                    />
+                    
+                    <div className="asset-preview-placeholder">
+                      <div className="preview-info">
+                        <p>⚡ Dynamic SVG</p>
+                        <p>位置: ({currentPos.x}, {currentPos.y})</p>
+                        <p>サイズ: {currentSize.width} × {currentSize.height}</p>
+                        <p>不透明度: {Math.round(currentOpacity * 100)}%</p>
+                        <p>Z-Index: {currentZIndex}</p>
+                      </div>
                     </div>
-                  )}
-                  
-                  {!previewSVG && (
-                    <div className="no-preview">
-                      {editedAsset.isCustomAsset ? 'CustomAssetのプレビューは現在対応中です' : 
-                       scriptExecutionResult?.error ? 'エラーのため表示できません' : '実行中...'}
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
-
-              {/* 実行時間表示 */}
-              {scriptExecutionResult?.executionTime && (
-                <div className="execution-time">
-                  実行時間: {scriptExecutionResult.executionTime}ms
-                </div>
-              )}
             </div>
-            
-            {/* 右側：プロパティ編集 */}
+
+            {/* 右側：すべてのパラメータ */}
             <div className="properties-panel">
               <h3>プロパティ</h3>
               
-              {/* 基本情報 */}
-              <div className="property-group">
-                <label>アセット名</label>
-                <input
-                  type="text"
-                  value={editedAsset.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  disabled={mode === 'instance'}
-                  className={mode === 'instance' ? 'readonly-input' : ''}
-                />
-              </div>
+              {/* アセット名（Asset編集時のみ） */}
+              {mode === 'asset' && (
+                <div className="property-group">
+                  <label>アセット名</label>
+                  <input
+                    type="text"
+                    value={editedAsset.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className="property-input"
+                  />
+                </div>
+              )}
+
+              {/* CustomAssetパラメータ（Asset編集時のみ） */}
+              {mode === 'asset' && customAssetInfo?.metadata?.params && (
+                <div className="property-group">
+                  <label>CustomAssetパラメータ</label>
+                  <div className="parameter-editor-container">
+                    <AssetParameterEditor
+                      parameters={customAssetInfo.metadata.params}
+                      values={editedAsset.customAssetParameters || {}}
+                      onChange={handleCustomAssetParameterChange}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 変数設定（Asset編集時のみ） */}
+              {mode === 'asset' && (
+                <div className="property-group">
+                  <label>変数設定</label>
+                  <div className="checkbox-container">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editedAsset.use_page_variables}
+                        onChange={(e) => handleUsePageVariablesChange(e.target.checked)}
+                      />
+                      ページ変数を使用 (page_current, page_total)
+                    </label>
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={editedAsset.use_value_variables}
+                        onChange={(e) => handleUseValueVariablesChange(e.target.checked)}
+                      />
+                      ValueAsset変数を使用
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {/* 位置 */}
               <div className="property-group">
                 <label>位置</label>
-                <div className="position-inputs">
-                  <div className="input-with-label">
+                <div className="property-row">
+                  <div className="input-group">
                     <label>X (px)</label>
                     <NumericInput
                       value={currentPos.x}
@@ -620,7 +418,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       step={1}
                     />
                   </div>
-                  <div className="input-with-label">
+                  <div className="input-group">
                     <label>Y (px)</label>
                     <NumericInput
                       value={currentPos.y}
@@ -634,8 +432,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               {/* サイズ */}
               <div className="property-group">
                 <label>サイズ</label>
-                <div className="size-inputs">
-                  <div className="input-with-label">
+                <div className="property-row">
+                  <div className="input-group">
                     <label>幅 (px)</label>
                     <NumericInput
                       value={currentSize.width}
@@ -644,7 +442,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       step={1}
                     />
                   </div>
-                  <div className="input-with-label">
+                  <div className="input-group">
                     <label>高さ (px)</label>
                     <NumericInput
                       value={currentSize.height}
@@ -658,20 +456,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
               {/* 不透明度 */}
               <div className="property-group">
-                <div className="opacity-section">
-                  <span>{mode === 'asset' ? 'Default Opacity' : 'Opacity'}</span>
-                  <div className="opacity-controls">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={currentOpacity}
-                      onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
-                      className="opacity-slider"
-                    />
-                    <span className="opacity-value">{currentOpacity.toFixed(2)}</span>
-                  </div>
+                <label>不透明度</label>
+                <div className="opacity-control">
+                  <NumericInput
+                    value={currentOpacity}
+                    onChange={handleOpacityChange}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                  />
+                  <span className="opacity-percentage">
+                    {Math.round(currentOpacity * 100)}%
+                  </span>
                 </div>
               </div>
 
@@ -691,17 +487,20 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="modal-footer">
-          <button className="btn-secondary" onClick={onClose}>
-            キャンセル
-          </button>
-          <button className="btn-primary" onClick={handleSave}>
-            保存
-          </button>
+          {/* フッター：アクションボタン */}
+          <div className="modal-footer">
+            <button className="btn-secondary" onClick={onClose}>
+              キャンセル
+            </button>
+            <button className="btn-primary" onClick={handleSave}>
+              保存
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default DynamicVectorEditModal;

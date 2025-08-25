@@ -57,6 +57,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
     jest.clearAllMocks();
     mockAssetManager.createDynamicVectorAsset.mockResolvedValue(createDynamicVectorAsset({
       name: 'Test Dynamic SVG',
+      customAssetId: 'test-custom-asset-id',
     }));
     mockAssetManager.deleteAsset.mockResolvedValue({
       success: true,
@@ -85,6 +86,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
       // DynamicVectorAssetの場合、ファイル削除は不要（スクリプトベースのため）
       const asset = createDynamicVectorAsset({
         name: 'Test Dynamic SVG',
+        customAssetId: 'test-custom-asset-id',
       });
 
       const result = await mockAssetManager.deleteAsset(asset, testProject);
@@ -101,6 +103,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'return `<circle cx="50" cy="50" r="25" fill="red" />`;',
         usePageVariables: true,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -123,6 +126,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'return `<circle cx="${page_current * 100}" cy="100" r="50" fill="blue" />`;',
         usePageVariables: true,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -166,6 +170,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'return `<rect x="10" y="10" width="80" height="80" fill="red" />`;',
         usePageVariables: false,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id-1',
       });
 
       const asset2 = createDynamicVectorAsset({
@@ -173,6 +178,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'return `<text x="50" y="30" font-size="16">Page ${page_current}</text>`;',
         usePageVariables: true,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id-2',
       });
 
       testProject.assets[asset1.id] = asset1;
@@ -231,6 +237,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'const count = values["Counter"]; return `<text x="100" y="50" font-size="24">${count}</text>`;',
         usePageVariables: false,
         useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -266,6 +273,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'return invalidFunction();', // エラーを発生させる
         usePageVariables: false,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -297,6 +305,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         script: 'const missing = values["NonExistent"]; return `<text x="50" y="30">${missing}</text>`;',
         usePageVariables: false,
         useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;

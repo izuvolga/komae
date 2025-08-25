@@ -1,9 +1,9 @@
-/* DynamicVectorEditModal共通スタイル */
+/* DynamicVectorEditModal - 2パネルレイアウト */
 .dynamic-vector-edit-modal {
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  width: 95vw;
+  width: 90vw;
   max-width: 1200px;
   max-height: 90vh;
   overflow: hidden;
@@ -11,23 +11,38 @@
   flex-direction: column;
 }
 
-.dynamic-vector-edit-modal .modal-header {
+/* モーダルヘッダー */
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
+  flex-shrink: 0;
 }
 
-.dynamic-vector-edit-modal .modal-header h2 {
+.modal-header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.dynamic-vector-edit-modal .modal-close-btn {
+.custom-asset-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #065f46;
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.modal-close-btn {
   background: none;
   border: none;
   font-size: 24px;
@@ -36,334 +51,293 @@
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dynamic-vector-edit-modal .modal-close-btn:hover {
+.modal-close-btn:hover {
   background: #f3f4f6;
   color: #374151;
 }
 
-.dynamic-vector-edit-modal .modal-content {
+/* モーダルコンテンツ */
+.modal-content {
   flex: 1;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 24px;
 }
 
-.dynamic-vector-edit-modal .edit-panels {
+/* 2パネルレイアウト */
+.edit-panels {
   display: grid;
-  grid-template-columns: 1fr 300px 280px;
+  grid-template-columns: 1fr 350px;
   gap: 24px;
   height: 100%;
+  min-height: 500px;
 }
 
-/* スクリプトパネル */
-.dynamic-vector-edit-modal .script-panel {
+/* 左パネル: プレビューとCustomAsset情報 */
+.preview-panel {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e5e7eb;
-  padding-right: 24px;
-}
-
-.dynamic-vector-edit-modal .script-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.dynamic-vector-edit-modal .script-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.dynamic-vector-edit-modal .script-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.dynamic-vector-edit-modal .console-toggle {
-  padding: 4px 8px;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.dynamic-vector-edit-modal .console-toggle:hover {
-  background: #e5e7eb;
-}
-
-.dynamic-vector-edit-modal .console-toggle.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-/* 変数設定 */
-.dynamic-vector-edit-modal .variable-settings {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-}
-
-.dynamic-vector-edit-modal .checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #374151;
-  cursor: pointer;
-}
-
-.dynamic-vector-edit-modal .checkbox-label:last-child {
-  margin-bottom: 0;
-}
-
-.dynamic-vector-edit-modal .checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-/* スクリプトエディタ */
-.dynamic-vector-edit-modal .script-editor-container {
-  flex: 1;
-  position: relative;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
   overflow: hidden;
-  background: white;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  display: flex;
 }
 
-.dynamic-vector-edit-modal .line-numbers {
-  width: 50px;
-  background: #f8fafc;
-  border-right: 1px solid #e5e7eb;
-  padding: 8px 4px;
-  box-sizing: border-box;
-  user-select: none;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.dynamic-vector-edit-modal .line-numbers pre {
-  margin: 0;
-  padding: 0;
-  font-size: 12px;
-  color: #9ca3af;
-  text-align: right;
-  font-family: inherit;
-  line-height: inherit;
-  white-space: pre;
-}
-
-.dynamic-vector-edit-modal .script-editor {
-  flex: 1;
-  height: 300px;
-  min-height: 300px;
-  border: none;
-  outline: none;
-  resize: vertical;
-  padding: 8px;
-  background: transparent;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  color: #111827;
-  white-space: pre;
-  overflow: auto;
-  tab-size: 2;
-}
-
-.dynamic-vector-edit-modal .script-editor:disabled {
-  background: #f9fafb;
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-.dynamic-vector-edit-modal .script-editor::placeholder {
-  color: #9ca3af;
-}
-
-/* エラー・警告表示 */
-.dynamic-vector-edit-modal .execution-error {
-  margin-top: 12px;
-  padding: 12px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-}
-
-.dynamic-vector-edit-modal .execution-error h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #dc2626;
-}
-
-.dynamic-vector-edit-modal .execution-error p {
-  margin: 0;
-  font-size: 13px;
-  color: #991b1b;
-}
-
-.dynamic-vector-edit-modal .execution-warnings {
-  margin-top: 12px;
-  padding: 12px;
-  background: #fef3c7;
-  border: 1px solid #fbbf24;
-  border-radius: 6px;
-}
-
-.dynamic-vector-edit-modal .execution-warnings h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #d97706;
-}
-
-.dynamic-vector-edit-modal .execution-warnings ul {
-  margin: 0;
-  padding-left: 16px;
-}
-
-.dynamic-vector-edit-modal .execution-warnings li {
-  font-size: 13px;
-  color: #92400e;
-}
-
-/* コンソール出力 */
-.dynamic-vector-edit-modal .console-output {
-  margin-top: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #111827;
-  color: #f9fafb;
-}
-
-.dynamic-vector-edit-modal .console-output h4 {
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  background: #374151;
-  border-bottom: 1px solid #4b5563;
-}
-
-.dynamic-vector-edit-modal .console-output pre {
-  margin: 0;
-  padding: 12px;
-  font-size: 12px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  overflow-x: auto;
-  max-height: 120px;
-  overflow-y: auto;
-}
-
-/* プレビューパネル */
-.dynamic-vector-edit-modal .preview-panel {
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #e5e7eb;
-  padding-right: 24px;
-}
-
-.dynamic-vector-edit-modal .preview-panel h3 {
+.preview-panel h3 {
   margin: 0 0 16px 0;
   font-size: 16px;
   font-weight: 600;
   color: #111827;
 }
 
-.dynamic-vector-edit-modal .canvas-preview {
+/* CustomAsset情報カード */
+.custom-asset-info {
+  margin-bottom: 20px;
+}
+
+.asset-info-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.info-header strong {
+  font-size: 14px;
+  color: #111827;
+}
+
+.version {
+  font-size: 12px;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.description {
+  font-size: 13px;
+  color: #374151;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.author {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+/* ローディング・エラー状態 */
+.loading-state,
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.error-state {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* プレビュー領域 */
+.preview-container {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f9fafb;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 20px;
+  flex-direction: column;
   min-height: 300px;
 }
 
-.dynamic-vector-edit-modal .no-preview {
+.canvas-preview {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+}
+
+.canvas-container {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-background {
+  border-radius: 6px;
+}
+
+.asset-preview-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
   color: #6b7280;
   font-size: 14px;
-  text-align: center;
-  height: 100%;
 }
 
-.dynamic-vector-edit-modal .execution-time {
-  margin-top: 8px;
+.preview-info {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.preview-info p {
+  margin: 4px 0;
   font-size: 12px;
   color: #6b7280;
-  text-align: center;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
-/* プロパティパネル */
-.dynamic-vector-edit-modal .properties-panel h3 {
+.preview-info p:first-child {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 8px;
+}
+
+/* 右パネル: プロパティ */
+.properties-panel {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.properties-panel h3 {
   margin: 0 0 20px 0;
   font-size: 16px;
   font-weight: 600;
   color: #111827;
 }
 
-.dynamic-vector-edit-modal .property-group {
-  margin-bottom: 20px;
+.property-group {
+  margin-bottom: 24px;
 }
 
-.dynamic-vector-edit-modal .property-group label {
+.property-group:last-child {
+  margin-bottom: 0;
+}
+
+.property-group > label {
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
 }
 
-.dynamic-vector-edit-modal .readonly-input {
+.property-input {
   width: 100%;
   padding: 8px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background-color: #f9fafb;
-  color: #6b7280;
+  background-color: white;
+  color: #111827;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
-.dynamic-vector-edit-modal .position-inputs,
-.dynamic-vector-edit-modal .size-inputs {
+.property-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.property-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-.dynamic-vector-edit-modal .input-with-label {
+.input-group {
   display: flex;
   flex-direction: column;
 }
 
-.dynamic-vector-edit-modal .input-with-label label {
+.input-group label {
   font-size: 12px;
-  margin-bottom: 4px;
+  font-weight: 500;
   color: #6b7280;
+  margin-bottom: 4px;
 }
 
-.dynamic-vector-edit-modal .validation-warning {
+/* パラメータエディターコンテナ */
+.parameter-editor-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+/* チェックボックスコンテナ */
+.checkbox-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.checkbox-label:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+/* 不透明度コントロール */
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opacity-percentage {
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* バリデーション警告 */
+.validation-warning {
   margin-top: 8px;
   padding: 8px 12px;
   background-color: #fef3c7;
@@ -371,67 +345,23 @@
   border-radius: 6px;
   font-size: 12px;
   color: #92400e;
-}
-
-/* 不透明度スライダー */
-.dynamic-vector-edit-modal .opacity-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dynamic-vector-edit-modal .opacity-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
-.dynamic-vector-edit-modal .opacity-slider {
-  flex: 1;
-  height: 4px;
-  background: #dee2e6;
-  border-radius: 2px;
-  outline: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.dynamic-vector-edit-modal .opacity-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #007bff;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.dynamic-vector-edit-modal .opacity-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: #007bff;
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-}
-
-.dynamic-vector-edit-modal .opacity-value {
-  font-size: 12px;
-  color: #6c757d;
-  min-width: 40px;
-  text-align: right;
-}
-
-/* フッター */
-.dynamic-vector-edit-modal .modal-footer {
+/* モーダルフッター */
+.modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding: 20px 24px;
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
+  flex-shrink: 0;
 }
 
-.dynamic-vector-edit-modal .btn-secondary {
+.btn-secondary {
   padding: 10px 20px;
   background: white;
   border: 1px solid #d1d5db;
@@ -443,12 +373,12 @@
   transition: all 0.2s;
 }
 
-.dynamic-vector-edit-modal .btn-secondary:hover {
+.btn-secondary:hover {
   background: #f9fafb;
   border-color: #9ca3af;
 }
 
-.dynamic-vector-edit-modal .btn-primary {
+.btn-primary {
   padding: 10px 20px;
   background: #2563eb;
   border: 1px solid #2563eb;
@@ -460,35 +390,33 @@
   transition: all 0.2s;
 }
 
-.dynamic-vector-edit-modal .btn-primary:hover {
+.btn-primary:hover {
   background: #1d4ed8;
   border-color: #1d4ed8;
 }
 
 /* レスポンシブ対応 */
 @media (max-width: 1200px) {
-  .dynamic-vector-edit-modal .edit-panels {
-    grid-template-columns: 1fr 250px 250px;
+  .edit-panels {
+    grid-template-columns: 1fr 320px;
   }
 }
 
 @media (max-width: 1000px) {
-  .dynamic-vector-edit-modal .edit-panels {
+  .edit-panels {
     grid-template-columns: 1fr;
     gap: 20px;
+    height: auto;
   }
   
-  .dynamic-vector-edit-modal .script-panel,
-  .dynamic-vector-edit-modal .preview-panel {
-    border-right: none;
-    padding-right: 0;
+  .preview-panel {
     border-bottom: 1px solid #e5e7eb;
     padding-bottom: 20px;
+    margin-bottom: 20px;
   }
   
-  .dynamic-vector-edit-modal .properties-panel {
-    border-bottom: none;
-    padding-bottom: 0;
+  .preview-container {
+    min-height: 250px;
   }
 }
 
@@ -501,8 +429,36 @@
     border-radius: 0;
   }
   
-  .dynamic-vector-edit-modal .script-editor {
-    height: 200px;
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .edit-panels {
+    gap: 16px;
+  }
+  
+  .modal-header {
+    padding: 16px;
+  }
+  
+  .modal-footer {
+    padding: 16px;
+  }
+  
+  .modal-header h2 {
+    font-size: 16px;
+  }
+  
+  .custom-asset-badge {
+    display: none;
+  }
+  
+  .preview-container {
     min-height: 200px;
+  }
+  
+  .property-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }

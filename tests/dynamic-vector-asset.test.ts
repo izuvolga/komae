@@ -55,6 +55,7 @@ describe('DynamicVectorAsset', () => {
     test('デフォルト値で作成される', () => {
       const asset = createDynamicVectorAsset({
         name: 'Test Dynamic SVG',
+        customAssetId: 'test-custom-asset-id',
       });
 
       expect(asset.id).toMatch(/^dynamic-vector-/);
@@ -77,6 +78,7 @@ describe('DynamicVectorAsset', () => {
         script: 'return `<circle cx="100" cy="75" r="50" fill="green" />`;',
         usePageVariables: true,
         useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
       });
 
       expect(asset.name).toBe('Custom Dynamic SVG');
@@ -103,6 +105,9 @@ describe('DynamicVectorAsset', () => {
         default_height: 100,
         default_opacity: 1,
         default_z_index: 0,
+        customAssetId: 'test-custom-asset-id',
+        customAssetParameters: {},
+        customParameters: {},
       };
 
       const result = validateDynamicVectorAssetData(validAsset);
@@ -124,6 +129,9 @@ describe('DynamicVectorAsset', () => {
         default_height: 100,
         default_opacity: 1,
         default_z_index: 0,
+        customAssetId: 'test-custom-asset-id',
+        customAssetParameters: {},
+        customParameters: {},
       } as DynamicVectorAsset;
 
       const result = validateDynamicVectorAssetData(invalidAsset);
@@ -173,6 +181,7 @@ describe('DynamicVectorEngine', () => {
         name: 'Test Asset',
         usePageVariables: false,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
@@ -187,6 +196,7 @@ describe('DynamicVectorEngine', () => {
         name: 'Test Asset',
         usePageVariables: true,
         useValueVariables: false,
+        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 1);
@@ -201,6 +211,7 @@ describe('DynamicVectorEngine', () => {
         name: 'Test Asset',
         usePageVariables: false,
         useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
@@ -216,6 +227,7 @@ describe('DynamicVectorEngine', () => {
         name: 'Test Asset',
         usePageVariables: true,
         useValueVariables: true,
+        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 1);

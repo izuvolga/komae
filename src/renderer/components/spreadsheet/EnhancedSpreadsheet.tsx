@@ -5,7 +5,8 @@ import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
 import { VectorEditModal } from '../asset/VectorEditModal';
 import { ValueEditModal } from '../asset/ValueEditModal';
-import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, Page, AssetInstance } from '../../../types/entities';
+import { DynamicVectorEditModal } from '../asset/DynamicVectorEditModal';
+import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { getEffectiveValueAssetValue, getRawValueAssetValue } from '../../../utils/valueEvaluation';
 import { ColumnContextMenu } from './ColumnContextMenu';
@@ -60,6 +61,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const [editingValueInstance, setEditingValueInstance] = useState<{
     instance: ValueAssetInstance;
     asset: ValueAsset;
+    page: Page;
+  } | null>(null);
+
+  const [editingDynamicVectorInstance, setEditingDynamicVectorInstance] = useState<{
+    instance: DynamicVectorAssetInstance;
+    asset: DynamicVectorAsset;
     page: Page;
   } | null>(null);
   
@@ -307,6 +314,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
           asset: asset as ValueAsset,
           page,
         });
+      } else if (asset.type === 'DynamicVectorAsset') {
+        setEditingDynamicVectorInstance({
+          instance: instance as DynamicVectorAssetInstance,
+          asset: asset as DynamicVectorAsset,
+          page,
+        });
       }
     }
   };
@@ -353,6 +366,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleValueModalClose = () => {
     setEditingValueInstance(null);
+  };
+
+  const handleDynamicVectorInstanceSave = (updatedInstance: DynamicVectorAssetInstance) => {
+    if (editingDynamicVectorInstance) {
+      updateAssetInstance(editingDynamicVectorInstance.page.id, updatedInstance.id, updatedInstance);
+    }
+    setEditingDynamicVectorInstance(null);
+  };
+
+  const handleDynamicVectorModalClose = () => {
+    setEditingDynamicVectorInstance(null);
   };
 
   // 右クリックメニュー関連のハンドラー
@@ -768,6 +792,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 <span className="asset-type">
                   {asset.type === 'ImageAsset' ? '画像' : 
                    asset.type === 'VectorAsset' ? 'SVG' : 
+                   asset.type === 'DynamicVectorAsset' ? 'Dynamic SVG' :
                    asset.type === 'ValueAsset' ? '値' : 'テキスト'}
                 </span>
               </div>
@@ -862,7 +887,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       >
                         {isUsed ? '✓' : '×'}
                       </button>
-                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'ValueAsset') && (
+                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'DynamicVectorAsset' || asset.type === 'ValueAsset') && (
                         <button
                           className="edit-button"
                           onClick={(e) => {
@@ -959,6 +984,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
                               justifyContent: 'center'
                             }}
                           />
+                        </div>
+                      )}
+                      {isUsed && asset.type === 'DynamicVectorAsset' && (
+                        <div className="dynamic-vector-content">
+                          <div className="dynamic-vector-preview-small">
+                            Dynamic SVG
+                          </div>
                         </div>
                       )}
                       {isUsed && asset.type === 'ValueAsset' && instance && (
@@ -1079,6 +1111,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
           isOpen={!!editingValueInstance}
           onClose={handleValueModalClose}
           onSaveInstance={handleValueInstanceSave}
+        />
+      )}
+
+      {/* DynamicVectorAssetInstance編集モーダル */}
+      {editingDynamicVectorInstance && (
+        <DynamicVectorEditModal
+          mode="instance"
+          asset={editingDynamicVectorInstance.asset}
+          assetInstance={editingDynamicVectorInstance.instance}
+          page={editingDynamicVectorInstance.page}
+          isOpen={!!editingDynamicVectorInstance}
+          onClose={handleDynamicVectorModalClose}
+          onSaveInstance={handleDynamicVectorInstanceSave}
         />
       )}
 

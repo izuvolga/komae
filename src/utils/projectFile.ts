@@ -53,6 +53,33 @@ export async function saveProjectFile(filePath: string, projectData: ProjectData
  * @param filePath 読み込み元ファイルパス
  * @returns プロジェクトデータ
  */
+/**
+ * プロジェクトデータのマイグレーション処理
+ * 古いバージョンのプロジェクトファイルを新しい形式に変換します
+ */
+function migrateProjectData(data: any): any {
+  // DynamicVectorAssetのマイグレーション: isCustomAsset削除、customAssetId必須化
+  if (data.assets) {
+    for (const [assetId, asset] of Object.entries(data.assets)) {
+      if ((asset as any)?.type === 'DynamicVectorAsset') {
+        const dynamicAsset = asset as any;
+        
+        // isCustomAssetプロパティを削除
+        if ('isCustomAsset' in dynamicAsset) {
+          delete dynamicAsset.isCustomAsset;
+        }
+        
+        // customAssetIdが未設定の場合はデフォルト値を設定
+        if (!dynamicAsset.customAssetId) {
+          dynamicAsset.customAssetId = 'migrated-legacy-asset';
+        }
+      }
+    }
+  }
+  
+  return data;
+}
+
 export async function loadProjectFile(filePath: string): Promise<ProjectData> {
   if (!filePath || filePath.trim() === '') {
     throw new ProjectFileError('Invalid file path provided', 'INVALID_PATH');
@@ -97,9 +124,12 @@ export async function loadProjectFile(filePath: string): Promise<ProjectData> {
       throw new ProjectFileError('Invalid project structure: pages must be an array', 'INVALID_STRUCTURE');
     }
 
+    // データマイグレーション処理
+    const migratedData = migrateProjectData(parsedData);
+
     // Zodスキーマによる詳細なバリデーション
     try {
-      return validateProjectData(parsedData);
+      return validateProjectData(migratedData);
     } catch (validationError: any) {
       console.error('Detailed validation error:', validationError);
       if (validationError.issues) {
