@@ -881,8 +881,7 @@ Script の箇所に JavaScript スクリプトを記載でき、返り値の文�
     └─────────────────────────────────────────────────────────────┘
 ```
 
-CustomAsset として読み込める DynamicVectorAsset は、@parameter によって指定される変数を編集することができる。
-`var_1`, `var_2`, ... が例示として挙げられている。
+CustomAsset として読み込める DynamicVectorAsset は、@parameters によって指定される変数を編集することができる。`var_1`, `var_2`, ... が例示として挙げられている（実際には var_1, var_2 という名前ではなく、@parameters に指定されている経数名が表示される）。
 これは、@parameters で指定された変数名が表示される。
 (dynamic-vector-asset.md を参照）
 
