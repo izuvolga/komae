@@ -405,6 +405,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleCellClick = (pageId: string, assetId: string) => {
     setCursor(pageId, assetId);
+  };
+
+  const handleToggleClick = (pageId: string, assetId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // セルのクリックイベントと衝突を防ぐ
+    setCursor(pageId, assetId);
     toggleAssetInstance(pageId, assetId);
   };
 
@@ -1098,6 +1103,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''} ${cellContextMenu.isVisible && cellContextMenu.assetInstance?.id === instance?.id && cellContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                     data-page-id={page.id}
                     data-asset-id={asset.id}
+                    onClick={() => handleCellClick(page.id, asset.id)}
                     onContextMenu={(e) => {
                       if (isUsed && instance) {
                         handleCellRightClick(e, instance as AssetInstance, asset, page);
@@ -1109,8 +1115,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       <button
                         className={`toggle-button ${isUsed ? 'active' : 'inactive'}`}
                         onClick={(e) => {
-                          e.stopPropagation();
-                          handleCellClick(page.id, asset.id);
+                          handleToggleClick(page.id, asset.id, e);
                         }}
                         title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
                       >
