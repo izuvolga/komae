@@ -36,18 +36,18 @@
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## Enhanced Spread Sheet
-- [ ]: SpreadSheet Window の一番上の特定の列を右クリックして表示されるメニュー（ColumnContextMenu.tsx）、指定した列自体を非表示にする機能を追加
+- [x]: SpreadSheet Window の一番上の特定の列を右クリックして表示されるメニュー（ColumnContextMenu.tsx）、指定した列自体を非表示にする機能を追加
   - 詳細は ui-specification.md の "Column" の見出し配下の項目を参照
   - Google Spread Sheet のように、特定の列を非表示にする機能
   - 非表示にした列は、再度表示するための UI も必要
-- [ ]: SpreadSheet Window の一番左の特定の行を右クリックして表示されるメニューに、指定した行自体を非表示にする機能を追加
+- [x]: SpreadSheet Window の一番左の特定の行を右クリックして表示されるメニューに、指定した行自体を非表示にする機能を追加
   - 詳細は ui-specification.md の "Row" の見出し配下の項目を参照
 - [ ]: Spread Sheet 上にカーソルの概念を追加する。セルをクリックしたときに、カーソルがそのセルの位置に表示されるようにする。
   - UI: カーソルは線で表示し、カーソルの色は青色
   - キーボードの矢印キーでカーソルを移動できるようにする
   - Enterキーでそのセルの編集画面を開く
     - ImageAssetInstance の場合は ImageAsset 編集画面を開く
-    - TextAssetInstance の場合は cell-content が小さなテキストボックスとなり、カーソルがそのテキストボックス内に表示される
+    - TextAssetInstance の場合は cell-content が小さなテキストボックスとなり、カーソルがそのテキストボックス内に表示される（既存の Inline Edit が発動するだけ）
   - Backspaceキーでカーソルの位置のセルの「変更をリセット」を行う
   - Ctrl+C あるいは Cmd+C でカーソル位置のセルの値をコピー
     - クリップボードには、その AssetInstance の情報がコピーされる
