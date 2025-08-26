@@ -256,6 +256,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     };
 
+    console.log('Adding mouse event listeners for panning');
     container.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
@@ -316,15 +317,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
         
         case 'Enter':
           e.preventDefault();
-          // Enterキーでセルの編集を開始（後で実装される関数を呼び出す）
-          // handleEditClick(currentCursor.page_id, currentCursor.asset_id);
+          // Enterキーでセルの編集を開始
+          if (currentCursor.pageId && currentCursor.assetId) {
+            handleEditClick(currentCursor.pageId, currentCursor.assetId);
+          }
           return;
         
         case 'Delete':
         case 'Backspace':
           e.preventDefault();
-          // Deleteキーでセルをリセット（後で実装される関数を呼び出す）
-          // handleResetCell();
+          // Delete/Backspaceキーでセルをリセット
+          if (currentCursor.pageId && currentCursor.assetId) {
+            handleResetCellByKeyboard(currentCursor.pageId, currentCursor.assetId);
+          }
           return;
         
         case 'c':
@@ -363,6 +368,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     };
 
+    console.log('Adding keydown listener for keyboard navigation');
     document.addEventListener('keydown', handleKeyDown);
     
     return () => {
@@ -413,6 +419,25 @@ export const EnhancedSpreadsheet: React.FC = () => {
     toggleAssetInstance(pageId, assetId);
   };
 
+  // キーボード操作用のセルリセット関数
+  const handleResetCellByKeyboard = (pageId: string, assetId: string) => {
+    const page = project.pages.find(p => p.id === pageId);
+    const asset = project.assets[assetId];
+    
+    if (!page || !asset) return;
+    
+    // そのページでアセットインスタンスを検索
+    const instance = Object.values(page.asset_instances).find(
+      (inst: AssetInstance) => inst.asset_id === assetId
+    );
+    
+    if (instance) {
+      const resetUpdates = resetAssetInstanceOverrides(instance, asset.type);
+      const updatedInstance = { ...instance, ...resetUpdates };
+      updateAssetInstance(pageId, instance.id, updatedInstance);
+    }
+  };
+
   const handleEditClick = (pageId: string, assetId: string) => {
     const page = project.pages.find(p => p.id === pageId);
     const asset = project.assets[assetId];
@@ -432,11 +457,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
           page,
         });
       } else if (asset.type === 'TextAsset') {
-        setEditingTextInstance({
-          instance: instance as TextAssetInstance,
-          asset: asset as TextAsset,
-          page,
-        });
+        // TextAssetの場合は、インライン編集を開始
+        handleStartInlineEdit(instance as TextAssetInstance, page);
       } else if (asset.type === 'VectorAsset') {
         setEditingVectorInstance({
           instance: instance as VectorAssetInstance,
