@@ -8,6 +8,8 @@ interface CursorOverlayProps {
 
 export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) => {
   const cursor = useProjectStore((state) => state.ui.cursor);
+  const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
+  const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const [cursorStyle, setCursorStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
       ) as HTMLElement;
 
       if (cellElement) {
-        // セルのcontainerRef内での相対位置を計算
+        // セルのBoundingClientRectを取得
         const cellRect = cellElement.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
 
@@ -32,8 +34,11 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         const scrollLeft = containerRef.current.scrollLeft;
         const scrollTop = containerRef.current.scrollTop;
 
-        // セルのコンテナ内での正確な位置を計算
-        const relativeLeft = cellRect.left - containerRect.left + scrollLeft;
+        // AssetLibraryのオフセットを計算（開いている場合のみ）
+        const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
+
+        // セルのコンテナ内での相対位置を計算（AssetLibraryのオフセットを考慮）
+        const relativeLeft = cellRect.left - containerRect.left + scrollLeft + assetLibraryOffset;
         const relativeTop = cellRect.top - containerRect.top + scrollTop;
 
         setCursorStyle({
@@ -59,7 +64,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         window.removeEventListener('resize', updateCursorPosition);
       };
     }
-  }, [cursor.visible, cursor.pageId, cursor.assetId, containerRef]);
+  }, [cursor.visible, cursor.pageId, cursor.assetId, containerRef, showAssetLibrary, assetLibraryWidth]);
 
   if (!cursor.visible) {
     return null;
