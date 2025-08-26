@@ -1261,6 +1261,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           isVisible={contextMenu.isVisible}
           asset={contextMenu.asset}
           position={contextMenu.position}
+          visibleColumnsCount={visibleAssets.length}
           onClose={handleContextMenuClose}
           onHideColumn={handleHideColumn}
           onShowAll={handleShowAllInColumn}
@@ -1276,6 +1277,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           page={rowContextMenu.page}
           pageIndex={rowContextMenu.pageIndex}
           totalPages={pages.length}
+          visibleRowsCount={visiblePages.length}
           position={rowContextMenu.position}
           onClose={handleContextMenuClose}
           onHideRow={handleHideRow}

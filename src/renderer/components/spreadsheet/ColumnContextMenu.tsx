@@ -6,6 +6,7 @@ interface ColumnContextMenuProps {
   isVisible: boolean;
   position: { x: number; y: number };
   asset: Asset;
+  visibleColumnsCount: number;
   onClose: () => void;
   onHideColumn: () => void;
   onShowAll: () => void;
@@ -17,6 +18,7 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
   isVisible,
   position,
   asset,
+  visibleColumnsCount,
   onClose,
   onHideColumn,
   onShowAll,
@@ -54,6 +56,7 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
           <button 
             className="menu-item hide-column"
             onClick={() => handleMenuClick(onHideColumn)}
+            disabled={visibleColumnsCount <= 1}
           >
             列を非表示
           </button>

@@ -8,6 +8,7 @@ interface RowContextMenuProps {
   page: Page;
   pageIndex: number;
   totalPages: number;
+  visibleRowsCount: number;
   onClose: () => void;
   onHideRow: () => void;
   onShowAll: () => void;
@@ -24,6 +25,7 @@ export const RowContextMenu: React.FC<RowContextMenuProps> = ({
   page,
   pageIndex,
   totalPages,
+  visibleRowsCount,
   onClose,
   onHideRow,
   onShowAll,
@@ -62,6 +64,7 @@ export const RowContextMenu: React.FC<RowContextMenuProps> = ({
           <button 
             className="menu-item hide-row"
             onClick={() => handleMenuClick(onHideRow)}
+            disabled={visibleRowsCount <= 1}
           >
             行を非表示
           </button>
