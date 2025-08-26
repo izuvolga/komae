@@ -12,6 +12,7 @@ import { getEffectiveValueAssetValue, getRawValueAssetValue } from '../../../uti
 import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
 import { CellContextMenu } from './CellContextMenu';
+import { CursorOverlay } from './CursorOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
@@ -43,6 +44,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
   const currentLanguage = getCurrentLanguage(); // 言語変更時の再レンダリング用
+  
+  // カーソル機能
+  const setCursor = useProjectStore((state) => state.setCursor);
+  const moveCursor = useProjectStore((state) => state.moveCursor);
+  const copyCell = useProjectStore((state) => state.copyCell);
+  const pasteCell = useProjectStore((state) => state.pasteCell);
   
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
@@ -262,6 +269,118 @@ export const EnhancedSpreadsheet: React.FC = () => {
     };
   }, [isPanning, panStartPos, panStartScroll]);
 
+  // キーボードナビゲーション用のuseEffect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // フォーカスがある場合やインライン編集中の場合はキーボードナビゲーションを無効化
+      if (document.activeElement instanceof HTMLInputElement || 
+          document.activeElement instanceof HTMLTextAreaElement ||
+          inlineEditState.isEditing ||
+          valueInlineEditState.isEditing ||
+          titleEditState.isEditing) {
+        return;
+      }
+
+      // 現在のカーソル位置を取得
+      const currentCursor = project.ui_state?.cursor;
+      if (!currentCursor) return;
+
+      const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
+      const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
+      
+      if (currentPageIndex === -1 || currentAssetIndex === -1) return;
+
+      let newPageIndex = currentPageIndex;
+      let newAssetIndex = currentAssetIndex;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          newPageIndex = Math.max(0, currentPageIndex - 1);
+          break;
+        
+        case 'ArrowDown':
+          e.preventDefault();
+          newPageIndex = Math.min(visiblePages.length - 1, currentPageIndex + 1);
+          break;
+        
+        case 'ArrowLeft':
+          e.preventDefault();
+          newAssetIndex = Math.max(0, currentAssetIndex - 1);
+          break;
+        
+        case 'ArrowRight':
+          e.preventDefault();
+          newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
+          break;
+        
+        case 'Enter':
+          e.preventDefault();
+          // Enterキーでセルの編集を開始（後で実装される関数を呼び出す）
+          // handleEditClick(currentCursor.page_id, currentCursor.asset_id);
+          return;
+        
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          // Deleteキーでセルをリセット（後で実装される関数を呼び出す）
+          // handleResetCell();
+          return;
+        
+        case 'c':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // Ctrl+C でコピー
+            if (currentCursor.pageId && currentCursor.assetId) {
+              copyCell(currentCursor.pageId, currentCursor.assetId);
+            }
+            return;
+          }
+          break;
+        
+        case 'v':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // Ctrl+V でペースト
+            if (currentCursor.pageId && currentCursor.assetId) {
+              pasteCell(currentCursor.pageId, currentCursor.assetId);
+            }
+            return;
+          }
+          break;
+        
+        default:
+          return;
+      }
+
+      // 新しいカーソル位置を設定
+      if (newPageIndex !== currentPageIndex || newAssetIndex !== currentAssetIndex) {
+        const newPage = visiblePages[newPageIndex];
+        const newAsset = visibleAssets[newAssetIndex];
+        if (newPage && newAsset) {
+          setCursor(newPage.id, newAsset.id);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    project.ui_state?.cursor, 
+    visiblePages, 
+    visibleAssets, 
+    inlineEditState.isEditing,
+    valueInlineEditState.isEditing,
+    titleEditState.isEditing,
+    setCursor,
+    moveCursor,
+    copyCell,
+    pasteCell
+  ]);
+
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
     const newPage = {
@@ -285,6 +404,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   };
 
   const handleCellClick = (pageId: string, assetId: string) => {
+    setCursor(pageId, assetId);
     toggleAssetInstance(pageId, assetId);
   };
 
@@ -976,6 +1096,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   <div
                     key={`${page.id}-${asset.id}`}
                     className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''} ${cellContextMenu.isVisible && cellContextMenu.assetInstance?.id === instance?.id && cellContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                    data-page-id={page.id}
+                    data-asset-id={asset.id}
                     onContextMenu={(e) => {
                       if (isUsed && instance) {
                         handleCellRightClick(e, instance as AssetInstance, asset, page);
@@ -1189,6 +1311,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* カーソルオーバーレイ */}
+      <CursorOverlay containerRef={spreadsheetRef} />
 
       {/* ImageAssetInstance編集モーダル */}
       {editingImageInstance && (
