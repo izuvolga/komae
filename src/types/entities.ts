@@ -348,7 +348,6 @@ export interface ProjectData {
   canvas: CanvasConfig;
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
-  ui_state?: UIState; // UI状態を追加
 }
 
 // UI状態

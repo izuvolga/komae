@@ -22,6 +22,7 @@ import './CellContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const project = useProjectStore((state) => state.project);
+  const cursor = useProjectStore((state) => state.ui.cursor);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const addPage = useProjectStore((state) => state.addPage);
   const insertPageAt = useProjectStore((state) => state.insertPageAt);
@@ -40,17 +41,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showColumn = useProjectStore((state) => state.showColumn);
   const hideRow = useProjectStore((state) => state.hideRow);
   const showRow = useProjectStore((state) => state.showRow);
-  
+
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
   const currentLanguage = getCurrentLanguage(); // 言語変更時の再レンダリング用
-  
+
   // カーソル機能
   const setCursor = useProjectStore((state) => state.setCursor);
   const moveCursor = useProjectStore((state) => state.moveCursor);
   const copyCell = useProjectStore((state) => state.copyCell);
   const pasteCell = useProjectStore((state) => state.pasteCell);
-  
+
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
   const [editingImageInstance, setEditingImageInstance] = useState<{
@@ -58,19 +59,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
     asset: ImageAsset;
     page: Page;
   } | null>(null);
-  
+
   const [editingTextInstance, setEditingTextInstance] = useState<{
     instance: TextAssetInstance;
     asset: TextAsset;
     page: Page;
   } | null>(null);
-  
+
   const [editingVectorInstance, setEditingVectorInstance] = useState<{
     instance: VectorAssetInstance;
     asset: VectorAsset;
     page: Page;
   } | null>(null);
-  
+
   const [editingValueInstance, setEditingValueInstance] = useState<{
     instance: ValueAssetInstance;
     asset: ValueAsset;
@@ -82,7 +83,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     asset: DynamicVectorAsset;
     page: Page;
   } | null>(null);
-  
+
   // 右クリックメニュー用のstate
   const [contextMenu, setContextMenu] = useState<{
     isVisible: boolean;
@@ -121,7 +122,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     asset: null,
     page: null,
   });
-  
+
   // インライン編集用のstate
   const [inlineEditState, setInlineEditState] = useState<{
     isEditing: boolean;
@@ -179,17 +180,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
     const calculateMaxWidth = () => {
       const windowWidth = window.innerWidth;
       let availableWidth = windowWidth;
-      
+
       // アセットライブラリが表示されている場合はその幅を引く
       if (showAssetLibrary) {
         availableWidth -= assetLibraryWidth;
       }
-      
+
       // プレビューが表示されている場合はその幅を引く
       if (showPreview) {
         availableWidth -= previewWidth;
       }
-      
+
       // 最小幅を保証
       const finalWidth = Math.max(availableWidth, 300);
       setMaxWidth(finalWidth);
@@ -197,13 +198,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     // 初期計算
     calculateMaxWidth();
-    
+
     // ウィンドウリサイズ監視
     window.addEventListener('resize', calculateMaxWidth);
-    
+
     // レンダリング後の再計算（タイミング問題対応）
     const timeoutId = setTimeout(calculateMaxWidth, 0);
-    
+
     return () => {
       window.removeEventListener('resize', calculateMaxWidth);
       clearTimeout(timeoutId);
@@ -228,15 +229,15 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isPanning) return;
-      
+
       e.preventDefault();
       const deltaX = e.clientX - panStartPos.x;
       const deltaY = e.clientY - panStartPos.y;
-      
+
       // パン方向を逆にする（ドラッグ方向と逆方向にスクロール）
       const newScrollX = panStartScroll.x - deltaX;
       const newScrollY = panStartScroll.y - deltaY;
-      
+
       container.scrollLeft = newScrollX;
       container.scrollTop = newScrollY;
     };
@@ -249,46 +250,24 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     };
 
-    // コンテキストメニューを無効化（中ボタンクリック時）
-    const handleContextMenu = (e: MouseEvent) => {
-      if (isPanning) {
-        e.preventDefault();
-      }
-    };
-
-    console.log('Adding mouse event listeners for panning');
-    container.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('contextmenu', handleContextMenu);
-    
-    return () => {
-      container.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, [isPanning, panStartPos, panStartScroll]);
-
-  // キーボードナビゲーション用のuseEffect
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key down event:', e.key);
       // フォーカスがある場合やインライン編集中の場合はキーボードナビゲーションを無効化
-      if (document.activeElement instanceof HTMLInputElement || 
+      if (document.activeElement instanceof HTMLInputElement ||
           document.activeElement instanceof HTMLTextAreaElement ||
           inlineEditState.isEditing ||
           valueInlineEditState.isEditing ||
           titleEditState.isEditing) {
         return;
       }
-
       // 現在のカーソル位置を取得
-      const currentCursor = project.ui_state?.cursor;
+      const currentCursor = cursor;
+      console.log('Current cursor state:', currentCursor);
       if (!currentCursor) return;
 
       const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
       const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
-      
+
       if (currentPageIndex === -1 || currentAssetIndex === -1) return;
 
       let newPageIndex = currentPageIndex;
@@ -299,22 +278,22 @@ export const EnhancedSpreadsheet: React.FC = () => {
           e.preventDefault();
           newPageIndex = Math.max(0, currentPageIndex - 1);
           break;
-        
+
         case 'ArrowDown':
           e.preventDefault();
           newPageIndex = Math.min(visiblePages.length - 1, currentPageIndex + 1);
           break;
-        
+
         case 'ArrowLeft':
           e.preventDefault();
           newAssetIndex = Math.max(0, currentAssetIndex - 1);
           break;
-        
+
         case 'ArrowRight':
           e.preventDefault();
           newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
           break;
-        
+
         case 'Enter':
           e.preventDefault();
           // Enterキーでセルの編集を開始
@@ -322,7 +301,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             handleEditClick(currentCursor.pageId, currentCursor.assetId);
           }
           return;
-        
+
         case 'Delete':
         case 'Backspace':
           e.preventDefault();
@@ -331,7 +310,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             handleResetCellByKeyboard(currentCursor.pageId, currentCursor.assetId);
           }
           return;
-        
+
         case 'c':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
@@ -342,7 +321,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             return;
           }
           break;
-        
+
         case 'v':
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
@@ -353,39 +332,46 @@ export const EnhancedSpreadsheet: React.FC = () => {
             return;
           }
           break;
-        
+
         default:
           return;
       }
 
+      console.log(`Current cursor: page ${currentPageIndex}, asset ${currentAssetIndex}`);
       // 新しいカーソル位置を設定
       if (newPageIndex !== currentPageIndex || newAssetIndex !== currentAssetIndex) {
         const newPage = visiblePages[newPageIndex];
         const newAsset = visibleAssets[newAssetIndex];
         if (newPage && newAsset) {
+          console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
           setCursor(newPage.id, newAsset.id);
         }
       }
     };
 
-    console.log('Adding keydown listener for keyboard navigation');
+    // コンテキストメニューを無効化（中ボタンクリック時）
+    const handleContextMenu = (e: MouseEvent) => {
+      if (isPanning) {
+        e.preventDefault();
+      }
+    };
+
+    console.log('Adding mouse event listeners for panning');
+
     document.addEventListener('keydown', handleKeyDown);
-    
+    container.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('contextmenu', handleContextMenu);
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [
-    project.ui_state?.cursor, 
-    visiblePages, 
-    visibleAssets, 
-    inlineEditState.isEditing,
-    valueInlineEditState.isEditing,
-    titleEditState.isEditing,
-    setCursor,
-    moveCursor,
-    copyCell,
-    pasteCell
-  ]);
+  }, [isPanning, panStartPos, panStartScroll]);
 
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
@@ -402,7 +388,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       alert('最後のページは削除できません');
       return;
     }
-    
+
     const confirmed = confirm('このページを削除しますか？');
     if (confirmed) {
       deletePage(pageId);
@@ -423,14 +409,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handleResetCellByKeyboard = (pageId: string, assetId: string) => {
     const page = project.pages.find(p => p.id === pageId);
     const asset = project.assets[assetId];
-    
+
     if (!page || !asset) return;
-    
+
     // そのページでアセットインスタンスを検索
     const instance = Object.values(page.asset_instances).find(
       (inst: AssetInstance) => inst.asset_id === assetId
     );
-    
+
     if (instance) {
       const resetUpdates = resetAssetInstanceOverrides(instance, asset.type);
       const updatedInstance = { ...instance, ...resetUpdates };
@@ -441,14 +427,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handleEditClick = (pageId: string, assetId: string) => {
     const page = project.pages.find(p => p.id === pageId);
     const asset = project.assets[assetId];
-    
+
     if (!page || !asset) return;
-    
+
     // そのページでアセットインスタンスを検索
     const instance = Object.values(page.asset_instances).find(
       (inst: AssetInstance) => inst.asset_id === assetId
     );
-    
+
     if (instance) {
       if (asset.type === 'ImageAsset') {
         setEditingImageInstance({
@@ -540,7 +526,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handleColumnContextMenu = (e: React.MouseEvent, asset: any) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setContextMenu({
       isVisible: true,
       position: { x: e.clientX, y: e.clientY },
@@ -573,11 +559,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handleCellRightClick = (e: React.MouseEvent, assetInstance: AssetInstance, asset: any, page: Page) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // 他のコンテキストメニューを閉じる
     setContextMenu({ isVisible: false, position: { x: 0, y: 0 }, asset: null });
     setRowContextMenu({ isVisible: false, position: { x: 0, y: 0 }, page: null, pageIndex: -1 });
-    
+
     setCellContextMenu({
       isVisible: true,
       position: { x: e.clientX, y: e.clientY },
@@ -590,7 +576,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // セルのリセット機能
   const handleResetCell = () => {
     if (!cellContextMenu.assetInstance || !cellContextMenu.asset || !cellContextMenu.page) return;
-    
+
     const resetUpdates = resetAssetInstanceOverrides(cellContextMenu.assetInstance, cellContextMenu.asset.type);
     const updatedInstance = { ...cellContextMenu.assetInstance, ...resetUpdates };
     updateAssetInstance(cellContextMenu.page.id, cellContextMenu.assetInstance.id, updatedInstance);
@@ -605,7 +591,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       assetInstance,
       currentLang
     );
-    
+
     setInlineEditState({
       isEditing: true,
       assetInstanceId: assetInstance.id,
@@ -616,14 +602,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleSaveInlineEdit = () => {
     if (!inlineEditState.assetInstanceId || !inlineEditState.pageId) return;
-    
+
     const assetInstance = Object.values(project.pages).find(p => p.id === inlineEditState.pageId)
       ?.asset_instances[inlineEditState.assetInstanceId] as TextAssetInstance;
-    
+
     if (!assetInstance) return;
-    
+
     const currentLang = getCurrentLanguage();
-    
+
     // 新バージョン: multilingual_text を更新
     const updatedInstance = {
       ...assetInstance,
@@ -632,9 +618,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
         [currentLang]: inlineEditState.text
       }
     };
-    
+
     updateAssetInstance(inlineEditState.pageId, inlineEditState.assetInstanceId, updatedInstance);
-    
+
     setInlineEditState({
       isEditing: false,
       assetInstanceId: null,
@@ -655,10 +641,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // ValueAssetインライン編集のハンドラー
   const handleStartValueInlineEdit = (assetInstance: ValueAssetInstance, asset: ValueAsset, page: Page) => {
     // 数式型の場合は生の値を取得、それ以外は評価後の値を取得
-    const currentValue = asset.value_type === 'formula' 
+    const currentValue = asset.value_type === 'formula'
       ? getRawValueAssetValue(asset, page)
       : getEffectiveValueAssetValue(asset, project, page, pages.findIndex(p => p.id === page.id));
-    
+
     setValueInlineEditState({
       isEditing: true,
       assetInstanceId: assetInstance.id,
@@ -669,20 +655,20 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleSaveValueInlineEdit = () => {
     if (!valueInlineEditState.assetInstanceId || !valueInlineEditState.pageId) return;
-    
+
     const assetInstance = Object.values(project.pages).find(p => p.id === valueInlineEditState.pageId)
       ?.asset_instances[valueInlineEditState.assetInstanceId] as ValueAssetInstance;
-    
+
     if (!assetInstance) return;
-    
+
     // ValueAssetInstanceのoverride_valueを更新
     const updatedInstance = {
       ...assetInstance,
       override_value: valueInlineEditState.value
     };
-    
+
     updateAssetInstance(valueInlineEditState.pageId, valueInlineEditState.assetInstanceId, updatedInstance);
-    
+
     setValueInlineEditState({
       isEditing: false,
       assetInstanceId: null,
@@ -711,9 +697,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleSaveTitleEdit = () => {
     if (!titleEditState.pageId) return;
-    
+
     updatePage(titleEditState.pageId, { title: titleEditState.title });
-    
+
     setTitleEditState({
       isEditing: false,
       pageId: null,
@@ -742,12 +728,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 列全体の操作ハンドラー
   const handleShowAllInColumn = () => {
     if (!contextMenu.asset) return;
-    
+
     pages.forEach(page => {
       const existingInstance = Object.values(page.asset_instances).find(
         (inst: any) => inst.asset_id === contextMenu.asset.id
       );
-      
+
       if (!existingInstance) {
         // インスタンスが存在しない場合は作成
         toggleAssetInstance(page.id, contextMenu.asset.id);
@@ -757,12 +743,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleHideAllInColumn = () => {
     if (!contextMenu.asset) return;
-    
+
     pages.forEach(page => {
       const existingInstance = Object.values(page.asset_instances).find(
         (inst: any) => inst.asset_id === contextMenu.asset.id
       );
-      
+
       if (existingInstance) {
         // インスタンスが存在する場合は削除
         toggleAssetInstance(page.id, contextMenu.asset.id);
@@ -772,19 +758,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleResetAllInColumn = () => {
     if (!contextMenu.asset) return;
-    
+
     pages.forEach(page => {
       const existingInstance = Object.values(page.asset_instances).find(
         (inst: any) => inst.asset_id === contextMenu.asset.id
       );
-      
+
       if (existingInstance) {
         // entities.tsのヘルパー関数を使用してoverride値をリセット
         const resetUpdates = resetAssetInstanceOverrides(
           existingInstance as AssetInstance,
           contextMenu.asset.type
         );
-        
+
         updateAssetInstance(page.id, existingInstance.id, resetUpdates);
       }
     });
@@ -799,14 +785,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handleRowContextMenu = (e: React.MouseEvent, page: Page, pageIndex: number) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // 既存の列メニューを閉じる
     setContextMenu({
       isVisible: false,
       position: { x: 0, y: 0 },
       asset: null,
     });
-    
+
     setRowContextMenu({
       isVisible: true,
       position: { x: e.clientX, y: e.clientY },
@@ -818,12 +804,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 行の操作ハンドラー
   const handleShowAllInRow = () => {
     if (!rowContextMenu.page) return;
-    
+
     assets.forEach(asset => {
       const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
         (inst: any) => inst.asset_id === asset.id
       );
-      
+
       if (!existingInstance) {
         // インスタンスが存在しない場合は作成
         toggleAssetInstance(rowContextMenu.page!.id, asset.id);
@@ -833,12 +819,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleHideAllInRow = () => {
     if (!rowContextMenu.page) return;
-    
+
     assets.forEach(asset => {
       const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
         (inst: any) => inst.asset_id === asset.id
       );
-      
+
       if (existingInstance) {
         // インスタンスが存在する場合は削除
         toggleAssetInstance(rowContextMenu.page!.id, asset.id);
@@ -848,19 +834,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleResetAllInRow = () => {
     if (!rowContextMenu.page) return;
-    
+
     assets.forEach(asset => {
       const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
         (inst: any) => inst.asset_id === asset.id
       );
-      
+
       if (existingInstance) {
         // entities.tsのヘルパー関数を使用してoverride値をリセット
         const resetUpdates = resetAssetInstanceOverrides(
           existingInstance as AssetInstance,
           asset.type
         );
-        
+
         updateAssetInstance(rowContextMenu.page!.id, existingInstance.id, resetUpdates);
       }
     });
@@ -868,36 +854,36 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleInsertPageAbove = () => {
     if (rowContextMenu.pageIndex < 0) return;
-    
+
     const newPage = {
       id: `page-${Date.now()}`,
       title: '',
       asset_instances: {},
     };
-    
+
     insertPageAt(rowContextMenu.pageIndex, newPage);
   };
 
   const handleInsertPageBelow = () => {
     if (rowContextMenu.pageIndex < 0) return;
-    
+
     const newPage = {
       id: `page-${Date.now()}`,
       title: '',
       asset_instances: {},
     };
-    
+
     insertPageAt(rowContextMenu.pageIndex + 1, newPage);
   };
 
   const handleDeletePageFromMenu = () => {
     if (!rowContextMenu.page) return;
-    
+
     if (pages.length <= 1) {
       alert('最後のページは削除できません');
       return;
     }
-    
+
     const confirmed = confirm('このページを削除しますか？');
     if (confirmed) {
       deletePage(rowContextMenu.page.id);
@@ -916,7 +902,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
     const page = project.pages.find(p => p.id === pageId);
     if (!page) return false;
-    
+
     return Object.values(page.asset_instances).some(
       (instance: any) => instance.asset_id === assetId
     );
@@ -933,10 +919,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 隣接する非表示列をチェックするヘルパー関数
   const getHiddenColumnsBetween = (leftAsset: Asset | null, rightAsset: Asset | null): Asset[] => {
     if (!leftAsset && !rightAsset) return [];
-    
+
     const leftIndex = leftAsset ? assets.findIndex(a => a.id === leftAsset.id) : -1;
     const rightIndex = rightAsset ? assets.findIndex(a => a.id === rightAsset.id) : assets.length;
-    
+
     const hiddenBetween: Asset[] = [];
     for (let i = leftIndex + 1; i < rightIndex; i++) {
       const asset = assets[i];
@@ -944,17 +930,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
         hiddenBetween.push(asset);
       }
     }
-    
+
     return hiddenBetween;
   };
 
   // 隣接する非表示行をチェックするヘルパー関数
   const getHiddenRowsBetween = (upperPage: Page | null, lowerPage: Page | null): Page[] => {
     if (!upperPage && !lowerPage) return [];
-    
+
     const upperIndex = upperPage ? pages.findIndex(p => p.id === upperPage.id) : -1;
     const lowerIndex = lowerPage ? pages.findIndex(p => p.id === lowerPage.id) : pages.length;
-    
+
     const hiddenBetween: Page[] = [];
     for (let i = upperIndex + 1; i < lowerIndex; i++) {
       const page = pages[i];
@@ -962,20 +948,20 @@ export const EnhancedSpreadsheet: React.FC = () => {
         hiddenBetween.push(page);
       }
     }
-    
+
     return hiddenBetween;
   };
 
   return (
-    <div 
+    <div
       className="enhanced-spreadsheet scrollbar-large"
-      style={{ 
+      style={{
         maxWidth,
         width: maxWidth ? `${maxWidth}px` : 'auto'
       }}
       ref={spreadsheetRef}
     >
-      <div 
+      <div
         className="spreadsheet-table"
       >
         {/* ヘッダー行 */}
@@ -985,9 +971,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
           {visibleAssets.map((asset, index) => {
             const leftAsset = index === 0 ? null : visibleAssets[index - 1];
             const hiddenBetween = getHiddenColumnsBetween(leftAsset, asset);
-            
+
             return (
-              <div 
+              <div
                 key={asset.id}
                 className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
                 onContextMenu={(e) => handleColumnContextMenu(e, asset)}
@@ -995,7 +981,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 <div className="asset-header-content">
                   {/* 隠された列の復元ボタン（左側） */}
                   {hiddenBetween.length > 0 && (
-                    <button 
+                    <button
                       className="inline-restore-column-btn left"
                       onClick={() => hiddenBetween.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
                       title={`非表示の列を表示: ${hiddenBetween.map(a => a.name).join(', ')}`}
@@ -1003,13 +989,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       ◀{hiddenBetween.length}
                     </button>
                   )}
-                  
+
                   <span className="asset-name" title={asset.name}>
                     {asset.name}
                   </span>
                   <span className="asset-type">
-                    {asset.type === 'ImageAsset' ? '画像' : 
-                     asset.type === 'VectorAsset' ? 'SVG' : 
+                    {asset.type === 'ImageAsset' ? '画像' :
+                     asset.type === 'VectorAsset' ? 'SVG' :
                      asset.type === 'DynamicVectorAsset' ? 'Dynamic SVG' :
                      asset.type === 'ValueAsset' ? '値' : 'テキスト'}
                   </span>
@@ -1017,15 +1003,15 @@ export const EnhancedSpreadsheet: React.FC = () => {
               </div>
             );
           })}
-          
+
           {/* 最後の列の後の復元ボタン */}
           {visibleAssets.length > 0 && (() => {
             const lastAsset = visibleAssets[visibleAssets.length - 1];
             const hiddenAfter = getHiddenColumnsBetween(lastAsset, null);
-            
+
             return hiddenAfter.length > 0 ? (
               <div className="cell header-cell end-columns-restore">
-                <button 
+                <button
                   className="restore-column-btn"
                   onClick={() => hiddenAfter.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
                   title={`非表示の列を表示: ${hiddenAfter.map(a => a.name).join(', ')}`}
@@ -1044,18 +1030,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
             const originalPageIndex = pages.findIndex(p => p.id === page.id);
             const upperPage = visiblePageIndex === 0 ? null : visiblePages[visiblePageIndex - 1];
             const hiddenRowsBetween = getHiddenRowsBetween(upperPage, page);
-            
+
             return (
             <div key={page.id} className={`spreadsheet-row ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}>
               {/* ページ番号＋削除ボタンセル */}
-              <div 
+              <div
                 className={`cell page-number-delete-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                 onContextMenu={(e) => handleRowContextMenu(e, page, originalPageIndex)}
               >
                 <div className="page-number-delete-content">
                   {/* 隠された行の復元ボタン（上側） */}
                   {hiddenRowsBetween.length > 0 && (
-                    <button 
+                    <button
                       className="inline-restore-row-btn up"
                       onClick={() => hiddenRowsBetween.forEach(hiddenPage => showRow(hiddenPage.id))}
                       title={`非表示の行を表示: ${hiddenRowsBetween.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
@@ -1063,7 +1049,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       ▲{hiddenRowsBetween.length}
                     </button>
                   )}
-                  
+
                   <button
                     className="delete-page-btn"
                     onClick={() => handleDeletePage(page.id)}
@@ -1084,7 +1070,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       placeholder={`${originalPageIndex + 1}`}
                     />
                   ) : (
-                    <span 
+                    <span
                       className="page-number clickable"
                       onClick={() => handleStartTitleEdit(page)}
                       title="クリックしてページタイトルを編集"
@@ -1094,9 +1080,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               {/* プレビューセル */}
-              <div 
+              <div
                 className={`cell preview-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                 onClick={() => handlePreviewClick(page.id)}
               >
@@ -1111,14 +1097,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               {/* アセットセル */}
               {visibleAssets.map((asset) => {
                 const isUsed = isAssetUsedInPage(page.id, asset.id);
                 const instance = isUsed ? Object.values(page.asset_instances).find(
                   (inst: any) => inst.asset_id === asset.id
                 ) : null;
-                
+
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
@@ -1156,19 +1142,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         </button>
                       )}
                     </div>
-                    
+
                     {/* セル分割線 */}
                     <div className="cell-divider"></div>
-                    
+
                     {/* Override表示の三角形 */}
                     {isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) && (
                       <div className="override-indicator"></div>
                     )}
-                    
+
                     {/* 右側：cell-content（コンテンツ表示） */}
                     <div className="cell-content">
                       {isUsed && asset.type === 'TextAsset' && instance && (
-                        <div 
+                        <div
                           className="text-content"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1178,8 +1164,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           }}
                           style={{ cursor: inlineEditState.isEditing ? 'default' : 'pointer' }}
                         >
-                          {inlineEditState.isEditing && 
-                           inlineEditState.assetInstanceId === instance.id && 
+                          {inlineEditState.isEditing &&
+                           inlineEditState.assetInstanceId === instance.id &&
                            inlineEditState.pageId === page.id ? (
                             <div className="inline-edit-container">
                               <textarea
@@ -1204,8 +1190,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                             </div>
                           ) : (
                             getEffectiveTextValue(
-                              asset as TextAsset, 
-                              instance as TextAssetInstance, 
+                              asset as TextAsset,
+                              instance as TextAssetInstance,
                               getCurrentLanguage()
                             )
                           )}
@@ -1213,7 +1199,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       )}
                       {isUsed && asset.type === 'ImageAsset' && (
                         <div className="image-content">
-                          <img 
+                          <img
                             className="image-preview-small"
                             src={getCustomProtocolUrl(asset.original_file_path, currentProjectPath)}
                             alt={asset.name}
@@ -1226,10 +1212,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       )}
                       {isUsed && asset.type === 'VectorAsset' && (
                         <div className="vector-content">
-                          <div 
+                          <div
                             className="vector-preview-small"
-                            dangerouslySetInnerHTML={{ 
-                              __html: (asset as VectorAsset).svg_content || '<div>SVG Error</div>' 
+                            dangerouslySetInnerHTML={{
+                              __html: (asset as VectorAsset).svg_content || '<div>SVG Error</div>'
                             }}
                             style={{
                               maxWidth: '60px',
@@ -1250,7 +1236,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         </div>
                       )}
                       {isUsed && asset.type === 'ValueAsset' && instance && (
-                        <div 
+                        <div
                           className="value-content"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1261,18 +1247,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           style={{ cursor: valueInlineEditState.isEditing ? 'default' : 'pointer' }}
                           title="クリックして値を編集"
                         >
-                          {valueInlineEditState.isEditing && 
-                           valueInlineEditState.assetInstanceId === instance.id && 
+                          {valueInlineEditState.isEditing &&
+                           valueInlineEditState.assetInstanceId === instance.id &&
                            valueInlineEditState.pageId === page.id ? (
                             <div className="inline-edit-container">
                               <input
                                 className="inline-edit-input"
                                 type={(asset as ValueAsset).value_type === 'number' ? 'number' : 'text'}
                                 value={valueInlineEditState.value}
-                                onChange={(e) => setValueInlineEditState(prev => ({ 
-                                  ...prev, 
-                                  value: (asset as ValueAsset).value_type === 'number' ? 
-                                    parseFloat(e.target.value) || 0 : e.target.value 
+                                onChange={(e) => setValueInlineEditState(prev => ({
+                                  ...prev,
+                                  value: (asset as ValueAsset).value_type === 'number' ?
+                                    parseFloat(e.target.value) || 0 : e.target.value
                                 }))}
                                 onBlur={() => {
                                   handleSaveValueInlineEdit();
@@ -1291,7 +1277,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                               />
                             </div>
                           ) : (
-                            <span 
+                            <span
                               className="value-display"
                               title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, originalPageIndex)}`}
                             >
@@ -1307,16 +1293,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
             </div>
             );
           })}
-          
+
           {/* 最後の行の後の復元ボタン */}
           {visiblePages.length > 0 && (() => {
             const lastPage = visiblePages[visiblePages.length - 1];
             const hiddenAfter = getHiddenRowsBetween(lastPage, null);
-            
+
             return hiddenAfter.length > 0 ? (
               <div className="spreadsheet-row end-rows-restore">
                 <div className="cell restore-row-cell">
-                  <button 
+                  <button
                     className="restore-row-btn"
                     onClick={() => hiddenAfter.forEach(hiddenPage => showRow(hiddenPage.id))}
                     title={`非表示の行を表示: ${hiddenAfter.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
@@ -1327,7 +1313,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
               </div>
             ) : null;
           })()}
-          
+
           {/* 新規ページ追加行 */}
           <div className="spreadsheet-row add-page-row">
             <div className="cell add-page-cell">

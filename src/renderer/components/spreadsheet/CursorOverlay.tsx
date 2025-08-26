@@ -24,6 +24,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
       const cellElement = containerRef.current.querySelector(
         `[data-page-id="${cursor.pageId}"][data-asset-id="${cursor.assetId}"]`
       ) as HTMLElement;
+      console.log('CursorOverlay: cellElement', cellElement);
 
       if (cellElement) {
         // セルのBoundingClientRectを取得
