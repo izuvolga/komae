@@ -87,7 +87,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     executionTimerRef.current = setTimeout(() => {
       executeScript();
     }, 300);
-  }, [parameterValues, editedAsset.script]);
+  }, []);
 
   useEffect(() => {
     scheduleExecution();
@@ -96,7 +96,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         clearTimeout(executionTimerRef.current);
       }
     };
-  }, [scheduleExecution]);
+  }, [parameterValues, editedAsset.script, scheduleExecution]);
 
   if (!isOpen || !project) return null;
 
@@ -413,6 +413,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                                   const value = parseFloat(e.target.value);
                                   if (!isNaN(value)) {
                                     handleParameterChange(paramDef.name, value);
+                                    scheduleExecution();
                                   }
                                 }}
                                 onBlur={() => scheduleExecution()}
@@ -425,6 +426,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                                 value={parameterValues[paramDef.name] || paramDef.default || ''}
                                 onChange={(e) => {
                                   handleParameterChange(paramDef.name, e.target.value);
+                                  scheduleExecution();
                                 }}
                                 onBlur={() => scheduleExecution()}
                                 className="dve-text-input"
