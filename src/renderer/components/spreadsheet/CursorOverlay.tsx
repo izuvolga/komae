@@ -37,9 +37,13 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         // AssetLibraryのオフセットを計算（開いている場合のみ）
         const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
 
-        // セルのコンテナ内での相対位置を計算（AssetLibraryのオフセットを考慮）
+        // Toolbar要素を取得してその高さを動的に計算
+        const toolbarElement = document.querySelector('.toolbar') as HTMLElement;
+        const toolbarHeight = toolbarElement ? toolbarElement.getBoundingClientRect().height : 0;
+
+        // セルのコンテナ内での相対位置を計算（AssetLibraryとToolbarのオフセットを考慮）
         const relativeLeft = cellRect.left - containerRect.left + scrollLeft + assetLibraryOffset;
-        const relativeTop = cellRect.top - containerRect.top + scrollTop;
+        const relativeTop = cellRect.top - containerRect.top + scrollTop + toolbarHeight;
 
         setCursorStyle({
           left: relativeLeft,
