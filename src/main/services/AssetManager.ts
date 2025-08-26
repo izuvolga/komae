@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { readdir, rmdir } from 'fs/promises';
 import imageSize from 'image-size';
 import { FileSystemService } from './FileSystemService';
+import { CustomAssetManager } from './CustomAssetManager';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import { 
@@ -18,11 +19,13 @@ export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
 export class AssetManager {
   private fileSystemService: FileSystemService;
+  private customAssetManager: CustomAssetManager;
   private currentProjectPath: string | null = null;
   private logger = getLogger();
 
   constructor() {
     this.fileSystemService = new FileSystemService();
+    this.customAssetManager = new CustomAssetManager();
   }
 
   /**
@@ -194,9 +197,26 @@ export class AssetManager {
   }
 
   async createDynamicVectorAsset(name: string, customAssetId: string): Promise<DynamicVectorAsset> {
+    // CustomAssetの詳細情報を取得
+    const customAssetInfo = await this.customAssetManager.getCustomAssetInfo(customAssetId);
+    
+    if (!customAssetInfo) {
+      throw new Error(`CustomAsset with ID "${customAssetId}" not found`);
+    }
+    
+    // CustomAssetのパラメータをデフォルト値で初期化
+    const customAssetParameters: Record<string, number | string> = {};
+    if (customAssetInfo.parameters) {
+      customAssetInfo.parameters.forEach((param: any) => {
+        customAssetParameters[param.name] = param.defaultValue;
+      });
+    }
+    
     const asset = createDynamicVectorAsset({ 
       name,
-      customAssetId // DynamicVectorAssetは常にCustomAsset
+      customAssetId, // DynamicVectorAssetは常にCustomAsset
+      customAssetInfo: customAssetInfo,
+      customAssetParameters: customAssetParameters,
     });
     
     await this.logger.logDevelopment('dynamic_vector_asset_created', 'DynamicVectorAsset created', {
@@ -205,6 +225,8 @@ export class AssetManager {
       usePageVariables: asset.use_page_variables,
       useValueVariables: asset.use_value_variables,
       customAssetId: asset.customAssetId,
+      hasCustomAssetInfo: !!asset.customAssetInfo,
+      parametersCount: customAssetInfo.parameters?.length || 0,
     });
     
     return asset;

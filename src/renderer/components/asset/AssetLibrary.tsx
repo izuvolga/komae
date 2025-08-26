@@ -329,7 +329,7 @@ export const AssetLibrary: React.FC = () => {
         name: `${customAssetInfo.name} (Dynamic SVG)`,
         customAssetId: customAssetInfo.id, // 必須パラメータ
         // CustomAssetのパラメータをデフォルト値で初期化
-        customParameters: customAssetInfo.parameters.reduce((params: Record<string, any>, param: any) => {
+        customAssetParameters: customAssetInfo.parameters.reduce((params: Record<string, any>, param: any) => {
           params[param.name] = param.defaultValue;
           return params;
         }, {}),
