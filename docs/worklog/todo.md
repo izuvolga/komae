@@ -19,7 +19,9 @@
   - Spread Sheet Window の最も左側
   - デフォルトでは、データ上は空のままにしておく。
   - 空の場合は、UI 上は数字が表示される 例: 1, 2, 3...
-- [ ]: ValueAsset のアセット名は半角英数字と一部の記号のみを許可するようにしてください。変数名として利用するためです。
+- [x]: ValueAsset のアセット名は半角英数字と一部の記号のみを許可するようにしてください。変数名として利用するためです。
+- [ ]: DynamicVectorAsset の @parameters を編集しても、リアルタイムに DynamicVectorEditModal のプレビューに反映されない
+- [ ]: DynamicVectorAsset を追加した後、一度プロジェクトを保存し、再度開いたとっきに、@parameters の編集の UI が表示されず、編集ができなくなる。
 - [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 
