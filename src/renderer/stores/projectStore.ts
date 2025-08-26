@@ -78,6 +78,15 @@ interface ProjectStore {
   hideRow: (pageId: string) => void;
   showRow: (pageId: string) => void;
   
+  // Cursor Actions
+  setCursor: (pageId: string | null, assetId: string | null) => void;
+  moveCursor: (direction: 'up' | 'down' | 'left' | 'right') => void;
+  clearCursor: () => void;
+  
+  // Clipboard Actions
+  copyCell: (pageId: string, assetId: string) => void;
+  pasteCell: (pageId: string, assetId: string) => boolean;
+  
   // Language Actions
   getCurrentLanguage: () => string;
   getSupportedLanguages: () => string[];
@@ -126,6 +135,16 @@ export const useProjectStore = create<ProjectStore>()(
           previewScrollY: 0,
           hiddenColumns: [],
           hiddenRows: [],
+          // スプレッドシートカーソル機能
+          cursor: {
+            visible: false,
+            pageId: null,
+            assetId: null,
+          },
+          clipboard: {
+            assetInstance: null,
+            sourcePageId: null,
+          },
         },
         app: {
           isLoading: false,
@@ -339,6 +358,118 @@ export const useProjectStore = create<ProjectStore>()(
         showRow: (pageId) => set((state) => {
           state.ui.hiddenRows = state.ui.hiddenRows.filter(id => id !== pageId);
         }),
+
+        // Cursor Actions
+        setCursor: (pageId, assetId) => set((state) => {
+          state.ui.cursor = {
+            visible: true,
+            pageId,
+            assetId,
+          };
+        }),
+
+        moveCursor: (direction) => set((state) => {
+          if (!state.project || !state.ui.cursor.visible) return;
+          
+          const pages = state.project.pages;
+          const assets = Object.values(state.project.assets);
+          const currentPageIndex = pages.findIndex(p => p.id === state.ui.cursor.pageId);
+          const currentAssetIndex = assets.findIndex(a => a.id === state.ui.cursor.assetId);
+          
+          let newPageIndex = currentPageIndex;
+          let newAssetIndex = currentAssetIndex;
+          
+          switch (direction) {
+            case 'up':
+              newPageIndex = Math.max(0, currentPageIndex - 1);
+              break;
+            case 'down':
+              newPageIndex = Math.min(pages.length - 1, currentPageIndex + 1);
+              break;
+            case 'left':
+              newAssetIndex = Math.max(0, currentAssetIndex - 1);
+              break;
+            case 'right':
+              newAssetIndex = Math.min(assets.length - 1, currentAssetIndex + 1);
+              break;
+          }
+          
+          if (pages[newPageIndex] && assets[newAssetIndex]) {
+            state.ui.cursor.pageId = pages[newPageIndex].id;
+            state.ui.cursor.assetId = assets[newAssetIndex].id;
+          }
+        }),
+
+        clearCursor: () => set((state) => {
+          state.ui.cursor = {
+            visible: false,
+            pageId: null,
+            assetId: null,
+          };
+        }),
+
+        // Clipboard Actions
+        copyCell: (pageId, assetId) => set((state) => {
+          if (!state.project) return;
+          
+          const page = findPageById(state.project.pages, pageId);
+          if (!page) return;
+          
+          const assetInstance = Object.values(page.asset_instances).find(
+            instance => instance.asset_id === assetId
+          );
+          
+          if (assetInstance) {
+            state.ui.clipboard = {
+              assetInstance: { ...assetInstance },
+              sourcePageId: pageId,
+            };
+          }
+        }),
+
+        pasteCell: (pageId, assetId) => {
+          const state = get();
+          if (!state.project || !state.ui.clipboard.assetInstance) return false;
+          
+          const targetAsset = state.project.assets[assetId];
+          const sourceAssetInstance = state.ui.clipboard.assetInstance;
+          const sourceAsset = state.project.assets[sourceAssetInstance.asset_id];
+          
+          // 同じタイプのアセットの場合のみペースト可能
+          if (!targetAsset || !sourceAsset || targetAsset.type !== sourceAsset.type) {
+            return false;
+          }
+          
+          const page = findPageById(state.project.pages, pageId);
+          if (!page) return false;
+          
+          // 既存のインスタンスを削除
+          const existingInstance = Object.values(page.asset_instances).find(
+            instance => instance.asset_id === assetId
+          );
+          if (existingInstance) {
+            delete page.asset_instances[existingInstance.id];
+          }
+          
+          // 新しいインスタンスを作成
+          const newInstanceId = `instance-${Date.now()}`;
+          const newInstance = {
+            ...sourceAssetInstance,
+            id: newInstanceId,
+            asset_id: assetId,
+          };
+          
+          set((state) => {
+            if (!state.project) return;
+            const targetPage = findPageById(state.project.pages, pageId);
+            if (targetPage) {
+              targetPage.asset_instances[newInstanceId] = newInstance;
+              state.app.isDirty = true;
+            }
+          });
+          
+          return true;
+        },
 
         clearErrors: () => set((state) => {
           state.app.errors = [];

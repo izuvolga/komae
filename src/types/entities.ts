@@ -369,6 +369,16 @@ export interface UIState {
   // 非表示にされた列と行の管理
   hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
   hiddenRows: string[]; // 非表示にされたページIDのリスト
+  // スプレッドシートカーソル機能
+  cursor: {
+    visible: boolean;
+    pageId: string | null;
+    assetId: string | null;
+  };
+  clipboard: {
+    assetInstance: AssetInstance | null;
+    sourcePageId: string | null;
+  };
 }
 
 // アプリケーション状態
