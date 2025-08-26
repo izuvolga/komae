@@ -7,6 +7,7 @@ interface ColumnContextMenuProps {
   position: { x: number; y: number };
   asset: Asset;
   onClose: () => void;
+  onHideColumn: () => void;
   onShowAll: () => void;
   onHideAll: () => void;
   onResetAll: () => void;
@@ -17,6 +18,7 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
   position,
   asset,
   onClose,
+  onHideColumn,
   onShowAll,
   onHideAll,
   onResetAll,
@@ -49,6 +51,15 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
         </div>
         
         <div className="column-context-menu-items">
+          <button 
+            className="menu-item hide-column"
+            onClick={() => handleMenuClick(onHideColumn)}
+          >
+            列を非表示
+          </button>
+          
+          <div className="menu-separator" />
+          
           <button 
             className="menu-item"
             onClick={() => handleMenuClick(onShowAll)}

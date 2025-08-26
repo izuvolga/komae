@@ -366,6 +366,9 @@ export interface UIState {
   previewWidth: number;
   previewScrollX: number;
   previewScrollY: number;
+  // 非表示にされた列と行の管理
+  hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
+  hiddenRows: string[]; // 非表示にされたページIDのリスト
 }
 
 // アプリケーション状態

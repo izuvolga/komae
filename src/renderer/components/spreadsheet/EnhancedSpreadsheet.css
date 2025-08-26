@@ -66,6 +66,8 @@
   align-items: center;
   gap: 2px;
   text-align: center;
+  position: relative;
+  width: 100%;
 }
 
 .asset-name {
@@ -124,6 +126,9 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  flex-wrap: wrap;
+  gap: 2px;
+  position: relative;
 }
 
 .page-number {
@@ -563,4 +568,163 @@
   border-radius: 2px;
   border: 1px solid #e0e0e0;
   max-width: 100%;
+}
+
+/* インライン列復元ボタン（ヘッダー内） */
+.inline-restore-column-btn {
+  background: #ffc107;
+  border: 1px solid #fd7e14;
+  border-radius: 2px;
+  color: #212529;
+  cursor: pointer;
+  font-size: 8px;
+  padding: 1px 3px;
+  transition: all 0.2s ease;
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  z-index: 5;
+  min-width: 16px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.inline-restore-column-btn:hover {
+  background: #e0a800;
+  transform: scale(1.05);
+}
+
+.inline-restore-column-btn:active {
+  transform: scale(0.95);
+}
+
+/* 末尾列復元用のセル */
+.end-columns-restore {
+  background-color: #fff3cd;
+  width: 80px;
+  min-width: 80px;
+}
+
+.end-columns-restore .restore-column-btn {
+  background: #ffc107;
+  border: 1px solid #fd7e14;
+  border-radius: 3px;
+  color: #212529;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  min-width: 60px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.end-columns-restore .restore-column-btn:hover {
+  background: #e0a800;
+  transform: scale(1.05);
+}
+
+.end-columns-restore .restore-column-btn:active {
+  transform: scale(0.95);
+}
+
+/* インライン行復元ボタン（行内） */
+.inline-restore-row-btn {
+  background: #ffc107;
+  border: 1px solid #fd7e14;
+  border-radius: 2px;
+  color: #212529;
+  cursor: pointer;
+  font-size: 8px;
+  padding: 1px 3px;
+  transition: all 0.2s ease;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 5;
+  min-width: 16px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.inline-restore-row-btn:hover {
+  background: #e0a800;
+  transform: scale(1.05);
+}
+
+.inline-restore-row-btn:active {
+  transform: scale(0.95);
+}
+
+/* 末尾行復元用の行 */
+.end-rows-restore {
+  background-color: #fff3cd;
+  border-bottom: 1px solid #dee2e6;
+  min-height: 30px;
+}
+
+.end-rows-restore .restore-row-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #dee2e6;
+  padding: 4px;
+  width: 70px;
+  min-width: 70px;
+}
+
+.end-rows-restore .restore-row-btn {
+  background: #ffc107;
+  border: 1px solid #fd7e14;
+  border-radius: 3px;
+  color: #212529;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.end-rows-restore .restore-row-btn:hover {
+  background: #e0a800;
+  transform: scale(1.05);
+}
+
+.end-rows-restore .restore-row-btn:active {
+  transform: scale(0.95);
+}
+
+/* メニューアイテムのスタイル強化 */
+.hide-column,
+.hide-row {
+  background-color: #fff3cd;
+  border-left: 3px solid #ffc107;
+}
+
+.hide-column:hover,
+.hide-row:hover {
+  background-color: #ffeeba;
+}
+
+/* インライン復元ボタンがある場合のレイアウト調整 */
+.asset-header-content:has(.inline-restore-column-btn) {
+  padding-left: 20px;
+}
+
+.page-number-delete-content:has(.inline-restore-row-btn) {
+  padding-top: 15px;
 }

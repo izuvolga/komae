@@ -9,6 +9,7 @@ interface RowContextMenuProps {
   pageIndex: number;
   totalPages: number;
   onClose: () => void;
+  onHideRow: () => void;
   onShowAll: () => void;
   onHideAll: () => void;
   onResetAll: () => void;
@@ -24,6 +25,7 @@ export const RowContextMenu: React.FC<RowContextMenuProps> = ({
   pageIndex,
   totalPages,
   onClose,
+  onHideRow,
   onShowAll,
   onHideAll,
   onResetAll,
@@ -57,6 +59,15 @@ export const RowContextMenu: React.FC<RowContextMenuProps> = ({
         </div>
         
         <div className="row-context-menu-items">
+          <button 
+            className="menu-item hide-row"
+            onClick={() => handleMenuClick(onHideRow)}
+          >
+            行を非表示
+          </button>
+          
+          <div className="menu-separator" />
+          
           <button 
             className="menu-item"
             onClick={() => handleMenuClick(onShowAll)}

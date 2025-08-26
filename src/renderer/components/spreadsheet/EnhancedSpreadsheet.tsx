@@ -6,7 +6,7 @@ import { TextEditModal } from '../asset/TextEditModal';
 import { VectorEditModal } from '../asset/VectorEditModal';
 import { ValueEditModal } from '../asset/ValueEditModal';
 import { DynamicVectorEditModal } from '../asset/DynamicVectorEditModal';
-import type { ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
+import type { Asset, ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
 import { hasAssetInstanceOverrides, resetAssetInstanceOverrides, getEffectiveTextValue } from '../../../types/entities';
 import { getEffectiveValueAssetValue, getRawValueAssetValue } from '../../../utils/valueEvaluation';
 import { ColumnContextMenu } from './ColumnContextMenu';
@@ -33,6 +33,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
+  const hiddenColumns = useProjectStore((state) => state.ui.hiddenColumns);
+  const hiddenRows = useProjectStore((state) => state.ui.hiddenRows);
+  const hideColumn = useProjectStore((state) => state.hideColumn);
+  const showColumn = useProjectStore((state) => state.showColumn);
+  const hideRow = useProjectStore((state) => state.hideRow);
+  const showRow = useProjectStore((state) => state.showRow);
   
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -156,6 +162,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const pages = Object.values(project.pages);
   const assets = Object.values(project.assets);
+
+  // 非表示でないアセット・ページのフィルタリング
+  const visibleAssets = assets.filter(asset => !hiddenColumns.includes(asset.id));
+  const visiblePages = pages.filter(page => !hiddenRows.includes(page.id));
 
   // 中央パネルの最大幅を計算
   useEffect(() => {
@@ -633,6 +643,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
     });
   };
 
+  const handleHideColumn = () => {
+    if (!contextMenu.asset) return;
+    hideColumn(contextMenu.asset.id);
+  };
+
   // 行の右クリックメニュー関連のハンドラー
   const handleRowContextMenu = (e: React.MouseEvent, page: Page, pageIndex: number) => {
     e.preventDefault();
@@ -742,6 +757,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
     }
   };
 
+  const handleHideRow = () => {
+    if (!rowContextMenu.page) return;
+    hideRow(rowContextMenu.page.id);
+  };
+
   const handlePreviewClick = (pageId: string) => {
     setCurrentPage(pageId);
   };
@@ -763,6 +783,42 @@ export const EnhancedSpreadsheet: React.FC = () => {
     return `${pageIndex + 1}`;
   };
 
+  // 隣接する非表示列をチェックするヘルパー関数
+  const getHiddenColumnsBetween = (leftAsset: Asset | null, rightAsset: Asset | null): Asset[] => {
+    if (!leftAsset && !rightAsset) return [];
+    
+    const leftIndex = leftAsset ? assets.findIndex(a => a.id === leftAsset.id) : -1;
+    const rightIndex = rightAsset ? assets.findIndex(a => a.id === rightAsset.id) : assets.length;
+    
+    const hiddenBetween: Asset[] = [];
+    for (let i = leftIndex + 1; i < rightIndex; i++) {
+      const asset = assets[i];
+      if (hiddenColumns.includes(asset.id)) {
+        hiddenBetween.push(asset);
+      }
+    }
+    
+    return hiddenBetween;
+  };
+
+  // 隣接する非表示行をチェックするヘルパー関数
+  const getHiddenRowsBetween = (upperPage: Page | null, lowerPage: Page | null): Page[] => {
+    if (!upperPage && !lowerPage) return [];
+    
+    const upperIndex = upperPage ? pages.findIndex(p => p.id === upperPage.id) : -1;
+    const lowerIndex = lowerPage ? pages.findIndex(p => p.id === lowerPage.id) : pages.length;
+    
+    const hiddenBetween: Page[] = [];
+    for (let i = upperIndex + 1; i < lowerIndex; i++) {
+      const page = pages[i];
+      if (hiddenRows.includes(page.id)) {
+        hiddenBetween.push(page);
+      }
+    }
+    
+    return hiddenBetween;
+  };
+
   return (
     <div 
       className="enhanced-spreadsheet scrollbar-large"
@@ -779,37 +835,88 @@ export const EnhancedSpreadsheet: React.FC = () => {
         <div className="spreadsheet-header">
           <div className="cell header-cell page-number-delete-header">#</div>
           <div className="cell header-cell preview-column-header">Preview</div>
-          {assets.map((asset) => (
-            <div 
-              key={asset.id} 
-              className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
-              onContextMenu={(e) => handleColumnContextMenu(e, asset)}
-            >
-              <div className="asset-header-content">
-                <span className="asset-name" title={asset.name}>
-                  {asset.name}
-                </span>
-                <span className="asset-type">
-                  {asset.type === 'ImageAsset' ? '画像' : 
-                   asset.type === 'VectorAsset' ? 'SVG' : 
-                   asset.type === 'DynamicVectorAsset' ? 'Dynamic SVG' :
-                   asset.type === 'ValueAsset' ? '値' : 'テキスト'}
-                </span>
+          {visibleAssets.map((asset, index) => {
+            const leftAsset = index === 0 ? null : visibleAssets[index - 1];
+            const hiddenBetween = getHiddenColumnsBetween(leftAsset, asset);
+            
+            return (
+              <div 
+                key={asset.id}
+                className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
+                onContextMenu={(e) => handleColumnContextMenu(e, asset)}
+              >
+                <div className="asset-header-content">
+                  {/* 隠された列の復元ボタン（左側） */}
+                  {hiddenBetween.length > 0 && (
+                    <button 
+                      className="inline-restore-column-btn left"
+                      onClick={() => hiddenBetween.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
+                      title={`非表示の列を表示: ${hiddenBetween.map(a => a.name).join(', ')}`}
+                    >
+                      ◀{hiddenBetween.length}
+                    </button>
+                  )}
+                  
+                  <span className="asset-name" title={asset.name}>
+                    {asset.name}
+                  </span>
+                  <span className="asset-type">
+                    {asset.type === 'ImageAsset' ? '画像' : 
+                     asset.type === 'VectorAsset' ? 'SVG' : 
+                     asset.type === 'DynamicVectorAsset' ? 'Dynamic SVG' :
+                     asset.type === 'ValueAsset' ? '値' : 'テキスト'}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+          
+          {/* 最後の列の後の復元ボタン */}
+          {visibleAssets.length > 0 && (() => {
+            const lastAsset = visibleAssets[visibleAssets.length - 1];
+            const hiddenAfter = getHiddenColumnsBetween(lastAsset, null);
+            
+            return hiddenAfter.length > 0 ? (
+              <div className="cell header-cell end-columns-restore">
+                <button 
+                  className="restore-column-btn"
+                  onClick={() => hiddenAfter.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
+                  title={`非表示の列を表示: ${hiddenAfter.map(a => a.name).join(', ')}`}
+                >
+                  ▶ {hiddenAfter.length}列
+                </button>
+              </div>
+            ) : null;
+          })()}
         </div>
 
         {/* データ行 */}
         <div className="spreadsheet-body">
-          {pages.map((page, pageIndex) => (
+          {visiblePages.map((page, visiblePageIndex) => {
+            // 元のpageIndexを取得
+            const originalPageIndex = pages.findIndex(p => p.id === page.id);
+            const upperPage = visiblePageIndex === 0 ? null : visiblePages[visiblePageIndex - 1];
+            const hiddenRowsBetween = getHiddenRowsBetween(upperPage, page);
+            
+            return (
             <div key={page.id} className={`spreadsheet-row ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}>
               {/* ページ番号＋削除ボタンセル */}
               <div 
                 className={`cell page-number-delete-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
-                onContextMenu={(e) => handleRowContextMenu(e, page, pageIndex)}
+                onContextMenu={(e) => handleRowContextMenu(e, page, originalPageIndex)}
               >
                 <div className="page-number-delete-content">
+                  {/* 隠された行の復元ボタン（上側） */}
+                  {hiddenRowsBetween.length > 0 && (
+                    <button 
+                      className="inline-restore-row-btn up"
+                      onClick={() => hiddenRowsBetween.forEach(hiddenPage => showRow(hiddenPage.id))}
+                      title={`非表示の行を表示: ${hiddenRowsBetween.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
+                    >
+                      ▲{hiddenRowsBetween.length}
+                    </button>
+                  )}
+                  
                   <button
                     className="delete-page-btn"
                     onClick={() => handleDeletePage(page.id)}
@@ -827,7 +934,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       onKeyDown={handleTitleKeyDown}
                       onBlur={handleSaveTitleEdit}
                       autoFocus
-                      placeholder={`${pageIndex + 1}`}
+                      placeholder={`${originalPageIndex + 1}`}
                     />
                   ) : (
                     <span 
@@ -835,7 +942,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       onClick={() => handleStartTitleEdit(page)}
                       title="クリックしてページタイトルを編集"
                     >
-                      {getPageDisplayText(page, pageIndex)}
+                      {getPageDisplayText(page, originalPageIndex)}
                     </span>
                   )}
                 </div>
@@ -859,7 +966,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
               </div>
               
               {/* アセットセル */}
-              {assets.map((asset) => {
+              {visibleAssets.map((asset) => {
                 const isUsed = isAssetUsedInPage(page.id, asset.id);
                 const instance = isUsed ? Object.values(page.asset_instances).find(
                   (inst: any) => inst.asset_id === asset.id
@@ -1037,9 +1144,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           ) : (
                             <span 
                               className="value-display"
-                              title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex)}`}
+                              title={`値: ${getEffectiveValueAssetValue(asset as ValueAsset, project, page, originalPageIndex)}`}
                             >
-                              {String(getEffectiveValueAssetValue(asset as ValueAsset, project, page, pageIndex))}
+                              {String(getEffectiveValueAssetValue(asset as ValueAsset, project, page, originalPageIndex))}
                             </span>
                           )}
                         </div>
@@ -1049,7 +1156,28 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 );
               })}
             </div>
-          ))}
+            );
+          })}
+          
+          {/* 最後の行の後の復元ボタン */}
+          {visiblePages.length > 0 && (() => {
+            const lastPage = visiblePages[visiblePages.length - 1];
+            const hiddenAfter = getHiddenRowsBetween(lastPage, null);
+            
+            return hiddenAfter.length > 0 ? (
+              <div className="spreadsheet-row end-rows-restore">
+                <div className="cell restore-row-cell">
+                  <button 
+                    className="restore-row-btn"
+                    onClick={() => hiddenAfter.forEach(hiddenPage => showRow(hiddenPage.id))}
+                    title={`非表示の行を表示: ${hiddenAfter.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
+                  >
+                    ▼ {hiddenAfter.length}行
+                  </button>
+                </div>
+              </div>
+            ) : null;
+          })()}
           
           {/* 新規ページ追加行 */}
           <div className="spreadsheet-row add-page-row">
@@ -1134,6 +1262,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           asset={contextMenu.asset}
           position={contextMenu.position}
           onClose={handleContextMenuClose}
+          onHideColumn={handleHideColumn}
           onShowAll={handleShowAllInColumn}
           onHideAll={handleHideAllInColumn}
           onResetAll={handleResetAllInColumn}
@@ -1149,6 +1278,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           totalPages={pages.length}
           position={rowContextMenu.position}
           onClose={handleContextMenuClose}
+          onHideRow={handleHideRow}
           onShowAll={handleShowAllInRow}
           onHideAll={handleHideAllInRow}
           onResetAll={handleResetAllInRow}

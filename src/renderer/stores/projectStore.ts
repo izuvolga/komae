@@ -72,6 +72,12 @@ interface ProjectStore {
   setPreviewWidth: (width: number) => void;
   setPreviewScroll: (x: number, y: number) => void;
   
+  // Hide/Show Actions
+  hideColumn: (assetId: string) => void;
+  showColumn: (assetId: string) => void;
+  hideRow: (pageId: string) => void;
+  showRow: (pageId: string) => void;
+  
   // Language Actions
   getCurrentLanguage: () => string;
   getSupportedLanguages: () => string[];
@@ -118,6 +124,8 @@ export const useProjectStore = create<ProjectStore>()(
           previewWidth: 320,
           previewScrollX: 0,
           previewScrollY: 0,
+          hiddenColumns: [],
+          hiddenRows: [],
         },
         app: {
           isLoading: false,
@@ -309,6 +317,27 @@ export const useProjectStore = create<ProjectStore>()(
         setPreviewScroll: (x, y) => set((state) => {
           state.ui.previewScrollX = x;
           state.ui.previewScrollY = y;
+        }),
+
+        // Hide/Show Actions
+        hideColumn: (assetId) => set((state) => {
+          if (!state.ui.hiddenColumns.includes(assetId)) {
+            state.ui.hiddenColumns.push(assetId);
+          }
+        }),
+
+        showColumn: (assetId) => set((state) => {
+          state.ui.hiddenColumns = state.ui.hiddenColumns.filter(id => id !== assetId);
+        }),
+
+        hideRow: (pageId) => set((state) => {
+          if (!state.ui.hiddenRows.includes(pageId)) {
+            state.ui.hiddenRows.push(pageId);
+          }
+        }),
+
+        showRow: (pageId) => set((state) => {
+          state.ui.hiddenRows = state.ui.hiddenRows.filter(id => id !== pageId);
         }),
 
         clearErrors: () => set((state) => {
