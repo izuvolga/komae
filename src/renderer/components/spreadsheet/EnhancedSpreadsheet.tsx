@@ -250,105 +250,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key down event:', e.key);
-      // フォーカスがある場合やインライン編集中の場合はキーボードナビゲーションを無効化
-      if (document.activeElement instanceof HTMLInputElement ||
-          document.activeElement instanceof HTMLTextAreaElement ||
-          inlineEditState.isEditing ||
-          valueInlineEditState.isEditing ||
-          titleEditState.isEditing) {
-        return;
-      }
-      // 現在のカーソル位置を取得
-      const currentCursor = cursor;
-      console.log('Current cursor state:', currentCursor);
-      if (!currentCursor) return;
-
-      const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
-      const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
-
-      if (currentPageIndex === -1 || currentAssetIndex === -1) return;
-
-      let newPageIndex = currentPageIndex;
-      let newAssetIndex = currentAssetIndex;
-
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          newPageIndex = Math.max(0, currentPageIndex - 1);
-          break;
-
-        case 'ArrowDown':
-          e.preventDefault();
-          newPageIndex = Math.min(visiblePages.length - 1, currentPageIndex + 1);
-          break;
-
-        case 'ArrowLeft':
-          e.preventDefault();
-          newAssetIndex = Math.max(0, currentAssetIndex - 1);
-          break;
-
-        case 'ArrowRight':
-          e.preventDefault();
-          newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
-          break;
-
-        case 'Enter':
-          e.preventDefault();
-          // Enterキーでセルの編集を開始
-          if (currentCursor.pageId && currentCursor.assetId) {
-            handleEditClick(currentCursor.pageId, currentCursor.assetId);
-          }
-          return;
-
-        case 'Delete':
-        case 'Backspace':
-          e.preventDefault();
-          // Delete/Backspaceキーでセルをリセット
-          if (currentCursor.pageId && currentCursor.assetId) {
-            handleResetCellByKeyboard(currentCursor.pageId, currentCursor.assetId);
-          }
-          return;
-
-        case 'c':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Ctrl+C でコピー
-            if (currentCursor.pageId && currentCursor.assetId) {
-              copyCell(currentCursor.pageId, currentCursor.assetId);
-            }
-            return;
-          }
-          break;
-
-        case 'v':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Ctrl+V でペースト
-            if (currentCursor.pageId && currentCursor.assetId) {
-              pasteCell(currentCursor.pageId, currentCursor.assetId);
-            }
-            return;
-          }
-          break;
-
-        default:
-          return;
-      }
-
-      console.log(`Current cursor: page ${currentPageIndex}, asset ${currentAssetIndex}`);
-      // 新しいカーソル位置を設定
-      if (newPageIndex !== currentPageIndex || newAssetIndex !== currentAssetIndex) {
-        const newPage = visiblePages[newPageIndex];
-        const newAsset = visibleAssets[newAssetIndex];
-        if (newPage && newAsset) {
-          console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
-          setCursor(newPage.id, newAsset.id);
-        }
-      }
-    };
-
     // コンテキストメニューを無効化（中ボタンクリック時）
     const handleContextMenu = (e: MouseEvent) => {
       if (isPanning) {
@@ -358,14 +259,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     console.log('Adding mouse event listeners for panning');
 
-    document.addEventListener('keydown', handleKeyDown);
     container.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('contextmenu', handleContextMenu);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       container.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -466,6 +365,126 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     }
   };
+
+  // キーボードナビゲーション用のuseEffect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key down event:', e.key);
+      // フォーカスがある場合やインライン編集中の場合はキーボードナビゲーションを無効化
+      if (document.activeElement instanceof HTMLInputElement ||
+          document.activeElement instanceof HTMLTextAreaElement ||
+          inlineEditState.isEditing ||
+          valueInlineEditState.isEditing ||
+          titleEditState.isEditing) {
+        return;
+      }
+      // 現在のカーソル位置を取得
+      const currentCursor = cursor;
+      console.log('Current cursor state:', currentCursor);
+      if (!currentCursor) return;
+
+      const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
+      const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
+
+      if (currentPageIndex === -1 || currentAssetIndex === -1) return;
+
+      let newPageIndex = currentPageIndex;
+      let newAssetIndex = currentAssetIndex;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          newPageIndex = Math.max(0, currentPageIndex - 1);
+          break;
+
+        case 'ArrowDown':
+          e.preventDefault();
+          newPageIndex = Math.min(visiblePages.length - 1, currentPageIndex + 1);
+          break;
+
+        case 'ArrowLeft':
+          e.preventDefault();
+          newAssetIndex = Math.max(0, currentAssetIndex - 1);
+          break;
+
+        case 'ArrowRight':
+          e.preventDefault();
+          newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
+          break;
+
+        case 'Enter':
+          e.preventDefault();
+          // Enterキーでセルの編集を開始
+          if (currentCursor.pageId && currentCursor.assetId) {
+            handleEditClick(currentCursor.pageId, currentCursor.assetId);
+          }
+          return;
+
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          // Delete/Backspaceキーでセルをリセット
+          if (currentCursor.pageId && currentCursor.assetId) {
+            handleResetCellByKeyboard(currentCursor.pageId, currentCursor.assetId);
+          }
+          return;
+
+        case 'c':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // Ctrl+C でコピー
+            if (currentCursor.pageId && currentCursor.assetId) {
+              copyCell(currentCursor.pageId, currentCursor.assetId);
+            }
+            return;
+          }
+          break;
+
+        case 'v':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            // Ctrl+V でペースト
+            if (currentCursor.pageId && currentCursor.assetId) {
+              pasteCell(currentCursor.pageId, currentCursor.assetId);
+            }
+            return;
+          }
+          break;
+
+        default:
+          return;
+      }
+
+      console.log(`Current cursor: page ${currentPageIndex}, asset ${currentAssetIndex}`);
+      // 新しいカーソル位置を設定
+      if (newPageIndex !== currentPageIndex || newAssetIndex !== currentAssetIndex) {
+        const newPage = visiblePages[newPageIndex];
+        const newAsset = visibleAssets[newAssetIndex];
+        if (newPage && newAsset) {
+          console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
+          setCursor(newPage.id, newAsset.id);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    cursor,
+    visiblePages,
+    visibleAssets,
+    inlineEditState.isEditing,
+    valueInlineEditState.isEditing,
+    titleEditState.isEditing,
+    setCursor,
+    copyCell,
+    pasteCell,
+    handleEditClick,
+    handleResetCellByKeyboard
+  ]);
 
   const handleImageInstanceSave = (updatedInstance: ImageAssetInstance) => {
     if (editingImageInstance) {
