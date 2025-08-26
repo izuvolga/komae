@@ -35,22 +35,13 @@
 - [ ]: エクスポート時に、ページ送り、ページタップ範囲のデフォルトの値を指定できるようにする
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
-## 大きめの改善
-- [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
-- [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
-- [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
-- [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
-- [ ]: Asset Library の Asset を自動でソートする機能をほしい
-  - 種類ごと
-  - 名前順
-- [ ]: SpreadSheet Window の列のバルク操作に、列自体を非表示にする機能を追加
-- [ ]: TextAsset に rotate を対応する
-- [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
-  - 行番号表示
-  - 編集をしたら、編集がされた行の背景色を変更する
-  - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
-- [ ]: 新規アセット: スクリプト生成できる SVG (docs/design/asset-specificaiton.md)
-- [ ]: 新規アセット: ラベル (docs/design/asset-specificaiton.md)
+## Enhanced Spread Sheet
+- [ ]: SpreadSheet Window の一番上の特定の列を右クリックして表示されるメニュー（ColumnContextMenu.tsx）、指定した列自体を非表示にする機能を追加
+  - 詳細は ui-specification.md の "Column" の見出し配下の項目を参照
+  - Google Spread Sheet のように、特定の列を非表示にする機能
+  - 非表示にした列は、再度表示するための UI も必要
+- [ ]: SpreadSheet Window の一番左の特定の行を右クリックして表示されるメニューに、指定した行自体を非表示にする機能を追加
+  - 詳細は ui-specification.md の "Row" の見出し配下の項目を参照
 - [ ]: Spread Sheet 上にカーソルの概念を追加する。セルをクリックしたときに、カーソルがそのセルの位置に表示されるようにする。
   - UI: カーソルは線で表示し、カーソルの色は青色
   - キーボードの矢印キーでカーソルを移動できるようにする
@@ -63,6 +54,23 @@
     - ペースト先のセルにペーストすると、AssetInstance の情報がペーストされる
       - 同じタイプの AssetInstance の場合は、同じ AssetInstance がペーストされる
       - 異なるタイプの AssetInstance の場合は、エラーメッセージを表示してペーストをしない
+
+
+
+## 大きめの改善
+- [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
+- [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
+- [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
+- [ ]: Asset Library の Asset の表示順番をドラッグ＆ドロップで変更できるようにする（プロジェクトを保存しても順番を保持したいため、Asset にインデックスをもたせるか、assetsのデータ構造を配列にするか...要検討）
+- [ ]: Asset Library の Asset を自動でソートする機能をほしい
+  - 種類ごと
+  - 名前順
+- [ ]: TextAsset に rotate を対応する
+- [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
+  - 行番号表示
+  - 編集をしたら、編集がされた行の背景色を変更する
+  - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
+- [ ]: 新規アセット: スクリプト生成できる SVG (docs/design/asset-specificaiton.md)
 
 # v0.1 リリースに向けてのTODO
 
