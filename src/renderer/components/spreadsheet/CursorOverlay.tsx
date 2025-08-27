@@ -51,8 +51,21 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         const headerBottomInContainer = headerHeight;
         const isOverlappingWithHeader = cellTopInContainer < headerBottomInContainer;
 
-        // カーソルの可視性を決定
-        setIsCursorVisible(!isOverlappingWithHeader);
+        // 右パネルとの重なりを検出
+        const rightPanelElement = document.querySelector('.right-panel') as HTMLElement;
+        let isOverlappingWithRightPanel = false;
+        
+        if (rightPanelElement) {
+          const rightPanelRect = rightPanelElement.getBoundingClientRect();
+          const cellRightEdge = cellRect.right;
+          const rightPanelLeftEdge = rightPanelRect.left;
+          
+          // カーソル（セル）の右端が右パネルの左端を越えている場合は重なりと判定
+          isOverlappingWithRightPanel = cellRightEdge > rightPanelLeftEdge;
+        }
+
+        // カーソルの可視性を決定（ヘッダーまたは右パネルと重なっている場合は非表示）
+        setIsCursorVisible(!isOverlappingWithHeader && !isOverlappingWithRightPanel);
 
         setCursorStyle({
           left: relativeLeft,
