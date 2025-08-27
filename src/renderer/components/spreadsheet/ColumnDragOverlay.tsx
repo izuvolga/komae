@@ -22,16 +22,6 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   visibleAssetsCount
 }) => {
 
-  console.log('ColumnDragOverlay rendered', {
-    isDragging,
-    draggedAssetId,
-    draggedAssetIndex,
-    currentMouseX,
-    originalRect,
-    insertIndex,
-    visibleAssetsCount
-  });
-
   if (!isDragging || !originalRect || draggedAssetId === null || draggedAssetIndex < 0) {
     return null;
   }
@@ -64,21 +54,19 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   const getInsertIndicatorLeft = () => {
     if (!originalRect) return 0;
 
-    // 基本の列幅（100px）と開始位置を計算
     const COLUMN_WIDTH = originalRect.width; // アセット列の幅
-    const FIRST_COLUMN_WIDTH = 70; // ページ番号列
-    const SECOND_COLUMN_WIDTH = 120; // プレビュー列
-    // const startX = originalRect.left - draggedAssetIndex * COLUMN_WIDTH;
-    const baseLeft = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
+    const FIRST_COLUMN_WIDTH = 70; // TODO: ページ番号列、DOMから取得したい
+    const SECOND_COLUMN_WIDTH = 120; // TODO: プレビュー列、DOMから取得したい
+    const baseX = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
     if (insertIndex === 0) {
       // 最初のアセット列の前
-      return baseLeft;
+      return baseX;
     } else if (insertIndex >= visibleAssetsCount) {
       // 最後のアセット列の後
-      return baseLeft + visibleAssetsCount * COLUMN_WIDTH;
+      return baseX + visibleAssetsCount * COLUMN_WIDTH;
     } else {
       // 中間の位置
-      return baseLeft + insertIndex * COLUMN_WIDTH;
+      return baseX + insertIndex * COLUMN_WIDTH;
     }
   };
 

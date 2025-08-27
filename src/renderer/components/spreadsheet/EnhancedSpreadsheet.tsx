@@ -1026,19 +1026,24 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   // ドラッグ&ドロップ関連のヘルパー関数（最初に定義）
   const calculateInsertIndex = useCallback((mouseX: number): number => {
-    if (!columnDragState.originalRect) return 0;
+    console.log('Calculating insert index for mouseX:', mouseX);
+    if (!columnDragState.originalRect) {
+      console.warn('Original rect is null'); // Always here!!
+      return 0
+    };
 
     // AssetLibraryのオフセットを計算（開いている場合のみ）
     const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
-    const COLUMN_WIDTH = 100;
-    const FIRST_COLUMN_WIDTH = 70; // ページ番号列
-    const SECOND_COLUMN_WIDTH = 120; // プレビュー列
-    const startX = columnDragState.originalRect.left - columnDragState.draggedAssetIndex * COLUMN_WIDTH + assetLibraryOffset;
+    const COLUMN_WIDTH = columnDragState.originalRect.width; // アセットセルの1列の幅
+    const FIRST_COLUMN_WIDTH = 70;      // TODO: ページ番号列の幅をDOMから取得するようにする
+    const SECOND_COLUMN_WIDTH = 120;    // TODO: プレビュー列の幅をDOMから取得するようにする
+    const baseX = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
 
-    const relativeX = mouseX - (startX + FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH);
+    const relativeX = mouseX - baseX;
     const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
-
-    return Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
+    let resultIndex = Math.max(0, Math.min(visibleAssets.length - 1, insertIndex))
+    console.log('Calculating insert index:', insertIndex, ', resultIndex:', resultIndex);
+    return resultIndex;
   }, [columnDragState.originalRect, columnDragState.draggedAssetIndex, showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
 
   // ドラッグ&ドロップ関連のuseCallbackで最適化された関数
