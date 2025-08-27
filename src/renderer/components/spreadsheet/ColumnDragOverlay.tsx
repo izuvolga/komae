@@ -29,20 +29,31 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
 
-  // SpreadsheetTable の高さを取得してフル高さを計算
-  const getFullHeight = (): number => {
-    const spreadsheetTable = document.querySelector('.spreadsheet-table');
-    if (!spreadsheetTable) {
+  // ページ数を取得
+  const pages = useProjectStore((state) => state.project?.pages || []);
+  const pageCount = pages.length;
+
+  // ページ数に基づいてフル高さを計算
+  const getFullHeightByPageCount = (): number => {
+    if (pageCount === 0) {
       // フォールバック：originalRectの高さを使用
       return originalRect.height;
     }
     
-    const tableRect = spreadsheetTable.getBoundingClientRect();
-    // ヘッダーの上端からテーブルの下端までの高さ
-    return tableRect.bottom - originalRect.top;
+    // asset-cellクラスの実際の高さを取得
+    const assetCell = document.querySelector('.asset-cell');
+    const cellHeight = assetCell ? assetCell.getBoundingClientRect().height : originalRect.height;
+    
+    // ヘッダー高さ + (ページ数 × アセットセル高さ)
+    const headerHeight = originalRect.height; // ヘッダー自体の高さ
+    const totalDataHeight = pageCount * cellHeight;
+    
+    console.log(`計算中: ページ数=${pageCount}, アセットセル高さ=${cellHeight}, ヘッダー高さ=${headerHeight}, 合計高さ=${headerHeight + totalDataHeight}`);
+    
+    return headerHeight + totalDataHeight;
   };
 
-  const fullHeight = getFullHeight();
+  const fullHeight = getFullHeightByPageCount();
 
   // ドラッグ中の影（半透明矩形）のスタイル
   const shadowStyle: React.CSSProperties = {
