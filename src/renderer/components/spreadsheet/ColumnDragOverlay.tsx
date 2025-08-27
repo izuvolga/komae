@@ -29,13 +29,28 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
 
+  // SpreadsheetTable の高さを取得してフル高さを計算
+  const getFullHeight = (): number => {
+    const spreadsheetTable = document.querySelector('.spreadsheet-table');
+    if (!spreadsheetTable) {
+      // フォールバック：originalRectの高さを使用
+      return originalRect.height;
+    }
+    
+    const tableRect = spreadsheetTable.getBoundingClientRect();
+    // ヘッダーの上端からテーブルの下端までの高さ
+    return tableRect.bottom - originalRect.top;
+  };
+
+  const fullHeight = getFullHeight();
+
   // ドラッグ中の影（半透明矩形）のスタイル
   const shadowStyle: React.CSSProperties = {
     position: 'fixed',
     left: currentMouseX - originalRect.width / 2,
     top: originalRect.top,
     width: originalRect.width,
-    height: originalRect.height, // TODO: 高さをSpreadSheet いっぱいにしたい
+    height: fullHeight, // SpreadSheetの下端までの高さ
     zIndex: 1000,
     pointerEvents: 'none',
   };
@@ -44,7 +59,7 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   const insertIndicatorStyle: React.CSSProperties = {
     position: 'fixed',
     top: originalRect.top,
-    height: originalRect.height,
+    height: fullHeight, // SpreadSheetの下端までの高さ
     width: 3,
     zIndex: 999,
     pointerEvents: 'none',
