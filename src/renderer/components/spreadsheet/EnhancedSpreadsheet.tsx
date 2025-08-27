@@ -14,6 +14,7 @@ import { RowContextMenu } from './RowContextMenu';
 import { CellContextMenu } from './CellContextMenu';
 import { CursorOverlay } from './CursorOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
+import { scrollCursorIntoView } from '../../utils/scrollUtils';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
@@ -463,6 +464,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
         if (newPage && newAsset) {
           console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
           setCursor(newPage.id, newAsset.id);
+          
+          // カーソル移動後に自動スクロールを実行（少し遅延を入れてDOM更新を待つ）
+          setTimeout(() => {
+            if (spreadsheetRef.current) {
+              scrollCursorIntoView(spreadsheetRef.current, newPage.id, newAsset.id);
+            }
+          }, 50);
         }
       }
     };

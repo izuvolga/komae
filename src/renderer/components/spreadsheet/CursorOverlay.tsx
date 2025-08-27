@@ -11,6 +11,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const [cursorStyle, setCursorStyle] = useState<React.CSSProperties>({});
+  const [isCursorVisible, setIsCursorVisible] = useState(true);
 
   useEffect(() => {
     if (!cursor.visible || !cursor.pageId || !cursor.assetId || !containerRef.current) {
@@ -24,8 +25,6 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
       const cellElement = containerRef.current.querySelector(
         `[data-page-id="${cursor.pageId}"][data-asset-id="${cursor.assetId}"]`
       ) as HTMLElement;
-      console.log('CursorOverlay: cursor.pageId', cursor.pageId, 'cursor.assetId', cursor.assetId);
-
 
       if (cellElement) {
         // セルのBoundingClientRectを取得
@@ -39,9 +38,21 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         const toolbarElement = document.querySelector('.toolbar') as HTMLElement;
         const toolbarHeight = toolbarElement ? toolbarElement.getBoundingClientRect().height : 0;
 
+        // スプレッドシートヘッダーの高さを取得
+        const headerElement = containerRef.current.querySelector('.spreadsheet-header') as HTMLElement;
+        const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
+
         // セルのコンテナ内での相対位置を計算（getBoundingClientRect は既にスクロール考慮済み）
         const relativeLeft = cellRect.left - containerRect.left + assetLibraryOffset;
         const relativeTop = cellRect.top - containerRect.top + toolbarHeight;
+
+        // ヘッダー領域との重なりを検出
+        const cellTopInContainer = cellRect.top - containerRect.top;
+        const headerBottomInContainer = headerHeight;
+        const isOverlappingWithHeader = cellTopInContainer < headerBottomInContainer;
+
+        // カーソルの可視性を決定
+        setIsCursorVisible(!isOverlappingWithHeader);
 
         setCursorStyle({
           left: relativeLeft,
@@ -68,7 +79,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
     }
   }, [cursor.visible, cursor.pageId, cursor.assetId, containerRef, showAssetLibrary, assetLibraryWidth]);
 
-  if (!cursor.visible) {
+  if (!cursor.visible || !isCursorVisible) {
     return null;
   }
 
