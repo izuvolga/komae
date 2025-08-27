@@ -406,28 +406,27 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
           case 'ArrowLeft':
             e.preventDefault();
-            // プレビューセルから最後のアセットセルに移動
+            // プレビューセルからは左に移動できない
+            return;
+
+          case 'ArrowRight':
+            e.preventDefault();
+            // プレビューセルから最初のアセットセルに移動
             if (visibleAssets.length > 0 && currentCursor.pageId) {
-              const lastAsset = visibleAssets[visibleAssets.length - 1];
-              setCursor(currentCursor.pageId, lastAsset.id);
+              const firstAsset = visibleAssets[0];
+              setCursor(currentCursor.pageId, firstAsset.id);
               
               setTimeout(() => {
                 if (spreadsheetRef.current && currentCursor.pageId) {
-                  scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, lastAsset.id);
+                  scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, firstAsset.id);
                 }
               }, 50);
             }
             return;
 
-          case 'ArrowRight':
-            e.preventDefault();
-            // プレビューセルからは右に移動できない
-            return;
-
           case 'Enter':
             e.preventDefault();
-            // プレビューセルでEnterキーが押された場合、そのページのプレビューを表示
-            setCurrentPage(currentCursor.pageId);
+            // プレビューセルでEnterキーが押された場合は何もしない（既にプレビューは表示されている）
             return;
 
           default:
@@ -440,6 +439,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
           if (newPage) {
             console.log(`Moving cursor to preview cell in page ${newPageIndex}`);
             setCursor(newPage.id, 'preview');
+            // プレビューセルに移動した時にプレビューを更新
+            setCurrentPage(newPage.id);
             
             setTimeout(() => {
               if (spreadsheetRef.current) {
@@ -471,14 +472,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
         case 'ArrowLeft':
           e.preventDefault();
-          newAssetIndex = Math.max(0, currentAssetIndex - 1);
-          break;
-
-        case 'ArrowRight':
-          e.preventDefault();
-          // 最後のアセットから右に移動する場合はプレビューセルに移動
-          if (currentAssetIndex === visibleAssets.length - 1 && currentCursor.pageId) {
+          // 最初のアセットから左に移動する場合はプレビューセルに移動
+          if (currentAssetIndex === 0 && currentCursor.pageId) {
             setCursor(currentCursor.pageId, 'preview');
+            // プレビューセルに移動した時にプレビューを更新
+            setCurrentPage(currentCursor.pageId);
             
             setTimeout(() => {
               if (spreadsheetRef.current && currentCursor.pageId) {
@@ -487,8 +485,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
             }, 50);
             return;
           } else {
-            newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
+            newAssetIndex = Math.max(0, currentAssetIndex - 1);
           }
+          break;
+
+        case 'ArrowRight':
+          e.preventDefault();
+          newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
           break;
 
         case 'Enter':
