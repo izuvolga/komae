@@ -1024,27 +1024,27 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setCursor(pageId, 'preview');
   };
 
-  // ドラッグ&ドロップ関連のヘルパー関数（最初に定義）
-  const calculateInsertIndex = useCallback((mouseX: number): number => {
-    console.log('Calculating insert index for mouseX:', mouseX);
-    if (!columnDragState.originalRect) {
-      console.warn('Original rect is null'); // Always here!!
-      return 0
-    };
+  // ドラッグ&ドロップ関連のヘルパー関数（引数で状態を受け取る）
+  const calculateInsertIndex = useCallback((mouseX: number, originalRect: DOMRect | null): number => {
+    console.log('Calculating insert index for mouseX:', mouseX, 'with originalRect:', originalRect);
+    if (!originalRect) {
+      console.warn('Original rect is null');
+      return 0;
+    }
 
     // AssetLibraryのオフセットを計算（開いている場合のみ）
     const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
-    const COLUMN_WIDTH = columnDragState.originalRect.width; // アセットセルの1列の幅
+    const COLUMN_WIDTH = originalRect.width; // アセットセルの1列の幅
     const FIRST_COLUMN_WIDTH = 70;      // TODO: ページ番号列の幅をDOMから取得するようにする
     const SECOND_COLUMN_WIDTH = 120;    // TODO: プレビュー列の幅をDOMから取得するようにする
     const baseX = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
 
     const relativeX = mouseX - baseX;
     const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
-    let resultIndex = Math.max(0, Math.min(visibleAssets.length - 1, insertIndex))
+    let resultIndex = Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
     console.log('Calculating insert index:', insertIndex, ', resultIndex:', resultIndex);
     return resultIndex;
-  }, [columnDragState.originalRect, columnDragState.draggedAssetIndex, showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
+  }, [showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
 
   // ドラッグ&ドロップ関連のuseCallbackで最適化された関数
   const handleColumnDragMove = useCallback((e: MouseEvent) => {
@@ -1052,11 +1052,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     const mouseX = e.clientX;
 
-    // 挿入位置を計算
-    const newInsertIndex = calculateInsertIndex(mouseX);
-
     setColumnDragState(prev => {
       if (!prev.isDragging) return prev;
+      
+      // 現在の状態のoriginalRectを使って挿入位置を計算
+      const newInsertIndex = calculateInsertIndex(mouseX, prev.originalRect);
       
       return {
         ...prev,
