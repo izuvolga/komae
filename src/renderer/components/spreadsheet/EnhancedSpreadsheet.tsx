@@ -1216,6 +1216,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     <button
                       className="inline-restore-column-btn left"
                       onClick={() => hiddenBetween.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
+                      onMouseDown={(e) => e.stopPropagation()}
                       title={`非表示の列を表示: ${hiddenBetween.map(a => a.name).join(', ')}`}
                     >
                       ◀{hiddenBetween.length}
@@ -1246,6 +1247,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 <button
                   className="restore-column-btn"
                   onClick={() => hiddenAfter.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
+                  onMouseDown={(e) => e.stopPropagation()}
                   title={`非表示の列を表示: ${hiddenAfter.map(a => a.name).join(', ')}`}
                 >
                   ▶ {hiddenAfter.length}列
