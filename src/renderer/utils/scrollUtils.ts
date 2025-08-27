@@ -90,6 +90,30 @@ export function scrollCursorIntoView(
   assetId: string,
   smooth: boolean = true
 ): boolean {
+  // プレビューセルの場合は特別な処理
+  if (assetId === 'preview') {
+    const previewCellElement = container.querySelector(
+      `[data-page-id="${pageId}"].preview-cell`
+    ) as HTMLElement;
+
+    if (!previewCellElement) {
+      return false;
+    }
+
+    scrollElementIntoView({
+      container,
+      targetElement: previewCellElement,
+      offsetTop: 10,
+      offsetBottom: 10,
+      offsetLeft: 10,
+      offsetRight: 10,
+      smooth
+    });
+
+    return true;
+  }
+
+  // 通常のアセットセルの場合
   const cellElement = container.querySelector(
     `[data-page-id="${pageId}"][data-asset-id="${assetId}"]`
   ) as HTMLElement;

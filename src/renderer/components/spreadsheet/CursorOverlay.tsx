@@ -21,10 +21,17 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
     const updateCursorPosition = () => {
       if (!containerRef.current) return;
 
-      // カーソル位置のセルを見つける
-      const cellElement = containerRef.current.querySelector(
-        `[data-page-id="${cursor.pageId}"][data-asset-id="${cursor.assetId}"]`
-      ) as HTMLElement;
+      // カーソル位置のセルを見つける（プレビューセルの場合は特別な処理）
+      let cellElement: HTMLElement | null;
+      if (cursor.assetId === 'preview') {
+        cellElement = containerRef.current.querySelector(
+          `[data-page-id="${cursor.pageId}"].preview-cell`
+        ) as HTMLElement;
+      } else {
+        cellElement = containerRef.current.querySelector(
+          `[data-page-id="${cursor.pageId}"][data-asset-id="${cursor.assetId}"]`
+        ) as HTMLElement;
+      }
 
       if (cellElement) {
         // セルのBoundingClientRectを取得

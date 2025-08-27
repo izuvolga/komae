@@ -379,14 +379,80 @@ export const EnhancedSpreadsheet: React.FC = () => {
           titleEditState.isEditing) {
         return;
       }
+      
       // 現在のカーソル位置を取得
       const currentCursor = cursor;
       console.log('Current cursor state:', currentCursor);
       if (!currentCursor) return;
 
       const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
-      const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
+      
+      // プレビューセルの場合の処理
+      if (currentCursor.assetId === 'preview') {
+        if (currentPageIndex === -1) return;
+        
+        let newPageIndex = currentPageIndex;
+        
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            newPageIndex = Math.max(0, currentPageIndex - 1);
+            break;
 
+          case 'ArrowDown':
+            e.preventDefault();
+            newPageIndex = Math.min(visiblePages.length - 1, currentPageIndex + 1);
+            break;
+
+          case 'ArrowLeft':
+            e.preventDefault();
+            // プレビューセルから最後のアセットセルに移動
+            if (visibleAssets.length > 0 && currentCursor.pageId) {
+              const lastAsset = visibleAssets[visibleAssets.length - 1];
+              setCursor(currentCursor.pageId, lastAsset.id);
+              
+              setTimeout(() => {
+                if (spreadsheetRef.current && currentCursor.pageId) {
+                  scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, lastAsset.id);
+                }
+              }, 50);
+            }
+            return;
+
+          case 'ArrowRight':
+            e.preventDefault();
+            // プレビューセルからは右に移動できない
+            return;
+
+          case 'Enter':
+            e.preventDefault();
+            // プレビューセルでEnterキーが押された場合、そのページのプレビューを表示
+            setCurrentPage(currentCursor.pageId);
+            return;
+
+          default:
+            return;
+        }
+        
+        // 上下移動の場合は同じくプレビューセルに移動
+        if (newPageIndex !== currentPageIndex) {
+          const newPage = visiblePages[newPageIndex];
+          if (newPage) {
+            console.log(`Moving cursor to preview cell in page ${newPageIndex}`);
+            setCursor(newPage.id, 'preview');
+            
+            setTimeout(() => {
+              if (spreadsheetRef.current) {
+                scrollCursorIntoView(spreadsheetRef.current, newPage.id, 'preview');
+              }
+            }, 50);
+          }
+        }
+        return;
+      }
+      
+      // 通常のアセットセルの場合の処理
+      const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
       if (currentPageIndex === -1 || currentAssetIndex === -1) return;
 
       let newPageIndex = currentPageIndex;
@@ -410,7 +476,19 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
         case 'ArrowRight':
           e.preventDefault();
-          newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
+          // 最後のアセットから右に移動する場合はプレビューセルに移動
+          if (currentAssetIndex === visibleAssets.length - 1 && currentCursor.pageId) {
+            setCursor(currentCursor.pageId, 'preview');
+            
+            setTimeout(() => {
+              if (spreadsheetRef.current && currentCursor.pageId) {
+                scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, 'preview');
+              }
+            }, 50);
+            return;
+          } else {
+            newAssetIndex = Math.min(visibleAssets.length - 1, currentAssetIndex + 1);
+          }
           break;
 
         case 'Enter':
@@ -923,7 +1001,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
   };
 
   const handlePreviewClick = (pageId: string) => {
+    // プレビューをセット
     setCurrentPage(pageId);
+    
+    // プレビューセルにカーソルを移動（assetIdを'preview'として扱う）
+    setCursor(pageId, 'preview');
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
@@ -1111,6 +1193,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
               {/* プレビューセル */}
               <div
                 className={`cell preview-cell ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                data-page-id={page.id}
+                data-asset-id="preview"
                 onClick={() => handlePreviewClick(page.id)}
               >
                 <div className="page-preview">
