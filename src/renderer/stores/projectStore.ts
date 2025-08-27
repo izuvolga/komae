@@ -43,6 +43,7 @@ interface ProjectStore {
   addAsset: (asset: Asset) => void;
   updateAsset: (assetId: string, updates: Partial<Asset>) => void;
   deleteAsset: (assetId: string) => void;
+  reorderAssets: (assetIds: string[]) => void;
   
   // Page Actions
   addPage: (page: Page) => void;
@@ -231,6 +232,30 @@ export const useProjectStore = create<ProjectStore>()(
             state.app.isDirty = true;
           });
         },
+
+        reorderAssets: (assetIds) => set((state) => {
+          if (!state.project) return;
+          
+          // 新しい順序でアセットオブジェクトを再構築
+          const newAssets: Record<string, Asset> = {};
+          
+          // 指定された順序でアセットを追加
+          assetIds.forEach(id => {
+            if (state.project!.assets[id]) {
+              newAssets[id] = state.project!.assets[id];
+            }
+          });
+          
+          // 指定されていないアセットがあれば最後に追加
+          Object.entries(state.project.assets).forEach(([id, asset]) => {
+            if (!newAssets[id]) {
+              newAssets[id] = asset;
+            }
+          });
+          
+          state.project.assets = newAssets;
+          state.app.isDirty = true;
+        }),
 
         // Page Actions
         addPage: (page) => set((state) => {

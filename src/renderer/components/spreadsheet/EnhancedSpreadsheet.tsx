@@ -13,6 +13,7 @@ import { ColumnContextMenu } from './ColumnContextMenu';
 import { RowContextMenu } from './RowContextMenu';
 import { CellContextMenu } from './CellContextMenu';
 import { CursorOverlay } from './CursorOverlay';
+import { ColumnDragOverlay } from './ColumnDragOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { scrollCursorIntoView } from '../../utils/scrollUtils';
 import './EnhancedSpreadsheet.css';
@@ -42,6 +43,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showColumn = useProjectStore((state) => state.showColumn);
   const hideRow = useProjectStore((state) => state.hideRow);
   const showRow = useProjectStore((state) => state.showRow);
+  const reorderAssets = useProjectStore((state) => state.reorderAssets);
+
 
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -55,6 +58,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const [draggedAsset, setDraggedAsset] = useState<string | null>(null);
   const [maxWidth, setMaxWidth] = useState<number | undefined>(undefined);
+
+  // ドラッグ&ドロップの状態管理
+  const [columnDragState, setColumnDragState] = useState({
+    isDragging: false,
+    draggedAssetId: null as string | null,
+    draggedAssetIndex: -1,
+    currentMouseX: 0,
+    originalRect: null as DOMRect | null,
+    insertIndex: -1,
+  });
   const [editingImageInstance, setEditingImageInstance] = useState<{
     instance: ImageAssetInstance;
     asset: ImageAsset;
@@ -379,20 +392,20 @@ export const EnhancedSpreadsheet: React.FC = () => {
           titleEditState.isEditing) {
         return;
       }
-      
+
       // 現在のカーソル位置を取得
       const currentCursor = cursor;
       console.log('Current cursor state:', currentCursor);
       if (!currentCursor) return;
 
       const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
-      
+
       // プレビューセルの場合の処理
       if (currentCursor.assetId === 'preview') {
         if (currentPageIndex === -1) return;
-        
+
         let newPageIndex = currentPageIndex;
-        
+
         switch (e.key) {
           case 'ArrowUp':
             e.preventDefault();
@@ -415,7 +428,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             if (visibleAssets.length > 0 && currentCursor.pageId) {
               const firstAsset = visibleAssets[0];
               setCursor(currentCursor.pageId, firstAsset.id);
-              
+
               setTimeout(() => {
                 if (spreadsheetRef.current && currentCursor.pageId) {
                   scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, firstAsset.id);
@@ -432,7 +445,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           default:
             return;
         }
-        
+
         // 上下移動の場合は同じくプレビューセルに移動
         if (newPageIndex !== currentPageIndex) {
           const newPage = visiblePages[newPageIndex];
@@ -441,7 +454,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             setCursor(newPage.id, 'preview');
             // プレビューセルに移動した時にプレビューを更新
             setCurrentPage(newPage.id);
-            
+
             setTimeout(() => {
               if (spreadsheetRef.current) {
                 scrollCursorIntoView(spreadsheetRef.current, newPage.id, 'preview');
@@ -451,7 +464,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
         }
         return;
       }
-      
+
       // 通常のアセットセルの場合の処理
       const currentAssetIndex = visibleAssets.findIndex(asset => asset.id === currentCursor.assetId);
       if (currentPageIndex === -1 || currentAssetIndex === -1) return;
@@ -477,7 +490,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
             setCursor(currentCursor.pageId, 'preview');
             // プレビューセルに移動した時にプレビューを更新
             setCurrentPage(currentCursor.pageId);
-            
+
             setTimeout(() => {
               if (spreadsheetRef.current && currentCursor.pageId) {
                 scrollCursorIntoView(spreadsheetRef.current, currentCursor.pageId, 'preview');
@@ -545,7 +558,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
         if (newPage && newAsset) {
           console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
           setCursor(newPage.id, newAsset.id);
-          
+
           // カーソル移動後に自動スクロールを実行（少し遅延を入れてDOM更新を待つ）
           setTimeout(() => {
             if (spreadsheetRef.current) {
@@ -1006,9 +1019,102 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const handlePreviewClick = (pageId: string) => {
     // プレビューをセット
     setCurrentPage(pageId);
-    
+
     // プレビューセルにカーソルを移動（assetIdを'preview'として扱う）
     setCursor(pageId, 'preview');
+  };
+
+  // ドラッグ&ドロップ関連の関数
+  const handleColumnDragStart = (e: React.MouseEvent, assetId: string, assetIndex: number) => {
+    // 左クリックのみ
+    if (e.button !== 0) {
+      return;
+    }
+    console.log('Column drag start', assetId, assetIndex);
+
+    e.preventDefault();
+
+    const headerElement = (e.currentTarget as HTMLElement).closest('.asset-header') as HTMLElement;
+    if (!headerElement) return;
+
+    const rect = headerElement.getBoundingClientRect();
+
+    setColumnDragState({
+      isDragging: true,
+      draggedAssetId: assetId,
+      draggedAssetIndex: assetIndex,
+      currentMouseX: e.clientX,
+      originalRect: rect,
+      insertIndex: assetIndex,
+    });
+
+    // グローバルマウスイベントを追加
+    document.addEventListener('mousemove', handleColumnDragMove);
+    document.addEventListener('mouseup', handleColumnDragEnd);
+    document.body.style.cursor = 'grabbing';
+  };
+
+  const handleColumnDragMove = (e: MouseEvent) => {
+    if (!columnDragState.isDragging) return;
+
+    const mouseX = e.clientX;
+    console.log('Column drag move', e.clientX);
+
+    // 挿入位置を計算
+    const newInsertIndex = calculateInsertIndex(mouseX);
+
+    setColumnDragState(prev => ({
+      ...prev,
+      currentMouseX: mouseX,
+      insertIndex: newInsertIndex,
+    }));
+  };
+
+  const handleColumnDragEnd = (e: MouseEvent) => {
+    if (!columnDragState.isDragging) return;
+
+    const { draggedAssetIndex, insertIndex } = columnDragState;
+
+    // 順序変更を実行
+    if (draggedAssetIndex !== insertIndex) {
+      const newAssetOrder = [...visibleAssets];
+      const [draggedAsset] = newAssetOrder.splice(draggedAssetIndex, 1);
+      newAssetOrder.splice(insertIndex, 0, draggedAsset);
+
+      const newAssetIds = newAssetOrder.map(asset => asset.id);
+      reorderAssets(newAssetIds);
+    }
+
+    // ドラッグ状態をリセット
+    setColumnDragState({
+      isDragging: false,
+      draggedAssetId: null,
+      draggedAssetIndex: -1,
+      currentMouseX: 0,
+      originalRect: null,
+      insertIndex: -1,
+    });
+
+    // グローバルマウスイベントを削除
+    document.removeEventListener('mousemove', handleColumnDragMove);
+    document.removeEventListener('mouseup', handleColumnDragEnd);
+    document.body.style.cursor = '';
+  };
+
+  const calculateInsertIndex = (mouseX: number): number => {
+    if (!columnDragState.originalRect) return 0;
+
+    // AssetLibraryのオフセットを計算（開いている場合のみ）
+    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
+    const COLUMN_WIDTH = 100;
+    const FIRST_COLUMN_WIDTH = 70; // ページ番号列
+    const SECOND_COLUMN_WIDTH = 120; // プレビュー列
+    const startX = columnDragState.originalRect.left - columnDragState.draggedAssetIndex * COLUMN_WIDTH + assetLibraryOffset;
+
+    const relativeX = mouseX - (startX + FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH);
+    const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
+
+    return Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
   };
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
@@ -1087,8 +1193,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
             return (
               <div
                 key={asset.id}
-                className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''}`}
+                className={`cell header-cell asset-header ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${columnDragState.isDragging && columnDragState.draggedAssetId === asset.id ? 'dragging' : ''}`}
                 onContextMenu={(e) => handleColumnContextMenu(e, asset)}
+                onMouseDown={(e) => handleColumnDragStart(e, asset.id, index)}
               >
                 <div className="asset-header-content">
                   {/* 隠された列の復元ボタン（左側） */}
@@ -1441,6 +1548,15 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
       {/* カーソルオーバーレイ */}
       <CursorOverlay containerRef={spreadsheetRef} />
+      <ColumnDragOverlay
+        isDragging={columnDragState.isDragging}
+        draggedAssetId={columnDragState.draggedAssetId}
+        draggedAssetIndex={columnDragState.draggedAssetIndex}
+        currentMouseX={columnDragState.currentMouseX}
+        originalRect={columnDragState.originalRect}
+        insertIndex={columnDragState.insertIndex}
+        visibleAssetsCount={visibleAssets.length}
+      />
 
       {/* ImageAssetInstance編集モーダル */}
       {editingImageInstance && (
