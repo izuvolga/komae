@@ -12,7 +12,7 @@ interface ColumnDragOverlayProps {
   visibleAssetsCount: number;
 }
 
-export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = ({
+export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   isDragging,
   draggedAssetId,
   draggedAssetIndex,
@@ -104,4 +104,4 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = ({
       />
     </>
   );
-};
+});

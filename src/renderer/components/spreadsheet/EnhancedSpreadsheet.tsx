@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
@@ -1024,8 +1024,79 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setCursor(pageId, 'preview');
   };
 
-  // ドラッグ&ドロップ関連の関数
-  const handleColumnDragStart = (e: React.MouseEvent, assetId: string, assetIndex: number) => {
+  // ドラッグ&ドロップ関連のヘルパー関数（最初に定義）
+  const calculateInsertIndex = useCallback((mouseX: number): number => {
+    if (!columnDragState.originalRect) return 0;
+
+    // AssetLibraryのオフセットを計算（開いている場合のみ）
+    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
+    const COLUMN_WIDTH = 100;
+    const FIRST_COLUMN_WIDTH = 70; // ページ番号列
+    const SECOND_COLUMN_WIDTH = 120; // プレビュー列
+    const startX = columnDragState.originalRect.left - columnDragState.draggedAssetIndex * COLUMN_WIDTH + assetLibraryOffset;
+
+    const relativeX = mouseX - (startX + FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH);
+    const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
+
+    return Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
+  }, [columnDragState.originalRect, columnDragState.draggedAssetIndex, showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
+
+  // ドラッグ&ドロップ関連のuseCallbackで最適化された関数
+  const handleColumnDragMove = useCallback((e: MouseEvent) => {
+    console.log('Column drag move', e.clientX);
+
+    const mouseX = e.clientX;
+
+    // 挿入位置を計算
+    const newInsertIndex = calculateInsertIndex(mouseX);
+
+    setColumnDragState(prev => {
+      if (!prev.isDragging) return prev;
+      
+      return {
+        ...prev,
+        currentMouseX: mouseX,
+        insertIndex: newInsertIndex,
+      };
+    });
+  }, [calculateInsertIndex]);
+
+  const handleColumnDragEnd = useCallback((e: MouseEvent) => {
+    console.log('Column drag end');
+    
+    setColumnDragState(prev => {
+      if (!prev.isDragging) return prev;
+
+      const { draggedAssetIndex, insertIndex } = prev;
+
+      // 順序変更を実行
+      if (draggedAssetIndex !== insertIndex) {
+        const newAssetOrder = [...visibleAssets];
+        const [draggedAsset] = newAssetOrder.splice(draggedAssetIndex, 1);
+        newAssetOrder.splice(insertIndex, 0, draggedAsset);
+
+        const newAssetIds = newAssetOrder.map(asset => asset.id);
+        reorderAssets(newAssetIds);
+      }
+
+      // グローバルマウスイベントを削除
+      document.removeEventListener('mousemove', handleColumnDragMove);
+      document.removeEventListener('mouseup', handleColumnDragEnd);
+      document.body.style.cursor = '';
+
+      // ドラッグ状態をリセット
+      return {
+        isDragging: false,
+        draggedAssetId: null,
+        draggedAssetIndex: -1,
+        currentMouseX: 0,
+        originalRect: null,
+        insertIndex: -1,
+      };
+    });
+  }, [visibleAssets, reorderAssets, handleColumnDragMove]);
+
+  const handleColumnDragStart = useCallback((e: React.MouseEvent, assetId: string, assetIndex: number) => {
     // 左クリックのみ
     if (e.button !== 0) {
       return;
@@ -1052,70 +1123,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     document.addEventListener('mousemove', handleColumnDragMove);
     document.addEventListener('mouseup', handleColumnDragEnd);
     document.body.style.cursor = 'grabbing';
-  };
-
-  const handleColumnDragMove = (e: MouseEvent) => {
-    if (!columnDragState.isDragging) return;
-
-    const mouseX = e.clientX;
-    console.log('Column drag move', e.clientX);
-
-    // 挿入位置を計算
-    const newInsertIndex = calculateInsertIndex(mouseX);
-
-    setColumnDragState(prev => ({
-      ...prev,
-      currentMouseX: mouseX,
-      insertIndex: newInsertIndex,
-    }));
-  };
-
-  const handleColumnDragEnd = (e: MouseEvent) => {
-    if (!columnDragState.isDragging) return;
-
-    const { draggedAssetIndex, insertIndex } = columnDragState;
-
-    // 順序変更を実行
-    if (draggedAssetIndex !== insertIndex) {
-      const newAssetOrder = [...visibleAssets];
-      const [draggedAsset] = newAssetOrder.splice(draggedAssetIndex, 1);
-      newAssetOrder.splice(insertIndex, 0, draggedAsset);
-
-      const newAssetIds = newAssetOrder.map(asset => asset.id);
-      reorderAssets(newAssetIds);
-    }
-
-    // ドラッグ状態をリセット
-    setColumnDragState({
-      isDragging: false,
-      draggedAssetId: null,
-      draggedAssetIndex: -1,
-      currentMouseX: 0,
-      originalRect: null,
-      insertIndex: -1,
-    });
-
-    // グローバルマウスイベントを削除
-    document.removeEventListener('mousemove', handleColumnDragMove);
-    document.removeEventListener('mouseup', handleColumnDragEnd);
-    document.body.style.cursor = '';
-  };
-
-  const calculateInsertIndex = (mouseX: number): number => {
-    if (!columnDragState.originalRect) return 0;
-
-    // AssetLibraryのオフセットを計算（開いている場合のみ）
-    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
-    const COLUMN_WIDTH = 100;
-    const FIRST_COLUMN_WIDTH = 70; // ページ番号列
-    const SECOND_COLUMN_WIDTH = 120; // プレビュー列
-    const startX = columnDragState.originalRect.left - columnDragState.draggedAssetIndex * COLUMN_WIDTH + assetLibraryOffset;
-
-    const relativeX = mouseX - (startX + FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH);
-    const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
-
-    return Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
-  };
+  }, [handleColumnDragMove, handleColumnDragEnd]);
 
   const isAssetUsedInPage = (pageId: string, assetId: string): boolean => {
     const page = project.pages.find(p => p.id === pageId);
