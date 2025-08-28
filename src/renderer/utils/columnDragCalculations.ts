@@ -53,13 +53,13 @@ export class ColumnDragCalculator {
       columnWidth: this.columnWidth
     });
 
-    // // ドラッグ中のアセットを認識しているかデバッグ表示
-    // if (this.draggedAssetIndex !== null) {
-    //   console.log(`[ColumnDragCalculator] ドラッグ中アセット認識: インデックス ${this.draggedAssetIndex} をドラッグ中`);
-    //   console.log(`[ColumnDragCalculator] 挿入候補位置: ${clampedIndex} (元位置: ${this.draggedAssetIndex})`);
-    // } else {
-    //   console.log('[ColumnDragCalculator] ドラッグ中アセット: 未認識');
-    // }
+    // ドラッグ中のアセットを認識しているかデバッグ表示
+    if (this.draggedAssetIndex !== null) {
+      console.log(`[ColumnDragCalculator] ドラッグ中アセット認識: インデックス ${this.draggedAssetIndex} をドラッグ中`);
+      console.log(`[ColumnDragCalculator] 挿入候補位置: ${clampedIndex} (元位置: ${this.draggedAssetIndex})`);
+    } else {
+      console.log('[ColumnDragCalculator] ドラッグ中アセット: 未認識');
+    }
 
     return clampedIndex;
   }
