@@ -16,6 +16,7 @@ import { CursorOverlay } from './CursorOverlay';
 import { ColumnDragOverlay } from './ColumnDragOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { scrollCursorIntoView } from '../../utils/scrollUtils';
+import { createColumnDragCalculator } from '../../utils/columnDragCalculations';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
@@ -1024,26 +1025,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setCursor(pageId, 'preview');
   };
 
-  // ドラッグ&ドロップ関連のヘルパー関数（引数で状態を受け取る）
+  // ドラッグ&ドロップ関連のヘルパー関数（新しいユーティリティクラスを使用）
   const calculateInsertIndex = useCallback((mouseX: number, originalRect: DOMRect | null): number => {
-    console.log('Calculating insert index for mouseX:', mouseX, 'with originalRect:', originalRect);
-    if (!originalRect) {
-      console.warn('Original rect is null');
+    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
+    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssets.length);
+    
+    if (!calculator) {
+      console.warn('[EnhancedSpreadsheet] Failed to create calculator - originalRect is null');
       return 0;
     }
-
-    // AssetLibraryのオフセットを計算（開いている場合のみ）
-    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
-    const COLUMN_WIDTH = originalRect.width; // アセットセルの1列の幅
-    const FIRST_COLUMN_WIDTH = 70;      // TODO: ページ番号列の幅をDOMから取得するようにする
-    const SECOND_COLUMN_WIDTH = 120;    // TODO: プレビュー列の幅をDOMから取得するようにする
-    const baseX = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
-
-    const relativeX = mouseX - baseX;
-    const insertIndex = Math.round(relativeX / COLUMN_WIDTH);
-    let resultIndex = Math.max(0, Math.min(visibleAssets.length - 1, insertIndex));
-    console.log('Calculating insert index:', insertIndex, ', resultIndex:', resultIndex);
-    return resultIndex;
+    
+    return calculator.mouseXToInsertIndex(mouseX);
   }, [showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
 
   // ドラッグ&ドロップ関連のuseCallbackで最適化された関数

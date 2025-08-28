@@ -1,6 +1,7 @@
 import React from 'react';
 import './ColumnDragOverlay.css';
 import { useProjectStore } from '../../stores/projectStore';
+import { createColumnDragCalculator } from '../../utils/columnDragCalculations';
 
 interface ColumnDragOverlayProps {
   isDragging: boolean;
@@ -76,24 +77,16 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
     pointerEvents: 'none',
   };
 
-  // 挿入位置の計算
+  // 挿入位置の計算（新しいユーティリティクラスを使用）
   const getInsertIndicatorLeft = () => {
-    if (!originalRect) return 0;
-
-    const COLUMN_WIDTH = originalRect.width; // アセット列の幅
-    const FIRST_COLUMN_WIDTH = 70; // TODO: ページ番号列、DOMから取得したい
-    const SECOND_COLUMN_WIDTH = 120; // TODO: プレビュー列、DOMから取得したい
-    const baseX = FIRST_COLUMN_WIDTH + SECOND_COLUMN_WIDTH + assetLibraryOffset;
-    if (insertIndex === 0) {
-      // 最初のアセット列の前
-      return baseX;
-    } else if (insertIndex >= visibleAssetsCount) {
-      // 最後のアセット列の後
-      return baseX + visibleAssetsCount * COLUMN_WIDTH;
-    } else {
-      // 中間の位置
-      return baseX + insertIndex * COLUMN_WIDTH;
+    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssetsCount);
+    
+    if (!calculator) {
+      console.warn('[ColumnDragOverlay] Failed to create calculator - originalRect is null');
+      return 0;
     }
+    
+    return calculator.insertIndexToPixelLeft(insertIndex);
   };
 
   return (
