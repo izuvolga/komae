@@ -1025,7 +1025,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setCursor(pageId, 'preview');
   };
 
-  // ドラッグ&ドロップ関連のヘルパー関数（新しいユーティリティクラスを使用）
+  // ドラッグ&ドロップ関連のヘルパー関数
   const calculateInsertIndex = useCallback((mouseX: number, originalRect: DOMRect | null): number => {
     const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
     const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssets.length);

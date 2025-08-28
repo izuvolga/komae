@@ -33,7 +33,6 @@ export class ColumnDragCalculator {
 
   /**
    * マウスX座標から挿入インデックスを計算
-   * EnhancedSpreadsheet.calculateInsertIndex の置き換え
    */
   mouseXToInsertIndex(mouseX: number): number {
     const relativeX = mouseX - this.baseX;
@@ -54,7 +53,6 @@ export class ColumnDragCalculator {
 
   /**
    * 挿入インデックスからピクセル位置を計算
-   * ColumnDragOverlay.getInsertIndicatorLeft の置き換え
    */
   insertIndexToPixelLeft(insertIndex: number): number {
     let pixelLeft: number;
