@@ -23,7 +23,7 @@ export class ColumnDragCalculator {
   constructor(config: ColumnDragCalculationConfig) {
     this.columnWidth = config.originalRect.width;
     this.baseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
-    this.maxIndex = Math.max(0, config.visibleAssetsCount - 1);
+    this.maxIndex = Math.max(0, config.visibleAssetsCount); // 末尾の位置も許可
     this.draggedAssetIndex = config.draggedAssetIndex ?? null;
 
     console.log('[ColumnDragCalculator] Initialized:', {
@@ -73,9 +73,9 @@ export class ColumnDragCalculator {
     if (insertIndex === 0) {
       // 最初のアセット列の前
       pixelLeft = this.baseX;
-    } else if (insertIndex >= this.maxIndex + 1) {
-      // 最後のアセット列の後
-      pixelLeft = this.baseX + (this.maxIndex + 1) * this.columnWidth;
+    } else if (insertIndex >= this.maxIndex) {
+      // 最後のアセット列の後（末尾の位置）
+      pixelLeft = this.baseX + this.maxIndex * this.columnWidth;
     } else {
       // 中間の位置
       pixelLeft = this.baseX + insertIndex * this.columnWidth;
