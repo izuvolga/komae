@@ -1228,7 +1228,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
           <div className="cell header-cell preview-column-header">Preview</div>
           {visibleAssets.map((asset, index) => {
             const leftAsset = index === 0 ? null : visibleAssets[index - 1];
+            const rightAsset = index === visibleAssets.length - 1 ? null : visibleAssets[index + 1];
             const hiddenBetween = getHiddenColumnsBetween(leftAsset, asset);
+            const hiddenAfterThis = getHiddenColumnsBetween(asset, rightAsset);
 
             return (
               <div
@@ -1259,6 +1261,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
                      asset.type === 'DynamicVectorAsset' ? 'Dynamic SVG' :
                      asset.type === 'ValueAsset' ? '値' : 'テキスト'}
                   </span>
+
+                  {/* 隠された列の復元ボタン（右側） */}
+                  {hiddenAfterThis.length > 0 && (
+                    <button
+                      className="inline-restore-column-btn right"
+                      onClick={() => hiddenAfterThis.forEach(hiddenAsset => showColumn(hiddenAsset.id))}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      title={`非表示の列を表示: ${hiddenAfterThis.map(a => a.name).join(', ')}`}
+                    >
+                      {hiddenAfterThis.length}▶
+                    </button>
+                  )}
                 </div>
               </div>
             );

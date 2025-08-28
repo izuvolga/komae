@@ -581,7 +581,6 @@
   padding: 1px 3px;
   transition: all 0.2s ease;
   position: absolute;
-  left: 2px;
   top: 2px;
   z-index: 5;
   min-width: 16px;
@@ -590,6 +589,16 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* 左側の非表示列復元ボタン（左端に配置） */
+.inline-restore-column-btn.left {
+  left: 2px;
+}
+
+/* 右側の非表示列復元ボタン（右端に配置） */
+.inline-restore-column-btn.right {
+  right: 2px;
 }
 
 .inline-restore-column-btn:hover {
