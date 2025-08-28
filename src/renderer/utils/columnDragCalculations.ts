@@ -7,12 +7,14 @@ export interface ColumnDragCalculationConfig {
   originalRect: DOMRect;
   assetLibraryOffset: number;
   visibleAssetsCount: number;
+  draggedAssetIndex?: number; // ドラッグ中の列のインデックス（オプショナル）
 }
 
 export class ColumnDragCalculator {
   private readonly columnWidth: number;
   private readonly baseX: number;
   private readonly maxIndex: number;
+  private readonly draggedAssetIndex: number | null;
 
   // 定数（将来的にはDOMから動的取得したい）
   private readonly FIRST_COLUMN_WIDTH = 70;   // ページ番号列
@@ -22,11 +24,13 @@ export class ColumnDragCalculator {
     this.columnWidth = config.originalRect.width;
     this.baseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
     this.maxIndex = Math.max(0, config.visibleAssetsCount - 1);
+    this.draggedAssetIndex = config.draggedAssetIndex ?? null;
 
     console.log('[ColumnDragCalculator] Initialized:', {
       columnWidth: this.columnWidth,
       baseX: this.baseX,
       maxIndex: this.maxIndex,
+      draggedAssetIndex: this.draggedAssetIndex,
       config
     });
   }
@@ -44,9 +48,18 @@ export class ColumnDragCalculator {
       relativeX,
       rawIndex,
       clampedIndex,
+      draggedAssetIndex: this.draggedAssetIndex,
       baseX: this.baseX,
       columnWidth: this.columnWidth
     });
+
+    // // ドラッグ中のアセットを認識しているかデバッグ表示
+    // if (this.draggedAssetIndex !== null) {
+    //   console.log(`[ColumnDragCalculator] ドラッグ中アセット認識: インデックス ${this.draggedAssetIndex} をドラッグ中`);
+    //   console.log(`[ColumnDragCalculator] 挿入候補位置: ${clampedIndex} (元位置: ${this.draggedAssetIndex})`);
+    // } else {
+    //   console.log('[ColumnDragCalculator] ドラッグ中アセット: 未認識');
+    // }
 
     return clampedIndex;
   }
@@ -99,7 +112,8 @@ export class ColumnDragCalculator {
 export function createColumnDragCalculator(
   originalRect: DOMRect | null,
   assetLibraryOffset: number,
-  visibleAssetsCount: number
+  visibleAssetsCount: number,
+  draggedAssetIndex?: number
 ): ColumnDragCalculator | null {
   if (!originalRect) {
     console.warn('[createColumnDragCalculator] originalRect is null');
@@ -109,6 +123,7 @@ export function createColumnDragCalculator(
   return new ColumnDragCalculator({
     originalRect,
     assetLibraryOffset,
-    visibleAssetsCount
+    visibleAssetsCount,
+    draggedAssetIndex
   });
 }

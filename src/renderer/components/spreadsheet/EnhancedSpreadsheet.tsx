@@ -1025,42 +1025,39 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setCursor(pageId, 'preview');
   };
 
-  // ドラッグ&ドロップ関連のヘルパー関数
-  const calculateInsertIndex = useCallback((mouseX: number, originalRect: DOMRect | null): number => {
-    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
-    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssets.length);
-    
-    if (!calculator) {
-      console.warn('[EnhancedSpreadsheet] Failed to create calculator - originalRect is null');
-      return 0;
-    }
-    
-    return calculator.mouseXToInsertIndex(mouseX);
-  }, [showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
-
   // ドラッグ&ドロップ関連のuseCallbackで最適化された関数
   const handleColumnDragMove = useCallback((e: MouseEvent) => {
     console.log('Column drag move', e.clientX);
 
     const mouseX = e.clientX;
+    const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
+    const assetsCount = visibleAssets.length;
 
     setColumnDragState(prev => {
       if (!prev.isDragging) return prev;
-      
-      // 現在の状態のoriginalRectを使って挿入位置を計算
-      const newInsertIndex = calculateInsertIndex(mouseX, prev.originalRect);
-      
+
+      console.log('[EnhancedSpreadsheet] handleColumnDragMove with prev.draggedAssetIndex:', prev.draggedAssetIndex);
+
+      const calculator = createColumnDragCalculator(
+        prev.originalRect,
+        assetLibraryOffset,
+        assetsCount,
+        prev.draggedAssetIndex // 最新の状態を使用
+      );
+
+      const newInsertIndex = calculator ? calculator.mouseXToInsertIndex(mouseX) : prev.insertIndex;
+
       return {
         ...prev,
         currentMouseX: mouseX,
         insertIndex: newInsertIndex,
       };
     });
-  }, [calculateInsertIndex]);
+  }, [showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
 
   const handleColumnDragEnd = useCallback((e: MouseEvent) => {
     console.log('Column drag end');
-    
+
     setColumnDragState(prev => {
       if (!prev.isDragging) return prev;
 
