@@ -22,16 +22,19 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   insertIndex,
   visibleAssetsCount
 }) => {
+  // Hooksは最初に呼び出す（条件分岐の前に）
+  const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
+  const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
+  const pages = useProjectStore((state) => state.project?.pages || []);
 
+  // 早期returnは全てのHooks呼び出し後に行う
   if (!isDragging || !originalRect || draggedAssetId === null || draggedAssetIndex < 0) {
     return null;
   }
-  const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
-  const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
+
   const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
 
   // ページ数を取得
-  const pages = useProjectStore((state) => state.project?.pages || []);
   const pageCount = pages.length;
 
   // ページ数に基づいてフル高さを計算
