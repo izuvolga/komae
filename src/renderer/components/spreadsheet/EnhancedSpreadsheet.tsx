@@ -1065,21 +1065,50 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
       // 順序変更を実行
       if (draggedAssetIndex !== insertIndex) {
-        const newAssetOrder = [...visibleAssets];
-        const [draggedAsset] = newAssetOrder.splice(draggedAssetIndex, 1);
+        // 全アセット（非表示含む）での順序変更を実行
+        const draggedAsset = visibleAssets[draggedAssetIndex];
         
-        // 挿入位置の調整: 削除によってインデックスがずれた場合の補正
-        let actualInsertIndex = insertIndex;
-        if (insertIndex > draggedAssetIndex) {
-          actualInsertIndex = insertIndex - 1;
+        // visibleAssetsでのインデックスを全アセットでのインデックスに変換
+        const allAssetIds = assets.map(asset => asset.id);
+        const draggedAssetIdInAll = draggedAsset.id;
+        const draggedIndexInAll = allAssetIds.indexOf(draggedAssetIdInAll);
+        
+        // 挿入位置をvisibleAssetsから全アセットのインデックスに変換
+        let targetAssetIdInAll: string;
+        let insertIndexInAll: number;
+        
+        if (insertIndex >= visibleAssets.length) {
+          // 末尾への挿入
+          insertIndexInAll = allAssetIds.length;
+        } else {
+          // 中間への挿入：insertIndex位置のvisibleAssetの前に挿入
+          const targetAsset = visibleAssets[insertIndex];
+          targetAssetIdInAll = targetAsset.id;
+          insertIndexInAll = allAssetIds.indexOf(targetAssetIdInAll);
         }
         
-        console.log(`[handleColumnDragEnd] draggedAssetIndex: ${draggedAssetIndex}, insertIndex: ${insertIndex}, actualInsertIndex: ${actualInsertIndex}`);
+        // 全アセット配列での順序変更
+        const newAllAssetIds = [...allAssetIds];
+        newAllAssetIds.splice(draggedIndexInAll, 1);
         
-        newAssetOrder.splice(actualInsertIndex, 0, draggedAsset);
-
-        const newAssetIds = newAssetOrder.map(asset => asset.id);
-        reorderAssets(newAssetIds);
+        // 削除による位置調整
+        let actualInsertIndexInAll = insertIndexInAll;
+        if (insertIndexInAll > draggedIndexInAll) {
+          actualInsertIndexInAll = insertIndexInAll - 1;
+        }
+        
+        newAllAssetIds.splice(actualInsertIndexInAll, 0, draggedAssetIdInAll);
+        
+        console.log(`[handleColumnDragEnd] 全アセット順序変更:`, {
+          draggedAssetId: draggedAssetIdInAll,
+          draggedIndexInAll,
+          insertIndexInAll,
+          actualInsertIndexInAll,
+          visibleDraggedIndex: draggedAssetIndex,
+          visibleInsertIndex: insertIndex
+        });
+        
+        reorderAssets(newAllAssetIds);
       }
 
       // グローバルマウスイベントを削除
@@ -1097,7 +1126,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
         insertIndex: -1,
       };
     });
-  }, [visibleAssets, reorderAssets, handleColumnDragMove]);
+  }, [visibleAssets, assets, reorderAssets, handleColumnDragMove]);
 
   const handleColumnDragStart = useCallback((e: React.MouseEvent, assetId: string, assetIndex: number) => {
     // 左クリックのみ
