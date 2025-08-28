@@ -39,17 +39,17 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
       // フォールバック：originalRectの高さを使用
       return originalRect.height;
     }
-    
+
     // asset-cellクラスの実際の高さを取得
     const assetCell = document.querySelector('.asset-cell');
     const cellHeight = assetCell ? assetCell.getBoundingClientRect().height : originalRect.height;
-    
+
     // ヘッダー高さ + (ページ数 × アセットセル高さ)
     const headerHeight = originalRect.height; // ヘッダー自体の高さ
     const totalDataHeight = pageCount * cellHeight;
-    
+
     console.log(`計算中: ページ数=${pageCount}, アセットセル高さ=${cellHeight}, ヘッダー高さ=${headerHeight}, 合計高さ=${headerHeight + totalDataHeight}`);
-    
+
     return headerHeight + totalDataHeight;
   };
 
