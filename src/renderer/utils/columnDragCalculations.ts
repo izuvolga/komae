@@ -93,6 +93,31 @@ export class ColumnDragCalculator {
   }
 
   /**
+   * 実際に位置が変更されるかどうかを判定
+   * 修正された挿入ロジックに対応
+   */
+  wouldPositionChange(insertIndex: number): boolean {
+    if (this.draggedAssetIndex === null) {
+      return true; // ドラッグ中のアセットが不明な場合は表示
+    }
+
+    // 実際の挿入位置を計算（削除による影響を考慮）
+    let actualInsertIndex = insertIndex;
+    if (insertIndex > this.draggedAssetIndex) {
+      actualInsertIndex = insertIndex - 1;
+    }
+
+    // 同じ位置への挿入は変更なし
+    if (actualInsertIndex === this.draggedAssetIndex) {
+      console.log(`[ColumnDragCalculator] 位置変更なし: insertIndex=${insertIndex}, actualInsertIndex=${actualInsertIndex}, draggedAssetIndex=${this.draggedAssetIndex}`);
+      return false;
+    }
+
+    console.log(`[ColumnDragCalculator] 位置変更あり: insertIndex=${insertIndex}, actualInsertIndex=${actualInsertIndex}, draggedAssetIndex=${this.draggedAssetIndex}`);
+    return true;
+  }
+
+  /**
    * デバッグ用の情報取得
    */
   getDebugInfo() {

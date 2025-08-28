@@ -1067,7 +1067,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
       if (draggedAssetIndex !== insertIndex) {
         const newAssetOrder = [...visibleAssets];
         const [draggedAsset] = newAssetOrder.splice(draggedAssetIndex, 1);
-        newAssetOrder.splice(insertIndex, 0, draggedAsset);
+        
+        // 挿入位置の調整: 削除によってインデックスがずれた場合の補正
+        let actualInsertIndex = insertIndex;
+        if (insertIndex > draggedAssetIndex) {
+          actualInsertIndex = insertIndex - 1;
+        }
+        
+        console.log(`[handleColumnDragEnd] draggedAssetIndex: ${draggedAssetIndex}, insertIndex: ${insertIndex}, actualInsertIndex: ${actualInsertIndex}`);
+        
+        newAssetOrder.splice(actualInsertIndex, 0, draggedAsset);
 
         const newAssetIds = newAssetOrder.map(asset => asset.id);
         reorderAssets(newAssetIds);

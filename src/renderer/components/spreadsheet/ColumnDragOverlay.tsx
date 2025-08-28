@@ -82,7 +82,7 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
 
   // 挿入位置の計算（新しいユーティリティクラスを使用）
   const getInsertIndicatorLeft = () => {
-    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssetsCount);
+    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssetsCount, draggedAssetIndex);
     
     if (!calculator) {
       console.warn('[ColumnDragOverlay] Failed to create calculator - originalRect is null');
@@ -90,6 +90,17 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
     }
     
     return calculator.insertIndexToPixelLeft(insertIndex);
+  };
+
+  // 位置変更があるかどうかを判定
+  const shouldShowInsertIndicator = () => {
+    const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssetsCount, draggedAssetIndex);
+    
+    if (!calculator) {
+      return false; // 計算器が作成できない場合は非表示
+    }
+    
+    return calculator.wouldPositionChange(insertIndex);
   };
 
   return (
@@ -104,14 +115,16 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
         </div>
       </div>
 
-      {/* 挿入位置インディケーター */}
-      <div
-        className="column-insert-indicator"
-        style={{
-          ...insertIndicatorStyle,
-          left: getInsertIndicatorLeft(),
-        }}
-      />
+      {/* 挿入位置インディケーター - 位置変更がある場合のみ表示 */}
+      {shouldShowInsertIndicator() && (
+        <div
+          className="column-insert-indicator"
+          style={{
+            ...insertIndicatorStyle,
+            left: getInsertIndicatorLeft(),
+          }}
+        />
+      )}
     </>
   );
 });
