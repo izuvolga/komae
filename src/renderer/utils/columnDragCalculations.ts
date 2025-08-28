@@ -13,7 +13,7 @@ export class ColumnDragCalculator {
   private readonly columnWidth: number;
   private readonly baseX: number;
   private readonly maxIndex: number;
-  
+
   // 定数（将来的にはDOMから動的取得したい）
   private readonly FIRST_COLUMN_WIDTH = 70;   // ページ番号列
   private readonly SECOND_COLUMN_WIDTH = 120; // プレビュー列
@@ -22,7 +22,7 @@ export class ColumnDragCalculator {
     this.columnWidth = config.originalRect.width;
     this.baseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
     this.maxIndex = Math.max(0, config.visibleAssetsCount - 1);
-    
+
     console.log('[ColumnDragCalculator] Initialized:', {
       columnWidth: this.columnWidth,
       baseX: this.baseX,
@@ -38,7 +38,7 @@ export class ColumnDragCalculator {
     const relativeX = mouseX - this.baseX;
     const rawIndex = Math.round(relativeX / this.columnWidth);
     const clampedIndex = Math.max(0, Math.min(this.maxIndex, rawIndex));
-    
+
     console.log('[ColumnDragCalculator] mouseXToInsertIndex:', {
       mouseX,
       relativeX,
@@ -47,7 +47,7 @@ export class ColumnDragCalculator {
       baseX: this.baseX,
       columnWidth: this.columnWidth
     });
-    
+
     return clampedIndex;
   }
 
@@ -56,7 +56,7 @@ export class ColumnDragCalculator {
    */
   insertIndexToPixelLeft(insertIndex: number): number {
     let pixelLeft: number;
-    
+
     if (insertIndex === 0) {
       // 最初のアセット列の前
       pixelLeft = this.baseX;
@@ -67,7 +67,7 @@ export class ColumnDragCalculator {
       // 中間の位置
       pixelLeft = this.baseX + insertIndex * this.columnWidth;
     }
-    
+
     console.log('[ColumnDragCalculator] insertIndexToPixelLeft:', {
       insertIndex,
       pixelLeft,
@@ -75,7 +75,7 @@ export class ColumnDragCalculator {
       columnWidth: this.columnWidth,
       maxIndex: this.maxIndex
     });
-    
+
     return pixelLeft;
   }
 
@@ -105,7 +105,7 @@ export function createColumnDragCalculator(
     console.warn('[createColumnDragCalculator] originalRect is null');
     return null;
   }
-  
+
   return new ColumnDragCalculator({
     originalRect,
     assetLibraryOffset,
