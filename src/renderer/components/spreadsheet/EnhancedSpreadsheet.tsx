@@ -1372,7 +1372,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 onContextMenu={(e) => handleRowContextMenu(e, page, originalPageIndex)}
               >
                 <div className="page-number-delete-content">
-                  {/* 隠された行の復元ボタン（上側） */}
+                  {/* 上に非表示行がある場合：削除ボタンの上にアイコンを表示 */}
                   {hiddenRowsAbove.length > 0 && (
                     <button
                       className="inline-restore-row-btn up"
@@ -1391,17 +1391,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   >
                     ×
                   </button>
-
-                  {/* 隠された行の復元ボタン（下側） */}
-                  {hiddenRowsBelow.length > 0 && (
-                    <button
-                      className="inline-restore-row-btn down"
-                      onClick={() => hiddenRowsBelow.forEach(hiddenPage => showRow(hiddenPage.id))}
-                      title={`非表示の行を表示: ${hiddenRowsBelow.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
-                    >
-                      ▼{hiddenRowsBelow.length}
-                    </button>
-                  )}
 
                   {titleEditState.isEditing && titleEditState.pageId === page.id ? (
                     <input
@@ -1422,6 +1411,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     >
                       {getPageDisplayText(page, originalPageIndex)}
                     </span>
+                  )}
+
+                  {/* 下に非表示行がある場合：ページタイトルの下にアイコンを表示 */}
+                  {hiddenRowsBelow.length > 0 && (
+                    <button
+                      className="inline-restore-row-btn down"
+                      onClick={() => hiddenRowsBelow.forEach(hiddenPage => showRow(hiddenPage.id))}
+                      title={`非表示の行を表示: ${hiddenRowsBelow.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
+                    >
+                      ▼{hiddenRowsBelow.length}
+                    </button>
                   )}
                 </div>
               </div>

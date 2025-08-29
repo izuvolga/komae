@@ -653,16 +653,13 @@
   font-size: 8px;
   padding: 1px 3px;
   transition: all 0.2s ease;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  z-index: 5;
   min-width: 16px;
   height: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  margin: 1px 0;
 }
 
 .inline-restore-row-btn:hover {
@@ -734,6 +731,12 @@
   padding-left: 20px;
 }
 
-.page-number-delete-content:has(.inline-restore-row-btn) {
-  padding-top: 15px;
+.page-number-delete-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 100%;
+  position: relative;
 }
