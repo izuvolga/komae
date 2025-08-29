@@ -659,16 +659,40 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  margin: 1px 0;
+}
+
+.inline-restore-row-btn.up {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.inline-restore-row-btn.down {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .inline-restore-row-btn:hover {
   background: #e0a800;
-  transform: scale(1.05);
 }
 
-.inline-restore-row-btn:active {
-  transform: scale(0.95);
+.inline-restore-row-btn.up:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.inline-restore-row-btn.down:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.inline-restore-row-btn.up:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.inline-restore-row-btn.down:active {
+  transform: translateX(-50%) scale(0.95);
 }
 
 /* 末尾行復元用の行 */
@@ -732,11 +756,10 @@
 }
 
 .page-number-delete-content {
+  position: relative;
+  min-height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-height: 100%;
-  position: relative;
+  text-align: center;
 }

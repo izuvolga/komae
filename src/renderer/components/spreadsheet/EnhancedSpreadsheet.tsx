@@ -1372,7 +1372,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 onContextMenu={(e) => handleRowContextMenu(e, page, originalPageIndex)}
               >
                 <div className="page-number-delete-content">
-                  {/* 上に非表示行がある場合：削除ボタンの上にアイコンを表示 */}
+                  {/* 上に非表示行がある場合：ページタイトルの上にアイコンを表示 */}
                   {hiddenRowsAbove.length > 0 && (
                     <button
                       className="inline-restore-row-btn up"
@@ -1382,15 +1382,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       ▲{hiddenRowsAbove.length}
                     </button>
                   )}
-
-                  <button
-                    className="delete-page-btn"
-                    onClick={() => handleDeletePage(page.id)}
-                    disabled={pages.length <= 1}
-                    title="ページを削除"
-                  >
-                    ×
-                  </button>
 
                   {titleEditState.isEditing && titleEditState.pageId === page.id ? (
                     <input
