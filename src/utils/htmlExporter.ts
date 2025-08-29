@@ -139,7 +139,7 @@ export class HtmlExporter {
     // テスト環境では電子appオブジェクトをモックから取得
     let app;
     if (process.env.NODE_ENV === 'test') {
-      app = global.app || { getAppPath: () => '/mock/app/path' };
+      app = (global as any).app || { getAppPath: () => '/mock/app/path' };
     } else {
       const electron = require('electron');
       app = electron.app;

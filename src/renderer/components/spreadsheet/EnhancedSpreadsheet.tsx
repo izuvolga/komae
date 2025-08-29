@@ -1212,7 +1212,45 @@ export const EnhancedSpreadsheet: React.FC = () => {
     return hiddenBetween;
   };
 
-  // 隣接する非表示行をチェックするヘルパー関数
+  // 指定行より上の非表示行をチェックするヘルパー関数
+  const getHiddenRowsAbove = (currentPage: Page): Page[] => {
+    const currentIndex = pages.findIndex(p => p.id === currentPage.id);
+    if (currentIndex <= 0) return [];
+
+    const hiddenAbove: Page[] = [];
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const page = pages[i];
+      if (hiddenRows.includes(page.id)) {
+        hiddenAbove.unshift(page); // 順序を保つため先頭に追加
+      } else {
+        // 表示されている行に到達したら停止
+        break;
+      }
+    }
+
+    return hiddenAbove;
+  };
+
+  // 指定行より下の非表示行をチェックするヘルパー関数
+  const getHiddenRowsBelow = (currentPage: Page): Page[] => {
+    const currentIndex = pages.findIndex(p => p.id === currentPage.id);
+    if (currentIndex === -1 || currentIndex >= pages.length - 1) return [];
+
+    const hiddenBelow: Page[] = [];
+    for (let i = currentIndex + 1; i < pages.length; i++) {
+      const page = pages[i];
+      if (hiddenRows.includes(page.id)) {
+        hiddenBelow.push(page);
+      } else {
+        // 表示されている行に到達したら停止
+        break;
+      }
+    }
+
+    return hiddenBelow;
+  };
+
+  // 隣接する非表示行をチェックするヘルパー関数（後方互換性のため残す）
   const getHiddenRowsBetween = (upperPage: Page | null, lowerPage: Page | null): Page[] => {
     if (!upperPage && !lowerPage) return [];
 
@@ -1323,8 +1361,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
           {visiblePages.map((page, visiblePageIndex) => {
             // 元のpageIndexを取得
             const originalPageIndex = pages.findIndex(p => p.id === page.id);
-            const upperPage = visiblePageIndex === 0 ? null : visiblePages[visiblePageIndex - 1];
-            const hiddenRowsBetween = getHiddenRowsBetween(upperPage, page);
+            const hiddenRowsAbove = getHiddenRowsAbove(page);
+            const hiddenRowsBelow = getHiddenRowsBelow(page);
 
             return (
             <div key={page.id} className={`spreadsheet-row ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''}`}>
@@ -1335,13 +1373,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
               >
                 <div className="page-number-delete-content">
                   {/* 隠された行の復元ボタン（上側） */}
-                  {hiddenRowsBetween.length > 0 && (
+                  {hiddenRowsAbove.length > 0 && (
                     <button
                       className="inline-restore-row-btn up"
-                      onClick={() => hiddenRowsBetween.forEach(hiddenPage => showRow(hiddenPage.id))}
-                      title={`非表示の行を表示: ${hiddenRowsBetween.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
+                      onClick={() => hiddenRowsAbove.forEach(hiddenPage => showRow(hiddenPage.id))}
+                      title={`非表示の行を表示: ${hiddenRowsAbove.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
                     >
-                      ▲{hiddenRowsBetween.length}
+                      ▲{hiddenRowsAbove.length}
                     </button>
                   )}
 
@@ -1353,6 +1391,18 @@ export const EnhancedSpreadsheet: React.FC = () => {
                   >
                     ×
                   </button>
+
+                  {/* 隠された行の復元ボタン（下側） */}
+                  {hiddenRowsBelow.length > 0 && (
+                    <button
+                      className="inline-restore-row-btn down"
+                      onClick={() => hiddenRowsBelow.forEach(hiddenPage => showRow(hiddenPage.id))}
+                      title={`非表示の行を表示: ${hiddenRowsBelow.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
+                    >
+                      ▼{hiddenRowsBelow.length}
+                    </button>
+                  )}
+
                   {titleEditState.isEditing && titleEditState.pageId === page.id ? (
                     <input
                       type="text"
@@ -1604,7 +1654,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     onClick={() => hiddenAfter.forEach(hiddenPage => showRow(hiddenPage.id))}
                     title={`非表示の行を表示: ${hiddenAfter.map(p => getPageDisplayText(p, pages.findIndex(pg => pg.id === p.id))).join(', ')}`}
                   >
-                    ▼ {hiddenAfter.length}行
+                    ▲{hiddenAfter.length}行
                   </button>
                 </div>
               </div>

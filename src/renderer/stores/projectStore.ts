@@ -134,8 +134,6 @@ export const useProjectStore = create<ProjectStore>()(
           previewWidth: 320,
           previewScrollX: 0,
           previewScrollY: 0,
-          hiddenColumns: [],
-          hiddenRows: [],
           // スプレッドシートカーソル機能
           cursor: {
             visible: false,
