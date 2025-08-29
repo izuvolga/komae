@@ -58,6 +58,19 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
         const headerBottomInContainer = headerHeight;
         const isOverlappingWithHeader = cellTopInContainer < headerBottomInContainer;
 
+        // Asset Libraryパネルとの重なりを検出
+        const assetLibraryElement = document.querySelector('.asset-library') as HTMLElement;
+        let isOverlappingWithAssetLibrary = false;
+        
+        if (assetLibraryElement && showAssetLibrary) {
+          const assetLibraryRect = assetLibraryElement.getBoundingClientRect();
+          const cellLeftEdge = cellRect.left;
+          const assetLibraryRightEdge = assetLibraryRect.right;
+          
+          // カーソル（セル）の左端がAsset Libraryの右端より左側にある場合は重なりと判定
+          isOverlappingWithAssetLibrary = cellLeftEdge < assetLibraryRightEdge;
+        }
+
         // 右パネルとの重なりを検出
         const rightPanelElement = document.querySelector('.right-panel') as HTMLElement;
         let isOverlappingWithRightPanel = false;
@@ -71,8 +84,8 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ containerRef }) =>
           isOverlappingWithRightPanel = cellRightEdge > rightPanelLeftEdge;
         }
 
-        // カーソルの可視性を決定（ヘッダーまたは右パネルと重なっている場合は非表示）
-        setIsCursorVisible(!isOverlappingWithHeader && !isOverlappingWithRightPanel);
+        // カーソルの可視性を決定（ヘッダー、Asset Library、または右パネルと重なっている場合は非表示）
+        setIsCursorVisible(!isOverlappingWithHeader && !isOverlappingWithAssetLibrary && !isOverlappingWithRightPanel);
 
         setCursorStyle({
           left: relativeLeft,
