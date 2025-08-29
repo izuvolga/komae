@@ -10,16 +10,22 @@ describe('ExportService', function () {
   let mockProject: ProjectData;
 
   beforeEach(async () => {
-    // Electronのappオブジェクトをモック
-    jest.mock('electron', () => ({
-      app: {
-        getAppPath: jest.fn(() => '/mock/app/path'),
-        getPath: jest.fn((name: string) => {
-          if (name === 'userData') return '/mock/userData';
-          return '/mock/path';
-        })
-      }
+    // Electronのappオブジェクトを直接グローバルにモック
+    const mockApp = {
+      getAppPath: jest.fn(() => '/mock/app/path'),
+      getPath: jest.fn((name: string) => {
+        if (name === 'userData') return '/mock/userData';
+        return '/mock/path';
+      })
+    };
+    
+    // グローバルなモック設定
+    jest.doMock('electron', () => ({
+      app: mockApp
     }), { virtual: true });
+    
+    // htmlExporter で使用される app を直接モック
+    global.app = mockApp;
 
     // fsモジュールのexistsSyncとreaddirSyncをモック
     const fs = require('fs');
@@ -82,6 +88,8 @@ describe('ExportService', function () {
           default_z_index: 1,
         }
       },
+      hiddenColumns: [],
+      hiddenRows: [],
       pages: [
         {
           id: 'page-1',

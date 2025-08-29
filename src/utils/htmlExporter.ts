@@ -135,7 +135,15 @@ export class HtmlExporter {
    */
   private async generateFontFaceDeclarations(fontIds: Set<string>): Promise<string> {
     const declarations: string[] = [];
-    const { app } = require('electron');
+    
+    // テスト環境では電子appオブジェクトをモックから取得
+    let app;
+    if (process.env.NODE_ENV === 'test') {
+      app = global.app || { getAppPath: () => '/mock/app/path' };
+    } else {
+      const electron = require('electron');
+      app = electron.app;
+    }
     
     for (const fontId of fontIds) {
       // システムフォントはスキップ

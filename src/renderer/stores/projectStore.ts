@@ -365,23 +365,27 @@ export const useProjectStore = create<ProjectStore>()(
 
         // Hide/Show Actions
         hideColumn: (assetId) => set((state) => {
-          if (!state.ui.hiddenColumns.includes(assetId)) {
-            state.ui.hiddenColumns.push(assetId);
+          if (!state.project?.hiddenColumns.includes(assetId)) {
+            state.project?.hiddenColumns.push(assetId);
           }
         }),
 
         showColumn: (assetId) => set((state) => {
-          state.ui.hiddenColumns = state.ui.hiddenColumns.filter(id => id !== assetId);
+          if (state.project) {
+            state.project.hiddenColumns = state.project.hiddenColumns.filter(id => id !== assetId);
+          }
         }),
 
         hideRow: (pageId) => set((state) => {
-          if (!state.ui.hiddenRows.includes(pageId)) {
-            state.ui.hiddenRows.push(pageId);
+          if (!state.project?.hiddenRows.includes(pageId)) {
+            state.project?.hiddenRows.push(pageId);
           }
         }),
 
         showRow: (pageId) => set((state) => {
-          state.ui.hiddenRows = state.ui.hiddenRows.filter(id => id !== pageId);
+          if (state.project) {
+            state.project.hiddenRows = state.project.hiddenRows.filter(id => id !== pageId);
+          }
         }),
 
         // Cursor Actions

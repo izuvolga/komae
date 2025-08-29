@@ -386,6 +386,8 @@ export const MainLayout: React.FC = () => {
       assets,
       pages,
       fonts: {},
+      hiddenColumns: [],
+      hiddenRows: [],
     };
 
     setProject(sampleProject);

@@ -130,6 +130,8 @@ export const mockProject: ProjectData = {
     'value-5c2720fe-5b73-4fa3-b9c4-1df49c83491a': mockValueAsset,
   },
   pages: [mockPage1, mockPage2],
+  hiddenColumns: [],
+  hiddenRows: [],
 };
 
 // Legacy exports for backward compatibility

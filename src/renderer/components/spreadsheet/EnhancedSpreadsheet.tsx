@@ -38,8 +38,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showPreview = useProjectStore((state) => state.ui.showPreview);
   const assetLibraryWidth = useProjectStore((state) => state.ui.assetLibraryWidth);
   const previewWidth = useProjectStore((state) => state.ui.previewWidth);
-  const hiddenColumns = useProjectStore((state) => state.ui.hiddenColumns);
-  const hiddenRows = useProjectStore((state) => state.ui.hiddenRows);
+  const hiddenColumns = useProjectStore((state) => state.project?.hiddenColumns || []);
+  const hiddenRows = useProjectStore((state) => state.project?.hiddenRows || []);
   const hideColumn = useProjectStore((state) => state.hideColumn);
   const showColumn = useProjectStore((state) => state.showColumn);
   const hideRow = useProjectStore((state) => state.hideRow);

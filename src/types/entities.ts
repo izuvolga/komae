@@ -348,6 +348,9 @@ export interface ProjectData {
   canvas: CanvasConfig;
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
+  // 非表示にされた列と行の管理
+  hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
+  hiddenRows: string[]; // 非表示にされたページIDのリスト
 }
 
 // UI状態
@@ -366,9 +369,6 @@ export interface UIState {
   previewWidth: number;
   previewScrollX: number;
   previewScrollY: number;
-  // 非表示にされた列と行の管理
-  hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
-  hiddenRows: string[]; // 非表示にされたページIDのリスト
   // スプレッドシートカーソル機能
   cursor: {
     visible: boolean;

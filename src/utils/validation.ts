@@ -193,6 +193,8 @@ const ProjectDataSchema = z.object({
   canvas: CanvasConfigSchema,
   assets: z.record(z.string(), AssetSchema),
   pages: z.array(PageSchema),
+  hiddenColumns: z.array(z.string()).optional().default([]),
+  hiddenRows: z.array(z.string()).optional().default([]),
 });
 
 /**

@@ -111,6 +111,9 @@ export class ProjectManager {
       canvas: params.canvas,
       assets: {},
       pages: [],
+      // 非表示列・行の初期化
+      hiddenColumns: [],
+      hiddenRows: [],
     };
 
     // デフォルトページを作成
@@ -250,6 +253,14 @@ export class ProjectManager {
       
       // YAMLファイルを読み込み
       let projectData = await loadProjectFile(projectFilePath);
+      
+      // 下位互換性: hiddenColumns と hiddenRows が存在しない場合は空配列で初期化
+      if (!projectData.hiddenColumns) {
+        projectData.hiddenColumns = [];
+      }
+      if (!projectData.hiddenRows) {
+        projectData.hiddenRows = [];
+      }
       
       // プロジェクトパスを設定
       const stats = await fs.stat(inputPath);
