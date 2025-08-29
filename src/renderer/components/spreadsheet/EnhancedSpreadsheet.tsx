@@ -357,8 +357,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
           page,
         });
       } else if (asset.type === 'TextAsset') {
-        // TextAssetの場合は、インライン編集を開始
-        handleStartInlineEdit(instance as TextAssetInstance, page);
+        setEditingTextInstance({
+          instance: instance as TextAssetInstance,
+          asset: asset as TextAsset,
+          page,
+        });
       } else if (asset.type === 'VectorAsset') {
         setEditingVectorInstance({
           instance: instance as VectorAssetInstance,
@@ -512,7 +515,24 @@ export const EnhancedSpreadsheet: React.FC = () => {
           e.preventDefault();
           // Enterキーでセルの編集を開始
           if (currentCursor.pageId && currentCursor.assetId) {
-            handleEditClick(currentCursor.pageId, currentCursor.assetId);
+            const page = project.pages.find(p => p.id === currentCursor.pageId);
+            const asset = project.assets[currentCursor.assetId];
+            
+            if (!page || !asset) return;
+            
+            const instance = Object.values(page.asset_instances).find(
+              (inst: AssetInstance) => inst.asset_id === currentCursor.assetId
+            );
+            
+            if (instance) {
+              if (asset.type === 'TextAsset') {
+                // TextAssetの場合はEnterキーでインライン編集を開始
+                handleStartInlineEdit(instance as TextAssetInstance, page);
+              } else {
+                // その他のアセットタイプは従来通りモーダルを開く
+                handleEditClick(currentCursor.pageId, currentCursor.assetId);
+              }
+            }
           }
           return;
 
