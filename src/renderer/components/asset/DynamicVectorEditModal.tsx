@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
-import type { 
-  DynamicVectorAsset, 
-  DynamicVectorAssetInstance, 
-  Page, 
-  ProjectData 
+import type {
+  DynamicVectorAsset,
+  DynamicVectorAssetInstance,
+  Page,
+  ProjectData
 } from '../../../types/entities';
-import { 
-  getEffectiveZIndex, 
+import {
+  getEffectiveZIndex,
   validateDynamicVectorAssetData,
-  validateDynamicVectorAssetInstanceData 
+  validateDynamicVectorAssetInstanceData
 } from '../../../types/entities';
 import './DynamicVectorEditModal.css';
 
@@ -40,7 +40,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   onSaveInstance,
 }) => {
   const project = useProjectStore((state) => state.project);
-  
+
   // 編集中のデータ
   const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
   const [editedInstance, setEditedInstance] = useState<DynamicVectorAssetInstance | null>(
@@ -67,7 +67,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
-    
+
     // CustomAssetのパラメータ値を初期化
     const initialParams: Record<string, number | string> = {};
     if (asset.customAssetParameters) {
@@ -83,7 +83,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     if (executionTimerRef.current) {
       clearTimeout(executionTimerRef.current);
     }
-    
+
     executionTimerRef.current = setTimeout(() => {
       executeScript();
     }, 300);
@@ -112,7 +112,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     try {
       // パラメータを構築
       const scriptParameters = { ...parameterValues };
-      
+
       // ページ変数を追加
       if (editedAsset.use_page_variables && page && project) {
         const pageIndex = project.pages.findIndex(p => p.id === page.id);
@@ -126,11 +126,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
           if (assetItem.type === 'ValueAsset') {
             const valueInstance = page.asset_instances[assetItem.id];
             let value = assetItem.initial_value;
-            
+
             if (valueInstance && 'override_value' in valueInstance) {
               value = valueInstance.override_value ?? value;
             }
-            
+
             scriptParameters[assetItem.name] = value;
           }
         });
@@ -146,9 +146,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         setSvgResult({ svg: null, error: 'スクリプトは文字列を返す必要があります' });
       }
     } catch (error) {
-      setSvgResult({ 
-        svg: null, 
-        error: error instanceof Error ? error.message : 'スクリプトの実行でエラーが発生しました' 
+      setSvgResult({
+        svg: null,
+        error: error instanceof Error ? error.message : 'スクリプトの実行でエラーが発生しました'
       });
     } finally {
       setIsExecuting(false);
@@ -229,7 +229,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       setEditedAsset(prev => ({
         ...prev,
         default_width: width,
-        default_height: height,  
+        default_height: height,
       }));
     }
   };
@@ -279,7 +279,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         ...editedAsset,
         customAssetParameters: { ...parameterValues },
       };
-      
+
       const validation = validateDynamicVectorAssetData(updatedAsset);
       if (!validation.isValid) {
         alert(validation.errors.join('\n'));
@@ -300,8 +300,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }));
   };
 
-  const modalTitle = mode === 'instance' 
-    ? `DynamicVectorAssetInstance 編集: ${asset.name}` 
+  const modalTitle = mode === 'instance'
+    ? `DynamicVectorAssetInstance 編集: ${asset.name}`
     : `DynamicVectorAsset 編集: ${asset.name}`;
 
   // CustomAssetのパラメータ情報を取得（配列として処理）
@@ -321,9 +321,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
             {/* 左側: プレビューパネル */}
             <div className="dve-preview-panel">
               <div className="dve-preview-container">
-                <div className="dve-canvas-frame" style={{ 
-                  position: 'relative', 
-                  width: `${project.canvas.width * 0.35}px`, 
+                <div className="dve-canvas-frame" style={{
+                  position: 'relative',
+                  width: `${project.canvas.width * 0.35}px`,
                   height: `${project.canvas.height * 0.35}px`,
                   border: '2px solid #007bff',
                   borderRadius: '4px',
@@ -363,7 +363,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       <div className="dve-empty-message">スクリプトを入力してください</div>
                     </div>
                   )}
-                  
+
                   {/* 実行中インジケーター */}
                   {isExecuting && (
                     <div className="dve-execution-indicator">
