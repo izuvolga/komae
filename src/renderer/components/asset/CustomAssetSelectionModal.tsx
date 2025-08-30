@@ -84,7 +84,7 @@ const CustomAssetSelectionModal: React.FC<CustomAssetSelectionModalProps> = ({
       <div className="custom-asset-selection-modal" onClick={(e) => e.stopPropagation()}>
         <div className="custom-asset-selection-header">
           <h2>CustomAssetを選択</h2>
-          <button 
+          <button
             className="custom-asset-selection-close"
             onClick={handleCancel}
             disabled={isLoading}
@@ -108,7 +108,7 @@ const CustomAssetSelectionModal: React.FC<CustomAssetSelectionModalProps> = ({
               ) : (
                 <div className="custom-asset-selection-list">
                   {customAssets.map((asset) => (
-                    <div 
+                    <div
                       key={asset.id}
                       className={`custom-asset-selection-item ${selectedAssetId === asset.id ? 'selected' : ''}`}
                       onClick={() => handleAssetSelect(asset.id)}
@@ -158,7 +158,7 @@ const CustomAssetSelectionModal: React.FC<CustomAssetSelectionModalProps> = ({
                       <label>説明:</label>
                       <span>{selectedAsset.description}</span>
                     </div>
-                    
+
                     {selectedAsset.parameters.length > 0 && (
                       <div className="custom-asset-selection-detail-field">
                         <label>パラメータ:</label>
@@ -184,14 +184,14 @@ const CustomAssetSelectionModal: React.FC<CustomAssetSelectionModalProps> = ({
           </div>
 
           <div className="custom-asset-selection-footer">
-            <button 
+            <button
               className="custom-asset-selection-cancel"
               onClick={handleCancel}
               disabled={isLoading}
             >
               キャンセル
             </button>
-            <button 
+            <button
               className="custom-asset-selection-confirm"
               onClick={handleConfirm}
               disabled={isLoading || !selectedAssetId}

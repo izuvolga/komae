@@ -1,15 +1,12 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as crypto from 'crypto';
 import { app } from 'electron';
 import { FileSystemService } from './FileSystemService';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
-import { 
-  parseCustomAsset, 
-  generateCustomAssetId, 
+import {
+  parseCustomAsset,
+  generateCustomAssetId,
   isValidCustomAssetFilename,
-  type CustomAssetMetadata,
-  type ParsedCustomAsset
 } from '../../utils/customAssetParser';
 
 export interface CustomAssetInfo {
@@ -47,7 +44,7 @@ export interface CustomAssetRegistryEntry {
 export class CustomAssetManager {
   private fileSystemService: FileSystemService;
   private logger = getLogger();
-  
+
   // グローバルCustomAsset管理
   private globalCustomAssetsDir: string;
   private registryFile: string;
@@ -55,7 +52,7 @@ export class CustomAssetManager {
 
   constructor() {
     this.fileSystemService = new FileSystemService();
-    
+
     // グローバルCustomAsset管理の初期化
     this.globalCustomAssetsDir = path.join(app.getPath('userData'), 'custom-assets');
     this.registryFile = path.join(this.globalCustomAssetsDir, 'custom-assets-registry.json');
@@ -128,15 +125,15 @@ export class CustomAssetManager {
    */
   async getAvailableCustomAssets(type: string = 'DynamicVector'): Promise<CustomAssetInfo[]> {
     const tracker = new PerformanceTracker('get_available_custom_assets');
-    
+
     try {
       await this.logger.logDevelopment('custom_asset_load', 'Loading available custom assets', { type });
-      
+
       const registry = this.loadRegistry();
-      
+
       // 指定した型のアセットのみフィルタリング
       const filteredAssets = registry.assets.filter(asset => asset.type === type);
-      
+
       // ファイルの存在チェックと情報の更新
       const validAssets: CustomAssetInfo[] = [];
       for (const asset of filteredAssets) {
@@ -151,11 +148,11 @@ export class CustomAssetManager {
           });
         }
       }
-      
+
       // 無効なエントリがあった場合はレジストリを更新
       if (validAssets.length !== filteredAssets.length) {
         const updatedRegistry = {
-          assets: registry.assets.filter(asset => 
+          assets: registry.assets.filter(asset =>
             asset.type !== type || validAssets.some(valid => valid.id === asset.id)
           )
         };
@@ -164,7 +161,7 @@ export class CustomAssetManager {
 
       await tracker.end({ assetsCount: validAssets.length, type });
       return validAssets;
-      
+
     } catch (error) {
       await tracker.end({ success: false, error: (error as Error).message });
       await this.logger.logError('custom_asset_load', error as Error, { type });
@@ -177,10 +174,10 @@ export class CustomAssetManager {
    */
   async addCustomAsset(sourceFilePath: string): Promise<CustomAssetInfo> {
     const tracker = new PerformanceTracker('add_custom_asset');
-    
+
     try {
       await this.logger.logDevelopment('custom_asset_add', 'Adding custom asset', { sourceFilePath });
-      
+
       // ファイル拡張子の検証
       if (!isValidCustomAssetFilename(path.basename(sourceFilePath))) {
         throw new Error('Invalid file extension. Custom assets must have .komae.js extension.');
@@ -194,11 +191,11 @@ export class CustomAssetManager {
       // ファイルの内容を読み込みとメタデータ解析
       const fileContent = fs.readFileSync(sourceFilePath, 'utf-8');
       const parsedAsset = parseCustomAsset(fileContent);
-      
-      // ID生成
+
+      // ID生成: TODO: ハッシュでIDを作成したい
       const filename = path.basename(sourceFilePath);
       const id = generateCustomAssetId(filename);
-      
+
       // ファイル名の重複チェック
       const registry = this.loadRegistry();
       const existingAsset = registry.assets.find(asset => asset.id === id);
@@ -238,7 +235,7 @@ export class CustomAssetManager {
       });
 
       return customAssetInfo;
-      
+
     } catch (error) {
       await tracker.end({ success: false, error: (error as Error).message });
       await this.logger.logError('custom_asset_add', error as Error, { sourceFilePath });
@@ -251,19 +248,19 @@ export class CustomAssetManager {
    */
   async removeCustomAsset(assetId: string): Promise<void> {
     const tracker = new PerformanceTracker('remove_custom_asset');
-    
+
     try {
       await this.logger.logDevelopment('custom_asset_remove', 'Removing custom asset', { assetId });
-      
+
       const registry = this.loadRegistry();
       const assetIndex = registry.assets.findIndex(asset => asset.id === assetId);
-      
+
       if (assetIndex === -1) {
         throw new Error(`Custom asset with ID "${assetId}" not found`);
       }
 
       const asset = registry.assets[assetIndex];
-      
+
       // ファイルを削除
       if (fs.existsSync(asset.filePath)) {
         fs.unlinkSync(asset.filePath);
@@ -281,7 +278,7 @@ export class CustomAssetManager {
         assetId,
         name: asset.name
       });
-      
+
     } catch (error) {
       await tracker.end({ success: false, error: (error as Error).message });
       await this.logger.logError('custom_asset_remove', error as Error, { assetId });
@@ -302,7 +299,7 @@ export class CustomAssetManager {
       // レジストリから取得
       const registry = this.loadRegistry();
       const asset = registry.assets.find(asset => asset.id === assetId);
-      
+
       if (asset && fs.existsSync(asset.filePath)) {
         this.globalCustomAssetCache.set(assetId, asset);
         return asset;
@@ -327,7 +324,7 @@ export class CustomAssetManager {
 
       const fileContent = fs.readFileSync(assetInfo.filePath, 'utf-8');
       const parsedAsset = parseCustomAsset(fileContent);
-      
+
       return parsedAsset.code;
     } catch (error) {
       await this.logger.logError('custom_asset_code', error as Error, { assetId });
@@ -344,7 +341,7 @@ export class CustomAssetManager {
 
       const fileContent = fs.readFileSync(assetInfo.filePath, 'utf-8');
       const parsedAsset = parseCustomAsset(fileContent);
-      
+
       // パラメータをデフォルト値とマージ
       const mergedParameters = { ...assetInfo.parameters.reduce((acc, param) => {
         acc[param.name] = param.defaultValue;
@@ -355,27 +352,27 @@ export class CustomAssetManager {
       const sandbox = {
         // パラメータを展開
         ...mergedParameters,
-        
+
         // SVG生成のためのヘルパー関数
         createSVGElement: (tagName: string, attributes: Record<string, string | number> = {}, children: string = '') => {
           const attrs = Object.entries(attributes)
             .map(([key, value]) => `${key}="${value}"`)
             .join(' ');
-          return children 
+          return children
             ? `<${tagName} ${attrs}>${children}</${tagName}>`
             : `<${tagName} ${attrs}/>`;
         },
-        
+
         // よく使用されるSVG関数
-        rect: (x: number, y: number, width: number, height: number, fill: string = '#000') => 
+        rect: (x: number, y: number, width: number, height: number, fill: string = '#000') =>
           `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"/>`,
-        circle: (cx: number, cy: number, r: number, fill: string = '#000') => 
+        circle: (cx: number, cy: number, r: number, fill: string = '#000') =>
           `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`,
-        text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') => 
+        text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') =>
           `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${content}</text>`,
-        path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) => 
+        path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) =>
           `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`,
-        
+
         // コンソール出力をキャプチャ
         console: {
           log: (...args: any[]) => console.log('[CustomAsset]', ...args),
@@ -387,7 +384,7 @@ export class CustomAssetManager {
       // コードを実行してSVGを生成
       const vm = require('vm');
       const context = vm.createContext(sandbox);
-      
+
       // コードを実行し、結果を取得
       let result: string;
       try {
@@ -424,9 +421,9 @@ export class CustomAssetManager {
 
       return result;
     } catch (error) {
-      await this.logger.logError('custom_asset_svg_generation', error as Error, { 
-        assetId, 
-        parameters 
+      await this.logger.logError('custom_asset_svg_generation', error as Error, {
+        assetId,
+        parameters
       });
       throw error;
     }
@@ -443,16 +440,16 @@ export class CustomAssetManager {
       if (asset.script) {
         return await this.executeDynamicVectorScript(asset, instance, project, pageIndex);
       }
-      
+
       // CustomAssetの場合は generateCustomAssetSVG を使用
       if (asset.customAssetId) {
         const parameters = asset.customAssetParameters || {};
         return await this.generateCustomAssetSVG(asset.customAssetId, parameters);
       }
-      
+
       throw new Error('No script or customAssetId found in DynamicVectorAsset');
     } catch (error) {
-      await this.logger.logError('dynamic_vector_svg_generation', error as Error, { 
+      await this.logger.logError('dynamic_vector_svg_generation', error as Error, {
         assetId: asset.id,
         assetType: asset.customAssetId ? 'CustomAsset' : 'Script',
         pageIndex
@@ -469,35 +466,35 @@ export class CustomAssetManager {
   ): Promise<string> {
     // 実行コンテキストを作成
     const context = this.createDynamicVectorContext(asset, instance, project, pageIndex);
-    
+
     // Node.jsのvmモジュールを使用してスクリプトを安全に実行
     const vm = require('vm');
     const sandbox = {
       ...context,
-      
+
       // SVG生成のためのヘルパー関数
       createSVGElement: (tagName: string, attributes: Record<string, string | number> = {}, children: string = '') => {
         const attrs = Object.entries(attributes)
           .map(([key, value]) => `${key}="${value}"`)
           .join(' ');
-        return children 
+        return children
           ? `<${tagName} ${attrs}>${children}</${tagName}>`
           : `<${tagName} ${attrs}/>`;
       },
-      
+
       // よく使用されるSVG関数
-      rect: (x: number, y: number, width: number, height: number, fill: string = '#000') => 
+      rect: (x: number, y: number, width: number, height: number, fill: string = '#000') =>
         `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"/>`,
-      circle: (cx: number, cy: number, r: number, fill: string = '#000') => 
+      circle: (cx: number, cy: number, r: number, fill: string = '#000') =>
         `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`,
-      text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') => 
+      text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') =>
         `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${content}</text>`,
-      path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) => 
+      path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) =>
         `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`,
-      
+
       // Math関数
       Math,
-      
+
       // コンソール出力をキャプチャ
       console: {
         log: (...args: any[]) => console.log('[DynamicVector]', ...args),
@@ -507,7 +504,7 @@ export class CustomAssetManager {
     };
 
     const vmContext = vm.createContext(sandbox);
-    
+
     // スクリプトを実行してSVGを生成
     let result: string;
     try {
@@ -558,13 +555,13 @@ export class CustomAssetManager {
     const width = instance?.override_width ?? asset.default_width;
     const height = instance?.override_height ?? asset.default_height;
     const opacity = instance?.override_opacity ?? asset.default_opacity;
-    
+
     // ページ変数
     const pageVariables = {
       page_current: pageIndex + 1,
       page_total: project.pages?.length || 1
     };
-    
+
     // ValueAsset変数
     const valueVariables: Record<string, any> = {};
     if (project.assets) {
@@ -574,25 +571,25 @@ export class CustomAssetManager {
         }
       });
     }
-    
+
     return {
       // アセット情報
       asset_name: asset.name,
       asset_id: asset.id,
-      
+
       // 位置・サイズ情報
       pos_x: posX,
       pos_y: posY,
       width,
       height,
       opacity,
-      
+
       // ページ情報
       ...pageVariables,
-      
+
       // 値アセット変数
       ...valueVariables,
-      
+
       // プロジェクト情報
       canvas_width: project.canvas?.width || 800,
       canvas_height: project.canvas?.height || 600

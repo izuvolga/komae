@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as crypto from 'crypto';
 import './CustomAssetManagementModal.css';
 
 interface CustomAssetInfo {
@@ -62,7 +63,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
 
       if (!result.canceled && result.filePaths.length > 0) {
         const filePath = result.filePaths[0];
-        
+
         setIsLoading(true);
         try {
           const newAsset = await window.electronAPI.customAsset.addAsset(filePath);
@@ -142,7 +143,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
       <div className="custom-asset-management-modal" onClick={(e) => e.stopPropagation()}>
         <div className="custom-asset-management-header">
           <h2>Custom Asset Management</h2>
-          <button 
+          <button
             className="custom-asset-management-close"
             onClick={onClose}
             disabled={isLoading}
@@ -153,14 +154,14 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
 
         <div className="custom-asset-management-content">
           <div className="custom-asset-management-toolbar">
-            <button 
+            <button
               className="custom-asset-add-button"
               onClick={handleAddAsset}
               disabled={isLoading}
             >
               Add Custom Asset
             </button>
-            <button 
+            <button
               className="custom-asset-delete-button"
               onClick={handleDeleteAsset}
               disabled={isLoading || !selectedAssetId}
@@ -181,7 +182,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               ) : (
                 <div className="custom-asset-list">
                   {customAssets.map((asset) => (
-                    <div 
+                    <div
                       key={asset.id}
                       className={`custom-asset-item ${selectedAssetId === asset.id ? 'selected' : ''}`}
                       onClick={() => handleAssetSelect(asset.id)}
@@ -231,7 +232,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                       <label>Description:</label>
                       <span>{selectedAsset.description}</span>
                     </div>
-                    
+
                     {selectedAsset.parameters.length > 0 && (
                       <div className="custom-asset-detail-field">
                         <label>Parameters:</label>
