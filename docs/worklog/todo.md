@@ -55,8 +55,6 @@
       - 同じタイプの AssetInstance の場合は、同じ AssetInstance がペーストされる
       - 異なるタイプの AssetInstance の場合は、エラーメッセージを表示してペーストをしない
 
-
-
 ## 大きめの改善
 - [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
 - [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
