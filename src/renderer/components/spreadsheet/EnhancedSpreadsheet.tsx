@@ -272,8 +272,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
       }
     };
 
-    console.log('Adding mouse event listeners for panning');
-
     container.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
