@@ -153,6 +153,7 @@ handleConfirm関数を見たのですが、以下の処理だけで、なぜ上�
 ```
 
 
+LLMの回答
 ------------------
 
   データフロー全体の仕組み
@@ -212,3 +213,18 @@ handleConfirm関数を見たのですが、以下の処理だけで、なぜ上�
   モーダルが表示される
 
   これがReactの単方向データフローとコールバックパターンの典型例です！
+
+----------
+
+なるほど。AssetLibrary.tsx 側での以下の処理がポイントだったのか。
+このモーダルを呼び出す親コンポーネント側で、onSelectのときに違うモーダルが開くようにしているんですね。
+
+```
+      {/* CustomAsset選択モーダル */}
+      <CustomAssetSelectionModal
+        isOpen={showCustomAssetSelectionModal}
+        onClose={handleCustomAssetSelectionModalClose}
+        onSelect={handleCustomAssetSelect}
+      />
+```
+
