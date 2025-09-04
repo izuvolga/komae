@@ -6,11 +6,11 @@ import { FileSystemService } from './FileSystemService';
 import { CustomAssetManager } from './CustomAssetManager';
 import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
-import { 
-  detectDuplicateAssetName, 
-  generateUniqueAssetName, 
+import {
+  detectDuplicateAssetName,
+  generateUniqueAssetName,
   resolveDuplicateAssetConflict,
-  DuplicateResolutionStrategy 
+  DuplicateResolutionStrategy
 } from '../../utils/duplicateAssetHandler';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ProjectData } from '../../types/entities';
 import { createImageAsset, createDefaultTextAsset, createVectorAsset, createDynamicVectorAsset } from '../../types/entities';
@@ -36,12 +36,12 @@ export class AssetManager {
   }
 
   async importAsset(
-    filePath: string, 
-    project?: ProjectData, 
+    filePath: string,
+    project?: ProjectData,
     duplicateStrategy: DuplicateResolutionStrategy = DuplicateResolutionStrategy.AUTO_RENAME
   ): Promise<Asset> {
     const tracker = new PerformanceTracker('asset_import');
-    
+
     try {
       if (!this.currentProjectPath) {
         const error = new Error('No project is currently open. Please open or create a project first.');
@@ -54,7 +54,7 @@ export class AssetManager {
 
       const extension = path.extname(filePath);
       const originalFileName = path.basename(filePath, extension);
-      
+
       await this.logger.logDevelopment('asset_import_start', 'Asset import process started', {
         filePath,
         fileName: originalFileName,
@@ -69,10 +69,10 @@ export class AssetManager {
       // 重複アセット名のハンドリング
       let finalAssetName = originalFileName;
       let shouldReplaceExisting = false;
-      
+
       if (project) {
         const duplicateResult = detectDuplicateAssetName(originalFileName, project);
-        
+
         if (duplicateResult.isDuplicate) {
           await this.logger.logDevelopment('duplicate_asset_detected', 'Duplicate asset name detected', {
             originalName: originalFileName,
@@ -158,10 +158,10 @@ export class AssetManager {
   private async importImageAsset(filePath: string, fileName: string, extension: string): Promise<ImageAsset> {
     // ファイルをプロジェクトにコピー
     const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'images');
-    
+
     // 画像の基本情報を取得（実際の実装では画像ライブラリを使用）
     const imageInfo = await this.getImageInfo(filePath);
-    
+
     // entities.tsのヘルパー関数を使用してImageAssetを作成
     const asset = createImageAsset({
       name: fileName,
@@ -176,7 +176,7 @@ export class AssetManager {
   async createTextAsset(name: string, defaultText: string, project?: ProjectData): Promise<TextAsset> {
     // プロジェクトの多言語設定を取得
     const supportedLanguages = project?.metadata?.supportedLanguages || ['ja'];
-    
+
     // entities.tsのヘルパー関数を使用してTextAssetを作成（新仕様対応）
     const asset = createDefaultTextAsset({
       name: name,
@@ -199,11 +199,11 @@ export class AssetManager {
   async createDynamicVectorAsset(name: string, customAssetId: string): Promise<DynamicVectorAsset> {
     // CustomAssetの詳細情報を取得
     const customAssetInfo = await this.customAssetManager.getCustomAssetInfo(customAssetId);
-    
+
     if (!customAssetInfo) {
       throw new Error(`CustomAsset with ID "${customAssetId}" not found`);
     }
-    
+
     // CustomAssetのパラメータをデフォルト値で初期化
     const customAssetParameters: Record<string, number | string> = {};
     if (customAssetInfo.parameters) {
@@ -211,14 +211,14 @@ export class AssetManager {
         customAssetParameters[param.name] = param.defaultValue;
       });
     }
-    
-    const asset = createDynamicVectorAsset({ 
+
+    const asset = createDynamicVectorAsset({
       name,
       customAssetId, // DynamicVectorAssetは常にCustomAsset
       customAssetInfo: customAssetInfo,
       customAssetParameters: customAssetParameters,
     });
-    
+
     await this.logger.logDevelopment('dynamic_vector_asset_created', 'DynamicVectorAsset created', {
       assetId: asset.id,
       assetName: asset.name,
@@ -228,17 +228,17 @@ export class AssetManager {
       hasCustomAssetInfo: !!asset.customAssetInfo,
       parametersCount: customAssetInfo.parameters?.length || 0,
     });
-    
+
     return asset;
   }
-  
+
   private async importVectorAsset(filePath: string, fileName: string, extension: string): Promise<VectorAsset> {
     // ファイルをプロジェクトにコピー
     const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'vectors');
-    
+
     // SVGの基本情報を取得
     const svgInfo = await this.getSVGInfo(filePath);
-    
+
     // entities.tsのヘルパー関数を使用してVectorAssetを作成
     const asset = createVectorAsset({
       name: fileName,
@@ -253,7 +253,7 @@ export class AssetManager {
 
   async deleteAsset(assetId: string, project?: ProjectData): Promise<void> {
     const tracker = new PerformanceTracker('asset_delete');
-    
+
     try {
       if (!this.currentProjectPath) {
         const error = new Error('No project is currently open. Please open or create a project first.');
@@ -266,15 +266,15 @@ export class AssetManager {
 
       // プロジェクトデータからアセット情報を取得
       let assetInfo: { name?: string; filePath?: string; type?: string } = { name: assetId };
-      
+
       if (project?.assets[assetId]) {
         const asset = project.assets[assetId];
         assetInfo = {
           name: asset.name,
-          filePath: asset.type === 'ImageAsset' 
-            ? asset.original_file_path 
-            : asset.type === 'VectorAsset' 
-              ? asset.original_file_path 
+          filePath: asset.type === 'ImageAsset'
+            ? asset.original_file_path
+            : asset.type === 'VectorAsset'
+              ? asset.original_file_path
               : undefined,
           type: asset.type,
         };
@@ -289,11 +289,11 @@ export class AssetManager {
       });
 
       // 物理ファイルを削除（ImageAssetとVectorAssetの場合のみ、DynamicVectorAssetは除外）
-      if (assetInfo.filePath && project?.assets[assetId]?.type && 
+      if (assetInfo.filePath && project?.assets[assetId]?.type &&
           (project.assets[assetId].type === 'ImageAsset' || project.assets[assetId].type === 'VectorAsset')) {
         try {
           await deleteAssetFromProject(this.currentProjectPath, assetInfo.filePath);
-          
+
           await this.logger.logDevelopment('asset_file_deleted', 'Asset file deleted from filesystem', {
             assetId,
             deletedPath: assetInfo.filePath,
@@ -305,7 +305,7 @@ export class AssetManager {
             filePath: assetInfo.filePath,
             projectPath: this.currentProjectPath,
           });
-          
+
           // ファイルが見つからない場合は警告のみ、その他のエラーは再スロー
           if (!fileError || !(fileError as any).message?.includes('not found')) {
             throw fileError;
@@ -362,7 +362,7 @@ export class AssetManager {
       });
 
       const assetsDir = path.join(this.currentProjectPath, 'assets');
-      
+
       // assetsディレクトリが存在しない場合は何もしない
       if (!(await this.fileSystemService.exists(assetsDir))) {
         await this.logger.logDevelopment('assets_dir_not_found', 'Assets directory not found', {
@@ -373,7 +373,7 @@ export class AssetManager {
 
       // プロジェクトファイルで参照されているファイルパスのセットを作成
       const referencedFiles = new Set<string>();
-      
+
       for (const asset of Object.values(projectData.assets)) {
         if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
           // original_file_pathが相対パスの場合、絶対パスに変換
@@ -401,8 +401,8 @@ export class AssetManager {
         deletedFiles,
       }, true);
 
-      await tracker.end({ 
-        success: true, 
+      await tracker.end({
+        success: true,
         deletedCount: deletedFiles.length,
       });
 
@@ -413,11 +413,11 @@ export class AssetManager {
         projectPath: this.currentProjectPath,
       });
 
-      await tracker.end({ 
-        success: false, 
+      await tracker.end({
+        success: false,
         error: error instanceof Error ? error.message : String(error),
       });
-      
+
       throw error;
     }
   }
@@ -438,7 +438,7 @@ export class AssetManager {
           // サブディレクトリを再帰的にスキャン
           const deletedFromSubdir = await this.scanAndCleanupDirectory(fullPath, referencedFiles);
           deletedFiles.push(...deletedFromSubdir);
-          
+
           // ディレクトリが空になった場合は削除
           try {
             const remainingEntries = await readdir(fullPath);
@@ -451,14 +451,14 @@ export class AssetManager {
           } catch (error) {
             // ディレクトリ削除エラーは無視
           }
-          
+
         } else if (entry.isFile()) {
           // ファイルが参照されているかチェック
           if (!referencedFiles.has(fullPath)) {
             try {
               await this.fileSystemService.deleteFile(fullPath);
               deletedFiles.push(fullPath);
-              
+
               await this.logger.logDevelopment('unreferenced_file_deleted', 'Deleted unreferenced file', {
                 filePath: fullPath,
               });
@@ -489,9 +489,9 @@ export class AssetManager {
       const imageBuffer = fs.readFileSync(filePath);
       const dimensions = imageSize(imageBuffer);
       if (dimensions.width && dimensions.height) {
-        return { 
-          width: dimensions.width, 
-          height: dimensions.height 
+        return {
+          width: dimensions.width,
+          height: dimensions.height
         };
       } else {
         throw new Error('Unable to determine image dimensions');
@@ -502,31 +502,31 @@ export class AssetManager {
       return { width: 800, height: 600 };
     }
   }
-  
+
   private async getSVGInfo(filePath: string): Promise<{ width: number; height: number; content: string }> {
     try {
       const svgContent = fs.readFileSync(filePath, 'utf8');
-      
+
       // SVGの<svg>タグからwidth/height属性を抽出
       const svgMatch = svgContent.match(/<svg[^>]*>/i);
       if (!svgMatch) {
         throw new Error('Invalid SVG file: no <svg> tag found');
       }
-      
+
       const svgTag = svgMatch[0];
-      
+
       // width/height属性を抽出
       const widthMatch = svgTag.match(/width\s*=\s*["']?([^"'\s>]+)["']?/i);
       const heightMatch = svgTag.match(/height\s*=\s*["']?([^"'\s>]+)["']?/i);
-      
+
       let width = 800;
       let height = 600;
-      
+
       if (widthMatch && heightMatch) {
         // 単位を除去して数値を抽出
         const widthValue = parseFloat(widthMatch[1].replace(/[^\d.-]/g, ''));
         const heightValue = parseFloat(heightMatch[1].replace(/[^\d.-]/g, ''));
-        
+
         if (!isNaN(widthValue) && !isNaN(heightValue)) {
           width = Math.round(widthValue);
           height = Math.round(heightValue);
@@ -539,7 +539,7 @@ export class AssetManager {
           if (viewBoxValues.length === 4) {
             const viewBoxWidth = parseFloat(viewBoxValues[2]);
             const viewBoxHeight = parseFloat(viewBoxValues[3]);
-            
+
             if (!isNaN(viewBoxWidth) && !isNaN(viewBoxHeight)) {
               width = Math.round(viewBoxWidth);
               height = Math.round(viewBoxHeight);
@@ -547,7 +547,7 @@ export class AssetManager {
           }
         }
       }
-      
+
       return { width, height, content: svgContent };
     } catch (error) {
       console.warn(`Failed to parse SVG dimensions from ${filePath}:`, error);

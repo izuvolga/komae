@@ -228,3 +228,89 @@ LLMの回答
       />
 ```
 
+----------
+
+CustomAssetManagementModal.ts では以下のようにして、CustomAssetのパラメータ情報を取得している。
+
+```
+  // CustomAssetのパラメータ情報を取得（配列として処理）
+  const customAssetParameters = asset.customAssetInfo?.parameters || [];
+  const hasParameters = Array.isArray(customAssetParameters) && customAssetParameters.length > 0;
+```
+
+hasParameters が存在しないと、編集画面がでないらしい。
+なんで存在しないんだろう？
+
+createDynamicVectorAsset 関数で作成をしているが customAssetInfo は設定しているようには見える。
+
+```
+  async createDynamicVectorAsset(name: string, customAssetId: string): Promise<DynamicVectorAsset> {
+    // CustomAssetの詳細情報を取得
+    const customAssetInfo = await this.customAssetManager.getCustomAssetInfo(customAssetId);
+
+    if (!customAssetInfo) {
+      throw new Error(`CustomAsset with ID "${customAssetId}" not found`);
+    }
+
+    // CustomAssetのパラメータをデフォルト値で初期化
+    const customAssetParameters: Record<string, number | string> = {};
+    if (customAssetInfo.parameters) {
+      customAssetInfo.parameters.forEach((param: any) => {
+        customAssetParameters[param.name] = param.defaultValue;
+      });
+    }
+
+    const asset = createDynamicVectorAsset({
+      name,
+      customAssetId, // DynamicVectorAssetは常にCustomAsset
+      customAssetInfo: customAssetInfo,
+      customAssetParameters: customAssetParameters,
+    });
+
+    // ...
+
+    return asset;
+  }
+```
+
+ただ、これはあくまで新規作成時だ。
+プロジェクトから読み込むときはどうなっているのだろうか。
+
+```
+assets:
+  dynamic-vector-83a2e3ba-7827-4582-9984-fcfa299f2e50:
+    id: dynamic-vector-83a2e3ba-7827-4582-9984-fcfa299f2e50
+    # ...
+    script: |-
+    # ...
+    use_page_variables: false
+    use_value_variables: false
+    customAssetId: circle
+    customAssetParameters:
+      width: 100
+      height: 60
+      color: '#ff0000'
+    customParameters: {}
+    customAssetInfo:
+      id: circle
+      name: Beautiful Circle
+      type: DynamicVector
+      version: 1.0.0
+      author: Test Author
+      description: A beautiful circle with customizable size and color.
+      parameters:
+        - name: width
+          type: number
+          defaultValue: 100
+        - name: height
+          type: number
+          defaultValue: 60
+        - name: color
+          type: string
+          defaultValue: '#ff0000'
+      filePath: /Users/greymd/Library/Application Support/komae/custom-assets/circle.komae.js
+      addedAt: '2025-08-30T13:46:51.631Z'
+```
+
+なんだかごちゃごちゃ余計な情報が入っているように見えるな。。
+そもそも、filePath 不要だし、customAssetParameters と customParameters が分かれているのも謎。
