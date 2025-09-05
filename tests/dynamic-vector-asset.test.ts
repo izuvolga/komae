@@ -4,7 +4,8 @@ import {
   validateDynamicVectorAssetData,
   validateDynamicVectorAssetInstanceData,
   type DynamicVectorAsset,
-  type DynamicVectorAssetInstance
+  type DynamicVectorAssetInstance,
+  type CustomAsset
 } from '../src/types/entities';
 import { 
   createExecutionContext,
@@ -12,6 +13,26 @@ import {
   type ScriptExecutionResult 
 } from '../src/utils/dynamicVectorEngine';
 import type { ProjectData } from '../src/types/entities';
+
+// テスト用のCustomAssetヘルパー
+const createTestCustomAsset = (overrides: Partial<CustomAsset> = {}): CustomAsset => ({
+  id: 'test-custom-asset',
+  name: 'Test Custom Asset',
+  type: 'DynamicVector',
+  version: '1.0.0',
+  author: 'Test Author',
+  description: 'Test custom asset',
+  width: 100,
+  height: 100,
+  parameters: [
+    { name: 'width', type: 'number', defaultValue: 100 },
+    { name: 'height', type: 'number', defaultValue: 100 }
+  ],
+  script: 'return `<rect width="${width}" height="${height}" fill="blue" />`;',
+  filePath: '/test/path.js',
+  addedAt: '2023-01-01T00:00:00.000Z',
+  ...overrides
+});
 
 // テスト用のプロジェクトデータ
 const mockProject: ProjectData = {
@@ -54,14 +75,13 @@ describe('DynamicVectorAsset', () => {
   describe('createDynamicVectorAsset', () => {
     test('デフォルト値で作成される', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Dynamic SVG',
-        customAssetId: 'test-custom-asset-id',
       });
 
       expect(asset.id).toMatch(/^dynamic-vector-/);
       expect(asset.type).toBe('DynamicVectorAsset');
       expect(asset.name).toBe('Test Dynamic SVG');
-      expect(asset.script).toContain('return');
       expect(asset.use_page_variables).toBe(false);
       expect(asset.use_value_variables).toBe(false);
       expect(asset.default_width).toBe(100);
@@ -72,19 +92,19 @@ describe('DynamicVectorAsset', () => {
 
     test('カスタムパラメータで作成される', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset({
+          width: 200,
+          height: 150,
+          script: 'return `<circle cx="100" cy="75" r="50" fill="green" />`;',
+        }),
         name: 'Custom Dynamic SVG',
-        width: 200,
-        height: 150,
-        script: 'return `<circle cx="100" cy="75" r="50" fill="green" />`;',
         usePageVariables: true,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
       });
 
       expect(asset.name).toBe('Custom Dynamic SVG');
       expect(asset.default_width).toBe(200);
       expect(asset.default_height).toBe(150);
-      expect(asset.script).toBe('return `<circle cx="100" cy="75" r="50" fill="green" />`;');
       expect(asset.use_page_variables).toBe(true);
       expect(asset.use_value_variables).toBe(true);
     });
@@ -96,7 +116,6 @@ describe('DynamicVectorAsset', () => {
         id: 'test-dynamic-vector',
         type: 'DynamicVectorAsset',
         name: 'Test Dynamic SVG',
-        script: 'return `<rect width="100" height="100" fill="red" />`;',
         use_page_variables: false,
         use_value_variables: false,
         default_pos_x: 0,
@@ -105,9 +124,9 @@ describe('DynamicVectorAsset', () => {
         default_height: 100,
         default_opacity: 1,
         default_z_index: 0,
-        customAssetId: 'test-custom-asset-id',
-        customAssetParameters: {},
-        customParameters: {},
+        custom_asset_id: 'test-custom-asset-id',
+        custom_asset_version: '1.0.0',
+        parameters: {},
       };
 
       const result = validateDynamicVectorAssetData(validAsset);
@@ -178,10 +197,10 @@ describe('DynamicVectorEngine', () => {
   describe('createExecutionContext', () => {
     test('基本的なコンテキストを作成できる', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Asset',
         usePageVariables: false,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
@@ -195,10 +214,10 @@ describe('DynamicVectorEngine', () => {
 
     test('ページ変数を含むコンテキストを作成できる', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Asset',
         usePageVariables: true,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 1);
@@ -211,10 +230,10 @@ describe('DynamicVectorEngine', () => {
 
     test('ValueAsset変数を含むコンテキストを作成できる', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Asset',
         usePageVariables: false,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
@@ -228,10 +247,10 @@ describe('DynamicVectorEngine', () => {
 
     test('すべての変数を含むコンテキストを作成できる', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Asset',
         usePageVariables: true,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
       });
 
       const context = createExecutionContext(asset, mockProject, 1);
@@ -343,12 +362,13 @@ describe('DynamicVectorEngine', () => {
 
     test('パラメータ変数バインディングを使用できる', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset({
+          script: 'return `<rect width="${params.width}" height="${params.height}" fill="${params.color}" />`;',
+        }),
         name: 'Parameter Asset',
-        script: 'return `<rect width="${params.width}" height="${params.height}" fill="${params.color}" />`;',
         usePageVariables: true,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
-        customAssetParameters: {
+        parameters: {
           width: 100,
           height: 50,
           color: 'red',
@@ -360,7 +380,10 @@ describe('DynamicVectorEngine', () => {
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
-      const result = executeScript(asset.script, context);
+      const customAsset = createTestCustomAsset({
+        script: 'return `<rect width="${params.width}" height="${params.height}" fill="${params.color}" />`;',
+      });
+      const result = executeScript(customAsset.script, context);
 
       expect(result.success).toBe(true);
       expect(result.svgContent).toContain('width="1"'); // page_current = 1
@@ -370,12 +393,13 @@ describe('DynamicVectorEngine', () => {
 
     test('存在しない変数バインディングは固定値にフォールバックする', () => {
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset({
+          script: 'return `<circle r="${params.radius}" fill="${params.color}" />`;',
+        }),
         name: 'Fallback Asset',
-        script: 'return `<circle r="${params.radius}" fill="${params.color}" />`;',
         usePageVariables: true,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
-        customAssetParameters: {
+        parameters: {
           radius: 25,
           color: 'blue',
         },
@@ -385,7 +409,10 @@ describe('DynamicVectorEngine', () => {
       });
 
       const context = createExecutionContext(asset, mockProject, 0);
-      const result = executeScript(asset.script, context);
+      const customAsset = createTestCustomAsset({
+        script: 'return `<circle r="${params.radius}" fill="${params.color}" />`;',
+      });
+      const result = executeScript(customAsset.script, context);
 
       expect(result.success).toBe(true);
       expect(result.svgContent).toContain('r="25"'); // 固定値にフォールバック

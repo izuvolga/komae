@@ -324,16 +324,17 @@ export const AssetLibrary: React.FC = () => {
         currentAssetCount: assetList.length,
       });
 
-      // CustomAssetベースのDynamicVectorAssetを作成（常にCustomAsset）
+      // CustomAssetの完全なオブジェクトを取得
+      const customAsset = await window.electronAPI.customAsset.getAsset(customAssetInfo.id);
+      
+      if (!customAsset) {
+        throw new Error(`CustomAsset with ID "${customAssetInfo.id}" not found`);
+      }
+
+      // CustomAssetベースのDynamicVectorAssetを作成
       const result = createDynamicVectorAsset({
+        customAsset, // 完全なCustomAssetオブジェクトを渡す
         name: `${customAssetInfo.name} (Dynamic SVG)`,
-        customAssetId: customAssetInfo.id, // 必須パラメータ
-        // CustomAssetのパラメータをデフォルト値で初期化
-        customAssetParameters: customAssetInfo.parameters.reduce((params: Record<string, any>, param: any) => {
-          params[param.name] = param.defaultValue;
-          return params;
-        }, {}),
-        customAssetInfo: customAssetInfo,
       });
       
       addAsset(result);

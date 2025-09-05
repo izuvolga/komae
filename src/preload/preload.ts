@@ -92,6 +92,9 @@ const electronAPI = {
     
     getAssetInfo: (assetId: string) => 
       ipcRenderer.invoke('customAsset:getAssetInfo', assetId),
+
+    getAsset: (assetId: string) => 
+      ipcRenderer.invoke('customAsset:getAsset', assetId),
     
     getAssetCode: (assetId: string) => 
       ipcRenderer.invoke('customAsset:getAssetCode', assetId),

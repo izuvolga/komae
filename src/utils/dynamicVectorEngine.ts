@@ -396,15 +396,15 @@ export function createExecutionContext(
   }
 
   // CustomAssetのパラメータ（まず固定値を設定）
-  if (asset.customAssetParameters) {
-    context.params = { ...asset.customAssetParameters };
+  if (asset.parameters) {
+    context.params = { ...asset.parameters };
   } else {
     context.params = {};
   }
 
   // パラメータ変数バインディングの処理（固定値を上書き）
-  if (asset.parameterVariableBindings) {
-    for (const [paramName, variableBinding] of Object.entries(asset.parameterVariableBindings)) {
+  if (asset.parameter_variable_bindings) {
+    for (const [paramName, variableBinding] of Object.entries(asset.parameter_variable_bindings)) {
       try {
         if (variableBinding === 'page_current') {
           context.params[paramName] = context.page_current;

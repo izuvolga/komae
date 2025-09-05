@@ -197,26 +197,16 @@ export class AssetManager {
   }
 
   async createDynamicVectorAsset(name: string, customAssetId: string): Promise<DynamicVectorAsset> {
-    // CustomAssetの詳細情報を取得
-    const customAssetInfo = await this.customAssetManager.getCustomAssetInfo(customAssetId);
+    // CustomAssetの完全なオブジェクトを取得
+    const customAsset = await this.customAssetManager.getCustomAsset(customAssetId);
 
-    if (!customAssetInfo) {
+    if (!customAsset) {
       throw new Error(`CustomAsset with ID "${customAssetId}" not found`);
     }
 
-    // CustomAssetのパラメータをデフォルト値で初期化
-    const customAssetParameters: Record<string, number | string> = {};
-    if (customAssetInfo.parameters) {
-      customAssetInfo.parameters.forEach((param: any) => {
-        customAssetParameters[param.name] = param.defaultValue;
-      });
-    }
-
     const asset = createDynamicVectorAsset({
+      customAsset, // CustomAssetオブジェクトを直接渡す
       name,
-      customAssetId, // DynamicVectorAssetは常にCustomAsset
-      customAssetInfo: customAssetInfo,
-      customAssetParameters: customAssetParameters,
     });
 
     await this.logger.logDevelopment('dynamic_vector_asset_created', 'DynamicVectorAsset created', {
@@ -224,9 +214,8 @@ export class AssetManager {
       assetName: asset.name,
       usePageVariables: asset.use_page_variables,
       useValueVariables: asset.use_value_variables,
-      customAssetId: asset.customAssetId,
-      hasCustomAssetInfo: !!asset.customAssetInfo,
-      parametersCount: customAssetInfo.parameters?.length || 0,
+      customAssetId: asset.custom_asset_id,
+      parametersCount: Object.keys(customAsset.parameters).length,
     });
 
     return asset;

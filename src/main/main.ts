@@ -463,6 +463,15 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('customAsset:getAsset', async (event, assetId: string) => {
+      try {
+        return await this.customAssetManager.getCustomAsset(assetId);
+      } catch (error) {
+        console.error('Failed to get custom asset:', error);
+        throw error;
+      }
+    });
+
     ipcMain.handle('customAsset:getAssetCode', async (event, assetId: string) => {
       try {
         return await this.customAssetManager.getCustomAssetCode(assetId);

@@ -1,4 +1,4 @@
-import { ProjectData, Asset, Page, AssetInstance } from '../../src/types/entities';
+import { ProjectData, Asset, Page, AssetInstance, CustomAsset, DynamicVectorAsset } from '../../src/types/entities';
 
 export const mockImageAsset: Asset = {
   id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
@@ -66,6 +66,60 @@ export const mockValueAsset: Asset = {
   value_type: 'number',
   initial_value: 0,
   new_page_behavior: 'reset',
+};
+
+export const mockCustomAsset: CustomAsset = {
+  id: 'test-custom-asset-id',
+  name: 'Test Circle',
+  type: 'DynamicVector',
+  version: '1.0.0',
+  author: 'Test Author',
+  description: 'A test circle for unit testing',
+  width: 800,
+  height: 600,
+  parameters: [
+    {
+      name: 'radius',
+      type: 'number',
+      defaultValue: 50,
+      description: 'Circle radius'
+    },
+    {
+      name: 'color',
+      type: 'string',
+      defaultValue: '#ff0000',
+      description: 'Circle color'
+    }
+  ],
+  script: `
+function generateSVG() {
+  const circle = \`<circle cx="400" cy="300" r="\${radius}" fill="\${color}" />\`;
+  return circle;
+}
+return generateSVG();
+  `,
+  filePath: '/test/path/circle.komae.js',
+  addedAt: '2023-08-30T00:00:00.000Z',
+};
+
+export const mockDynamicVectorAsset: DynamicVectorAsset = {
+  id: 'dynamic-vector-test-id',
+  type: 'DynamicVectorAsset',
+  name: 'Test Dynamic SVG',
+  default_pos_x: 0,
+  default_pos_y: 0,
+  default_width: 800,
+  default_height: 600,
+  default_opacity: 1,
+  default_z_index: 0,
+  custom_asset_id: 'test-custom-asset-id',
+  custom_asset_version: '1.0.0',
+  parameters: {
+    radius: 50,
+    color: '#ff0000'
+  },
+  use_page_variables: false,
+  use_value_variables: false,
 };
 
 export const mockPage1: Page = {

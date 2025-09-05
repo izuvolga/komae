@@ -53,6 +53,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
   // パラメータ値の状態管理
   const [parameterValues, setParameterValues] = useState<Record<string, number | string>>({});
+  
+  // CustomAssetの状態管理
+  const [customAsset, setCustomAsset] = useState<any>(null);
 
   // バリデーション状態
   const [zIndexValidation, setZIndexValidation] = useState<{
@@ -64,14 +67,30 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // CustomAssetを取得するuseEffect
+  useEffect(() => {
+    const fetchCustomAsset = async () => {
+      if (asset.custom_asset_id) {
+        try {
+          const customAssetData = await window.electronAPI.customAsset.getAsset(asset.custom_asset_id);
+          setCustomAsset(customAssetData);
+        } catch (error) {
+          console.error('Failed to fetch custom asset:', error);
+        }
+      }
+    };
+
+    fetchCustomAsset();
+  }, [asset.custom_asset_id]);
+
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
 
     // CustomAssetのパラメータ値を初期化
     const initialParams: Record<string, number | string> = {};
-    if (asset.customAssetParameters) {
-      Object.entries(asset.customAssetParameters).forEach(([key, value]) => {
+    if (asset.parameters) {
+      Object.entries(asset.parameters).forEach(([key, value]) => {
         initialParams[key] = value;
       });
     }
@@ -87,22 +106,24 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     executionTimerRef.current = setTimeout(() => {
       executeScript();
     }, 300);
-  }, []);
+  }, [customAsset, parameterValues]);
 
   useEffect(() => {
-    scheduleExecution();
+    if (customAsset && customAsset.script) {
+      scheduleExecution();
+    }
     return () => {
       if (executionTimerRef.current) {
         clearTimeout(executionTimerRef.current);
       }
     };
-  }, [parameterValues, editedAsset.script, scheduleExecution]);
+  }, [parameterValues, customAsset, scheduleExecution]);
 
   if (!isOpen || !project) return null;
 
   // スクリプト実行関数
   const executeScript = () => {
-    if (!editedAsset.script.trim()) {
+    if (!customAsset || !customAsset.script || !customAsset.script.trim()) {
       setSvgResult({ svg: null, error: null });
       return;
     }
@@ -137,7 +158,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       }
 
       // スクリプト実行
-      const scriptFunction = new Function(...Object.keys(scriptParameters), editedAsset.script);
+      const scriptFunction = new Function(...Object.keys(scriptParameters), customAsset.script);
       const result = scriptFunction(...Object.values(scriptParameters));
 
       if (typeof result === 'string') {
@@ -277,7 +298,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     } else if (mode === 'asset') {
       const updatedAsset = {
         ...editedAsset,
-        customAssetParameters: { ...parameterValues },
+        parameters: { ...parameterValues },
       };
 
       const validation = validateDynamicVectorAssetData(updatedAsset);
@@ -305,8 +326,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     : `DynamicVectorAsset 編集: ${asset.name}`;
 
   // CustomAssetのパラメータ情報を取得（配列として処理）
-  const customAssetParameters = asset.customAssetInfo?.parameters || [];
-  const hasParameters = Array.isArray(customAssetParameters) && customAssetParameters.length > 0;
+  const assetParameters = asset.parameters || {};
+  const hasParameters = Object.keys(assetParameters).length > 0;
 
   return (
     <div className="dve-modal-overlay">
@@ -398,43 +419,46 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <div className="dve-parameters-section">
                     <span>@parameters</span>
                     <div className="dve-parameters-list">
-                      {customAssetParameters.map((paramDef: any, index: number) => (
-                        <div key={paramDef.name || `param-${index}`} className="dve-parameter-row">
-                          <div className="dve-parameter-info">
-                            <label className="dve-parameter-name">{paramDef.name || `param_${index}`}</label>
-                            <span className="dve-parameter-type">({paramDef.type || 'any'})</span>
-                          </div>
-                          <div className="dve-parameter-input">
-                            {paramDef.type === 'number' ? (
-                              <input
-                                type="number"
-                                value={parameterValues[paramDef.name] || paramDef.default || 0}
-                                onChange={(e) => {
-                                  const value = parseFloat(e.target.value);
-                                  if (!isNaN(value)) {
-                                    handleParameterChange(paramDef.name, value);
+                      {Object.entries(assetParameters).map(([paramName, paramValue], index: number) => {
+                        const isNumber = typeof paramValue === 'number';
+                        return (
+                          <div key={paramName} className="dve-parameter-row">
+                            <div className="dve-parameter-info">
+                              <label className="dve-parameter-name">{paramName}</label>
+                              <span className="dve-parameter-type">({isNumber ? 'number' : 'string'})</span>
+                            </div>
+                            <div className="dve-parameter-input">
+                              {isNumber ? (
+                                <input
+                                  type="number"
+                                  value={parameterValues[paramName] || paramValue || 0}
+                                  onChange={(e) => {
+                                    const value = parseFloat(e.target.value);
+                                    if (!isNaN(value)) {
+                                      handleParameterChange(paramName, value);
+                                      scheduleExecution();
+                                    }
+                                  }}
+                                  onBlur={() => scheduleExecution()}
+                                  className="dve-number-input"
+                                  step="any"
+                                />
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={parameterValues[paramName] || paramValue || ''}
+                                  onChange={(e) => {
+                                    handleParameterChange(paramName, e.target.value);
                                     scheduleExecution();
-                                  }
-                                }}
-                                onBlur={() => scheduleExecution()}
-                                className="dve-number-input"
-                                step="any"
-                              />
-                            ) : (
-                              <input
-                                type="text"
-                                value={parameterValues[paramDef.name] || paramDef.default || ''}
-                                onChange={(e) => {
-                                  handleParameterChange(paramDef.name, e.target.value);
-                                  scheduleExecution();
-                                }}
-                                onBlur={() => scheduleExecution()}
-                                className="dve-text-input"
-                              />
-                            )}
+                                  }}
+                                  onBlur={() => scheduleExecution()}
+                                  className="dve-text-input"
+                                />
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

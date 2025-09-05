@@ -8,6 +8,7 @@ import {
   generateCustomAssetId,
   isValidCustomAssetFilename,
 } from '../../utils/customAssetParser';
+import type { CustomAsset } from '../../types/entities';
 
 export interface CustomAssetInfo {
   id: string;
@@ -332,6 +333,50 @@ export class CustomAssetManager {
     }
   }
 
+  /**
+   * CustomAssetの完全なオブジェクトを取得（DynamicVectorAsset作成用）
+   */
+  async getCustomAsset(assetId: string): Promise<CustomAsset | null> {
+    try {
+      const assetInfo = await this.getCustomAssetInfo(assetId);
+      if (!assetInfo) {
+        return null;
+      }
+
+      const fileContent = fs.readFileSync(assetInfo.filePath, 'utf-8');
+      const parsedAsset = parseCustomAsset(fileContent);
+
+      // parametersをCustomAssetParameter[]形式に変換
+      const customAssetParameters = assetInfo.parameters.map(param => ({
+        name: param.name,
+        type: param.type as 'number' | 'string' | 'boolean',
+        defaultValue: param.defaultValue,
+        description: undefined,
+      }));
+
+      // CustomAssetInfoとparsedAssetを統合してCustomAssetオブジェクトを作成
+      const customAsset: CustomAsset = {
+        id: assetInfo.id,
+        name: assetInfo.name,
+        type: 'DynamicVector' as const,
+        version: assetInfo.version,
+        author: assetInfo.author,
+        description: assetInfo.description,
+        width: 800, // デフォルト値
+        height: 600, // デフォルト値
+        parameters: customAssetParameters,
+        script: parsedAsset.code,
+        filePath: assetInfo.filePath,
+        addedAt: assetInfo.addedAt,
+      };
+
+      return customAsset;
+    } catch (error) {
+      await this.logger.logError('custom_asset_get', error as Error, { assetId });
+      return null;
+    }
+  }
+
   async generateCustomAssetSVG(assetId: string, parameters: Record<string, any>): Promise<string> {
     try {
       const assetInfo = await this.getCustomAssetInfo(assetId);
@@ -436,22 +481,22 @@ export class CustomAssetManager {
     pageIndex: number = 0
   ): Promise<string> {
     try {
-      // DynamicVectorAssetの場合は既存のscriptを実行
-      if (asset.script) {
-        return await this.executeDynamicVectorScript(asset, instance, project, pageIndex);
+      // DynamicVectorAssetは常にCustomAssetなので、CustomAssetからスクリプトを実行
+      if (asset.custom_asset_id) {
+        const customAssetInfo = await this.getCustomAssetInfo(asset.custom_asset_id);
+        if (!customAssetInfo) {
+          throw new Error(`CustomAsset with ID "${asset.custom_asset_id}" not found`);
+        }
+        
+        const parameters = asset.parameters || {};
+        return await this.generateCustomAssetSVG(asset.custom_asset_id, parameters);
       }
 
-      // CustomAssetの場合は generateCustomAssetSVG を使用
-      if (asset.customAssetId) {
-        const parameters = asset.customAssetParameters || {};
-        return await this.generateCustomAssetSVG(asset.customAssetId, parameters);
-      }
-
-      throw new Error('No script or customAssetId found in DynamicVectorAsset');
+      throw new Error('No custom_asset_id found in DynamicVectorAsset');
     } catch (error) {
       await this.logger.logError('dynamic_vector_svg_generation', error as Error, {
         assetId: asset.id,
-        assetType: asset.customAssetId ? 'CustomAsset' : 'Script',
+        assetType: asset.custom_asset_id ? 'CustomAsset' : 'Script',
         pageIndex
       });
       throw error;

@@ -21,6 +21,23 @@ const mockProjectManager = {
   loadProject: jest.fn(),
 };
 
+// テスト用のカスタムアセットヘルパー
+const createTestCustomAsset = (id: string = 'test-custom-asset-id') => ({
+  id,
+  name: 'Test Circle',
+  type: 'DynamicVector' as const,
+  version: '1.0.0',
+  width: 800,
+  height: 600,
+  parameters: [
+    { name: 'radius', type: 'number' as const, defaultValue: 50 },
+    { name: 'color', type: 'string' as const, defaultValue: 'blue' }
+  ],
+  script: 'return `<circle cx="100" cy="100" r="${params.radius}" fill="${params.color}" />`;',
+  filePath: '/test/path/circle.komae.js',
+  addedAt: '2023-08-30T00:00:00.000Z',
+});
+
 // テスト用のプロジェクトデータ
 const createTestProject = (): ProjectData => ({
   metadata: {
@@ -35,6 +52,8 @@ const createTestProject = (): ProjectData => ({
     height: 600,
   },
   assets: {},
+  hiddenColumns: [],
+  hiddenRows: [],
   pages: [
     {
       id: 'page-1',
@@ -56,8 +75,22 @@ describe('DynamicVectorAsset Integration Tests', () => {
     // モックの初期化
     jest.clearAllMocks();
     mockAssetManager.createDynamicVectorAsset.mockResolvedValue(createDynamicVectorAsset({
+      customAsset: {
+        id: 'test-custom-asset-id',
+        name: 'Test Circle',
+        type: 'DynamicVector',
+        version: '1.0.0',
+        width: 800,
+        height: 600,
+        parameters: [
+          { name: 'radius', type: 'number', defaultValue: 50 },
+          { name: 'color', type: 'string', defaultValue: '#ff0000' }
+        ],
+        script: 'return `<circle cx="400" cy="300" r="${radius}" fill="${color}" />`;',
+        filePath: '/test/path/circle.komae.js',
+        addedAt: '2023-08-30T00:00:00.000Z',
+      },
       name: 'Test Dynamic SVG',
-      customAssetId: 'test-custom-asset-id',
     }));
     mockAssetManager.deleteAsset.mockResolvedValue({
       success: true,
@@ -85,8 +118,8 @@ describe('DynamicVectorAsset Integration Tests', () => {
     test('DynamicVectorAssetを削除できる', async () => {
       // DynamicVectorAssetの場合、ファイル削除は不要（スクリプトベースのため）
       const asset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Dynamic SVG',
-        customAssetId: 'test-custom-asset-id',
       });
 
       const result = await mockAssetManager.deleteAsset(asset, testProject);
@@ -99,11 +132,10 @@ describe('DynamicVectorAsset Integration Tests', () => {
     test('DynamicVectorAssetを含むプロジェクトを保存・読み込みできる', async () => {
       // DynamicVectorAssetを追加
       const dynamicVectorAsset = createDynamicVectorAsset({
+        customAsset: createTestCustomAsset(),
         name: 'Test Dynamic SVG',
-        script: 'return `<circle cx="50" cy="50" r="25" fill="red" />`;',
         usePageVariables: true,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -121,12 +153,12 @@ describe('DynamicVectorAsset Integration Tests', () => {
   describe('SVG生成統合', () => {
     test('DynamicVectorAssetを含むSVGを生成できる', () => {
       // DynamicVectorAssetを作成
+      const customAsset = createTestCustomAsset();
       const dynamicVectorAsset = createDynamicVectorAsset({
+        customAsset,
         name: 'Dynamic Circle',
-        script: 'return `<circle cx="${page_current * 100}" cy="100" r="50" fill="blue" />`;',
         usePageVariables: true,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -142,6 +174,11 @@ describe('DynamicVectorAsset Integration Tests', () => {
 
       testProject.pages[0].asset_instances[instance.id] = instance;
 
+      // CustomAssetの情報をテスト用に準備
+      const customAssets = {
+        [customAsset.id]: customAsset
+      };
+
       // SVG構造を生成
       const { assetDefinitions, useElements } = generateSvgStructureCommon(
         testProject,
@@ -149,7 +186,8 @@ describe('DynamicVectorAsset Integration Tests', () => {
         () => '', // 画像エンコード関数（DynamicVectorには不要）
         ['ja'],
         'ja',
-        0 // pageIndex
+        0, // pageIndex
+        customAssets // テスト用のCustomAsset情報
       );
 
       // DynamicVectorAssetはインライン要素として生成される
@@ -158,27 +196,31 @@ describe('DynamicVectorAsset Integration Tests', () => {
       // 生成されたSVG要素にスクリプトの実行結果が含まれることを確認
       const svgContent = useElements.join('\n');
       expect(svgContent).toContain('circle');
-      expect(svgContent).toContain('cx="100"'); // page_current = 1 (0-based + 1)
-      expect(svgContent).toContain('cy="100"');
-      expect(svgContent).toContain('fill="blue"');
+      expect(svgContent).toContain('cx="100"'); // CustomAssetのスクリプトで設定
+      expect(svgContent).toContain('cy="100"'); // CustomAssetのスクリプトで設定
+      expect(svgContent).toContain('fill="blue"'); // CustomAssetのデフォルト値
     });
 
     test('複数のDynamicVectorAssetを含むSVGを生成できる', () => {
       // 複数のDynamicVectorAssetを作成
+      const customAsset1 = createTestCustomAsset('test-custom-asset-id-1');
+      const customAsset2 = {
+        ...createTestCustomAsset('test-custom-asset-id-2'),
+        script: 'return `<text x="50" y="25" font-size="16">Page ${page_current}</text>`;'
+      };
+
       const asset1 = createDynamicVectorAsset({
-        name: 'Dynamic Rect',
-        script: 'return `<rect x="10" y="10" width="80" height="80" fill="red" />`;',
+        customAsset: customAsset1,
+        name: 'Dynamic Circle',
         usePageVariables: false,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id-1',
       });
 
       const asset2 = createDynamicVectorAsset({
+        customAsset: customAsset2,
         name: 'Dynamic Text',
-        script: 'return `<text x="50" y="30" font-size="16">Page ${page_current}</text>`;',
         usePageVariables: true,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id-2',
       });
 
       testProject.assets[asset1.id] = asset1;
@@ -199,6 +241,12 @@ describe('DynamicVectorAsset Integration Tests', () => {
       testProject.pages[0].asset_instances[instance1.id] = instance1;
       testProject.pages[0].asset_instances[instance2.id] = instance2;
 
+      // CustomAssetの情報をテスト用に準備
+      const customAssets = {
+        [customAsset1.id]: customAsset1,
+        [customAsset2.id]: customAsset2
+      };
+
       // SVG構造を生成
       const { useElements } = generateSvgStructureCommon(
         testProject,
@@ -206,16 +254,17 @@ describe('DynamicVectorAsset Integration Tests', () => {
         () => '',
         ['ja'],
         'ja',
-        0
+        0,
+        customAssets // テスト用のCustomAsset情報
       );
 
       expect(useElements.length).toBe(2);
       
       const svgContent = useElements.join('\n');
-      expect(svgContent).toContain('<rect');
-      expect(svgContent).toContain('fill="red"');
+      expect(svgContent).toContain('circle');
+      expect(svgContent).toContain('fill="blue"'); // CustomAsset1のデフォルト色
       expect(svgContent).toContain('<text');
-      expect(svgContent).toContain('Page 1');
+      expect(svgContent).toContain('Page 1'); // page_current = 1
     });
 
     test('ValueAsset変数を使用するDynamicVectorAssetのSVGを生成できる', () => {
@@ -231,13 +280,18 @@ describe('DynamicVectorAsset Integration Tests', () => {
 
       testProject.assets[valueAsset.id] = valueAsset;
 
+      // ValueAsset変数を使用するCustomAssetを作成
+      const customAsset = {
+        ...createTestCustomAsset(),
+        script: 'const counter = values["Counter"]; return `<text x="50" y="30" font-size="24">${counter}</text>`;'
+      };
+
       // ValueAsset変数を使用するDynamicVectorAssetを作成
       const dynamicVectorAsset = createDynamicVectorAsset({
+        customAsset,
         name: 'Value Display',
-        script: 'const count = values["Counter"]; return `<text x="100" y="50" font-size="24">${count}</text>`;',
         usePageVariables: false,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -250,6 +304,11 @@ describe('DynamicVectorAsset Integration Tests', () => {
 
       testProject.pages[0].asset_instances[instance.id] = instance;
 
+      // CustomAssetの情報をテスト用に準備
+      const customAssets = {
+        [customAsset.id]: customAsset
+      };
+
       // SVG構造を生成
       const { useElements } = generateSvgStructureCommon(
         testProject,
@@ -257,7 +316,8 @@ describe('DynamicVectorAsset Integration Tests', () => {
         () => '',
         ['ja'],
         'ja',
-        0
+        0,
+        customAssets // テスト用のCustomAsset情報
       );
 
       const svgContent = useElements.join('\n');
@@ -268,12 +328,17 @@ describe('DynamicVectorAsset Integration Tests', () => {
 
   describe('エラーケース統合テスト', () => {
     test('スクリプトエラーがあるDynamicVectorAssetは空要素を生成する', () => {
+      // エラーのあるスクリプトを持つCustomAssetを作成
+      const customAsset = {
+        ...createTestCustomAsset(),
+        script: 'return invalidVariable;' // 未定義変数でエラーを発生させる
+      };
+
       const dynamicVectorAsset = createDynamicVectorAsset({
+        customAsset,
         name: 'Broken Script',
-        script: 'return invalidFunction();', // エラーを発生させる
         usePageVariables: false,
         useValueVariables: false,
-        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -284,6 +349,11 @@ describe('DynamicVectorAsset Integration Tests', () => {
       };
 
       testProject.pages[0].asset_instances[instance.id] = instance;
+
+      // CustomAssetの情報をテスト用に準備
+      const customAssets = {
+        [customAsset.id]: customAsset
+      };
 
       // SVG構造を生成（エラーが発生しても処理が継続される）
       const { useElements } = generateSvgStructureCommon(
@@ -292,7 +362,8 @@ describe('DynamicVectorAsset Integration Tests', () => {
         () => '',
         ['ja'],
         'ja',
-        0
+        0,
+        customAssets // テスト用のCustomAsset情報
       );
 
       // エラーの場合はnullが返され、要素は生成されない
@@ -300,12 +371,17 @@ describe('DynamicVectorAsset Integration Tests', () => {
     });
 
     test('存在しないValueAssetを参照するスクリプトのエラーハンドリング', () => {
+      // 存在しないValueAssetを参照するスクリプトを持つCustomAssetを作成
+      const customAsset = {
+        ...createTestCustomAsset(),
+        script: 'const missingValue = values["NonExistentValue"]; return `<text x="50" y="30">${missingValue}</text>`;'
+      };
+
       const dynamicVectorAsset = createDynamicVectorAsset({
+        customAsset,
         name: 'Missing Value Reference',
-        script: 'const missing = values["NonExistent"]; return `<text x="50" y="30">${missing}</text>`;',
         usePageVariables: false,
         useValueVariables: true,
-        customAssetId: 'test-custom-asset-id',
       });
 
       testProject.assets[dynamicVectorAsset.id] = dynamicVectorAsset;
@@ -317,6 +393,11 @@ describe('DynamicVectorAsset Integration Tests', () => {
 
       testProject.pages[0].asset_instances[instance.id] = instance;
 
+      // CustomAssetの情報をテスト用に準備
+      const customAssets = {
+        [customAsset.id]: customAsset
+      };
+
       // SVG構造を生成
       const { useElements } = generateSvgStructureCommon(
         testProject,
@@ -324,7 +405,8 @@ describe('DynamicVectorAsset Integration Tests', () => {
         () => '',
         ['ja'],
         'ja',
-        0
+        0,
+        customAssets // テスト用のCustomAsset情報
       );
 
       // 存在しないValueAssetの場合は undefined が値として使用される

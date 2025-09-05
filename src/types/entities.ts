@@ -68,26 +68,51 @@ export interface VectorAsset extends BaseAsset {
   svg_content: string; // SVGの内容をテキストとして保持
 }
 
+// CustomAsset関連の型定義（JSファイルから解析される情報）
+export interface CustomAssetParameter {
+  name: string;
+  type: 'number' | 'string' | 'boolean';
+  defaultValue: any;
+  description?: string;
+}
+
+export interface CustomAsset {
+  id: string;
+  name: string;
+  type: 'DynamicVector';
+  version: string;
+  author?: string;
+  description?: string;
+  width: number;      // キャンバス幅（@widthから取得）
+  height: number;     // キャンバス高さ（@heightから取得）
+  parameters: CustomAssetParameter[];
+  script: string;     // JavaScript実行コード
+  filePath: string;   // 元ファイルパス（管理用）
+  addedAt: string;    // 追加日時
+}
+
 export interface DynamicVectorAsset extends BaseAsset {
   type: 'DynamicVectorAsset';
+  
+  // 配置・表示設定
   default_pos_x: number;
   default_pos_y: number;
-  default_width: number;
-  default_height: number;
+  default_width: number;  // CustomAssetの@widthから取得されるデフォルトサイズ
+  default_height: number; // CustomAssetの@heightから取得されるデフォルトサイズ
   default_opacity: number;
   default_z_index: number;
-  script: string; // JavaScriptスクリプトの内容
+  
+  // CustomAssetリンク
+  custom_asset_id: string;         // 参照するCustomAssetのID（必須）
+  custom_asset_version: string;    // バージョン情報（互換性チェック用）
+  
+  // パラメータ値設定
+  parameters: Record<string, number | string>; // パラメータ名 -> 値
+  
+  // 変数機能
   use_page_variables: boolean; // page_current, page_totalの利用可否
   use_value_variables: boolean; // ValueAssetの変数利用可否
-  
-  // CustomAsset関連フィールド（常にCustomAssetとして扱う）
-  customAssetId: string; // CustomAssetのID（必須）
-  customAssetParameters?: Record<string, number | string>; // CustomAssetのパラメータ値
-  customParameters?: Record<string, number | string>; // CustomAssetのパラメータ値（別名）
-  customAssetInfo?: any; // CustomAssetの情報
-  
-  // パラメータ変数バインディング（パラメータ名 -> ValueAsset名のマッピング）
-  parameterVariableBindings?: Record<string, string>;
+  parameter_variable_bindings?: Record<string, string>; // パラメータ名 -> ValueAsset名
 }
 
 export interface ValueAsset extends BaseAsset {
@@ -799,56 +824,49 @@ export function createVectorAsset(params: {
 
 /**
  * DynamicVectorAssetの初期データを作成
+ * CustomAssetから新しいDynamicVectorAssetインスタンスを生成する
  */
 export function createDynamicVectorAsset(params: {
-  name: string;
-  width?: number;
-  height?: number;
-  script?: string;
+  customAsset: CustomAsset;  // CustomAssetを直接受け取る
+  name?: string;             // オーバーライド可能
+  parameters?: Record<string, number | string>; // パラメータ値オーバーライド
   usePageVariables?: boolean;
   useValueVariables?: boolean;
-  customAssetId: string; // 必須パラメータに変更
-  customAssetParameters?: Record<string, number | string>;
-  customParameters?: Record<string, number | string>;
-  customAssetInfo?: any;
   parameterVariableBindings?: Record<string, string>;
 }): DynamicVectorAsset {
-  const defaultScript = `// DynamicVectorAsset スクリプト
-// 戻り値はSVG文字列である必要があります
-// 利用可能な変数:
-// - page_current: 現在のページ番号 (use_page_variables が有効な場合)
-// - page_total: 総ページ数 (use_page_variables が有効な場合)
-// - ValueAssetの名前: 対応する値 (use_value_variables が有効な場合)
-
-function generateSVG() {
-  const rect = \`<rect x="10" y="10" width="100" height="100" fill="blue" />\`;
-  return rect;
-}
-
-return generateSVG();`;
+  // CustomAssetParameterからデフォルト値を作成
+  const defaultParameters = params.customAsset.parameters.reduce((acc, param) => ({
+    ...acc,
+    [param.name]: param.defaultValue
+  }), {} as Record<string, number | string>);
 
   return {
     id: `dynamic-vector-${uuidv4()}`,
     type: 'DynamicVectorAsset',
-    name: params.name,
-    default_pos_x: 50,
-    default_pos_y: 50,
-    default_width: params.width || 100,
-    default_height: params.height || 100,
+    name: params.name || `${params.customAsset.name} (Dynamic SVG)`,
+    
+    // 配置・サイズ設定（CustomAssetの@width/@heightをデフォルトサイズとして使用）
+    default_pos_x: 0,
+    default_pos_y: 0,
+    default_width: params.customAsset.width,   // CustomAssetの@widthを使用
+    default_height: params.customAsset.height, // CustomAssetの@heightを使用
     default_opacity: 1.0,
     default_z_index: 0,
-    script: params.script || defaultScript,
+    
+    // CustomAssetリンク
+    custom_asset_id: params.customAsset.id,
+    custom_asset_version: params.customAsset.version,
+    
+    // パラメータ値（デフォルト値 + オーバーライド）
+    parameters: {
+      ...defaultParameters,
+      ...params.parameters
+    },
+    
+    // 変数機能
     use_page_variables: params.usePageVariables || false,
     use_value_variables: params.useValueVariables || false,
-    
-    // CustomAsset関連（常にCustomAssetとして扱う）
-    customAssetId: params.customAssetId, // 必須フィールド
-    customAssetParameters: params.customAssetParameters || {},
-    customParameters: params.customParameters || {},
-    customAssetInfo: params.customAssetInfo,
-    
-    // パラメータ変数バインディング
-    parameterVariableBindings: params.parameterVariableBindings,
+    parameter_variable_bindings: params.parameterVariableBindings,
   };
 }
 
@@ -1167,14 +1185,14 @@ export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
     errors.push('アセット名は必須です。');
   }
   
-  // DynamicVectorAssetは常にCustomAssetなので、customAssetIdの必須チェック
-  if (!asset.customAssetId || asset.customAssetId.trim() === '') {
+  // DynamicVectorAssetは常にCustomAssetなので、custom_asset_idの必須チェック
+  if (!asset.custom_asset_id || asset.custom_asset_id.trim() === '') {
     errors.push('CustomAsset IDは必須です。');
   }
   
   // カスタムアセットパラメータの基本チェック（存在する場合）
-  if (asset.customAssetParameters) {
-    for (const [key, value] of Object.entries(asset.customAssetParameters)) {
+  if (asset.parameters) {
+    for (const [key, value] of Object.entries(asset.parameters)) {
       if (typeof value !== 'string' && typeof value !== 'number') {
         errors.push(`カスタムアセットパラメータ "${key}" の値は文字列または数値である必要があります。`);
       }
