@@ -244,6 +244,7 @@ function wrapDynamicVectorSVG(
   const x = instance.override_pos_x ?? asset.default_pos_x;
   const y = instance.override_pos_y ?? asset.default_pos_y;
   const z_index = instance.override_z_index ?? asset.default_z_index;
+  const opacity = instance.override_opacity ?? asset.default_opacity;
   const width = instance.override_width ?? asset.default_width;
   const height = instance.override_height ?? asset.default_height;
   const originalWidth = asset.original_width;
@@ -261,7 +262,8 @@ function wrapDynamicVectorSVG(
     y="${adjustedY}px"
     width="${originalWidth}px"
     height="${originalHeight}px"
-    transform="scale(${width / originalWidth}, ${height / originalHeight})">
+    transform="scale(${width / originalWidth}, ${height / originalHeight})"
+    style="opacity: ${opacity};">
     ${svgContent}
   </svg>`;
   return content;
