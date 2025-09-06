@@ -59,3 +59,35 @@ translate をしている。
 
 g 要素、x, y は設定できないため transform を使わないといけないらしい。
 
+svgGeneratorCommon.ts に宣言されている。
+
+```
+/**
+ * DynamicVectorAssetのSVG要素を生成する
+ */
+function generateDynamicVectorSVGElement(
+  asset: DynamicVectorAsset, 
+  instance: DynamicVectorAssetInstance, 
+  svgContent: string
+): string {
+  const x = instance.override_pos_x ?? asset.default_pos_x ?? 0;
+  const y = instance.override_pos_y ?? asset.default_pos_y ?? 0;
+  const z_index = instance.override_z_index ?? asset.default_z_index ?? 0;
+  const width = instance.override_width ?? asset.default_width ?? 100;
+  const height = instance.override_height ?? asset.default_height ?? 100;
+  
+  // SVGコンテンツを位置に応じてグループ要素として配置
+  return `<g transform="translate(${x}, ${y})" data-z-index="${z_index}" data-asset-id="${asset.id}">
+    ${wrapSVGContent(svgContent, width, height)}
+  </g>`;
+}
+```
+
+
+```
+      // MainプロセスのCustomAssetManager.generateCustomAssetSVGを呼び出し
+      const result = await window.electronAPI.customAsset.generateSVG(
+        customAsset.id,
+        scriptParameters
+      );
+```
