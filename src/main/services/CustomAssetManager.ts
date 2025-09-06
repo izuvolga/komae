@@ -445,11 +445,6 @@ export class CustomAssetManager {
         throw new Error('Custom asset generateSVG function must return a string');
       }
 
-      // SVGタグで囲まれていない場合は追加
-      if (!result.trim().startsWith('<svg')) {
-        result = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${result}</svg>`;
-      }
-
       await this.logger.logDevelopment('custom_asset_svg_generated', 'SVG generated successfully', {
         assetId,
         parametersCount: Object.keys(parameters).length,
