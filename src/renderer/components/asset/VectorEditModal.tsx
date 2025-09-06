@@ -31,7 +31,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   onSaveInstance,
 }) => {
   const project = useProjectStore((state) => state.project);
-  
+
   // 編集中のデータ（モードに応じて切り替え）
   const [editedAsset, setEditedAsset] = useState<VectorAsset>(asset);
   const [editedInstance, setEditedInstance] = useState<VectorAssetInstance | null>(
@@ -44,7 +44,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     error?: string;
     warning?: string;
   }>({ isValid: true });
-  
+
   // マウス操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -167,7 +167,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     const conflicts = otherInstances.filter(inst => {
       const otherAsset = project.assets[inst.asset_id];
       if (!otherAsset) return false;
-      
+
       const effectiveZIndex = getEffectiveZIndex(otherAsset, inst);
       return effectiveZIndex === zIndex;
     });
@@ -202,7 +202,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const currentSize = getCurrentSize();
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
-  
+
+  // TODO: DynamicVectorEditModal にも同様の処理があるので共通化を検討
   // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御
   const wrapSVGWithParentContainer = (svgContent: string, x: number, y: number, width: number, height: number, opacity: number): string => {
     const originalWidth = asset.original_width;
@@ -224,72 +225,72 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         ${svgContent}
     </svg>`;
   };
-  
+
   // ドラッグ操作ハンドラー
   const handlePreviewMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     setIsDragging(true);
     setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({ 
-      x: currentPos.x, 
-      y: currentPos.y, 
-      width: currentSize.width, 
-      height: currentSize.height 
+    setDragStartValues({
+      x: currentPos.x,
+      y: currentPos.y,
+      width: currentSize.width,
+      height: currentSize.height
     });
   };
-  
+
   // リサイズハンドラー
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setIsResizing(true);
     setResizeHandle(handle);
     setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({ 
-      x: currentPos.x, 
-      y: currentPos.y, 
-      width: currentSize.width, 
-      height: currentSize.height 
+    setDragStartValues({
+      x: currentPos.x,
+      y: currentPos.y,
+      width: currentSize.width,
+      height: currentSize.height
     });
   };
-  
+
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
       const deltaX = e.clientX - dragStartPos.x;
       const deltaY = e.clientY - dragStartPos.y;
-      
+
       // キャンバス比率に合わせたスケール計算
       const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
       const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
       const scaleX = canvasWidth / (project?.canvas.width || 800);
       const scaleY = canvasHeight / (project?.canvas.height || 600);
-      
+
       // 位置変更
       const newX = dragStartValues.x + deltaX / scaleX;
       const newY = dragStartValues.y + deltaY / scaleY;
-      
+
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
       const deltaX = e.clientX - dragStartPos.x;
       const deltaY = e.clientY - dragStartPos.y;
-      
+
       // キャンバス比率に合わせたスケール計算
       const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
       const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
       const scaleX = canvasWidth / (project?.canvas.width || 800);
       const scaleY = canvasHeight / (project?.canvas.height || 600);
-      
+
       let newWidth = dragStartValues.width;
       let newHeight = dragStartValues.height;
       let newX = dragStartValues.x;
       let newY = dragStartValues.y;
-      
+
       switch (resizeHandle) {
         case 'top-left':
           newWidth = Math.max(10, dragStartValues.width - deltaX / scaleX);
@@ -312,26 +313,26 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           newHeight = Math.max(10, dragStartValues.height + deltaY / scaleY);
           break;
       }
-      
+
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
       handleSizeChange('width', newWidth);
       handleSizeChange('height', newHeight);
     }
   };
-  
+
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
     setResizeHandle(null);
   };
-  
+
   // マウスイベントのグローバルリスナー設定
   useEffect(() => {
     if (isDragging || isResizing) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
-      
+
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
@@ -356,7 +357,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
             <div className="preview-panel">
               <div className="canvas-preview">
                 {/* キャンバス比率のプレビュー領域 */}
-                <div 
+                <div
                   className="canvas-container"
                   style={{
                     position: 'relative',
@@ -368,7 +369,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   }}
                 >
                   {/* キャンバス背景 */}
-                  <div 
+                  <div
                     className="canvas-background"
                     style={{
                       position: 'absolute',
@@ -380,9 +381,9 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       border: '1px dashed #cbd5e1',
                     }}
                   />
-                  
+
                   {/* SVGアセットプレビュー */}
-                  <div 
+                  <div
                     className="svg-asset-preview"
                     style={{
                       position: 'absolute',
@@ -397,15 +398,15 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     onMouseDown={handlePreviewMouseDown}
                   >
                     {/* キャンバスサイズに合わせたSVG表示 */}
-                    <div 
-                      dangerouslySetInnerHTML={{ 
+                    <div
+                      dangerouslySetInnerHTML={{
                         __html: `<svg width="100%" height="100%" viewBox="0 0 ${project?.canvas.width || 800} ${project?.canvas.height || 600}" xmlns="http://www.w3.org/2000/svg">
                           ${wrapSVGWithParentContainer(asset.svg_content, currentPos.x, currentPos.y, currentSize.width, currentSize.height, currentOpacity)}
                         </svg>`
                       }}
                     />
                   </div>
-                  
+
                   {/* アセットのリサイズハンドル */}
                   {(() => {
                     const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
@@ -413,12 +414,12 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     const scaleX = canvasWidth / (project?.canvas.width || 800);
                     const scaleY = canvasHeight / (project?.canvas.height || 600);
                     const handleSize = 8;
-                    
+
                     return ['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
                       let x = 0;
                       let y = 0;
                       let cursor = 'nw-resize';
-                      
+
                       switch (handle) {
                         case 'top-left':
                           x = currentPos.x * scaleX - handleSize / 2;
@@ -441,7 +442,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                           cursor = 'se-resize';
                           break;
                       }
-                      
+
                       return (
                         <div
                           key={handle}
@@ -467,11 +468,11 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* 右側：プロパティ編集 */}
             <div className="properties-panel">
               <h3>プロパティ</h3>
-              
+
               {/* 基本情報 */}
               <div className="property-group">
                 <label>アセット名</label>
