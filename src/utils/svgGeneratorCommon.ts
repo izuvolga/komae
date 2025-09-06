@@ -44,7 +44,7 @@ function resolveSvgFontName(fontId: string): string {
       }
     }
   }
-  
+
   // フォールバック：システムUIまたはフォントIDをそのまま使用
   console.log(`[SVG] Font fallback: ${fontId} (no cache)`);
   return fontId === 'system-ui' ? 'system-ui, -apple-system, sans-serif' : fontId;
@@ -63,26 +63,26 @@ export interface SvgStructureResult {
  * 完全なSVG文字列を生成する（PagePreview用）
  */
 export function generateCompleteSvg(
-  project: ProjectData, 
-  instances: AssetInstance[], 
+  project: ProjectData,
+  instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
   currentLanguage?: string,
   customAssets?: Record<string, any> // テスト用のCustomAsset情報
 ): string {
   const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
   const { assetDefinitions, useElements } = generateSvgStructureCommon(
-    project, 
-    instances, 
-    getProtocolUrl, 
-    availableLanguages, 
+    project,
+    instances,
+    getProtocolUrl,
+    availableLanguages,
     currentLanguage || 'ja',
     0, // pageIndex
     customAssets
   );
-  
+
   // マスク定義を生成
   const clipPathDefinitions = generateAllClipPathDefinitions(project, instances);
-  
+
   // SVGを組み立て（svg-structure.md仕様に準拠）
   const svgContent = [
     `<svg`,
@@ -112,7 +112,7 @@ export function generateCompleteSvg(
     `  </g>`,
     `</svg>`,
   ].join('\n');
-  
+
   return svgContent;
 }
 
@@ -121,8 +121,8 @@ export function generateCompleteSvg(
  * svg-structure.mdの仕様に準拠して、アセット定義と使用要素を分離
  */
 export function generateSvgStructureCommon(
-  project: ProjectData, 
-  instances: AssetInstance[], 
+  project: ProjectData,
+  instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
   availableLanguages: string[],
   currentLanguage: string,
@@ -149,7 +149,7 @@ export function generateSvgStructureCommon(
 
     if (asset.type === 'ImageAsset') {
       const imageAsset = asset as ImageAsset;
-      
+
       // アセット定義を追加（初回のみ）
       if (!processedAssets.has(asset.id)) {
         const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
@@ -161,37 +161,37 @@ export function generateSvgStructureCommon(
       // 使用要素を追加（インスタンスごと）
       const useElement = generateUseElement(imageAsset, instance);
       useElements.push(useElement);
-      
+
     } else if (asset.type === 'TextAsset') {
       const textAsset = asset as TextAsset;
-      
+
       // テキストアセットは多言語対応インライン要素として追加
       const textElement = generateMultilingualTextElement(textAsset, instance, availableLanguages, currentLanguage);
       useElements.push(textElement);
-      
+
     } else if (asset.type === 'VectorAsset') {
       const vectorAsset = asset as VectorAsset;
-      
+
       // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
       const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
       useElements.push(vectorElement);
-      
+
     } else if (asset.type === 'DynamicVectorAsset') {
       const dynamicVectorAsset = asset as DynamicVectorAsset;
-      
+
       // テスト環境では customAssets からスクリプトを取得
       let customAssetScript: string | undefined;
       if (customAssets && dynamicVectorAsset.custom_asset_id) {
         const customAsset = customAssets[dynamicVectorAsset.custom_asset_id];
         customAssetScript = customAsset?.script;
       }
-      
+
       // DynamicVectorAssetはスクリプト実行によりSVGを生成してインライン要素として追加
       const dynamicVectorElement = generateDynamicVectorElement(
-        dynamicVectorAsset, 
-        instance as DynamicVectorAssetInstance, 
-        project, 
-        pageIndex, 
+        dynamicVectorAsset,
+        instance as DynamicVectorAssetInstance,
+        project,
+        pageIndex,
         customAssetScript
       );
       if (dynamicVectorElement) {
@@ -213,17 +213,17 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
   const width = instance.override_width ?? asset.default_width;
   const height = instance.override_height ?? asset.default_height;
   const opacity = instance.override_opacity ?? asset.default_opacity;
-  
+
   // 修正されたwrapSVGWithParentContainer関数のロジックを適用
   const originalWidth = asset.original_width;
   const originalHeight = asset.original_height;
   const scaleX = width / originalWidth;
   const scaleY = height / originalHeight;
-  
+
   // SVG 内部での X, Y 座標は scale 処理を考慮して調整
   const adjustedX = posX * (1 / scaleX);
   const adjustedY = posY * (1 / scaleY);
-  
+
   const wrappedSVG = `<svg version="1.1"
     xmlns="http://www.w3.org/2000/svg"
     x="${adjustedX}px"
@@ -234,7 +234,7 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
     style="opacity: ${opacity};">
       ${asset.svg_content}
   </svg>`;
-  
+
   // グループ要素でラップ（ID付き）
   return [
     `<g id="vector-instance-${instance.id}">`,
@@ -254,94 +254,94 @@ function wrapSVGContent(svgContent: string, width: number, height: number): stri
   if (svgContent.trim().startsWith('<svg')) {
     return svgContent;
   }
-  
+
   // そうでない場合はSVGグループ要素でラップ
   return `<g>${svgContent}</g>`;
 }
 
 // TODO: customAssetScript が常に undefined なので修正をする
 function generateDynamicVectorElement(
-  asset: DynamicVectorAsset, 
-  instance: DynamicVectorAssetInstance, 
-  project: ProjectData, 
+  asset: DynamicVectorAsset,
+  instance: DynamicVectorAssetInstance,
+  project: ProjectData,
   pageIndex: number,
   customAssetScript?: string // テスト用のスクリプト
 ): string | null {
-  
+
   try {
     // テスト環境では直接スクリプトを渡すことができる
     let script = customAssetScript;
-    
+
     // 本番環境では CustomAsset から取得する必要があるが、
     // 現在はテスト環境での動作を優先
     if (!script) {
       console.warn(`DynamicVectorAsset "${asset.name}": CustomAsset script not available for asset ${asset.custom_asset_id}`);
       return null;
     }
-    
+
     // スクリプトの実行コンテキストを作成
     const executionContext = createExecutionContext(asset, project, pageIndex);
-    
+
     // JavaScript スクリプトを実行してSVG コンテンツを生成
     const executionResult = executeScript(script, executionContext);
-    
+
     if (!executionResult.success || !executionResult.svgContent) {
       let errorMessage = `DynamicVectorAsset "${asset.name}" script execution failed: ${executionResult.error}`;
-      
+
       // 実行結果の警告があれば追加
       if (executionResult.warnings && executionResult.warnings.length > 0) {
         errorMessage += ` (Script warnings: ${executionResult.warnings.join(', ')})`;
       }
-      
+
       // デバッグ情報があれば追加
       if (executionResult.debugInfo?.consoleOutput && executionResult.debugInfo.consoleOutput.length > 0) {
         errorMessage += ` (Console: ${executionResult.debugInfo.consoleOutput.join('; ')})`;
       }
-      
+
       console.warn(errorMessage);
       return null;
     }
-    
+
     // 警告がある場合はログに出力
     if (executionResult.warnings && executionResult.warnings.length > 0) {
       console.warn(`DynamicVectorAsset "${asset.name}" has warnings:`, executionResult.warnings.join(', '));
     }
-    
+
     // インスタンスのオーバーライド値を取得
     const posX = instance.override_pos_x ?? asset.default_pos_x;
     const posY = instance.override_pos_y ?? asset.default_pos_y;
     const width = instance.override_width ?? asset.default_width;
     const height = instance.override_height ?? asset.default_height;
     const opacity = instance.override_opacity ?? asset.default_opacity;
-    
+
     // SVGコンテンツを適切な形式にラップ
     const wrappedSVG = wrapSVGContent(executionResult.svgContent, width, height);
-    
+
     // Transform設定（位置とスケールの調整）
     const transforms: string[] = [];
-    
+
     // 位置調整
     if (posX !== 0 || posY !== 0) {
       transforms.push(`translate(${posX}, ${posY})`);
     }
-    
+
     // サイズが元のサイズと異なる場合はスケールを適用
     if (width !== asset.default_width || height !== asset.default_height) {
       const scaleX = width / asset.default_width;
       const scaleY = height / asset.default_height;
       transforms.push(`scale(${scaleX}, ${scaleY})`);
     }
-    
+
     const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
     const opacityAttr = opacity !== undefined ? ` opacity="${opacity}"` : '';
-    
+
     // グループ要素でラップ（ID付き）
     return [
       `<g id="dynamic-vector-instance-${instance.id}"${transformAttr}${opacityAttr}>`,
       `  ${wrappedSVG}`,
       `</g>`
     ].join('\n    ');
-    
+
   } catch (error) {
     console.error(`DynamicVectorAsset "${asset.name}" rendering error:`, error);
     return null;
@@ -371,7 +371,7 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
 function generateUseElement(asset: ImageAsset, instance: AssetInstance): string {
   // Transform文字列を構築
   const transforms: string[] = [];
-  
+
   // 位置調整（ImageAssetInstanceのみ対応）
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
     const imageInstance = instance as ImageAssetInstance;
@@ -386,13 +386,13 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
       transforms.push(`translate(${translateX},${translateY})`);
     }
   }
-  
+
   // サイズ調整（ImageAssetInstanceのみ対応）
   if ('override_width' in instance || 'override_height' in instance) {
     const imageInstance = instance as ImageAssetInstance;
     const width = imageInstance.override_width ?? asset.default_width;
     const height = imageInstance.override_height ?? asset.default_height;
-    
+
     // デフォルトサイズからの倍率を計算してscaleに追加
     const scaleX = width / asset.default_width;
     const scaleY = height / asset.default_height;
@@ -400,7 +400,7 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
       transforms.push(`scale(${scaleX},${scaleY})`);
     }
   }
-  
+
   // opacity調整（ImageAssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
   let finalOpacity = asset.default_opacity;
   if ('override_opacity' in instance) {
@@ -409,7 +409,7 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
       finalOpacity = imageInstance.override_opacity;
     }
   }
-  
+
   // マスク適用（ImageAssetでマスクが存在する場合）
   let clipPathAttr = '';
   const imageInstance = instance as ImageAssetInstance;
@@ -417,10 +417,10 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
   if (maskId) {
     clipPathAttr = ` clip-path="url(#${maskId})"`;
   }
-  
+
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
   const opacityAttr = finalOpacity !== undefined ? ` opacity="${finalOpacity}"` : '';
-  
+
   return `<use href="#${asset.id}"${transformAttr}${opacityAttr}${clipPathAttr} />`;
 }
 
@@ -442,7 +442,7 @@ function escapeXml(text: string): string {
 function generateClipPathDefinition(maskId: string, mask: [[number, number], [number, number], [number, number], [number, number]]): string {
   const [p1, p2, p3, p4] = mask;
   const pathData = `M ${p1[0]} ${p1[1]} L ${p2[0]} ${p2[1]} L ${p3[0]} ${p3[1]} L ${p4[0]} ${p4[1]} Z`;
-  
+
   return [
     `<clipPath id="${maskId}">`,
     `  <path d="${pathData}" />`,
@@ -463,7 +463,7 @@ export function generateAllClipPathDefinitions(project: ProjectData, instances: 
 
     const imageAsset = asset as ImageAsset;
     const imageInstance = instance as ImageAssetInstance;
-    
+
     // インスタンスレベルのマスクを優先、なければアセットレベルのマスクを使用
     const mask = imageInstance.override_mask ?? imageAsset.default_mask;
     if (!mask) continue;
@@ -471,7 +471,7 @@ export function generateAllClipPathDefinitions(project: ProjectData, instances: 
     // マスクIDを生成（アセットID + マスクのハッシュで重複回避）
     const maskHash = mask.flat().join('-');
     const maskId = `mask-${asset.id}-${maskHash.replace(/[.-]/g, '_')}`;
-    
+
     if (!processedMasks.has(maskId)) {
       clipPaths.push(generateClipPathDefinition(maskId, mask));
       processedMasks.add(maskId);
@@ -500,12 +500,12 @@ function getMaskId(asset: ImageAsset, instance: ImageAssetInstance): string | nu
 export function generateMultilingualTextElement(asset: TextAsset, instance: AssetInstance, availableLanguages: string[], currentLanguage: string): string {
   const textInstance = instance as TextAssetInstance;
   const results: string[] = [];
-  
+
   // 各言語について個別にテキスト要素を生成
   for (const lang of availableLanguages) {
     const isCurrentLanguage = lang === currentLanguage;
     const displayStyle = isCurrentLanguage ? '' : ' style="display: none;"';
-    
+
     // 新仕様多言語対応ヘルパー関数を使用して各言語の値を取得
     const finalPos = getEffectivePosition(asset, textInstance, lang);
     const finalPosX = finalPos.x;
@@ -513,19 +513,19 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang);
     const textContent = getEffectiveTextValue(asset, textInstance, lang);
-    
+
     // テキスト内容が空の場合はスキップ
     if (!textContent || textContent.trim() === '') {
       continue;
     }
-    
+
     const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
-    
+
     // lang-{languageCode}クラスを追加
     const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}>${textElement}</g>`;
     results.push(languageElement);
   }
-  
+
   return results.join('\n');
 }
 
@@ -561,14 +561,14 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
     // 縦書きテキスト：tspan要素で文字分割（複数行対応）
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
-    
+
     lines.forEach((line, lineIndex) => {
       // 各行のx座標を計算（右から左に配置）
       const lineXPos = defaultPosX - (lineIndex * finalFontSize);
-      
+
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        
+
         // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
         if (i === 0) {
           // 行の最初の文字：初期Y位置を設定
@@ -607,7 +607,7 @@ ${textBody.join('\n')}
     // 横書きテキスト：行ごとにtspan要素
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
-    
+
     lines.forEach((line, index) => {
       const dyValue = index === 0 ? 0 : finalFontSize + leading;
       textBody.push(`    <tspan x="${defaultPosX}" dy="${dyValue}">${line}</tspan>`);
@@ -651,13 +651,13 @@ export function generateTextPreviewSVG(
   } = {}
 ): string {
   const { width = 800, height = 600, backgroundColor = 'transparent' } = options;
-  
+
   // 一時的なインスタンスオブジェクトを作成（instanceがない場合）
   const tempInstance = instance || {
     id: 'temp-preview',
     asset_id: asset.id,
   };
-  
+
   // TextSVG要素を生成（プレビュー用は単一言語）
   const availableLanguages = [currentLanguage];
   const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage);
