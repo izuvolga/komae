@@ -1,6 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
 import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFont, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
-import { executeScript, createExecutionContext } from './dynamicVectorEngine';
 
 /**
  * フォント情報のキャッシュ
@@ -235,25 +234,9 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
 }
 
 /**
- * DynamicVectorAsset要素を生成する
- */
-/**
- * SVGコンテンツを適切にラップする関数
- */
-function wrapSVGContent(svgContent: string, width: number, height: number): string {
-  // SVGコンテンツがすでに<svg>タグで囲まれている場合はそのまま返す
-  if (svgContent.trim().startsWith('<svg')) {
-    return svgContent;
-  }
-
-  // そうでない場合はSVGグループ要素でラップ
-  return `<g>${svgContent}</g>`;
-}
-
-/**
  * DynamicVectorAssetのSVG要素を生成する
  */
-function generateDynamicVectorSVGElement(
+function wrapDynamicVectorSVG(
   asset: DynamicVectorAsset, 
   instance: DynamicVectorAssetInstance, 
   svgContent: string
@@ -263,11 +246,10 @@ function generateDynamicVectorSVGElement(
   const z_index = instance.override_z_index ?? asset.default_z_index ?? 0;
   const width = instance.override_width ?? asset.default_width ?? 100;
   const height = instance.override_height ?? asset.default_height ?? 100;
-  
-  // SVGコンテンツを位置に応じてグループ要素として配置
-  return `<g transform="translate(${x}, ${y})" data-z-index="${z_index}" data-asset-id="${asset.id}">
-    ${wrapSVGContent(svgContent, width, height)}
-  </g>`;
+  let content = `<svg data-z-index="${z_index}" data-asset-id="${asset.id}" x="${x}" y="${y}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+  content += svgContent;
+  content += `</svg>`;
+  return content;
 }
 
 async function generateDynamicVectorElement(
@@ -303,7 +285,7 @@ async function generateDynamicVectorElement(
       return null;
     }
 
-    return generateDynamicVectorSVGElement(asset, instance, svgContent);
+    return wrapDynamicVectorSVG(asset, instance, svgContent);
 
   } catch (error) {
     console.error(`DynamicVectorAsset "${asset.name}" rendering error:`, error);
@@ -323,7 +305,9 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
 
   return [
     `<g id="${asset.id}" opacity="${opacity}">`,
-    `  <image id="image-${asset.id}" xlink:href="${protocolUrl}" width="${width}" height="${height}" x="${x}" y="${y}" preserveAspectRatio="none"/>`,
+    `  <image id="image-${asset.id}"`,
+    `    xlink:href="${protocolUrl}"`,
+    `    width="${width}" height="${height}" x="${x}" y="${y}" preserveAspectRatio="none"/>`,
     `</g>`
   ].join('\n      ');
 }

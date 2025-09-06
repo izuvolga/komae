@@ -16,13 +16,15 @@ describe('CustomAssetParser', () => {
 // @type         DynamicVector
 // @version      1.0.0
 // @author       Test Author
+// @height       1024
+// @width        2048
 // @description  A beautiful rectangle generator
-// @parameters   width:number:100, height:number:60, color:string:#ff0000
+// @parameters   rect_width:number:100, rect_height:number:60, color:string:#ff0000
 // ==/CustomAsset==
 
 function generateSVG(params) {
-  const { width = 100, height = 60, color = '#ff0000' } = params;
-  return \`<rect width="\${width}" height="\${height}" fill="\${color}" rx="5"/>\`;
+  const { rect_width = 100, rect_height = 60, color = '#ff0000' } = params;
+  return \`<rect width="\${rect_width}" height="\${rect_height}" fill="\${color}" rx="5"/>\`;
 }`;
 
       const result = parseCustomAsset(fileContent);
@@ -33,16 +35,18 @@ function generateSVG(params) {
         version: '1.0.0',
         author: 'Test Author',
         description: 'A beautiful rectangle generator',
+        height: 1024,
+        width: 2048,
         parameters: [
-          { name: 'width', type: 'number', defaultValue: 100 },
-          { name: 'height', type: 'number', defaultValue: 60 },
+          { name: 'rect_width', type: 'number', defaultValue: 100 },
+          { name: 'rect_height', type: 'number', defaultValue: 60 },
           { name: 'color', type: 'string', defaultValue: '#ff0000' }
         ]
       });
 
       expect(result.code.trim()).toBe(`function generateSVG(params) {
-  const { width = 100, height = 60, color = '#ff0000' } = params;
-  return \`<rect width="\${width}" height="\${height}" fill="\${color}" rx="5"/>\`;
+  const { rect_width = 100, rect_height = 60, color = '#ff0000' } = params;
+  return \`<rect width="\${rect_width}" height="\${rect_height}" fill="\${color}" rx="5"/>\`;
 }`);
     });
 

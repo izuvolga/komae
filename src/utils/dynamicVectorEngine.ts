@@ -446,21 +446,3 @@ function isValidVariableName(name: string): boolean {
   return variablePattern.test(name) && !DANGEROUS_GLOBALS.includes(name);
 }
 
-/**
- * SVG文字列を適切なSVG要素にラップ
- * @param svgContent - SVG内容
- * @param width - SVG幅
- * @param height - SVG高さ
- * @returns 完全なSVG文字列
- */
-export function wrapSVGContent(svgContent: string, width: number, height: number): string {
-  // 既にsvgタグで囲まれている場合はそのまま返す
-  if (svgContent.trim().toLowerCase().startsWith('<svg')) {
-    return svgContent;
-  }
-
-  // SVG要素でラップ
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-  ${svgContent}
-</svg>`;
-}

@@ -15,6 +15,8 @@ export interface CustomAssetMetadata {
   version: string;
   author: string;
   description: string;
+  width: number;
+  height: number;
   parameters: CustomAssetParameter[];
 }
 
@@ -29,14 +31,14 @@ export interface ParsedCustomAsset {
 export function parseCustomAsset(fileContent: string): ParsedCustomAsset {
   const metadataRegex = /\/\/ ==CustomAsset==([\s\S]*?)\/\/ ==\/CustomAsset==/;
   const match = fileContent.match(metadataRegex);
-  
+
   if (!match) {
     throw new Error('CustomAsset metadata not found. Expected "// ==CustomAsset==" block.');
   }
 
   const metadataBlock = match[1];
   const metadata = parseMetadataBlock(metadataBlock);
-  
+
   // メタデータブロック以降をコードとして取得
   const codeStartIndex = fileContent.indexOf('// ==/CustomAsset==') + '// ==/CustomAsset=='.length;
   const code = fileContent.slice(codeStartIndex).trim();
@@ -49,8 +51,10 @@ export function parseCustomAsset(fileContent: string): ParsedCustomAsset {
  */
 function parseMetadataBlock(metadataBlock: string): CustomAssetMetadata {
   const lines = metadataBlock.split('\n').map(line => line.trim());
-  
+
   const metadata: Partial<CustomAssetMetadata> = {
+    width: 100, // デフォルト幅
+    height: 100, // デフォルト高さ
     parameters: []
   };
 
@@ -65,6 +69,10 @@ function parseMetadataBlock(metadataBlock: string): CustomAssetMetadata {
       metadata.author = extractValue(line);
     } else if (line.startsWith('// @description')) {
       metadata.description = extractValue(line);
+    } else if (line.startsWith('// @width')) {
+      metadata.width = extractNumberValue(line);
+    } else if (line.startsWith('// @height')) {
+      metadata.height = extractNumberValue(line);
     } else if (line.startsWith('// @parameters')) {
       metadata.parameters = parseParameters(extractValue(line));
     }
@@ -95,6 +103,15 @@ function extractValue(line: string): string {
   return match ? match[1].trim() : '';
 }
 
+function extractNumberValue(line: string): number {
+  const valueStr = extractValue(line);
+  const value = parseFloat(valueStr);
+  if (isNaN(value)) {
+    throw new Error(`Invalid number value: ${valueStr}`);
+  }
+  return value;
+}
+
 /**
  * パラメータ定義を解析
  * "width:number:100, height:number:60, label:string:Hello World"
@@ -114,7 +131,7 @@ function parseParameters(parametersStr: string): CustomAssetParameter[] {
     }
 
     const [name, type, defaultValueStr] = parts.map(p => p.trim());
-    
+
     // 型検証
     if (type !== 'number' && type !== 'string') {
       throw new Error(`Unsupported parameter type: ${type}. Only "number" and "string" are supported.`);
@@ -147,7 +164,7 @@ function parseParameters(parametersStr: string): CustomAssetParameter[] {
 export function generateCustomAssetId(filename: string): string {
   // .komae.js を除去してIDとして使用
   const id = filename.replace(/\.komae\.js$/, '');
-  
+
   // 有効な識別子文字のみに制限
   return id.replace(/[^a-zA-Z0-9-_]/g, '-');
 }

@@ -16,6 +16,8 @@ export interface CustomAssetInfo {
   type: string;
   version: string;
   author: string;
+  width: number;
+  height: number;
   description: string;
   parameters: Array<{
     name: string;
@@ -37,6 +39,8 @@ export interface CustomAssetRegistryEntry {
   version: string;
   author: string;
   description: string;
+  width: number;
+  height: number;
   parameters: CustomAssetInfo['parameters'];
   filePath: string;
   addedAt: string;
@@ -216,6 +220,8 @@ export class CustomAssetManager {
         version: parsedAsset.metadata.version,
         author: parsedAsset.metadata.author,
         description: parsedAsset.metadata.description,
+        width: parsedAsset.metadata.width,
+        height: parsedAsset.metadata.height,
         parameters: parsedAsset.metadata.parameters,
         filePath: targetFilePath,
         addedAt: new Date().toISOString()
@@ -362,8 +368,8 @@ export class CustomAssetManager {
         version: assetInfo.version,
         author: assetInfo.author,
         description: assetInfo.description,
-        width: 800, // デフォルト値
-        height: 600, // デフォルト値
+        width: assetInfo.width,
+        height: assetInfo.height,
         parameters: customAssetParameters,
         script: parsedAsset.code,
         filePath: assetInfo.filePath,

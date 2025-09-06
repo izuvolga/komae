@@ -134,6 +134,8 @@ const DynamicVectorAssetSchema = z.object({
   use_value_variables: z.boolean(),
   default_pos_x: z.number(),
   default_pos_y: z.number(),
+  original_width: z.number().min(0.01),
+  original_height: z.number().min(0.01),
   default_width: z.number().min(0.01),
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),

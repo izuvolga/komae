@@ -40,7 +40,7 @@ export interface ImageAsset extends BaseAsset {
 
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
-  
+
   default_text: string;
   default_context?: string;
   default_settings: LanguageSettings;
@@ -93,22 +93,24 @@ export interface CustomAsset {
 
 export interface DynamicVectorAsset extends BaseAsset {
   type: 'DynamicVectorAsset';
-  
+
   // 配置・表示設定
+  original_width: number  // CustomAssetの@widthから取得されるデフォルトサイズ;
+  original_height: number; // CustomAssetの@heightから取得されるデフォルトサイズ
   default_pos_x: number;
   default_pos_y: number;
-  default_width: number;  // CustomAssetの@widthから取得されるデフォルトサイズ
-  default_height: number; // CustomAssetの@heightから取得されるデフォルトサイズ
+  default_width: number;
+  default_height: number;
   default_opacity: number;
   default_z_index: number;
-  
+
   // CustomAssetリンク
   custom_asset_id: string;         // 参照するCustomAssetのID（必須）
   custom_asset_version: string;    // バージョン情報（互換性チェック用）
-  
+
   // パラメータ値設定
   parameters: Record<string, number | string>; // パラメータ名 -> 値
-  
+
   // 変数機能
   use_page_variables: boolean; // page_current, page_totalの利用可否
   use_value_variables: boolean; // ValueAssetの変数利用可否
@@ -233,7 +235,7 @@ export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAsset
 // AssetInstanceのoverride値チェック用ヘルパー関数
 export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
   if (!instance) return false;
-  
+
   if (assetType === 'TextAsset') {
     const textInstance = instance as TextAssetInstance;
     return !!(textInstance.override_language_settings && Object.keys(textInstance.override_language_settings).length > 0);
@@ -272,7 +274,7 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
     const valueInstance = instance as ValueAssetInstance;
     return !!(valueInstance.override_value !== undefined);
   }
-  
+
   return false;
 }
 
@@ -356,7 +358,7 @@ export function resetAssetInstanceOverrides(instance: AssetInstance, assetType: 
     // ValueAssetInstanceのoverride項目をリセット
     resetUpdates.override_value = undefined;
   }
-  
+
   return resetUpdates;
 }
 
@@ -516,8 +518,8 @@ export function createImageAsset(params: {
  * 優先順位: multilingual_text[currentLang] > asset default
  */
 export function getEffectiveTextValue(
-  asset: TextAsset, 
-  instance: TextAssetInstance, 
+  asset: TextAsset,
+  instance: TextAssetInstance,
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
@@ -605,7 +607,7 @@ export function getEffectiveFontSize(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // デフォルト値: 64ピクセル
   return 64;
 }
@@ -637,7 +639,7 @@ export function getEffectiveFont(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // デフォルトフォント
   return DEFAULT_FONT_ID;
 }
@@ -655,7 +657,7 @@ export function getEffectiveVertical(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // デフォルト: 横書き
   return false;
 }
@@ -671,10 +673,10 @@ export function getEffectiveColors(
 ): { fill: string; stroke: string } {
   const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'fill_color', phase);
   const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'stroke_color', phase);
-  
+
   const fill = fillOverride ?? '#FFFFFF'; // デフォルトの塗りつぶし色
   const stroke = strokeOverride ?? '#000000'; // デフォルトのストローク色
-  
+
   return { fill, stroke };
 }
 
@@ -691,7 +693,7 @@ export function getEffectiveStrokeWidth(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   return DEFAULT_LANGUAGE_SETTINGS.stroke_width!; // デフォルトのストローク幅を使用
 }
 
@@ -708,7 +710,7 @@ export function getEffectiveLeading(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // デフォルト: 0
   return DEFAULT_LANGUAGE_SETTINGS.leading!; // デフォルトの行間を使用
 }
@@ -727,7 +729,7 @@ export function getEffectiveOpacity(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // アセットのデフォルト不透明度を使用
   return DEFAULT_LANGUAGE_SETTINGS.opacity!; // デフォルトの不透明度を使用
 }
@@ -745,7 +747,7 @@ export function getEffectiveZIndexForLanguage(
   if (languageSetting !== undefined) {
     return languageSetting;
   }
-  
+
   // 既存フィールドを使用
   return DEFAULT_LANGUAGE_SETTINGS.z_index!; // デフォルトのz-indexを使用
 }
@@ -779,7 +781,7 @@ export function createDefaultTextAsset(params: {
   supportedLanguages?: string[];
 }): TextAsset {
   const { name, supportedLanguages } = params;
-  
+
   // 最小限のフィールドでTextAssetを作成
   const asset: TextAsset = {
     id: `text-${uuidv4()}`,
@@ -790,7 +792,7 @@ export function createDefaultTextAsset(params: {
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定
   };
-  
+
   return asset;
 }
 
@@ -844,25 +846,27 @@ export function createDynamicVectorAsset(params: {
     id: `dynamic-vector-${uuidv4()}`,
     type: 'DynamicVectorAsset',
     name: params.name || `${params.customAsset.name} (Dynamic SVG)`,
-    
+
     // 配置・サイズ設定（CustomAssetの@width/@heightをデフォルトサイズとして使用）
     default_pos_x: 0,
     default_pos_y: 0,
-    default_width: params.customAsset.width,   // CustomAssetの@widthを使用
-    default_height: params.customAsset.height, // CustomAssetの@heightを使用
+    original_width:  params.customAsset.width,   // CustomAssetの@widthを使用
+    original_height: params.customAsset.height, // CustomAssetの@heightを使用
+    default_width:   params.customAsset.width,   // CustomAssetの@widthを使用
+    default_height:  params.customAsset.height, // CustomAssetの@heightを使用
     default_opacity: 1.0,
     default_z_index: 0,
-    
+
     // CustomAssetリンク
     custom_asset_id: params.customAsset.id,
     custom_asset_version: params.customAsset.version,
-    
+
     // パラメータ値（デフォルト値 + オーバーライド）
     parameters: {
       ...defaultParameters,
       ...params.parameters
     },
-    
+
     // 変数機能
     use_page_variables: params.usePageVariables || false,
     use_value_variables: params.useValueVariables || false,
@@ -904,7 +908,7 @@ export function createValueAsset(params: {
   project?: ProjectData | null; // Add project parameter for unique name generation
 }): ValueAsset {
   const name = params.name || generateUniqueValueAssetName(params.project);
-  
+
   return {
     id: `value-${uuidv4()}`,
     type: 'ValueAsset',
@@ -923,21 +927,21 @@ export function createValueAsset(params: {
  * @param fieldName - フィールド名（エラーメッセージ用）
  * @returns バリデーション結果
  */
-export function validateOpacity(value: number | undefined, fieldName: string): { 
-  isValid: boolean; 
-  error?: string; 
+export function validateOpacity(value: number | undefined, fieldName: string): {
+  isValid: boolean;
+  error?: string;
 } {
   if (value === undefined) {
     return { isValid: true }; // undefinedは許可
   }
-  
+
   if (value < 0 || value > 1) {
     return {
       isValid: false,
       error: `${fieldName}の値は0から1の範囲で入力してください。現在の値: ${value}`
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -951,14 +955,14 @@ export function validateTextAssetData(asset: TextAsset): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // 基本フィールドのバリデーション
   const opacity = asset.default_settings.opacity;
   const opacityValidation = validateOpacity(opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   // 共通設定のバリデーション（オプショナル）
   if (asset.default_settings) {
     if (asset.default_settings.font_size !== undefined && asset.default_settings.font_size <= 0) {
@@ -971,7 +975,7 @@ export function validateTextAssetData(asset: TextAsset): {
       }
     }
   }
-  
+
   // 言語別オーバーライド設定のバリデーション（オプショナル）
   if (asset.default_language_override) {
     Object.entries(asset.default_language_override).forEach(([langCode, settings]) => {
@@ -986,7 +990,7 @@ export function validateTextAssetData(asset: TextAsset): {
       }
     });
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1003,13 +1007,13 @@ export function validateImageAssetData(asset: ImageAsset): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // デフォルト不透明度のバリデーション
   const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1026,7 +1030,7 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // override_language_settingsのバリデーション
   if (instance.override_language_settings) {
     for (const [lang, settings] of Object.entries(instance.override_language_settings)) {
@@ -1034,7 +1038,7 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
       if (settings.font_size !== undefined && settings.font_size <= 0) {
         errors.push(`${lang}言語のフォントサイズは0より大きい値を入力してください。現在の値: ${settings.font_size}`);
       }
-      
+
       // 不透明度のバリデーション
       if (settings.opacity !== undefined) {
         const opacityValidation = validateOpacity(settings.opacity, `${lang}言語の不透明度`);
@@ -1042,19 +1046,19 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
           errors.push(opacityValidation.error);
         }
       }
-      
+
       // ストローク幅のバリデーション
       if (settings.stroke_width !== undefined && settings.stroke_width < 0) {
         errors.push(`${lang}言語のストローク幅は0以上の値を入力してください。現在の値: ${settings.stroke_width}`);
       }
-      
+
       // 行間のバリデーション
       if (settings.leading !== undefined && settings.leading < 0) {
         errors.push(`${lang}言語の行間は0以上の値を入力してください。現在の値: ${settings.leading}`);
       }
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1071,13 +1075,13 @@ export function validateImageAssetInstanceData(instance: ImageAssetInstance): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // オーバーライド不透明度のバリデーション
   const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1094,43 +1098,43 @@ export function validateVectorAssetData(asset: VectorAsset): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
   }
-  
+
   if (!asset.original_file_path || asset.original_file_path.trim() === '') {
     errors.push('ファイルパスは必須です。');
   }
-  
+
   if (!asset.svg_content || asset.svg_content.trim() === '') {
     errors.push('SVGコンテンツは必須です。');
   }
-  
+
   // サイズのバリデーション
   if (asset.original_width <= 0) {
     errors.push(`元の幅は0より大きい値を入力してください。現在の値: ${asset.original_width}`);
   }
-  
+
   if (asset.original_height <= 0) {
     errors.push(`元の高さは0より大きい値を入力してください。現在の値: ${asset.original_height}`);
   }
-  
+
   if (asset.default_width <= 0) {
     errors.push(`デフォルト幅は0より大きい値を入力してください。現在の値: ${asset.default_width}`);
   }
-  
+
   if (asset.default_height <= 0) {
     errors.push(`デフォルト高さは0より大きい値を入力してください。現在の値: ${asset.default_height}`);
   }
-  
+
   // 不透明度のバリデーション
   const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1147,22 +1151,22 @@ export function validateVectorAssetInstanceData(instance: VectorAssetInstance): 
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // オーバーライド不透明度のバリデーション
   const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   // オーバーライドサイズのバリデーション
   if (instance.override_width !== undefined && instance.override_width <= 0) {
     errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
   }
-  
+
   if (instance.override_height !== undefined && instance.override_height <= 0) {
     errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1179,17 +1183,17 @@ export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
   }
-  
+
   // DynamicVectorAssetは常にCustomAssetなので、custom_asset_idの必須チェック
   if (!asset.custom_asset_id || asset.custom_asset_id.trim() === '') {
     errors.push('CustomAsset IDは必須です。');
   }
-  
+
   // カスタムアセットパラメータの基本チェック（存在する場合）
   if (asset.parameters) {
     for (const [key, value] of Object.entries(asset.parameters)) {
@@ -1198,22 +1202,22 @@ export function validateDynamicVectorAssetData(asset: DynamicVectorAsset): {
       }
     }
   }
-  
+
   // サイズのバリデーション
   if (asset.default_width <= 0) {
     errors.push(`デフォルト幅は0より大きい値を入力してください。現在の値: ${asset.default_width}`);
   }
-  
+
   if (asset.default_height <= 0) {
     errors.push(`デフォルト高さは0より大きい値を入力してください。現在の値: ${asset.default_height}`);
   }
-  
+
   // 不透明度のバリデーション
   const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1230,22 +1234,22 @@ export function validateDynamicVectorAssetInstanceData(instance: DynamicVectorAs
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // オーバーライド不透明度のバリデーション
   const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
   }
-  
+
   // オーバーライドサイズのバリデーション
   if (instance.override_width !== undefined && instance.override_width <= 0) {
     errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
   }
-  
+
   if (instance.override_height !== undefined && instance.override_height <= 0) {
     errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1262,7 +1266,7 @@ export function validateValueAssetData(asset: ValueAsset): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
@@ -1273,26 +1277,26 @@ export function validateValueAssetData(asset: ValueAsset): {
       errors.push('アセット名は変数名として使用されるため、英字またはアンダースコアで始まり、英数字とアンダースコアのみを含む必要があります。');
     }
   }
-  
+
   if (!asset.value_type) {
     errors.push('値の型は必須です。');
   }
-  
+
   if (asset.initial_value === null || asset.initial_value === undefined) {
     errors.push('初期値は必須です。');
   }
-  
+
   if (!asset.new_page_behavior) {
     errors.push('新規ページでの動作設定は必須です。');
   }
-  
+
   // 値の型に応じた初期値のバリデーション
   if (asset.value_type === 'number' && typeof asset.initial_value !== 'number') {
     if (typeof asset.initial_value === 'string' && isNaN(parseFloat(asset.initial_value))) {
       errors.push('数値型の初期値は有効な数値を入力してください。');
     }
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors
@@ -1309,14 +1313,14 @@ export function validateValueAssetInstanceData(instance: ValueAssetInstance): {
   errors: string[];
 } {
   const errors: string[] = [];
-  
+
   // 基本フィールドのバリデーション
   if (!instance.asset_id || instance.asset_id.trim() === '') {
     errors.push('アセットIDは必須です。');
   }
-  
+
   // オーバーライド値は任意なのでバリデーション不要
-  
+
   return {
     isValid: errors.length === 0,
     errors

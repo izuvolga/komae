@@ -354,27 +354,24 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                   backgroundColor: '#f8f9fa'
                 }}>
-                  {/* SVG描画結果 */}
+                  {/* SVG描画結果: wrapDynamicVectorSVG と同様 */}
                   {svgResult.svg ? (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: `${currentPos.x * 0.35}px`,
-                        top: `${currentPos.y * 0.35}px`,
-                        width: `${currentSize.width * 0.35}px`,
-                        height: `${currentSize.height * 0.35}px`,
-                        opacity: currentOpacity,
-                        zIndex: 1,
-                      }}
-                    >
+                    <svg
+                      width='100%'
+                      height='100%'
+                      viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      >
                       <svg
-                        width={currentSize.width * 0.35}
-                        height={currentSize.height * 0.35}
+                        width={currentSize.width}
+                        height={currentSize.height}
+                        x={currentPos.x}
+                        y={currentPos.y}
                         viewBox={`0 0 ${currentSize.width} ${currentSize.height}`}
-                        style={{ width: '100%', height: '100%' }}
+                        preserveAspectRatio="none"
                         dangerouslySetInnerHTML={{ __html: svgResult.svg }}
                       />
-                    </div>
+                    </svg>
                   ) : svgResult.error ? (
                     <div className="dve-error-display">
                       <div className="dve-error-icon">⚠️</div>
