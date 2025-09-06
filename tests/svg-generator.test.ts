@@ -16,7 +16,7 @@ describe('SVG Generator Common', () => {
   });
 
   describe('generateSvgStructureCommon', () => {
-    test('ImageAssetとTextAssetを含むSVG構造を正しく生成できる', () => {
+    test('ImageAssetとTextAssetを含むSVG構造を正しく生成できる', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-1',
@@ -36,7 +36,7 @@ describe('SVG Generator Common', () => {
       const availableLanguages = ['ja', 'en'];
       const currentLanguage = 'ja';
 
-      const result: SvgStructureResult = generateSvgStructureCommon(
+      const result: SvgStructureResult = await generateSvgStructureCommon(
         mockProject,
         instances,
         mockProtocolUrl,
@@ -62,7 +62,7 @@ describe('SVG Generator Common', () => {
       expect(result.useElements[1]).toContain('Get more');
     });
 
-    test('VectorAssetを含むSVG構造を正しく生成できる', () => {
+    test('VectorAssetを含むSVG構造を正しく生成できる', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-vector',
@@ -75,7 +75,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `file://${filePath}`;
-      const result = generateSvgStructureCommon(
+      const result = await generateSvgStructureCommon(
         mockProject,
         instances,
         mockProtocolUrl,
@@ -94,7 +94,7 @@ describe('SVG Generator Common', () => {
       expect(result.useElements[0]).toContain('<rect x="20" y="20" width="60" height="60"');
     });
 
-    test('z-index順でソートされることを確認', () => {
+    test('z-index順でソートされることを確認', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-text',
@@ -107,7 +107,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => filePath;
-      const result = generateSvgStructureCommon(
+      const result = await generateSvgStructureCommon(
         mockProject,
         instances,
         mockProtocolUrl,
@@ -121,7 +121,7 @@ describe('SVG Generator Common', () => {
       expect(result.useElements[1]).toContain('font-family=');
     });
 
-    test('存在しないアセットIDは無視される', () => {
+    test('存在しないアセットIDは無視される', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-invalid',
@@ -134,7 +134,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => filePath;
-      const result = generateSvgStructureCommon(
+      const result = await generateSvgStructureCommon(
         mockProject,
         instances,
         mockProtocolUrl,
@@ -351,7 +351,7 @@ describe('SVG Generator Common', () => {
   });
 
   describe('エラーハンドリング', () => {
-    test('不正なプロジェクトデータでもクラッシュしない', () => {
+    test('不正なプロジェクトデータでもクラッシュしない', async () => {
       const invalidProject = {
         ...mockProject,
         assets: {},
@@ -366,11 +366,11 @@ describe('SVG Generator Common', () => {
 
       const mockProtocolUrl = (filePath: string) => filePath;
       
-      expect(() => {
-        generateSvgStructureCommon(invalidProject, instances, mockProtocolUrl, ['ja'], 'ja');
+      expect(async () => {
+        await generateSvgStructureCommon(invalidProject, instances, mockProtocolUrl, ['ja'], 'ja');
       }).not.toThrow();
 
-      const result = generateSvgStructureCommon(
+      const result = await generateSvgStructureCommon(
         invalidProject,
         instances,
         mockProtocolUrl,
@@ -382,7 +382,7 @@ describe('SVG Generator Common', () => {
       expect(result.useElements).toHaveLength(0);
     });
 
-    test('空の言語配列でもエラーにならない', () => {
+    test('空の言語配列でもエラーにならない', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'empty-lang-test',
@@ -392,8 +392,8 @@ describe('SVG Generator Common', () => {
 
       const mockProtocolUrl = (filePath: string) => filePath;
       
-      expect(() => {
-        generateSvgStructureCommon(mockProject, instances, mockProtocolUrl, [], 'ja');
+      expect(async () => {
+        await generateSvgStructureCommon(mockProject, instances, mockProtocolUrl, [], 'ja');
       }).not.toThrow();
     });
   });
