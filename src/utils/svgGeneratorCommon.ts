@@ -62,15 +62,15 @@ export interface SvgStructureResult {
 /**
  * 完全なSVG文字列を生成する（PagePreview用）
  */
-export function generateCompleteSvg(
+export async function generateCompleteSvg(
   project: ProjectData,
   instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
   currentLanguage?: string,
   customAssets?: Record<string, any> // テスト用のCustomAsset情報
-): string {
+): Promise<string> {
   const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
-  const { assetDefinitions, useElements } = generateSvgStructureCommon(
+  const { assetDefinitions, useElements } = await generateSvgStructureCommon(
     project,
     instances,
     getProtocolUrl,
@@ -120,7 +120,7 @@ export function generateCompleteSvg(
  * ドキュメント仕様に従ったSVG構造を生成する
  * svg-structure.mdの仕様に準拠して、アセット定義と使用要素を分離
  */
-export function generateSvgStructureCommon(
+export async function generateSvgStructureCommon(
   project: ProjectData,
   instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
@@ -128,7 +128,7 @@ export function generateSvgStructureCommon(
   currentLanguage: string,
   pageIndex: number = 0,
   customAssets?: Record<string, any>
-): SvgStructureResult {
+): Promise<SvgStructureResult> {
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
@@ -180,24 +180,15 @@ export function generateSvgStructureCommon(
       console.log(`[SVG] Processing DynamicVectorAsset: ${asset.name} (ID: ${asset.id})`);
       const dynamicVectorAsset = asset as DynamicVectorAsset;
 
-      let customAssetScript: string | undefined;
-      console.log(`[SVG] CustomAssets provided:`, customAssets);
-      if (customAssets && dynamicVectorAsset.custom_asset_id) {
-        console.log(`[SVG] Looking up CustomAsset ID: ${dynamicVectorAsset.custom_asset_id}`);
-        const customAsset = customAssets[dynamicVectorAsset.custom_asset_id];
-        console.log(`[SVG] Found CustomAsset:`, customAsset);
-        customAssetScript = customAsset?.script;
-      }
-
-      console.log(`[SVG] CustomAsset script:`, customAssetScript);
-      const dynamicVectorElement = generateDynamicVectorElement(
+      // 新しい非同期のgenerateDynamicVectorElement関数を呼び出し
+      const dynamicVectorElement = await generateDynamicVectorElement(
         dynamicVectorAsset,
         instance as DynamicVectorAssetInstance,
         project,
         pageIndex,
-        customAssetScript
+        customAssets
       );
-      // TODO: dynamicVectorElement が null になってしまう
+      
       console.log(`[SVG] Generated DynamicVectorElement:`, dynamicVectorElement);
       if (dynamicVectorElement) {
         useElements.push(dynamicVectorElement);
@@ -264,87 +255,65 @@ function wrapSVGContent(svgContent: string, width: number, height: number): stri
   return `<g>${svgContent}</g>`;
 }
 
-function generateDynamicVectorElement(
+/**
+ * DynamicVectorAssetのSVG要素を生成する
+ */
+function generateDynamicVectorSVGElement(
+  asset: DynamicVectorAsset, 
+  instance: DynamicVectorAssetInstance, 
+  svgContent: string
+): string {
+  const x = instance.override_pos_x ?? asset.default_pos_x ?? 0;
+  const y = instance.override_pos_y ?? asset.default_pos_y ?? 0;
+  const z_index = instance.override_z_index ?? asset.default_z_index ?? 0;
+  const width = instance.override_width ?? asset.default_width ?? 100;
+  const height = instance.override_height ?? asset.default_height ?? 100;
+  
+  // SVGコンテンツを位置に応じてグループ要素として配置
+  return `<g transform="translate(${x}, ${y})" data-z-index="${z_index}" data-asset-id="${asset.id}">
+    ${wrapSVGContent(svgContent, width, height)}
+  </g>`;
+}
+
+async function generateDynamicVectorElement(
   asset: DynamicVectorAsset,
   instance: DynamicVectorAssetInstance,
   project: ProjectData,
   pageIndex: number,
-  customAssetScript?: string
-): string | null {
+  customAssets?: Record<string, any>
+): Promise<string | null> {
 
   try {
-    let script = customAssetScript;
+    let svgContent: string;
 
-    if (!script) {
-      console.warn(`DynamicVectorAsset "${asset.name}": CustomAsset script not available for asset ${asset.custom_asset_id}`);
+    // MainプロセスかRendererプロセスかを判定
+    if (typeof window !== 'undefined' && (window as any).electronAPI) {
+      // Rendererプロセス: IPCを使用
+      console.log(`[SVG] Processing DynamicVectorAsset "${asset.name}" via IPC`);
+      svgContent = await (window as any).electronAPI.customAsset.generateSVG(
+        asset.custom_asset_id,
+        asset.parameters || {}
+      );
+    } else {
+      // Mainプロセス: 直接CustomAssetManagerを使用
+      console.log(`[SVG] Processing DynamicVectorAsset "${asset.name}" via direct CustomAssetManager`);
+      // Dynamic require to avoid bundling issues
+      const { CustomAssetManager } = eval('require')('../main/services/CustomAssetManager');
+      const customAssetManager = CustomAssetManager.getInstance();
+      svgContent = await customAssetManager.generateCustomAssetSVG(
+        asset.custom_asset_id,
+        asset.parameters || {}
+      );
+    }
+
+    console.log(`[SVG] Generated SVG content for "${asset.name}":`, svgContent);
+
+    if (!svgContent || typeof svgContent !== 'string') {
+      console.warn(`[SVG] Invalid SVG content returned for DynamicVectorAsset "${asset.name}"`);
       return null;
     }
 
-    // スクリプトの実行コンテキストを作成
-    const executionContext = createExecutionContext(asset, project, pageIndex);
-    console.log(`[SVG] Execution context for DynamicVectorAsset "${asset.name}":`, executionContext);
-
-    // JavaScript スクリプトを実行してSVG コンテンツを生成
-    console.log(`[SVG] Executing script:`, script);
-    const executionResult = executeScript(script, executionContext);
-    console.log(`[SVG] Execution result for DynamicVectorAsset "${asset.name}":`, executionResult);
-
-    if (!executionResult.success || !executionResult.svgContent) {
-      let errorMessage = `DynamicVectorAsset "${asset.name}" script execution failed: ${executionResult.error}`;
-
-      // 実行結果の警告があれば追加
-      if (executionResult.warnings && executionResult.warnings.length > 0) {
-        errorMessage += ` (Script warnings: ${executionResult.warnings.join(', ')})`;
-      }
-
-      // デバッグ情報があれば追加
-      if (executionResult.debugInfo?.consoleOutput && executionResult.debugInfo.consoleOutput.length > 0) {
-        errorMessage += ` (Console: ${executionResult.debugInfo.consoleOutput.join('; ')})`;
-      }
-
-      console.warn(errorMessage);
-      return null;
-    }
-
-    // 警告がある場合はログに出力
-    if (executionResult.warnings && executionResult.warnings.length > 0) {
-      console.warn(`DynamicVectorAsset "${asset.name}" has warnings:`, executionResult.warnings.join(', '));
-    }
-
-    // インスタンスのオーバーライド値を取得
-    const posX = instance.override_pos_x ?? asset.default_pos_x;
-    const posY = instance.override_pos_y ?? asset.default_pos_y;
-    const width = instance.override_width ?? asset.default_width;
-    const height = instance.override_height ?? asset.default_height;
-    const opacity = instance.override_opacity ?? asset.default_opacity;
-
-    // SVGコンテンツを適切な形式にラップ
-    const wrappedSVG = wrapSVGContent(executionResult.svgContent, width, height);
-
-    // Transform設定（位置とスケールの調整）
-    const transforms: string[] = [];
-
-    // 位置調整
-    if (posX !== 0 || posY !== 0) {
-      transforms.push(`translate(${posX}, ${posY})`);
-    }
-
-    // サイズが元のサイズと異なる場合はスケールを適用
-    if (width !== asset.default_width || height !== asset.default_height) {
-      const scaleX = width / asset.default_width;
-      const scaleY = height / asset.default_height;
-      transforms.push(`scale(${scaleX}, ${scaleY})`);
-    }
-
-    const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
-    const opacityAttr = opacity !== undefined ? ` opacity="${opacity}"` : '';
-
-    // グループ要素でラップ（ID付き）
-    return [
-      `<g id="dynamic-vector-instance-${instance.id}"${transformAttr}${opacityAttr}>`,
-      `  ${wrappedSVG}`,
-      `</g>`
-    ].join('\n    ');
+    return generateDynamicVectorSVGElement(asset, instance, svgContent);
 
   } catch (error) {
     console.error(`DynamicVectorAsset "${asset.name}" rendering error:`, error);

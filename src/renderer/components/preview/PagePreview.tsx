@@ -37,7 +37,7 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
         });
         
         // 完全なSVG文字列を生成
-        const svgContent = generateCompleteSvg(project, instances, (filePath: string) => {
+        const svgContent = await generateCompleteSvg(project, instances, (filePath: string) => {
           return getCustomProtocolUrl(filePath, currentProjectPath);
         }, getCurrentLanguage());
         

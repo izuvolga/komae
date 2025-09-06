@@ -289,7 +289,7 @@ export class HtmlExporter {
     // 共通のSVG生成ロジックを使用
     const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
     const currentLanguage = project.metadata?.currentLanguage || 'ja';
-    const { assetDefinitions, useElements } = generateSvgStructureCommon(
+    const { assetDefinitions, useElements } = await generateSvgStructureCommon(
       project, 
       instances, 
       (filePath: string) => {
@@ -383,7 +383,7 @@ export class HtmlExporter {
       // 共通のSVG生成ロジックを使用して使用要素を生成
       const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
       const currentLanguage = project.metadata?.currentLanguage || 'ja';
-      const { useElements } = generateSvgStructureCommon(
+      const { useElements } = await generateSvgStructureCommon(
         project,
         instances,
         (filePath: string) => {

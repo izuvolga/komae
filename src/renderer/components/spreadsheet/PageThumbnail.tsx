@@ -72,7 +72,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           return zIndexA - zIndexB;
         });
 
-        // DynamicVectorAssetのcustom_asset_idを収集
+        // DynamicVectorAssetのcustom_asset_idを収集（ログ用のみ、実際のIPCは関数内で実行）
         const customAssetIds = new Set<string>();
         instances.forEach(instance => {
           const asset = project.assets[instance.asset_id];
@@ -81,26 +81,13 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           }
         });
 
-        // CustomAssetスクリプトを並列取得
-        const customAssets: Record<string, any> = {};
-        if (customAssetIds.size > 0) {
-          await Promise.all(
-            Array.from(customAssetIds).map(async (assetId) => {
-              try {
-                const customAsset = await window.electronAPI.customAsset.getAsset(assetId);
-                if (customAsset) {
-                  customAssets[assetId] = customAsset;
-                }
-              } catch (error) {
-                console.warn(`Failed to load CustomAsset ${assetId}:`, error);
-              }
-            })
-          );
-        }
+        console.log(`[PageThumbnail] Found ${customAssetIds.size} DynamicVectorAssets:`, Array.from(customAssetIds));
 
         const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
         const currentLanguage = getCurrentLanguage();
-        const { assetDefinitions, useElements } = generateSvgStructureCommon(
+        
+        // generateSvgStructureCommon は非同期になったため await を使用
+        const { assetDefinitions, useElements } = await generateSvgStructureCommon(
           project, 
           instances, 
           (filePath: string) => {
@@ -109,7 +96,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           availableLanguages, 
           currentLanguage,
           0, // pageIndex
-          customAssets // CustomAssetデータを渡す
+          {} // customAssets は使用しない（IPCで直接取得）
         );
 
         // サムネイル用のSVGを組み立て（最適なサイズを使用）

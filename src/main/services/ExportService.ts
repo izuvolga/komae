@@ -208,7 +208,7 @@ export class ExportService {
     // 共通のSVG生成ロジックを使用
     const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
     const currentLanguage = project.metadata?.currentLanguage || 'ja';
-    const { assetDefinitions, useElements } = generateSvgStructureCommon(
+    const { assetDefinitions, useElements } = await generateSvgStructureCommon(
       project, 
       instances, 
       (filePath: string) => {
