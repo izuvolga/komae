@@ -64,6 +64,14 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     warning?: string;
   }>({ isValid: true });
 
+  // マウス操作関連の状態
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -96,6 +104,111 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
     setParameterValues(initialParams);
   }, [asset, assetInstance]);
+
+  // Shiftキーの状態を監視
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  // マウス移動とマウスアップのハンドラー（グローバルイベント）
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!project) return;
+      
+      if (isDragging) {
+        const deltaX = (e.clientX - dragStartPos.x) / 0.35;
+        const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+        const currentSizeForDrag = getCurrentSize();
+        
+        const newX = Math.max(0, Math.min(project.canvas.width - currentSizeForDrag.width, dragStartValues.x + deltaX));
+        const newY = Math.max(0, Math.min(project.canvas.height - currentSizeForDrag.height, dragStartValues.y + deltaY));
+        
+        updatePosition(newX, newY);
+      } else if (isResizing && resizeHandle) {
+        const deltaX = (e.clientX - dragStartPos.x) / 0.35;
+        const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+        
+        let newWidth = dragStartValues.width;
+        let newHeight = dragStartValues.height;
+        let newX = dragStartValues.x;
+        let newY = dragStartValues.y;
+
+        if (resizeHandle.includes('right')) {
+          newWidth = Math.max(10, dragStartValues.width + deltaX);
+        } else if (resizeHandle.includes('left')) {
+          newWidth = Math.max(10, dragStartValues.width - deltaX);
+          newX = dragStartValues.x + deltaX;
+        }
+
+        if (resizeHandle.includes('bottom')) {
+          newHeight = Math.max(10, dragStartValues.height + deltaY);
+        } else if (resizeHandle.includes('top')) {
+          newHeight = Math.max(10, dragStartValues.height - deltaY);
+          newY = dragStartValues.y + deltaY;
+        }
+
+        // 縦横比維持: Shiftキーが押されている場合
+        if (isShiftPressed) {
+          const aspectRatio = editedAsset.default_width / editedAsset.default_height;
+          
+          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+            newHeight = newWidth / aspectRatio;
+            // 上端をドラッグしている場合は、位置も調整
+            if (resizeHandle.includes('top')) {
+              newY = dragStartValues.y + dragStartValues.height - newHeight;
+            }
+          } else {
+            newWidth = newHeight * aspectRatio;
+            // 左端をドラッグしている場合は、位置も調整
+            if (resizeHandle.includes('left')) {
+              newX = dragStartValues.x + dragStartValues.width - newWidth;
+            }
+          }
+        }
+
+        newX = Math.max(0, Math.min(project.canvas.width - newWidth, newX));
+        newY = Math.max(0, Math.min(project.canvas.height - newHeight, newY));
+        newWidth = Math.min(newWidth, project.canvas.width - newX);
+        newHeight = Math.min(newHeight, project.canvas.height - newY);
+
+        updatePosition(newX, newY);
+        updateSize(newWidth, newHeight);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+      setResizeHandle(null);
+    };
+
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, isShiftPressed, project?.canvas]);
 
   // パラメータが変更されたときにSVGを再実行（デバウンス処理付き）
   const scheduleExecution = useCallback(() => {
@@ -337,6 +450,39 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     onClose();
   };
 
+  // マウス操作のハンドラー
+  const handleImageMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const canvasRect = document.querySelector('.dve-canvas-frame')?.getBoundingClientRect();
+    if (!canvasRect) return;
+    
+    setIsDragging(true);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({
+      x: currentPos.x,
+      y: currentPos.y,
+      width: currentSize.width,
+      height: currentSize.height
+    });
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({
+      x: currentPos.x,
+      y: currentPos.y,
+      width: currentSize.width,
+      height: currentSize.height
+    });
+  };
+
   // パラメータ変更ハンドラー
   const handleParameterChange = (paramName: string, value: number | string) => {
     setParameterValues(prev => ({
@@ -410,6 +556,93 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       <span>実行中...</span>
                     </div>
                   )}
+
+                  {/* インタラクション用の透明な要素（ドラッグエリア） */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: `${currentPos.x * 0.35}px`,
+                      top: `${currentPos.y * 0.35}px`,
+                      width: `${currentSize.width * 0.35}px`,
+                      height: `${currentSize.height * 0.35}px`,
+                      backgroundColor: 'transparent',
+                      border: '1px dashed #007acc',
+                      cursor: 'move',
+                      zIndex: 2,
+                      pointerEvents: 'all',
+                    }}
+                    onMouseDown={handleImageMouseDown}
+                  />
+
+                  {/* SVGベースのリサイズハンドル */}
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      left: '0px',
+                      top: '0px',
+                      width: `${project.canvas.width * 0.35}px`,
+                      height: `${project.canvas.height * 0.35}px`,
+                      zIndex: 3,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
+                      const handleSize = 16;
+                      let x = 0;
+                      let y = 0;
+                      let cursor = 'nw-resize';
+                      
+                      switch (handle) {
+                        case 'top-left':
+                          x = (currentPos.x) * 0.35;
+                          y = (currentPos.y) * 0.35;
+                          cursor = 'nw-resize';
+                          break;
+                        case 'top-right':
+                          x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                          y = (currentPos.y) * 0.35;
+                          cursor = 'ne-resize';
+                          break;
+                        case 'bottom-left':
+                          x = (currentPos.x) * 0.35;
+                          y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
+                          cursor = 'sw-resize';
+                          break;
+                        case 'bottom-right':
+                          x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                          y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
+                          cursor = 'se-resize';
+                          break;
+                      }
+                      
+                      return (
+                        <g key={handle}>
+                          {/* 外側の白い枠 */}
+                          <rect
+                            x={x}
+                            y={y}
+                            width={handleSize}
+                            height={handleSize}
+                            fill="white"
+                            stroke="#007acc"
+                            strokeWidth="2"
+                            style={{ cursor, pointerEvents: 'all' }}
+                            onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                          />
+                          {/* 内側の青い四角 */}
+                          <rect
+                            x={x + 3}
+                            y={y + 3}
+                            width={handleSize - 6}
+                            height={handleSize - 6}
+                            fill="#007acc"
+                            stroke="none"
+                            style={{ pointerEvents: 'none' }}
+                          />
+                        </g>
+                      );
+                    })}
+                  </svg>
                 </div>
               </div>
             </div>
@@ -510,6 +743,27 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       }}
                       className="dve-number-input"
                       step="0.01"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Original Width / Height (Default values, read-only) */}
+              <div className="dve-param-group">
+                <div className="dve-size-section">
+                  <span>Original Width / Height</span>
+                  <div className="dve-input-row">
+                    <input
+                      type="number"
+                      value={editedAsset.original_width}
+                      disabled
+                      className="dve-number-input dve-readonly"
+                    />
+                    <input
+                      type="number"
+                      value={editedAsset.original_height}
+                      disabled
+                      className="dve-number-input dve-readonly"
                     />
                   </div>
                 </div>

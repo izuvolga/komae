@@ -269,6 +269,21 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+/* 読み取り専用フィールド（グレーアウト） */
+.dve-number-input.dve-readonly,
+.dve-text-input.dve-readonly {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.dve-number-input.dve-readonly:focus,
+.dve-text-input.dve-readonly:focus {
+  box-shadow: none;
+  border-color: #e9ecef;
+}
+
 /* Position・Size セクション */
 .dve-input-row {
   display: flex;
