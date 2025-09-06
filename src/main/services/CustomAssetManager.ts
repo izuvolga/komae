@@ -428,7 +428,8 @@ export class CustomAssetManager {
             ${parsedAsset.code}
             // generateSVG関数が定義されていることを想定
             if (typeof generateSVG === 'function') {
-              return generateSVG();
+              // パラメータオブジェクトを渡して関数を呼び出し
+              return generateSVG(${JSON.stringify(mergedParameters)});
             } else {
               throw new Error('generateSVG function not found in custom asset code');
             }
