@@ -32,21 +32,18 @@ function resolveSvgFontName(fontId: string): string {
     if (font) {
       if (font.isGoogleFont) {
         // Google Fontsの場合はフォント名を使用
-        console.log(`[SVG] Resolved Google Font: ${fontId} -> "${font.name}"`);
         return font.name;
       } else if (font.id === 'system-ui') {
         // システムフォントの場合
         return 'system-ui, -apple-system, sans-serif';
       } else {
         // ビルトイン・カスタムフォントの場合はIDを使用
-        console.log(`[SVG] Resolved builtin/custom font: ${fontId} -> "${font.id}"`);
         return font.id;
       }
     }
   }
 
   // フォールバック：システムUIまたはフォントIDをそのまま使用
-  console.log(`[SVG] Font fallback: ${fontId} (no cache)`);
   return fontId === 'system-ui' ? 'system-ui, -apple-system, sans-serif' : fontId;
 }
 
@@ -177,7 +174,6 @@ export async function generateSvgStructureCommon(
       useElements.push(vectorElement);
 
     } else if (asset.type === 'DynamicVectorAsset') {
-      console.log(`[SVG] Processing DynamicVectorAsset: ${asset.name} (ID: ${asset.id})`);
       const dynamicVectorAsset = asset as DynamicVectorAsset;
 
       // 新しい非同期のgenerateDynamicVectorElement関数を呼び出し
@@ -189,7 +185,6 @@ export async function generateSvgStructureCommon(
         customAssets
       );
       
-      console.log(`[SVG] Generated DynamicVectorElement:`, dynamicVectorElement);
       if (dynamicVectorElement) {
         useElements.push(dynamicVectorElement);
       }
@@ -289,14 +284,12 @@ async function generateDynamicVectorElement(
     // MainプロセスかRendererプロセスかを判定
     if (typeof window !== 'undefined' && (window as any).electronAPI) {
       // Rendererプロセス: IPCを使用
-      console.log(`[SVG] Processing DynamicVectorAsset "${asset.name}" via IPC`);
       svgContent = await (window as any).electronAPI.customAsset.generateSVG(
         asset.custom_asset_id,
         asset.parameters || {}
       );
     } else {
       // Mainプロセス: 直接CustomAssetManagerを使用
-      console.log(`[SVG] Processing DynamicVectorAsset "${asset.name}" via direct CustomAssetManager`);
       // Dynamic require to avoid bundling issues
       const { CustomAssetManager } = eval('require')('../main/services/CustomAssetManager');
       const customAssetManager = CustomAssetManager.getInstance();
@@ -306,10 +299,7 @@ async function generateDynamicVectorElement(
       );
     }
 
-    console.log(`[SVG] Generated SVG content for "${asset.name}":`, svgContent);
-
     if (!svgContent || typeof svgContent !== 'string') {
-      console.warn(`[SVG] Invalid SVG content returned for DynamicVectorAsset "${asset.name}"`);
       return null;
     }
 

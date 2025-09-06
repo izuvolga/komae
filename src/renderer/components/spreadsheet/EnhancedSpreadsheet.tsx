@@ -385,7 +385,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // キーボードナビゲーション用のuseEffect
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key down event:', e.key);
       // フォーカスがある場合やインライン編集中の場合はキーボードナビゲーションを無効化
       if (document.activeElement instanceof HTMLInputElement ||
           document.activeElement instanceof HTMLTextAreaElement ||
