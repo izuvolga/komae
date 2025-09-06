@@ -149,7 +149,7 @@ describe('SVG Generator Common', () => {
   });
 
   describe('generateCompleteSvg', () => {
-    test('完全なSVGドキュメントを生成できる', () => {
+    test('完全なSVGドキュメントを生成できる', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-1',
@@ -165,7 +165,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `file://${filePath}`;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       // 基本的なSVG構造
       expect(result).toContain('<svg');
@@ -191,7 +191,7 @@ describe('SVG Generator Common', () => {
       expect(result).toContain('テストテキスト');
     });
 
-    test('言語指定なしでデフォルト言語（ja）が使用される', () => {
+    test('言語指定なしでデフォルト言語（ja）が使用される', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-text',
@@ -204,7 +204,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => filePath;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl);
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl);
 
       // デフォルト言語（ja）が表示される
       expect(result).toContain('class="lang-ja" opacity="1">');
@@ -213,10 +213,10 @@ describe('SVG Generator Common', () => {
       expect(result).toContain('English');
     });
 
-    test('空のインスタンス配列でも有効なSVGが生成される', () => {
+    test('空のインスタンス配列でも有効なSVGが生成される', async () => {
       const instances: AssetInstance[] = [];
       const mockProtocolUrl = (filePath: string) => filePath;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       expect(result).toContain('<svg');
       expect(result).toContain('</svg>');
@@ -399,7 +399,7 @@ describe('SVG Generator Common', () => {
   });
 
   describe('マスク処理（clipPath）機能', () => {
-    test('マスクが設定されたImageAssetでclipPath定義が生成される', () => {
+    test('マスクが設定されたImageAssetでclipPath定義が生成される', async () => {
       const maskPoints: [[number, number], [number, number], [number, number], [number, number]] = [
         [100, 100], [500, 100], [500, 400], [100, 400]
       ];
@@ -414,7 +414,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       // clipPath定義が<defs>内に生成されている
       expect(result).toContain('<defs>');
@@ -427,7 +427,7 @@ describe('SVG Generator Common', () => {
       expect(result).toContain('href="#img-f3227b66-61ec-428d-adb2-e4f1526e378c"');
     });
 
-    test('アセットレベルのdefault_maskが使用される', () => {
+    test('アセットレベルのdefault_maskが使用される', async () => {
       // プロジェクトにdefault_maskを持つImageAssetを追加
       const projectWithMask = {
         ...mockProject,
@@ -449,14 +449,14 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(projectWithMask, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(projectWithMask, instances, mockProtocolUrl, 'ja');
 
       // default_maskが適用されている
       expect(result).toContain('M 50 50 L 250 50 L 250 200 L 50 200 Z');
       expect(result).toContain('clip-path="url(#mask-');
     });
 
-    test('override_maskがdefault_maskより優先される', () => {
+    test('override_maskがdefault_maskより優先される', async () => {
       const defaultMask: [[number, number], [number, number], [number, number], [number, number]] = [
         [0, 0], [100, 0], [100, 100], [0, 100]
       ];
@@ -485,7 +485,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(projectWithDefaultMask, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(projectWithDefaultMask, instances, mockProtocolUrl, 'ja');
 
       // override_maskのパスが使用されている
       expect(result).toContain('M 200 200 L 400 200 L 400 350 L 200 350 Z');
@@ -493,7 +493,7 @@ describe('SVG Generator Common', () => {
       expect(result).not.toContain('M 0 0 L 100 0 L 100 100 L 0 100 Z');
     });
 
-    test('マスクがないImageAssetではclip-path属性が追加されない', () => {
+    test('マスクがないImageAssetではclip-path属性が追加されない', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'instance-no-mask',
@@ -502,7 +502,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       // clip-path属性がない
       expect(result).not.toContain('clip-path="url(#');
@@ -510,7 +510,7 @@ describe('SVG Generator Common', () => {
       expect(result).toContain('href="#img-f3227b66-61ec-428d-adb2-e4f1526e378c"');
     });
 
-    test('同じマスクを持つ複数のインスタンスで重複するclipPath定義が回避される', () => {
+    test('同じマスクを持つ複数のインスタンスで重複するclipPath定義が回避される', async () => {
       const sameMask: [[number, number], [number, number], [number, number], [number, number]] = [
         [10, 10], [90, 10], [90, 90], [10, 90]
       ];
@@ -529,7 +529,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       // clipPath定義は1つだけ生成される
       const clipPathMatches = result.match(/<clipPath id="/g);
@@ -540,7 +540,7 @@ describe('SVG Generator Common', () => {
       expect(clipPathRefs).toHaveLength(2);
     });
 
-    test('TextAssetやVectorAssetにはマスクが適用されない', () => {
+    test('TextAssetやVectorAssetにはマスクが適用されない', async () => {
       const instances: AssetInstance[] = [
         {
           id: 'text-instance',
@@ -553,7 +553,7 @@ describe('SVG Generator Common', () => {
       ];
 
       const mockProtocolUrl = (filePath: string) => `komae-asset://${filePath}`;
-      const result = generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
+      const result = await generateCompleteSvg(mockProject, instances, mockProtocolUrl, 'ja');
 
       // clipPath定義が生成されない
       expect(result).not.toContain('<clipPath');
