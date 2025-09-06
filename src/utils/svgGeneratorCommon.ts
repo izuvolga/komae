@@ -227,7 +227,7 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
 
   // グループ要素でラップ（ID付き）
   return [
-    `<g id="vector-instance-${instance.id}">`,
+    `<g id="vector-${instance.id}">`,
     `  ${wrappedSVG}`,
     `</g>`
   ].join('\n    ');
@@ -241,14 +241,29 @@ function wrapDynamicVectorSVG(
   instance: DynamicVectorAssetInstance, 
   svgContent: string
 ): string {
-  const x = instance.override_pos_x ?? asset.default_pos_x ?? 0;
-  const y = instance.override_pos_y ?? asset.default_pos_y ?? 0;
-  const z_index = instance.override_z_index ?? asset.default_z_index ?? 0;
-  const width = instance.override_width ?? asset.default_width ?? 100;
-  const height = instance.override_height ?? asset.default_height ?? 100;
-  let content = `<svg data-z-index="${z_index}" data-asset-id="${asset.id}" x="${x}" y="${y}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
-  content += svgContent;
-  content += `</svg>`;
+  const x = instance.override_pos_x ?? asset.default_pos_x;
+  const y = instance.override_pos_y ?? asset.default_pos_y;
+  const z_index = instance.override_z_index ?? asset.default_z_index;
+  const width = instance.override_width ?? asset.default_width;
+  const height = instance.override_height ?? asset.default_height;
+  const originalWidth = asset.original_width;
+  const originalHeight = asset.original_height;
+  const scaleX = width / originalWidth;
+  const scaleY = height / originalHeight;
+  // SVG 内部での X, Y 座標は scale 処理を考慮して調整
+  const adjustedX = x * (1 / scaleX);
+  const adjustedY = y * (1 / scaleY);
+  const content = `<svg
+    xmlns="http://www.w3.org/2000/svg"
+    id="dynamic-vector-${instance.id}"
+    data-z-index="${z_index}"
+    x="${adjustedX}px"
+    y="${adjustedY}px"
+    width="${originalWidth}px"
+    height="${originalHeight}px"
+    transform="scale(${width / originalWidth}, ${height / originalHeight})">
+    ${svgContent}
+  </svg>`;
   return content;
 }
 

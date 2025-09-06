@@ -224,6 +224,28 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity();
   const currentZIndex = getCurrentZIndex();
 
+  // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御
+  const wrapSVGWithParentContainer = (svgContent: string, x: number, y: number, width: number, height: number, opacity: number): string => {
+    const originalWidth = asset.original_width;
+    const originalHeight = asset.original_height;
+    const scaleX = width / originalWidth;
+    const scaleY = height / originalHeight;
+    // SVG 内部での X, Y 座標は scale 処理を考慮して調整
+    const adjustedX = x * (1 / scaleX);
+    const adjustedY = y * (1 / scaleY);
+
+    return `<svg version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      x="${adjustedX}px"
+      y="${adjustedY}px"
+      width="${originalWidth}px"
+      height="${originalHeight}px"
+      transform="scale(${width / originalWidth}, ${height / originalHeight})"
+      style="opacity: ${opacity};">
+        ${svgContent}
+    </svg>`;
+  };
+
   // 値の更新
   const updatePosition = (x: number, y: number) => {
     if (mode === 'instance' && editedInstance) {
@@ -361,17 +383,14 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                       height='100%'
                       viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
                       xmlns="http://www.w3.org/2000/svg"
-                      >
-                      <svg
-                        width={currentSize.width}
-                        height={currentSize.height}
-                        x={currentPos.x}
-                        y={currentPos.y}
-                        viewBox={`0 0 ${currentSize.width} ${currentSize.height}`}
-                        preserveAspectRatio="none"
-                        dangerouslySetInnerHTML={{ __html: svgResult.svg }}
+                      dangerouslySetInnerHTML={{ __html: `${wrapSVGWithParentContainer(
+                        svgResult.svg,
+                        currentPos.x,
+                        currentPos.y,
+                        currentSize.width,
+                        currentSize.height,
+                        currentOpacity)}` }}
                       />
-                    </svg>
                   ) : svgResult.error ? (
                     <div className="dve-error-display">
                       <div className="dve-error-icon">⚠️</div>
