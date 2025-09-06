@@ -435,7 +435,6 @@ export class CustomAssetManager {
             }
           })()
         `;
-        console.log('Executing CustomAsset code:', code);
         result = vm.runInContext(code, context, { timeout: 5000 });
       } catch (executionError) {
         throw new Error(`Failed to execute custom asset code: ${executionError instanceof Error ? executionError.message : String(executionError)}`);

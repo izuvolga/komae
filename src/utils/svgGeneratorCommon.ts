@@ -127,7 +127,7 @@ export function generateSvgStructureCommon(
   availableLanguages: string[],
   currentLanguage: string,
   pageIndex: number = 0,
-  customAssets?: Record<string, any> // テスト用のCustomAsset情報
+  customAssets?: Record<string, any>
 ): SvgStructureResult {
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
@@ -177,16 +177,19 @@ export function generateSvgStructureCommon(
       useElements.push(vectorElement);
 
     } else if (asset.type === 'DynamicVectorAsset') {
+      console.log(`[SVG] Processing DynamicVectorAsset: ${asset.name} (ID: ${asset.id})`);
       const dynamicVectorAsset = asset as DynamicVectorAsset;
 
-      // テスト環境では customAssets からスクリプトを取得
       let customAssetScript: string | undefined;
+      console.log(`[SVG] CustomAssets provided:`, customAssets);
       if (customAssets && dynamicVectorAsset.custom_asset_id) {
+        console.log(`[SVG] Looking up CustomAsset ID: ${dynamicVectorAsset.custom_asset_id}`);
         const customAsset = customAssets[dynamicVectorAsset.custom_asset_id];
+        console.log(`[SVG] Found CustomAsset:`, customAsset);
         customAssetScript = customAsset?.script;
       }
 
-      // DynamicVectorAssetはスクリプト実行によりSVGを生成してインライン要素として追加
+      console.log(`[SVG] CustomAsset script:`, customAssetScript);
       const dynamicVectorElement = generateDynamicVectorElement(
         dynamicVectorAsset,
         instance as DynamicVectorAssetInstance,
@@ -194,6 +197,8 @@ export function generateSvgStructureCommon(
         pageIndex,
         customAssetScript
       );
+      // TODO: dynamicVectorElement が null になってしまう
+      console.log(`[SVG] Generated DynamicVectorElement:`, dynamicVectorElement);
       if (dynamicVectorElement) {
         useElements.push(dynamicVectorElement);
       }
@@ -259,21 +264,17 @@ function wrapSVGContent(svgContent: string, width: number, height: number): stri
   return `<g>${svgContent}</g>`;
 }
 
-// TODO: customAssetScript が常に undefined なので修正をする
 function generateDynamicVectorElement(
   asset: DynamicVectorAsset,
   instance: DynamicVectorAssetInstance,
   project: ProjectData,
   pageIndex: number,
-  customAssetScript?: string // テスト用のスクリプト
+  customAssetScript?: string
 ): string | null {
 
   try {
-    // テスト環境では直接スクリプトを渡すことができる
     let script = customAssetScript;
 
-    // 本番環境では CustomAsset から取得する必要があるが、
-    // 現在はテスト環境での動作を優先
     if (!script) {
       console.warn(`DynamicVectorAsset "${asset.name}": CustomAsset script not available for asset ${asset.custom_asset_id}`);
       return null;
@@ -281,9 +282,12 @@ function generateDynamicVectorElement(
 
     // スクリプトの実行コンテキストを作成
     const executionContext = createExecutionContext(asset, project, pageIndex);
+    console.log(`[SVG] Execution context for DynamicVectorAsset "${asset.name}":`, executionContext);
 
     // JavaScript スクリプトを実行してSVG コンテンツを生成
+    console.log(`[SVG] Executing script:`, script);
     const executionResult = executeScript(script, executionContext);
+    console.log(`[SVG] Execution result for DynamicVectorAsset "${asset.name}":`, executionResult);
 
     if (!executionResult.success || !executionResult.svgContent) {
       let errorMessage = `DynamicVectorAsset "${asset.name}" script execution failed: ${executionResult.error}`;

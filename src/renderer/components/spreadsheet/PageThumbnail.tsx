@@ -71,11 +71,46 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           const zIndexB = getEffectiveZIndex(assetB, b);
           return zIndexA - zIndexB;
         });
+
+        // DynamicVectorAssetのcustom_asset_idを収集
+        const customAssetIds = new Set<string>();
+        instances.forEach(instance => {
+          const asset = project.assets[instance.asset_id];
+          if (asset?.type === 'DynamicVectorAsset') {
+            customAssetIds.add(asset.custom_asset_id);
+          }
+        });
+
+        // CustomAssetスクリプトを並列取得
+        const customAssets: Record<string, any> = {};
+        if (customAssetIds.size > 0) {
+          await Promise.all(
+            Array.from(customAssetIds).map(async (assetId) => {
+              try {
+                const customAsset = await window.electronAPI.customAsset.getAsset(assetId);
+                if (customAsset) {
+                  customAssets[assetId] = customAsset;
+                }
+              } catch (error) {
+                console.warn(`Failed to load CustomAsset ${assetId}:`, error);
+              }
+            })
+          );
+        }
+
         const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
         const currentLanguage = getCurrentLanguage();
-        const { assetDefinitions, useElements } = generateSvgStructureCommon(project, instances, (filePath: string) => {
-          return getCustomProtocolUrl(filePath, currentProjectPath);
-        }, availableLanguages, currentLanguage);
+        const { assetDefinitions, useElements } = generateSvgStructureCommon(
+          project, 
+          instances, 
+          (filePath: string) => {
+            return getCustomProtocolUrl(filePath, currentProjectPath);
+          }, 
+          availableLanguages, 
+          currentLanguage,
+          0, // pageIndex
+          customAssets // CustomAssetデータを渡す
+        );
 
         // サムネイル用のSVGを組み立て（最適なサイズを使用）
         const svgContent = [
