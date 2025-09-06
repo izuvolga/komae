@@ -103,10 +103,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       clearTimeout(executionTimerRef.current);
     }
 
-    executionTimerRef.current = setTimeout(() => {
-      executeScript();
+    executionTimerRef.current = setTimeout(async () => {
+      await executeScript();
     }, 300);
-  }, [customAsset, parameterValues]);
+  }, [customAsset, parameterValues]);;
 
   useEffect(() => {
     if (customAsset && customAsset.script) {
@@ -122,8 +122,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   if (!isOpen || !project) return null;
 
   // スクリプト実行関数
-  const executeScript = () => {
-    if (!customAsset || !customAsset.script || !customAsset.script.trim()) {
+  const executeScript = async () => {
+    if (!customAsset) {
       setSvgResult({ svg: null, error: null });
       return;
     }
@@ -157,9 +157,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         });
       }
 
-      // スクリプト実行
-      const scriptFunction = new Function(...Object.keys(scriptParameters), customAsset.script);
-      const result = scriptFunction(...Object.values(scriptParameters));
+      // MainプロセスのCustomAssetManager.generateCustomAssetSVGを呼び出し
+      const result = await window.electronAPI.customAsset.generateSVG(
+        customAsset.id,
+        scriptParameters
+      );
 
       if (typeof result === 'string') {
         setSvgResult({ svg: result, error: null });

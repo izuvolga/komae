@@ -259,6 +259,7 @@ function wrapSVGContent(svgContent: string, width: number, height: number): stri
   return `<g>${svgContent}</g>`;
 }
 
+// TODO: customAssetScript が常に undefined なので修正をする
 function generateDynamicVectorElement(
   asset: DynamicVectorAsset, 
   instance: DynamicVectorAssetInstance, 
@@ -266,6 +267,7 @@ function generateDynamicVectorElement(
   pageIndex: number,
   customAssetScript?: string // テスト用のスクリプト
 ): string | null {
+  
   try {
     // テスト環境では直接スクリプトを渡すことができる
     let script = customAssetScript;

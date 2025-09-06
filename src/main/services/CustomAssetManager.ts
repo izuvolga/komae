@@ -408,16 +408,6 @@ export class CustomAssetManager {
             : `<${tagName} ${attrs}/>`;
         },
 
-        // よく使用されるSVG関数
-        rect: (x: number, y: number, width: number, height: number, fill: string = '#000') =>
-          `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}"/>`,
-        circle: (cx: number, cy: number, r: number, fill: string = '#000') =>
-          `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`,
-        text: (x: number, y: number, content: string, fontSize: number = 16, fill: string = '#000') =>
-          `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${content}</text>`,
-        path: (d: string, fill: string = 'none', stroke: string = '#000', strokeWidth: number = 1) =>
-          `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`,
-
         // コンソール出力をキャプチャ
         console: {
           log: (...args: any[]) => console.log('[CustomAsset]', ...args),
@@ -433,7 +423,7 @@ export class CustomAssetManager {
       // コードを実行し、結果を取得
       let result: string;
       try {
-        result = vm.runInContext(`
+        const code = `
           (function() {
             ${parsedAsset.code}
             // generateSVG関数が定義されていることを想定
@@ -443,7 +433,9 @@ export class CustomAssetManager {
               throw new Error('generateSVG function not found in custom asset code');
             }
           })()
-        `, context, { timeout: 5000 });
+        `;
+        console.log('Executing CustomAsset code:', code);
+        result = vm.runInContext(code, context, { timeout: 5000 });
       } catch (executionError) {
         throw new Error(`Failed to execute custom asset code: ${executionError instanceof Error ? executionError.message : String(executionError)}`);
       }
@@ -503,6 +495,7 @@ export class CustomAssetManager {
     }
   }
 
+  // TODO: この関数使われてないのでは？
   private async executeDynamicVectorScript(
     asset: any, // DynamicVectorAsset
     instance: any, // DynamicVectorAssetInstance
@@ -553,7 +546,7 @@ export class CustomAssetManager {
     // スクリプトを実行してSVGを生成
     let result: string;
     try {
-      result = vm.runInContext(`
+      let code = `
         (function() {
           ${asset.script}
           // generateSVG関数またはscriptの結果を取得
@@ -564,7 +557,9 @@ export class CustomAssetManager {
             return eval('(' + ${JSON.stringify(asset.script)} + ')');
           }
         })()
-      `, vmContext, { timeout: 5000 });
+      `;
+      console.log('Executing DynamicVector script:', code);
+      result = vm.runInContext(code, vmContext, { timeout: 5000 });
     } catch (executionError) {
       throw new Error(`Failed to execute DynamicVector script: ${executionError instanceof Error ? executionError.message : String(executionError)}`);
     }
