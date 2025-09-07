@@ -81,8 +81,6 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           }
         });
 
-        console.log(`[PageThumbnail] Found ${customAssetIds.size} DynamicVectorAssets:`, Array.from(customAssetIds));
-
         const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
         const currentLanguage = getCurrentLanguage();
         

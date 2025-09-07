@@ -126,7 +126,6 @@ export async function generateSvgStructureCommon(
   customAssets?: Record<string, any>,
   customAssetManager?: any // CustomAssetManagerのインスタンス（Mainプロセス用）
 ): Promise<SvgStructureResult> {
-  console.log(`[generateSvgStructureCommon] Generating SVG structure for page index ${pageIndex}, current language: ${currentLanguage}`);
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
@@ -186,7 +185,6 @@ export async function generateSvgStructureCommon(
         customAssets,
         customAssetManager
       );
-      console.log(`[generateSvgStructureCommon] DynamicVectorAsset "${dynamicVectorAsset.name}" element:`, dynamicVectorElement);
 
       if (dynamicVectorElement) {
         useElements.push(dynamicVectorElement);
@@ -316,7 +314,6 @@ async function generateDynamicVectorElement(
 
     // MainプロセスかRendererプロセスかを判定
     if (typeof window !== 'undefined' && (window as any).electronAPI) {
-      console.log('[generateDynamicVectorElement] Running in Renderer process, using IPC to generate SVG');
       // Rendererプロセス: IPCを使用
       svgContent = await (window as any).electronAPI.customAsset.generateSVG(
         asset.custom_asset_id,
@@ -324,18 +321,15 @@ async function generateDynamicVectorElement(
       );
     } else if (customAssetManager) {
       // Mainプロセス: 渡されたCustomAssetManagerインスタンスを使用
-      console.log('[generateDynamicVectorElement] Using provided CustomAssetManager instance');
       svgContent = await customAssetManager.generateCustomAssetSVG(
         asset.custom_asset_id,
         scriptParameters
       );
-      console.log('[generateDynamicVectorElement] SVG generation completed');
     } else {
       // CustomAssetManagerが渡されていない場合
       console.error('[generateDynamicVectorElement] No CustomAssetManager instance provided for Main process');
       throw new Error('CustomAssetManager instance is required for Main process execution');
     }
-    console.log(`[generateDynamicVectorElement] DynamicVectorAsset "${asset.name}" generated SVG content:`, svgContent);
 
     if (!svgContent || typeof svgContent !== 'string') {
       return null;

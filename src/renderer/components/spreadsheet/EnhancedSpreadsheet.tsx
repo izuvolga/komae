@@ -396,7 +396,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
       // 現在のカーソル位置を取得
       const currentCursor = cursor;
-      console.log('Current cursor state:', currentCursor);
       if (!currentCursor) return;
 
       const currentPageIndex = visiblePages.findIndex(page => page.id === currentCursor.pageId);
