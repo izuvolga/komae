@@ -280,25 +280,58 @@ async function generateDynamicVectorElement(
 ): Promise<string | null> {
 
   try {
+    // パラメータを構築（DynamicVectorEditModal.tsxのexecuteScript関数と同様）
+    const scriptParameters = { ...(asset.parameters || {}) };
+
+    // ページ変数を追加
+    if (asset.use_page_variables) {
+      scriptParameters['page_current'] = pageIndex + 1;
+      scriptParameters['page_total'] = project.pages.length;
+    }
+
+    // ValueAsset変数を追加
+    if (asset.use_value_variables) {
+      // 現在のページを特定
+      const currentPage = project.pages[pageIndex];
+      if (currentPage) {
+        Object.values(project.assets).forEach(assetItem => {
+          if (assetItem.type === 'ValueAsset') {
+            const valueInstance = currentPage.asset_instances[assetItem.id];
+            let value = assetItem.initial_value;
+
+            if (valueInstance && 'override_value' in valueInstance) {
+              value = valueInstance.override_value ?? value;
+            }
+
+            scriptParameters[assetItem.name] = value;
+          }
+        });
+      }
+    }
+
     let svgContent: string;
 
     // MainプロセスかRendererプロセスかを判定
     if (typeof window !== 'undefined' && (window as any).electronAPI) {
+      console.log('[generateDynamicVectorElement] Running in Renderer process, using IPC to generate SVG');
       // Rendererプロセス: IPCを使用
       svgContent = await (window as any).electronAPI.customAsset.generateSVG(
         asset.custom_asset_id,
-        asset.parameters || {}
+        scriptParameters
       );
     } else {
       // Mainプロセス: 直接CustomAssetManagerを使用
-      // Dynamic require to avoid bundling issues
+      console.log('[generateDynamicVectorElement] Running in Main process, using CustomAssetManager directly');
+      // TODO: ここで処理が止まって、null が返されてしまう
       const { CustomAssetManager } = eval('require')('../main/services/CustomAssetManager');
+      console.log('[generateDynamicVectorElement] CustomAssetManager loaded:', CustomAssetManager);
       const customAssetManager = CustomAssetManager.getInstance();
       svgContent = await customAssetManager.generateCustomAssetSVG(
         asset.custom_asset_id,
-        asset.parameters || {}
+        scriptParameters
       );
     }
+    console.log(`[generateDynamicVectorElement] DynamicVectorAsset "${asset.name}" generated SVG content:`, svgContent);
 
     if (!svgContent || typeof svgContent !== 'string') {
       return null;
