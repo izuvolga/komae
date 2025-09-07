@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { generateSvgStructureCommon } from '../../../utils/svgGeneratorCommon';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
@@ -54,6 +54,18 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
 
   const optimalSize = calculateOptimalSize(width, height);
 
+  // ValueAssetInstanceの値を依存関係として追跡するためのキー生成
+  const valueAssetInstanceKey = useMemo(() => {
+    return Object.values(page.asset_instances)
+      .filter((instance: any) => {
+        const asset = project.assets[instance.asset_id];
+        return asset?.type === 'ValueAsset';
+      })
+      .map((instance: any) => `${instance.id}:${(instance as any).override_value}`)
+      .sort()
+      .join('|');
+  }, [page.asset_instances, project.assets]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -84,6 +96,9 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
         const currentLanguage = getCurrentLanguage();
         
+        // ページインデックスを取得（DynamicVectorAssetの値解決に必要）
+        const pageIndex = Object.values(project.pages).findIndex(p => p.id === page.id);
+        
         // generateSvgStructureCommon は非同期になったため await を使用
         const { assetDefinitions, useElements } = await generateSvgStructureCommon(
           project, 
@@ -93,7 +108,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
           }, 
           availableLanguages, 
           currentLanguage,
-          0, // pageIndex
+          pageIndex, // 正しいページインデックスを渡す
           {} // customAssets は使用しない（IPCで直接取得）
         );
 
@@ -137,7 +152,17 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [project, page, width, height, currentProjectPath, optimalSize.width, optimalSize.height, getCurrentLanguage()]);
+  }, [
+    project, 
+    page, 
+    width, 
+    height, 
+    currentProjectPath, 
+    optimalSize.width, 
+    optimalSize.height, 
+    getCurrentLanguage(),
+    valueAssetInstanceKey // ValueAssetInstanceの値変化を追跡
+  ]);
 
   if (isLoading) {
     return (
@@ -146,9 +171,7 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         style={{ width: optimalSize.width, height: optimalSize.height }}
         onClick={onClick}
       >
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-        </div>
+        <div className="loading-spinner">読み込み中...</div>
       </div>
     );
   }
@@ -159,12 +182,8 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         className={`page-thumbnail error ${className}`}
         style={{ width: optimalSize.width, height: optimalSize.height }}
         onClick={onClick}
-        title={`エラー: ${error}`}
       >
-        <div className="error-content">
-          <div className="error-icon">⚠️</div>
-          <div className="error-text">エラー</div>
-        </div>
+        <div className="error-message">エラー: {error}</div>
       </div>
     );
   }

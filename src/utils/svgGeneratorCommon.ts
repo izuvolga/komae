@@ -284,6 +284,29 @@ async function generateDynamicVectorElement(
     // パラメータを構築（DynamicVectorEditModal.tsxのexecuteScript関数と同様）
     const scriptParameters = { ...(asset.parameters || {}) };
 
+    // parameter_variable_bindingsによるValueAsset参照の値解決
+    if (asset.parameter_variable_bindings) {
+      const currentPage = project.pages[pageIndex];
+      if (currentPage) {
+        for (const [paramName, valueAssetId] of Object.entries(asset.parameter_variable_bindings)) {
+          const valueAsset = project.assets[valueAssetId];
+          
+          if (valueAsset && valueAsset.type === 'ValueAsset') {
+            // 現在のページでのValueAssetInstanceの値を取得
+            const valueInstance = currentPage.asset_instances[valueAssetId];
+            let resolvedValue = valueAsset.initial_value;
+            
+            if (valueInstance && 'override_value' in valueInstance) {
+              resolvedValue = valueInstance.override_value ?? valueAsset.initial_value;
+            }
+            
+            // パラメータ値を上書き
+            scriptParameters[paramName] = resolvedValue;
+          }
+        }
+      }
+    }
+
     // ページ変数を追加
     if (asset.use_page_variables) {
       scriptParameters['page_current'] = pageIndex + 1;
