@@ -4,7 +4,8 @@ import type {
   DynamicVectorAsset,
   DynamicVectorAssetInstance,
   Page,
-  ProjectData
+  ProjectData,
+  ValueAssetInstance
 } from '../../../types/entities';
 import {
   getEffectiveZIndex,
@@ -108,9 +109,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
 
     // Asset編集モードの場合、pageがなくても進行できるように修正
-    if (mode === 'instance' && !page) {
-      setAvailableValueAssets({ string: [], number: [] });
-      return;
+    const instanceMemo = new Map<string, ValueAssetInstance>();
+    if (mode === 'instance') {
+      if (page) {
+        Object.values(page.asset_instances).forEach(instance => {
+          if (instance.asset_id) {
+            instanceMemo.set(instance.asset_id, instance);
+          }
+        });
+      } else {
+        setAvailableValueAssets({ string: [], number: [] });
+        return;
+      }
     }
 
     const stringAssets: Array<{ id: string; name: string; value: any }> = [];
@@ -122,7 +132,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         
         if (mode === 'instance' && page) {
           // Instance編集モード: ページの値を優先
-          const valueInstance = page.asset_instances[assetItem.id];
+          // const valueInstance = Object.values(page.asset_instances).find(instance => instance.asset_id === assetItem.id);
+          const valueInstance = instanceMemo.get(assetItem.id);
           if (valueInstance && 'override_value' in valueInstance) {
             currentValue = valueInstance.override_value ?? assetItem.initial_value;
           } else {
@@ -563,8 +574,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       
       if (valueAsset && valueAsset.type === 'ValueAsset') {
         if (mode === 'instance' && page) {
-          // Instance編集: 現在ページでの値
-          const valueInstance = page.asset_instances[valueAssetId];
+          // Instance編集: 現在ページでの値: asset_instancesの中から、asset_idがvalueAssetIdと一致するものを探す
+          const valueInstance = Object.values(page.asset_instances).find(instance => instance.asset_id === valueAssetId);
           if (valueInstance && 'override_value' in valueInstance) {
             return valueInstance.override_value ?? valueAsset.initial_value;
           }
