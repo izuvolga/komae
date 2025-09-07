@@ -778,6 +778,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   // ValueAssetインライン編集のハンドラー
   const handleStartValueInlineEdit = (assetInstance: ValueAssetInstance, asset: ValueAsset, page: Page) => {
+    console.log("[handleStartValueInlineEdit] Page for inline edit:", page);
     // 数式型の場合は生の値を取得、それ以外は評価後の値を取得
     const currentValue = asset.value_type === 'formula'
       ? getRawValueAssetValue(asset, page)

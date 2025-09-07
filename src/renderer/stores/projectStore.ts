@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import type { 
-  ProjectData, 
-  UIState, 
-  AppState, 
-  Asset, 
-  AssetInstance, 
+import type {
+  ProjectData,
+  UIState,
+  AppState,
+  Asset,
+  AssetInstance,
   Page,
   ExportFormat,
   ExportOptions,
@@ -38,26 +38,26 @@ interface ProjectStore {
   setProject: (project: ProjectData) => void;
   setCurrentProjectPath: (path: string | null) => void;
   clearProject: () => void;
-  
+
   // Asset Actions
   addAsset: (asset: Asset) => void;
   updateAsset: (assetId: string, updates: Partial<Asset>) => void;
   deleteAsset: (assetId: string) => void;
   reorderAssets: (assetIds: string[]) => void;
-  
+
   // Page Actions
   addPage: (page: Page) => void;
   insertPageAt: (index: number, page: Page) => void;
   updatePage: (pageId: string, updates: Partial<Page>) => void;
   deletePage: (pageId: string) => void;
   reorderPages: (pageIds: string[]) => void;
-  
+
   // AssetInstance Actions
   addAssetInstance: (pageId: string, instance: AssetInstance) => void;
   updateAssetInstance: (pageId: string, instanceId: string, updates: Partial<AssetInstance>) => void;
   deleteAssetInstance: (pageId: string, instanceId: string) => void;
   toggleAssetInstance: (pageId: string, assetId: string) => void;
-  
+
   // UI Actions
   selectAssets: (assetIds: string[]) => void;
   selectPages: (pageIds: string[]) => void;
@@ -72,29 +72,29 @@ interface ProjectStore {
   setAssetLibraryWidth: (width: number) => void;
   setPreviewWidth: (width: number) => void;
   setPreviewScroll: (x: number, y: number) => void;
-  
+
   // Hide/Show Actions
   hideColumn: (assetId: string) => void;
   showColumn: (assetId: string) => void;
   hideRow: (pageId: string) => void;
   showRow: (pageId: string) => void;
-  
+
   // Cursor Actions
   setCursor: (pageId: string | null, assetId: string | null) => void;
   moveCursor: (direction: 'up' | 'down' | 'left' | 'right') => void;
   clearCursor: () => void;
-  
+
   // Clipboard Actions
   copyCell: (pageId: string, assetId: string) => void;
   pasteCell: (pageId: string, assetId: string) => boolean;
-  
+
   // Language Actions
   getCurrentLanguage: () => string;
   getSupportedLanguages: () => string[];
   setCurrentLanguage: (languageCode: string) => void;
   addSupportedLanguage: (languageCode: string) => void;
   removeSupportedLanguage: (languageCode: string) => void;
-  
+
   // App Actions
   setLoading: (loading: boolean) => void;
   setDirty: (dirty: boolean) => void;
@@ -103,7 +103,7 @@ interface ProjectStore {
   addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp'>) => void;
   removeNotification: (notificationId: string) => void;
   clearNotifications: () => void;
-  
+
   // Async Actions
   saveProject: () => Promise<void>;
   loadProject: (filePath: string) => Promise<void>;
@@ -159,14 +159,14 @@ export const useProjectStore = create<ProjectStore>()(
           state.project = project;
           state.app.isDirty = false;
           state.app.lastSaved = new Date();
-          
+
           // 最初のページを現在のページに設定（常に新しいプロジェクトの最初のページに設定）
           if (project.pages.length > 0) {
             state.ui.currentPage = project.pages[0].id;
           } else {
             state.ui.currentPage = null;
           }
-          
+
           // ウィンドウタイトルをプロジェクト名に設定
           window.electronAPI?.system?.setTitle(project.metadata.title);
         }),
@@ -184,7 +184,7 @@ export const useProjectStore = create<ProjectStore>()(
           state.app.isDirty = false;
           state.app.lastSaved = null;
           state.app.notifications = [];
-          
+
           // ウィンドウタイトルをデフォルトに戻す
           window.electronAPI?.system?.setTitle('Sequential Panel Illustration Creator');
         }),
@@ -217,7 +217,7 @@ export const useProjectStore = create<ProjectStore>()(
           set((state) => {
             if (!state.project) return;
             delete state.project.assets[assetId];
-            
+
             // 関連するAssetInstanceも削除
             state.project.pages.forEach(page => {
               Object.entries(page.asset_instances).forEach(([instanceId, instance]) => {
@@ -226,31 +226,31 @@ export const useProjectStore = create<ProjectStore>()(
                 }
               });
             });
-            
+
             state.app.isDirty = true;
           });
         },
 
         reorderAssets: (assetIds) => set((state) => {
           if (!state.project) return;
-          
+
           // 新しい順序でアセットオブジェクトを再構築
           const newAssets: Record<string, Asset> = {};
-          
+
           // 指定された順序でアセットを追加
           assetIds.forEach(id => {
             if (state.project!.assets[id]) {
               newAssets[id] = state.project!.assets[id];
             }
           });
-          
+
           // 指定されていないアセットがあれば最後に追加
           Object.entries(state.project.assets).forEach(([id, asset]) => {
             if (!newAssets[id]) {
               newAssets[id] = asset;
             }
           });
-          
+
           state.project.assets = newAssets;
           state.app.isDirty = true;
         }),
@@ -282,24 +282,24 @@ export const useProjectStore = create<ProjectStore>()(
           const pageIndex = findPageIndexById(state.project.pages, pageId);
           if (pageIndex >= 0) {
             state.project.pages.splice(pageIndex, 1);
-            
+
             // 現在のページが削除された場合は別のページを選択
             if (state.ui.currentPage === pageId) {
               state.ui.currentPage = state.project.pages.length > 0 ? state.project.pages[0].id : null;
             }
-            
+
             state.app.isDirty = true;
           }
         }),
 
         reorderPages: (pageIds) => set((state) => {
           if (!state.project) return;
-          
+
           // 新しい順序でページを並び替え
-          const reorderedPages = pageIds.map(id => 
+          const reorderedPages = pageIds.map(id =>
             findPageById(state.project!.pages, id)
           ).filter((page): page is Page => page !== undefined);
-          
+
           state.project.pages = reorderedPages;
           state.app.isDirty = true;
         }),
@@ -397,15 +397,15 @@ export const useProjectStore = create<ProjectStore>()(
 
         moveCursor: (direction) => set((state) => {
           if (!state.project || !state.ui.cursor.visible) return;
-          
+
           const pages = state.project.pages;
           const assets = Object.values(state.project.assets);
           const currentPageIndex = pages.findIndex(p => p.id === state.ui.cursor.pageId);
           const currentAssetIndex = assets.findIndex(a => a.id === state.ui.cursor.assetId);
-          
+
           let newPageIndex = currentPageIndex;
           let newAssetIndex = currentAssetIndex;
-          
+
           switch (direction) {
             case 'up':
               newPageIndex = Math.max(0, currentPageIndex - 1);
@@ -420,7 +420,7 @@ export const useProjectStore = create<ProjectStore>()(
               newAssetIndex = Math.min(assets.length - 1, currentAssetIndex + 1);
               break;
           }
-          
+
           if (pages[newPageIndex] && assets[newAssetIndex]) {
             state.ui.cursor.pageId = pages[newPageIndex].id;
             state.ui.cursor.assetId = assets[newAssetIndex].id;
@@ -438,14 +438,14 @@ export const useProjectStore = create<ProjectStore>()(
         // Clipboard Actions
         copyCell: (pageId, assetId) => set((state) => {
           if (!state.project) return;
-          
+
           const page = findPageById(state.project.pages, pageId);
           if (!page) return;
-          
+
           const assetInstance = Object.values(page.asset_instances).find(
             instance => instance.asset_id === assetId
           );
-          
+
           if (assetInstance) {
             state.ui.clipboard = {
               assetInstance: { ...assetInstance },
@@ -457,19 +457,19 @@ export const useProjectStore = create<ProjectStore>()(
         pasteCell: (pageId, assetId) => {
           const state = get();
           if (!state.project || !state.ui.clipboard.assetInstance) return false;
-          
+
           const targetAsset = state.project.assets[assetId];
           const sourceAssetInstance = state.ui.clipboard.assetInstance;
           const sourceAsset = state.project.assets[sourceAssetInstance.asset_id];
-          
+
           // 同じタイプのアセットの場合のみペースト可能
           if (!targetAsset || !sourceAsset || targetAsset.type !== sourceAsset.type) {
             return false;
           }
-          
+
           const page = findPageById(state.project.pages, pageId);
           if (!page) return false;
-          
+
           // 既存のインスタンスを削除
           const existingInstance = Object.values(page.asset_instances).find(
             instance => instance.asset_id === assetId
@@ -477,7 +477,7 @@ export const useProjectStore = create<ProjectStore>()(
           if (existingInstance) {
             delete page.asset_instances[existingInstance.id];
           }
-          
+
           // 新しいインスタンスを作成
           const newInstanceId = `instance-${Date.now()}`;
           const newInstance = {
@@ -485,7 +485,7 @@ export const useProjectStore = create<ProjectStore>()(
             id: newInstanceId,
             asset_id: assetId,
           };
-          
+
           set((state) => {
             if (!state.project) return;
             const targetPage = findPageById(state.project.pages, pageId);
@@ -494,7 +494,7 @@ export const useProjectStore = create<ProjectStore>()(
               state.app.isDirty = true;
             }
           });
-          
+
           return true;
         },
 
@@ -516,7 +516,7 @@ export const useProjectStore = create<ProjectStore>()(
           if (!state.project) return;
           const page = findPageById(state.project.pages, pageId);
           if (!page) return;
-          
+
           const existingInstance = Object.values(page.asset_instances).find(
             instance => instance.asset_id === assetId
           );
@@ -537,21 +537,21 @@ export const useProjectStore = create<ProjectStore>()(
               id: instanceId,
               asset_id: assetId,
             };
-            
+
             // TextAssetInstanceの場合はmultilingual_textを初期化
             const asset = state.project.assets[assetId];
             if (asset?.type === 'TextAsset') {
               const supportedLanguages = state.project.metadata.supportedLanguages || ['ja'];
               const multilingual_text: Record<string, string> = {};
-              
+
               // 各対応言語に対してデフォルトテキストを設定
               supportedLanguages.forEach(langCode => {
                 multilingual_text[langCode] = (asset as TextAsset).default_text || '';
               });
-              
+
               (newInstance as TextAssetInstance).multilingual_text = multilingual_text;
             }
-            
+
             // 以前に保存された編集内容があるかチェック
             if (state.hiddenInstanceData[pageId]?.[assetId]) {
               const savedInstance = state.hiddenInstanceData[pageId][assetId];
@@ -562,10 +562,10 @@ export const useProjectStore = create<ProjectStore>()(
               // 復元済みなので保存データは削除
               delete state.hiddenInstanceData[pageId][assetId];
             }
-            
+
             page.asset_instances[instanceId] = newInstance;
           }
-          
+
           state.app.isDirty = true;
         }),
 
@@ -655,12 +655,12 @@ export const useProjectStore = create<ProjectStore>()(
               if (currentSupported.length > 1 && currentSupported.includes(languageCode)) {
                 const newSupported = currentSupported.filter(lang => lang !== languageCode);
                 state.project.metadata.supportedLanguages = newSupported;
-                
+
                 // 削除した言語がcurrentLanguageの場合、最初の言語に変更
                 if (state.project.metadata.currentLanguage === languageCode) {
                   state.project.metadata.currentLanguage = newSupported[0];
                 }
-                
+
                 state.app.isDirty = true;
               }
             }
@@ -673,14 +673,14 @@ export const useProjectStore = create<ProjectStore>()(
           if (!project) return;
 
           set((state) => { state.app.isLoading = true; });
-          
+
           try {
             const filePath = await window.electronAPI.project.save(project);
-            
+
             // プロジェクトパスを取得して設定
             const projectPath = await window.electronAPI.project.getCurrentPath();
             get().setCurrentProjectPath(projectPath);
-            
+
             set((state) => {
               state.app.isDirty = false;
               state.app.lastSaved = new Date();
@@ -712,7 +712,7 @@ export const useProjectStore = create<ProjectStore>()(
               message: `エラー: ${message}`,
               autoClose: false,
             });
-            
+
             throw error;
           }
         },
@@ -720,18 +720,18 @@ export const useProjectStore = create<ProjectStore>()(
         loadProject: async (filePath) => {
           const { addNotification } = get();
           set((state) => { state.app.isLoading = true; });
-          
+
           try {
             const projectData = await window.electronAPI.project.load(filePath);
             get().setProject(projectData);
-            
+
             // プロジェクトパスを取得して設定
             const projectPath = await window.electronAPI.project.getCurrentPath();
             get().setCurrentProjectPath(projectPath);
-            
+
             // ローディング状態を解除
             set((state) => { state.app.isLoading = false; });
-            
+
             // プロジェクト読み込み成功の通知を表示
             addNotification({
               type: 'success',
@@ -758,7 +758,7 @@ export const useProjectStore = create<ProjectStore>()(
               message: `エラー: ${message}`,
               autoClose: false,
             });
-            
+
             throw error;
           }
         },
@@ -766,12 +766,12 @@ export const useProjectStore = create<ProjectStore>()(
         importAsset: async (filePath) => {
           const { addNotification } = get();
           set((state) => { state.app.isLoading = true; });
-          
+
           try {
             const asset = await window.electronAPI.asset.import(filePath);
             get().addAsset(asset);
             set((state) => { state.app.isLoading = false; });
-            
+
             // アセットインポート成功の通知を表示
             addNotification({
               type: 'success',
@@ -780,7 +780,7 @@ export const useProjectStore = create<ProjectStore>()(
               autoClose: true,
               duration: 3000,
             });
-            
+
             return asset;
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
@@ -800,7 +800,7 @@ export const useProjectStore = create<ProjectStore>()(
               message: `エラー: ${message}`,
               autoClose: false,
             });
-            
+
             throw error;
           }
         },
@@ -810,7 +810,7 @@ export const useProjectStore = create<ProjectStore>()(
           if (!project) return;
 
           set((state) => { state.app.isLoading = true; });
-          
+
           try {
             // デフォルト設定を生成し、オプションをマージ
             const defaultSettings = getDefaultExportSettings(project);
@@ -819,7 +819,7 @@ export const useProjectStore = create<ProjectStore>()(
               ...options,
               format // formatは引数から設定
             };
-            
+
             await window.electronAPI.project.export(project, format, mergedOptions);
             set((state) => { state.app.isLoading = false; });
           } catch (error) {

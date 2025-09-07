@@ -3,10 +3,10 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as os from 'os';
 import { v4 as uuidv4 } from 'uuid';
-import type { 
-  ProjectData, 
-  ProjectCreateParams, 
-  ExportFormat, 
+import type {
+  ProjectData,
+  ProjectCreateParams,
+  ExportFormat,
   ExportOptions,
   TextAsset
 } from '../../types/entities';
@@ -72,7 +72,7 @@ export class ProjectManager {
   async createProjectDirectory(projectPath: string): Promise<void> {
     try {
       await createProjectDirectory(projectPath);
-      
+
       // 開発段階では Info.plist 生成を無効化
       // 将来のリリース版では以下のコードを有効化:
       // if (this.getPlatform() === 'darwin') {
@@ -98,7 +98,7 @@ export class ProjectManager {
 
   async createProject(params: ProjectCreateParams): Promise<ProjectData> {
     const projectId = uuidv4();
-    
+
     const projectData: ProjectData = {
       metadata: {
         komae_version: '1.0',
@@ -150,7 +150,7 @@ export class ProjectManager {
       } catch (statError) {
         // ファイルが存在しない場合は null のまま
       }
-      
+
       let actualFilePath: string;
       if (stats && stats.isDirectory()) {
         // プロジェクトディレクトリの場合
@@ -201,7 +201,7 @@ export class ProjectManager {
       }, false);
 
       await tracker.end({ success: false, error: error instanceof Error ? error.message : String(error) });
-      
+
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to save project: ${message}`);
     }
@@ -214,16 +214,16 @@ export class ProjectManager {
    */
   private async detectProjectFile(inputPath: string): Promise<string> {
     const stats = await fs.stat(inputPath);
-    
+
     if (stats.isFile()) {
       // ファイルが指定された場合はそのまま使用
       return inputPath;
     }
-    
+
     if (stats.isDirectory()) {
       // ディレクトリが指定された場合は内部のプロジェクトファイルを検索
       const dirName = path.basename(inputPath);
-      
+
       // 1. [ディレクトリ名].komae を検索
       const primaryCandidate = path.join(inputPath, `${dirName}.komae`);
       try {
@@ -232,7 +232,7 @@ export class ProjectManager {
       } catch {
         // 見つからない場合は次の候補を試す
       }
-      
+
       // 2. project.komae を検索（フォールバック）
       const fallbackCandidate = path.join(inputPath, 'project.komae');
       try {
@@ -242,7 +242,7 @@ export class ProjectManager {
         throw new Error(`No valid project file found in directory: ${inputPath}`);
       }
     }
-    
+
     throw new Error(`Invalid path type: ${inputPath}`);
   }
 
@@ -250,10 +250,10 @@ export class ProjectManager {
     try {
       // プロジェクトファイルを自動検出
       const projectFilePath = await this.detectProjectFile(inputPath);
-      
+
       // YAMLファイルを読み込み
       let projectData = await loadProjectFile(projectFilePath);
-      
+
       // 下位互換性: hiddenColumns と hiddenRows が存在しない場合は空配列で初期化
       if (!projectData.hiddenColumns) {
         projectData.hiddenColumns = [];
@@ -261,7 +261,7 @@ export class ProjectManager {
       if (!projectData.hiddenRows) {
         projectData.hiddenRows = [];
       }
-      
+
       // プロジェクトパスを設定
       const stats = await fs.stat(inputPath);
       if (stats.isDirectory()) {
@@ -271,14 +271,14 @@ export class ProjectManager {
         // ファイルが指定された場合は親ディレクトリをプロジェクトパスとする
         this.currentProjectPath = path.dirname(inputPath);
       }
-      
+
       // AssetManagerで参照されていないファイルをクリーンアップ
       try {
         const assetManager = new (await import('./AssetManager')).AssetManager();
         assetManager.setCurrentProjectPath(this.currentProjectPath);
-        
+
         const cleanupResult = await assetManager.cleanupUnreferencedAssets(projectData);
-        
+
         if (cleanupResult.deletedFiles.length > 0) {
           await this.logger.logDevelopment('project_load_cleanup', 'Cleaned up unreferenced files during project load', {
             projectPath: this.currentProjectPath,
@@ -292,7 +292,7 @@ export class ProjectManager {
           projectPath: this.currentProjectPath,
         });
       }
-      
+
       return projectData;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

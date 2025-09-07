@@ -79,6 +79,8 @@ const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
   multilingual_text: z.record(z.string(), z.string()).optional(),
   override_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
   override_context: z.string().optional(),
+  // ValueAssetInstanceの追加フィールド
+  override_value: z.any().optional(),
 });
 
 // ImageAsset スキーマ
