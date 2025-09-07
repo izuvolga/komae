@@ -25,14 +25,6 @@ export class ColumnDragCalculator {
     this.baseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
     this.maxIndex = Math.max(0, config.visibleAssetsCount); // 末尾の位置も許可
     this.draggedAssetIndex = config.draggedAssetIndex ?? null;
-
-    console.log('[ColumnDragCalculator] Initialized:', {
-      columnWidth: this.columnWidth,
-      baseX: this.baseX,
-      maxIndex: this.maxIndex,
-      draggedAssetIndex: this.draggedAssetIndex,
-      config
-    });
   }
 
   /**
@@ -42,25 +34,6 @@ export class ColumnDragCalculator {
     const relativeX = mouseX - this.baseX;
     const rawIndex = Math.round(relativeX / this.columnWidth);
     const clampedIndex = Math.max(0, Math.min(this.maxIndex, rawIndex));
-
-    console.log('[ColumnDragCalculator] mouseXToInsertIndex:', {
-      mouseX,
-      relativeX,
-      rawIndex,
-      clampedIndex,
-      draggedAssetIndex: this.draggedAssetIndex,
-      baseX: this.baseX,
-      columnWidth: this.columnWidth
-    });
-
-    // ドラッグ中のアセットを認識しているかデバッグ表示
-    if (this.draggedAssetIndex !== null) {
-      console.log(`[ColumnDragCalculator] ドラッグ中アセット認識: インデックス ${this.draggedAssetIndex} をドラッグ中`);
-      console.log(`[ColumnDragCalculator] 挿入候補位置: ${clampedIndex} (元位置: ${this.draggedAssetIndex})`);
-    } else {
-      console.log('[ColumnDragCalculator] ドラッグ中アセット: 未認識');
-    }
-
     return clampedIndex;
   }
 
@@ -80,14 +53,6 @@ export class ColumnDragCalculator {
       // 中間の位置
       pixelLeft = this.baseX + insertIndex * this.columnWidth;
     }
-
-    console.log('[ColumnDragCalculator] insertIndexToPixelLeft:', {
-      insertIndex,
-      pixelLeft,
-      baseX: this.baseX,
-      columnWidth: this.columnWidth,
-      maxIndex: this.maxIndex
-    });
 
     return pixelLeft;
   }
@@ -109,11 +74,9 @@ export class ColumnDragCalculator {
 
     // 同じ位置への挿入は変更なし
     if (actualInsertIndex === this.draggedAssetIndex) {
-      console.log(`[ColumnDragCalculator] 位置変更なし: insertIndex=${insertIndex}, actualInsertIndex=${actualInsertIndex}, draggedAssetIndex=${this.draggedAssetIndex}`);
       return false;
     }
 
-    console.log(`[ColumnDragCalculator] 位置変更あり: insertIndex=${insertIndex}, actualInsertIndex=${actualInsertIndex}, draggedAssetIndex=${this.draggedAssetIndex}`);
     return true;
   }
 
