@@ -25,6 +25,10 @@
   - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
 - [ ]: 新規アセット: スクリプト生成できる SVG (docs/design/asset-specificaiton.md)
 
+## DynamicVectorAsset
+- [ ]: DynamicVectorAsset の @parameters に紐づけられている ValueAsset の型が変化したときに、紐づけを解除して @parameters の値を初期値に変更する
+- [ ]: @parameters の型に color を追加し、Edit 画面でカラーピッカーを表示する
+
 # v0.1 リリースに向けてのTODO
 
 ## プロジェクト管理
