@@ -16,7 +16,7 @@ export class ExportService {
   private logger = getLogger();
   private currentProjectPath: string | null = null;
   private fontManager: any; // FontManager型
-  
+
   constructor(fontManager?: any) {
     this.fontManager = fontManager;
   }
@@ -62,7 +62,7 @@ export class ExportService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       await this.logger.logError('export_failed', error as Error, {
         format: options.format,
         title: options.title
@@ -107,12 +107,12 @@ export class ExportService {
    */
   private async prepareOutputPath(options: ExportOptions): Promise<string> {
     const sanitizedTitle = this.sanitizeFileName(options.title);
-    
+
     // 出力ディレクトリが存在することを確認
     await fs.mkdir(options.outputPath, { recursive: true });
-    
+
     let outputPath: string;
-    
+
     if (options.format === 'html') {
       outputPath = path.join(options.outputPath, `${sanitizedTitle}.html`);
     } else if (options.format === 'png') {
@@ -172,10 +172,10 @@ export class ExportService {
       for (let i = 0; i < project.pages.length; i++) {
         const page = project.pages[i];
         const svgContent = await this.generatePageSVG(project, page);
-        
+
         // SVGをPNGに変換
         const pngBuffer = await this.convertSVGToPNG(svgContent, options);
-        
+
         // PNGファイルを書き込み
         const pngPath = path.join(outputPath, `${i + 1}.png`);
         await fs.writeFile(pngPath, pngBuffer);
@@ -201,7 +201,7 @@ export class ExportService {
    */
   private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
-    
+
     // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
     const instances = Object.values(page.asset_instances);
 
@@ -209,8 +209,8 @@ export class ExportService {
     const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
     const currentLanguage = project.metadata?.currentLanguage || 'ja';
     const { assetDefinitions, useElements } = await generateSvgStructureCommon(
-      project, 
-      instances, 
+      project,
+      instances,
       (filePath: string) => {
         // PNG生成時もプロジェクトパス解決が必要
         let absolutePath = filePath;
@@ -251,18 +251,17 @@ export class ExportService {
     // テスト用のダミーPNGファイル（1x1の透明PNG）
     // 実際の実装では Canvas や Sharp ライブラリを使用
     const dummyPngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
-    
+
     // 品質設定に応じてファイルサイズを調整（テスト用）
     let repetitions = Math.floor(options.quality / 10);
     repetitions = Math.max(1, Math.min(10, repetitions));
-    
+
     const baseBuffer = Buffer.from(dummyPngBase64, 'base64');
     const paddingSize = repetitions * 100; // 品質に応じてサイズを調整
     const padding = Buffer.alloc(paddingSize, 0);
-    
+
     return Buffer.concat([baseBuffer, padding]);
   }
-
 
   /**
    * ファイル名をサニタイズ

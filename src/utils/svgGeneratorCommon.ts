@@ -125,6 +125,7 @@ export async function generateSvgStructureCommon(
   pageIndex: number = 0,
   customAssets?: Record<string, any>
 ): Promise<SvgStructureResult> {
+  console.log(`[generateSvgStructureCommon] Generating SVG structure for page index ${pageIndex}, current language: ${currentLanguage}`);
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
@@ -183,7 +184,8 @@ export async function generateSvgStructureCommon(
         pageIndex,
         customAssets
       );
-      
+      console.log(`[generateSvgStructureCommon] DynamicVectorAsset "${dynamicVectorAsset.name}" element:`, dynamicVectorElement);
+
       if (dynamicVectorElement) {
         useElements.push(dynamicVectorElement);
       }

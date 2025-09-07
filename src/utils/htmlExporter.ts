@@ -15,17 +15,17 @@ function encodeImageToBase64(filePath: string, projectPath?: string | null): str
   }
 
   let absolutePath = filePath;
-  
+
   // 相対パスの場合は絶対パスに変換
   if (projectPath && !path.isAbsolute(filePath)) {
     absolutePath = path.join(projectPath, filePath);
   }
-  
+
   if (!fs.existsSync(absolutePath)) {
     console.warn(`File not found: ${absolutePath} (original: ${filePath})`);
     return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
   }
-  
+
   try {
     const imageBuffer = fs.readFileSync(absolutePath);
     const base64Data = imageBuffer.toString('base64');
@@ -82,7 +82,7 @@ function encodeFontToBase64(filePath: string): string {
     console.warn(`Font file not found: ${filePath}`);
     return 'data:font/truetype;charset=utf-8;base64,dGVzdCBmb250IGRhdGE=';
   }
-  
+
   try {
     const fontBuffer = fs.readFileSync(filePath);
     const base64Data = fontBuffer.toString('base64');
@@ -100,7 +100,7 @@ function encodeFontToBase64(filePath: string): string {
  */
 export class HtmlExporter {
   private availableFonts: FontInfo[] = [];
-  
+
   constructor(private projectPath: string | null = null, availableFonts?: FontInfo[]) {
     this.availableFonts = availableFonts || [];
   }
@@ -110,13 +110,13 @@ export class HtmlExporter {
    */
   private collectUsedFonts(project: ProjectData): Set<string> {
     const usedFontIds = new Set<string>();
-    
+
     // 全ページの TextAsset を確認
     for (const page of project.pages) {
       for (const instanceId in page.asset_instances) {
         const instance = page.asset_instances[instanceId];
         const asset = project.assets[instance.asset_id];
-        
+
         if (asset && asset.type === 'TextAsset') {
           const textAsset = asset as any; // TextAsset型
           if (textAsset.font) {
@@ -125,7 +125,7 @@ export class HtmlExporter {
         }
       }
     }
-    
+
     console.log(`[HtmlExporter] Collected used fonts:`, Array.from(usedFontIds));
     return usedFontIds;
   }
@@ -135,7 +135,7 @@ export class HtmlExporter {
    */
   private async generateFontFaceDeclarations(fontIds: Set<string>): Promise<string> {
     const declarations: string[] = [];
-    
+
     // テスト環境では電子appオブジェクトをモックから取得
     let app;
     if (process.env.NODE_ENV === 'test') {
@@ -144,56 +144,56 @@ export class HtmlExporter {
       const electron = require('electron');
       app = electron.app;
     }
-    
+
     for (const fontId of fontIds) {
       // システムフォントはスキップ
       if (fontId === 'system-ui') {
         continue;
       }
-      
+
       // Google Fontはスキップ（別途リンクタグで処理）
       const fontInfo = this.availableFonts.find(f => f.id === fontId);
       if (fontInfo && fontInfo.isGoogleFont) {
         console.log(`[HtmlExporter] Skipping Google Font for @font-face: ${fontId} (will use link tag instead)`);
         continue;
       }
-      
+
       try {
         // フォントファイルを探す (ビルトイン -> カスタム の順)
         let fontFilePath: string | null = null;
         let fontDirectoryPath: string;
-        
+
         // 1. ビルトインフォントを確認
         const isDev = process.env.NODE_ENV === 'development';
-        const builtinFontsDir = isDev 
+        const builtinFontsDir = isDev
           ? path.join(process.cwd(), 'public', 'fonts')
           : path.join(app.getAppPath(), 'public', 'fonts');
-        
+
         const builtinFontDir = path.join(builtinFontsDir, fontId);
         if (fs.existsSync(builtinFontDir)) {
           fontDirectoryPath = builtinFontDir;
           // フォントファイルを検索
           const files = fs.readdirSync(fontDirectoryPath);
           const supportedExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
-          const fontFile = files.find(file => 
+          const fontFile = files.find(file =>
             supportedExtensions.some(ext => file.toLowerCase().endsWith(ext))
           );
           if (fontFile) {
             fontFilePath = path.join(fontDirectoryPath, fontFile);
           }
         }
-        
+
         // 2. カスタムフォントを確認（ビルトインで見つからない場合）
         if (!fontFilePath) {
           const userDataDir = app.getPath('userData');
           const customFontsDir = path.join(userDataDir, 'fonts');
           const customFontDir = path.join(customFontsDir, fontId);
-          
+
           if (fs.existsSync(customFontDir)) {
             fontDirectoryPath = customFontDir;
             const files = fs.readdirSync(fontDirectoryPath);
             const supportedExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
-            const fontFile = files.find(file => 
+            const fontFile = files.find(file =>
               supportedExtensions.some(ext => file.toLowerCase().endsWith(ext))
             );
             if (fontFile) {
@@ -201,7 +201,7 @@ export class HtmlExporter {
             }
           }
         }
-        
+
         // フォントファイルが見つかった場合のみ@font-face宣言を生成
         if (fontFilePath) {
           const base64Data = encodeFontToBase64(fontFilePath);
@@ -218,7 +218,7 @@ export class HtmlExporter {
         console.error(`[HtmlExporter] Error generating @font-face for ${fontId}:`, error);
       }
     }
-    
+
     return declarations.join('\n\n');
   }
 
@@ -228,29 +228,29 @@ export class HtmlExporter {
   private async generateGoogleFontsLinks(fontIds: Set<string>): Promise<string> {
     const links: string[] = [];
     const googleFontUrls = new Set<string>();
-    
+
     // Google Fontsの収集
     for (const fontId of fontIds) {
       if (fontId === 'system-ui') continue;
-      
+
       const fontInfo = this.availableFonts.find(f => f.id === fontId);
       if (fontInfo && fontInfo.isGoogleFont && fontInfo.googleFontUrl) {
         googleFontUrls.add(fontInfo.googleFontUrl);
       }
     }
-    
+
     // プリコネクトリンクを追加（Google Fontsが存在する場合のみ）
     if (googleFontUrls.size > 0) {
       links.push('<link rel="preconnect" href="https://fonts.googleapis.com">');
       links.push('<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
     }
-    
+
     // Google Fontsリンクを生成
     for (const url of googleFontUrls) {
       links.push(`<link href="${url}" rel="stylesheet">`);
       console.log(`[HtmlExporter] Generated Google Fonts link: ${url}`);
     }
-    
+
     return links.join('\n  ');
   }
 
@@ -267,7 +267,7 @@ export class HtmlExporter {
 
       // 統合SVGコンテンツを生成
       const unifiedSVG = await this.generateUnifiedSVG(project);
-      
+
       // HTMLコンテンツを生成（フォント埋め込み機能付き）
       return await this.generateHTMLContent(project, options, unifiedSVG);
     } finally {
@@ -282,7 +282,7 @@ export class HtmlExporter {
    */
   private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
-    
+
     // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
     const instances = Object.values(page.asset_instances);
 
@@ -290,8 +290,8 @@ export class HtmlExporter {
     const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
     const currentLanguage = project.metadata?.currentLanguage || 'ja';
     const { assetDefinitions, useElements } = await generateSvgStructureCommon(
-      project, 
-      instances, 
+      project,
+      instances,
       (filePath: string) => {
         // HTMLエクスポート時は画像をbase64エンコードして埋め込む
         return encodeImageToBase64(filePath, this.projectPath);
@@ -324,13 +324,13 @@ export class HtmlExporter {
    */
   private async generateUnifiedSVG(project: ProjectData): Promise<string> {
     const { width, height } = project.canvas;
-    
+
     // 全ページで使用されるアセットを収集
     const allAssetIds = new Set<string>();
     const allInstances: AssetInstance[] = [];
     const processedAssets = new Set<string>();
     const assetDefinitions: string[] = [];
-    
+
     // 全ページのアセットインスタンスを収集してユニークなアセットIDを抽出
     for (const page of project.pages) {
       for (const instance of Object.values(page.asset_instances)) {
@@ -338,7 +338,7 @@ export class HtmlExporter {
         allInstances.push(instance);
       }
     }
-    
+
     // マスク定義を生成（全インスタンスからマスクを収集）
     let clipPathDefinitions: string[] = [];
     try {
@@ -347,39 +347,39 @@ export class HtmlExporter {
       console.warn('[HtmlExporter] generateAllClipPathDefinitions not available, skipping mask definitions');
       clipPathDefinitions = [];
     }
-    
+
     // アセット定義を生成（ImageAssetのみ - VectorAssetとTextAssetはインライン表示）
     for (const assetId of allAssetIds) {
       const asset = project.assets[assetId];
       if (!asset || asset.type !== 'ImageAsset') continue;
-      
+
       if (!processedAssets.has(assetId)) {
         const imageAsset = asset as any; // ImageAsset型
         const base64Data = encodeImageToBase64(imageAsset.original_file_path, this.projectPath);
         const opacity = imageAsset.default_opacity ?? 1.0;
-        
+
         const assetDef = [
           `    <g id="${assetId}" opacity="${opacity}">`,
           `      <image id="image-${assetId}" xlink:href="${base64Data}" width="${imageAsset.default_width}" height="${imageAsset.default_height}" x="${imageAsset.default_pos_x}" y="${imageAsset.default_pos_y}" />`,
           `    </g>`
         ].join('\n');
-        
+
         assetDefinitions.push(assetDef);
         processedAssets.add(assetId);
       }
     }
-    
+
     // 各ページのコンテンツを生成
     const pageContents: string[] = [];
-    
+
     for (let i = 0; i < project.pages.length; i++) {
       const page = project.pages[i];
       const pageNumber = i + 1;
       const isFirstPage = i === 0;
-      
+
       // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
       const instances = Object.values(page.asset_instances);
-      
+
       // 共通のSVG生成ロジックを使用して使用要素を生成
       const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
       const currentLanguage = project.metadata?.currentLanguage || 'ja';
@@ -393,17 +393,17 @@ export class HtmlExporter {
         availableLanguages,
         currentLanguage
       );
-      
+
       const pageContent = [
         `  <!-- ページ${pageNumber}の描画内容 -->`,
         `  <g id="page-${pageNumber}" style="display: ${isFirstPage ? 'block' : 'none'};">`,
         ...useElements.map(use => `    ${use}`),
         `  </g>`
       ].join('\n');
-      
+
       pageContents.push(pageContent);
     }
-    
+
     // 統合SVGを構築（svg-structure.md仕様に準拠）
     const svgContent = [
       `<svg`,
@@ -428,7 +428,7 @@ export class HtmlExporter {
       ...pageContents,
       `</svg>`
     ].join('\n');
-    
+
     return svgContent;
   }
 
@@ -441,7 +441,7 @@ export class HtmlExporter {
 
     // 使用されているフォントを収集
     const usedFonts = this.collectUsedFonts(project);
-    
+
     // フォント関連のコンテンツを生成
     const fontFaceDeclarations = await this.generateFontFaceDeclarations(usedFonts);
     const googleFontsLinks = await this.generateGoogleFontsLinks(usedFonts);
@@ -476,7 +476,7 @@ export class HtmlExporter {
   // テスト用の旧API（後方互換性）
   generateHtmlStructure(project: ProjectData): string {
     console.warn('generateHtmlStructure is deprecated. Use exportToHTML instead.');
-    
+
     const options = {
       format: 'html' as const,
       title: project.metadata.title,
@@ -490,7 +490,7 @@ export class HtmlExporter {
         autoPlay: false
       }
     };
-    
+
     // テンプレートシステムで簡易HTMLを生成
     try {
       // 統合SVGを同期的に生成（テスト用）
@@ -505,20 +505,20 @@ export class HtmlExporter {
         CURRENT_LANGUAGE: currentLanguage,
         AVAILABLE_LANGUAGES_JSON: JSON.stringify(availableLanguages)
       };
-      
+
       return VIEWER_TEMPLATES.render(templateVariables);
     } catch (error) {
       console.error('Template rendering failed, falling back to legacy method:', error);
       return this.generateSyncHTML(project);
     }
   }
-  
+
   /**
    * テスト用の簡易SVG生成
    */
   private generateSimpleSVGForTest(project: ProjectData): string {
     const { width, height } = project.canvas;
-    
+
     return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
   <g id="assets"><g visibility="hidden"></g></g>
   <g id="page-1" style="display: block;">
@@ -562,7 +562,7 @@ export class HtmlExporter {
       align-items: center;
       background: #000;
     }
-    
+
     .page-svg {
       cursor: pointer;
       max-width: 90vw;
@@ -579,7 +579,7 @@ ${this.generateSvgAssetDefinitions(project)}
       <g id="draw"></g>
     </svg>
   </div>
-  
+
   <script>
 ${this.generateNavigationScriptForUnifiedSVG(false)}
   </script>
@@ -615,7 +615,7 @@ export async function generateHtmlExport(project: ProjectData): Promise<string> 
       autoPlay: false
     }
   };
-  
+
   try {
     return await exporter.exportToHTML(project, options);
   } catch (error) {
