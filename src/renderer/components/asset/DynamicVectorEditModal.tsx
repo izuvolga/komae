@@ -54,8 +54,17 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   // パラメータ値の状態管理
   const [parameterValues, setParameterValues] = useState<Record<string, number | string>>({});
   
+  // ValueAsset参照の状態管理
+  const [parameterBindings, setParameterBindings] = useState<Record<string, string>>({});
+  
   // CustomAssetの状態管理
   const [customAsset, setCustomAsset] = useState<any>(null);
+  
+  // ValueAssetの一覧
+  const [availableValueAssets, setAvailableValueAssets] = useState<{
+    string: Array<{ id: string; name: string; value: any }>;
+    number: Array<{ id: string; name: string; value: any }>;
+  }>({ string: [], number: [] });
 
   // バリデーション状態
   const [zIndexValidation, setZIndexValidation] = useState<{
@@ -91,6 +100,56 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     fetchCustomAsset();
   }, [asset.custom_asset_id]);
 
+  // ValueAsset一覧を取得・更新する関数
+  const updateAvailableValueAssets = useCallback(() => {
+    if (!project) {
+      setAvailableValueAssets({ string: [], number: [] });
+      return;
+    }
+
+    // Asset編集モードの場合、pageがなくても進行できるように修正
+    if (mode === 'instance' && !page) {
+      setAvailableValueAssets({ string: [], number: [] });
+      return;
+    }
+
+    const stringAssets: Array<{ id: string; name: string; value: any }> = [];
+    const numberAssets: Array<{ id: string; name: string; value: any }> = [];
+
+    Object.values(project.assets).forEach(assetItem => {
+      if (assetItem.type === 'ValueAsset') {
+        let currentValue: any;
+        
+        if (mode === 'instance' && page) {
+          // Instance編集モード: ページの値を優先
+          const valueInstance = page.asset_instances[assetItem.id];
+          if (valueInstance && 'override_value' in valueInstance) {
+            currentValue = valueInstance.override_value ?? assetItem.initial_value;
+          } else {
+            currentValue = assetItem.initial_value;
+          }
+        } else {
+          // Asset編集モード: initial_valueを使用
+          currentValue = assetItem.initial_value;
+        }
+
+        const valueAssetInfo = {
+          id: assetItem.id,
+          name: assetItem.name,
+          value: currentValue
+        };
+
+        if (assetItem.value_type === 'string') {
+          stringAssets.push(valueAssetInfo);
+        } else if (assetItem.value_type === 'number') {
+          numberAssets.push(valueAssetInfo);
+        }
+      }
+    });
+
+    setAvailableValueAssets({ string: stringAssets, number: numberAssets });
+  }, [project, page, mode]);
+
   useEffect(() => {
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
@@ -103,7 +162,13 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       });
     }
     setParameterValues(initialParams);
-  }, [asset, assetInstance]);
+
+    // parameter_variable_bindingsを初期化
+    setParameterBindings(asset.parameter_variable_bindings || {});
+
+    // ValueAsset一覧を更新
+    updateAvailableValueAssets();
+  }, [asset, assetInstance, updateAvailableValueAssets]);
 
   // Shiftキーの状態を監視
   useEffect(() => {
@@ -244,8 +309,13 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     setIsExecuting(true);
 
     try {
-      // パラメータを構築
-      const scriptParameters = { ...parameterValues };
+      // パラメータを構築（ValueAsset参照を考慮した値解決）
+      const scriptParameters: Record<string, number | string> = {};
+      
+      // 各パラメータの値を解決
+      Object.keys(parameterValues).forEach(paramName => {
+        scriptParameters[paramName] = resolveParameterValue(paramName);
+      });
 
       // ページ変数を追加
       if (editedAsset.use_page_variables && page && project) {
@@ -436,6 +506,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       const updatedAsset = {
         ...editedAsset,
         parameters: { ...parameterValues },
+        parameter_variable_bindings: Object.keys(parameterBindings).length > 0 ? parameterBindings : undefined,
       };
 
       const validation = validateDynamicVectorAssetData(updatedAsset);
@@ -483,12 +554,54 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     });
   };
 
+  // ValueAsset参照による値解決
+  const resolveParameterValue = useCallback((paramName: string): number | string => {
+    // ValueAsset参照がある場合
+    if (parameterBindings[paramName] && project) {
+      const valueAssetId = parameterBindings[paramName];
+      const valueAsset = project.assets[valueAssetId];
+      
+      if (valueAsset && valueAsset.type === 'ValueAsset') {
+        if (mode === 'instance' && page) {
+          // Instance編集: 現在ページでの値
+          const valueInstance = page.asset_instances[valueAssetId];
+          if (valueInstance && 'override_value' in valueInstance) {
+            return valueInstance.override_value ?? valueAsset.initial_value;
+          }
+        }
+        // Asset編集 or Instance編集でもoverride値がない場合: initial_value
+        return valueAsset.initial_value;
+      }
+    }
+    
+    // 直接入力値を使用
+    return parameterValues[paramName] ?? '';
+  }, [parameterBindings, parameterValues, project, page, mode]);
+
   // パラメータ変更ハンドラー
   const handleParameterChange = (paramName: string, value: number | string) => {
     setParameterValues(prev => ({
       ...prev,
       [paramName]: value,
     }));
+  };
+
+  // ValueAsset参照の変更ハンドラー
+  const handleParameterBindingChange = (paramName: string, valueAssetId: string) => {
+    if (valueAssetId === '') {
+      // 「直接入力」を選択
+      setParameterBindings(prev => {
+        const newBindings = { ...prev };
+        delete newBindings[paramName];
+        return newBindings;
+      });
+    } else {
+      // ValueAssetを選択
+      setParameterBindings(prev => ({
+        ...prev,
+        [paramName]: valueAssetId,
+      }));
+    }
   };
 
   const modalTitle = mode === 'instance'
@@ -672,6 +785,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     <div className="dve-parameters-list">
                       {Object.entries(assetParameters).map(([paramName, paramValue], index: number) => {
                         const isNumber = typeof paramValue === 'number';
+                        const isBindingSet = parameterBindings[paramName];
+                        const resolvedValue = resolveParameterValue(paramName);
+                        const availableAssets = isNumber ? availableValueAssets.number : availableValueAssets.string;
+                        
                         return (
                           <div key={paramName} className="dve-parameter-row">
                             <div className="dve-parameter-info">
@@ -679,33 +796,52 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                               <span className="dve-parameter-type">({isNumber ? 'number' : 'string'})</span>
                             </div>
                             <div className="dve-parameter-input">
-                              {isNumber ? (
-                                <input
-                                  type="number"
-                                  value={parameterValues[paramName] || paramValue || 0}
-                                  onChange={(e) => {
-                                    const value = parseFloat(e.target.value);
-                                    if (!isNaN(value)) {
-                                      handleParameterChange(paramName, value);
+                              <div className="dve-parameter-input-field">
+                                {isNumber ? (
+                                  <input
+                                    type="number"
+                                    value={isBindingSet ? resolvedValue : (parameterValues[paramName] || paramValue || 0)}
+                                    onChange={(e) => {
+                                      const value = parseFloat(e.target.value);
+                                      if (!isNaN(value)) {
+                                        handleParameterChange(paramName, value);
+                                        scheduleExecution();
+                                      }
+                                    }}
+                                    onBlur={() => scheduleExecution()}
+                                    className="dve-number-input"
+                                    step="any"
+                                    disabled={!!isBindingSet}
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={isBindingSet ? resolvedValue : (parameterValues[paramName] || paramValue || '')}
+                                    onChange={(e) => {
+                                      handleParameterChange(paramName, e.target.value);
                                       scheduleExecution();
-                                    }
-                                  }}
-                                  onBlur={() => scheduleExecution()}
-                                  className="dve-number-input"
-                                  step="any"
-                                />
-                              ) : (
-                                <input
-                                  type="text"
-                                  value={parameterValues[paramName] || paramValue || ''}
-                                  onChange={(e) => {
-                                    handleParameterChange(paramName, e.target.value);
-                                    scheduleExecution();
-                                  }}
-                                  onBlur={() => scheduleExecution()}
-                                  className="dve-text-input"
-                                />
-                              )}
+                                    }}
+                                    onBlur={() => scheduleExecution()}
+                                    className="dve-text-input"
+                                    disabled={!!isBindingSet}
+                                  />
+                                )}
+                              </div>
+                              <select
+                                value={parameterBindings[paramName] || ''}
+                                onChange={(e) => {
+                                  handleParameterBindingChange(paramName, e.target.value);
+                                  scheduleExecution();
+                                }}
+                                className="dve-parameter-dropdown"
+                              >
+                                <option value="">直接入力</option>
+                                {availableAssets.map(valueAsset => (
+                                  <option key={valueAsset.id} value={valueAsset.id}>
+                                    {valueAsset.name} ({valueAsset.value})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                           </div>
                         );

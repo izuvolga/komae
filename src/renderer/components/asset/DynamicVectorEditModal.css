@@ -249,7 +249,35 @@
 }
 
 .dve-parameter-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dve-parameter-input-field {
   flex: 1;
+}
+
+.dve-parameter-dropdown {
+  min-width: 120px;
+  padding: 6px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dve-parameter-dropdown:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.dve-parameter-dropdown option {
+  padding: 4px;
 }
 
 .dve-number-input,
@@ -280,6 +308,21 @@
 
 .dve-number-input.dve-readonly:focus,
 .dve-text-input.dve-readonly:focus {
+  box-shadow: none;
+  border-color: #e9ecef;
+}
+
+/* ValueAsset参照時の読み取り専用フィールド */
+.dve-number-input:disabled,
+.dve-text-input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.dve-number-input:disabled:focus,
+.dve-text-input:disabled:focus {
   box-shadow: none;
   border-color: #e9ecef;
 }
