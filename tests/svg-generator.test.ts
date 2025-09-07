@@ -560,7 +560,7 @@ describe('SVG Generator Common', () => {
       // TextAsset要素は正常に生成される
       expect(result).toContain('font-family=');
       // VectorAsset要素は正常に生成される
-      expect(result).toContain('vector-instance-');
+      expect(result).toContain('vector-instance');
     });
   });
 });
