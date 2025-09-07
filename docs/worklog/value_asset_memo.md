@@ -148,3 +148,62 @@ ProjectManager.ts の loadProject 関数がプロジェクト読み込み関数�
 
 loadProjectFile がなにかおかしそう
 
+
+```
+export async function loadProjectFile(filePath: string): Promise<ProjectData> {
+  if (!filePath || filePath.trim() === '') {
+    throw new ProjectFileError('Invalid file path provided', 'INVALID_PATH');
+  }
+...
+    // pages.asset_instances をデバッグ出力
+    for (const [pageIndex, page] of parsedData.pages.entries()) {
+      if (page.asset_instances && typeof page.asset_instances === 'object') {
+        console.debug(`Page ${pageIndex} asset_instances:`, JSON.stringify(page.asset_instances, null, 2));
+      } else {
+        console.warn(`Page ${pageIndex} has no asset_instances or it is not an object`);
+      }
+    }
+...
+```
+=> ここまでは問題なく、override_value が入っている
+
+後続の処理のここ
+
+```
+    // データマイグレーション処理
+    const migratedData = migrateProjectData(parsedData);
+
+    // Zodスキーマによる詳細なバリデーション
+    try {
+      return validateProjectData(migratedData);
+```
+
+多分、validateProjectData が原因だ。
+ProjectDataSchema.parse(data) している。
+
+```
+export function validateProjectData(data: unknown): ProjectData {
+  try {
+    return ProjectDataSchema.parse(data);
+```
+
+ここで、Zodスキーマによるバリデーションをしているが、AssetInstance に override_value が定義されていない。
+
+```
+// AssetInstance Union スキーマ（判別子なし、全フィールドを許可）
+const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
+  // ImageAssetInstanceの追加フィールド
+  override_pos_x: z.number().optional(),
+  override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_z_index: z.number().optional(),
+  override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
+  // 多言語対応フィールド
+  multilingual_text: z.record(z.string(), z.string()).optional(),
+  override_language_settings: z.record(z.string(), LanguageSettingsSchema).optional(),
+  override_context: z.string().optional(),
+});
+
+```
