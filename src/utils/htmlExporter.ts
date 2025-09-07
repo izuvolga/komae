@@ -325,6 +325,18 @@ export class HtmlExporter {
   private async generateUnifiedSVG(project: ProjectData): Promise<string> {
     const { width, height } = project.canvas;
 
+    // CustomAssetManagerのインスタンスを取得
+    let customAssetManager: any = null;
+    try {
+      // Main processの場合
+      if (typeof window === 'undefined') {
+        const { CustomAssetManager } = require('../main/services/CustomAssetManager');
+        customAssetManager = new CustomAssetManager();
+      }
+    } catch (error) {
+      console.warn('[HtmlExporter] Failed to load CustomAssetManager:', error);
+    }
+
     // 全ページで使用されるアセットを収集
     const allAssetIds = new Set<string>();
     const allInstances: AssetInstance[] = [];
@@ -391,7 +403,10 @@ export class HtmlExporter {
           return ''; // use要素では使用されない
         },
         availableLanguages,
-        currentLanguage
+        currentLanguage,
+        i, // pageIndex
+        undefined, // customAssets
+        customAssetManager // CustomAssetManagerインスタンスを渡す
       );
 
       const pageContent = [

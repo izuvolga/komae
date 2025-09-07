@@ -123,7 +123,8 @@ export async function generateSvgStructureCommon(
   availableLanguages: string[],
   currentLanguage: string,
   pageIndex: number = 0,
-  customAssets?: Record<string, any>
+  customAssets?: Record<string, any>,
+  customAssetManager?: any // CustomAssetManagerのインスタンス（Mainプロセス用）
 ): Promise<SvgStructureResult> {
   console.log(`[generateSvgStructureCommon] Generating SVG structure for page index ${pageIndex}, current language: ${currentLanguage}`);
   const assetDefinitions: string[] = [];
@@ -182,7 +183,8 @@ export async function generateSvgStructureCommon(
         instance as DynamicVectorAssetInstance,
         project,
         pageIndex,
-        customAssets
+        customAssets,
+        customAssetManager
       );
       console.log(`[generateSvgStructureCommon] DynamicVectorAsset "${dynamicVectorAsset.name}" element:`, dynamicVectorElement);
 
@@ -276,7 +278,8 @@ async function generateDynamicVectorElement(
   instance: DynamicVectorAssetInstance,
   project: ProjectData,
   pageIndex: number,
-  customAssets?: Record<string, any>
+  customAssets?: Record<string, any>,
+  customAssetManager?: any
 ): Promise<string | null> {
 
   try {
@@ -319,17 +322,18 @@ async function generateDynamicVectorElement(
         asset.custom_asset_id,
         scriptParameters
       );
-    } else {
-      // Mainプロセス: 直接CustomAssetManagerを使用
-      console.log('[generateDynamicVectorElement] Running in Main process, using CustomAssetManager directly');
-      // TODO: ここで処理が止まって、null が返されてしまう
-      const { CustomAssetManager } = eval('require')('../main/services/CustomAssetManager');
-      console.log('[generateDynamicVectorElement] CustomAssetManager loaded:', CustomAssetManager);
-      const customAssetManager = CustomAssetManager.getInstance();
+    } else if (customAssetManager) {
+      // Mainプロセス: 渡されたCustomAssetManagerインスタンスを使用
+      console.log('[generateDynamicVectorElement] Using provided CustomAssetManager instance');
       svgContent = await customAssetManager.generateCustomAssetSVG(
         asset.custom_asset_id,
         scriptParameters
       );
+      console.log('[generateDynamicVectorElement] SVG generation completed');
+    } else {
+      // CustomAssetManagerが渡されていない場合
+      console.error('[generateDynamicVectorElement] No CustomAssetManager instance provided for Main process');
+      throw new Error('CustomAssetManager instance is required for Main process execution');
     }
     console.log(`[generateDynamicVectorElement] DynamicVectorAsset "${asset.name}" generated SVG content:`, svgContent);
 

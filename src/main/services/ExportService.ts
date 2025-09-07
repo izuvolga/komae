@@ -202,8 +202,20 @@ export class ExportService {
   private async generatePageSVG(project: ProjectData, page: Page): Promise<string> {
     const { width, height } = project.canvas;
 
+    // CustomAssetManagerのインスタンスを取得
+    let customAssetManager: any = null;
+    try {
+      const { CustomAssetManager } = require('./CustomAssetManager');
+      customAssetManager = new CustomAssetManager();
+    } catch (error) {
+      console.warn('[ExportService] Failed to load CustomAssetManager:', error);
+    }
+
     // アセットインスタンス一覧を取得（z-indexソートはgenerateSvgStructureCommon内で実行）
     const instances = Object.values(page.asset_instances);
+
+    // ページインデックスを取得
+    const pageIndex = project.pages.indexOf(page);
 
     // 共通のSVG生成ロジックを使用
     const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
@@ -220,7 +232,10 @@ export class ExportService {
         return `file://${path.resolve(absolutePath)}`;
       },
       availableLanguages,
-      currentLanguage
+      currentLanguage,
+      pageIndex, // pageIndex
+      undefined, // customAssets
+      customAssetManager // CustomAssetManagerインスタンスを渡す
     );
 
     // SVGコンテンツを構築（ドキュメント仕様に準拠）
