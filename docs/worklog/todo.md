@@ -1,7 +1,7 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
-- [ ]: EnhancedSpreadSheet のセルが非表示状態でも、✏️ 編集ボタンを押下したら編集ボタンを表示する
+- [ ]: EnhancedSpreadSheet のセルが非表示状態でも、✏️ を押下したらEditModalを表示する
 - [ ]: AssetLibrary の Asset のサムネイルを表示する
   - TextAsset ... T の文字（現在のまま）
   - ValueAsset ... V の文字（現在のまま）
