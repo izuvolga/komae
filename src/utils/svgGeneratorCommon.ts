@@ -126,6 +126,7 @@ export async function generateSvgStructureCommon(
   customAssets?: Record<string, any>,
   customAssetManager?: any // CustomAssetManagerのインスタンス（Mainプロセス用）
 ): Promise<SvgStructureResult> {
+  console.log('[generateSvgStructureCommon] Start generating SVG structure');
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
@@ -239,8 +240,8 @@ function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance
  * DynamicVectorAssetのSVG要素を生成する
  */
 function wrapDynamicVectorSVG(
-  asset: DynamicVectorAsset, 
-  instance: DynamicVectorAssetInstance, 
+  asset: DynamicVectorAsset,
+  instance: DynamicVectorAssetInstance,
   svgContent: string
 ): string {
   const x = instance.override_pos_x ?? asset.default_pos_x;
@@ -279,30 +280,36 @@ async function generateDynamicVectorElement(
   customAssets?: Record<string, any>,
   customAssetManager?: any
 ): Promise<string | null> {
+  console.log(`[generateDynamicVectorElement] Generating SVG for DynamicVectorAsset "${asset.name}" (Instance ID: ${instance.id})`);
 
   try {
     // パラメータを構築（DynamicVectorEditModal.tsxのexecuteScript関数と同様）
     const scriptParameters = { ...(asset.parameters || {}) };
+    const currentPage = project.pages[pageIndex];
+    const currentPageInstances = new Map<string, AssetInstance>();
+    Object.values(currentPage.asset_instances).forEach(ins => {
+      if (ins.asset_id) {
+        currentPageInstances.set(ins.asset_id, ins);
+      }
+    });
 
     // parameter_variable_bindingsによるValueAsset参照の値解決
     if (asset.parameter_variable_bindings) {
-      const currentPage = project.pages[pageIndex];
-      if (currentPage) {
-        for (const [paramName, valueAssetId] of Object.entries(asset.parameter_variable_bindings)) {
-          const valueAsset = project.assets[valueAssetId];
-          
-          if (valueAsset && valueAsset.type === 'ValueAsset') {
-            // 現在のページでのValueAssetInstanceの値を取得
-            const valueInstance = currentPage.asset_instances[valueAssetId];
-            let resolvedValue = valueAsset.initial_value;
-            
-            if (valueInstance && 'override_value' in valueInstance) {
-              resolvedValue = valueInstance.override_value ?? valueAsset.initial_value;
-            }
-            
-            // パラメータ値を上書き
-            scriptParameters[paramName] = resolvedValue;
+      for (const [paramName, valueAssetId] of Object.entries(asset.parameter_variable_bindings)) {
+        const valueAsset = project.assets[valueAssetId];
+
+        if (valueAsset && valueAsset.type === 'ValueAsset') {
+          // 現在のページでのValueAssetInstanceの値を取得
+          const valueInstance = currentPageInstances.get(valueAssetId);
+          let resolvedValue = valueAsset.initial_value;
+
+          if (valueInstance && 'override_value' in valueInstance) {
+            resolvedValue = valueInstance.override_value ?? valueAsset.initial_value;
+            console.log(`[generateDynamicVectorElement] Resolved parameter "${paramName}" from ValueAsset "${valueAsset.name}" with value: ${resolvedValue}`);
           }
+
+          // パラメータ値を上書き
+          scriptParameters[paramName] = resolvedValue;
         }
       }
     }

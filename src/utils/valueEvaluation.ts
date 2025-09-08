@@ -82,36 +82,13 @@ export function hasCircularReference(
  * @returns 実際の値
  */
 export function getValueAssetValue(valueAsset: ValueAsset, page: Page): any {
-  // ページ内のValueAssetInstanceを検索
-  console.log(`[getValueAssetValue] valueAsset: ${valueAsset.id}, page.asset_instances:`, page.asset_instances);
-  // TODO: どうも、page.asset_instances は ID のペアのリストらしく、実態がないため oveeride_value が取れないらしい
-  // {
-  //    "id": "instance-1757256699308",
-  //    "asset_id": "value-8037c195-fe9a-4359-8021-e95bbdc98f3a"
-  // }
   const instance = Object.values(page.asset_instances).find(
     inst => inst.asset_id === valueAsset.id
   ) as ValueAssetInstance | undefined;
-  
-  console.log('[getValueAssetValue] Debug:', {
-    valueAssetId: valueAsset.id,
-    valueAssetName: valueAsset.name,
-    pageId: page.id,
-    instanceFound: !!instance,
-    instanceId: instance?.id,
-    overrideValue: instance?.override_value,
-    initialValue: valueAsset.initial_value,
-    allInstancesInPage: Object.keys(page.asset_instances)
-  });
-  
   // インスタンスでオーバーライドされている場合はそちらを使用
   if (instance && instance.override_value !== undefined) {
-    console.log('[getValueAssetValue] Using override_value:', instance.override_value);
     return instance.override_value;
   }
-  
-  // アセットの初期値を使用
-  console.log('[getValueAssetValue] Using initial_value:', valueAsset.initial_value);
   return valueAsset.initial_value;
 }
 
