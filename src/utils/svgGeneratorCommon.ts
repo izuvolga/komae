@@ -64,7 +64,7 @@ export async function generateCompleteSvg(
   getProtocolUrl: (filePath: string) => string,
   currentLanguage?: string,
   customAssets?: Record<string, any>, // テスト用のCustomAsset情報
-  pageIndex: number = 0 // ページインデックスを受け取るように修正
+  pageIndex: number = 0
 ): Promise<string> {
   const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
   const { assetDefinitions, useElements } = await generateSvgStructureCommon(
@@ -73,7 +73,7 @@ export async function generateCompleteSvg(
     getProtocolUrl,
     availableLanguages,
     currentLanguage || 'ja',
-    pageIndex, // 正しいページインデックスを渡す
+    pageIndex,
     customAssets
   );
 
