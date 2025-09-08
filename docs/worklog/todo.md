@@ -21,6 +21,7 @@
   - @src/renderer/components/asset/DynamicVectorEditModal.tsx
   - @src/renderer/components/asset/VectorEditModal.tsx
 - [ ]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
+- [ ]: Library -> Custom Assets にサムネを表示する
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
