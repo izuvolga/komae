@@ -63,7 +63,8 @@ export async function generateCompleteSvg(
   instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
   currentLanguage?: string,
-  customAssets?: Record<string, any> // テスト用のCustomAsset情報
+  customAssets?: Record<string, any>, // テスト用のCustomAsset情報
+  pageIndex: number = 0 // ページインデックスを受け取るように修正
 ): Promise<string> {
   const availableLanguages = project.metadata?.supportedLanguages || ['ja'];
   const { assetDefinitions, useElements } = await generateSvgStructureCommon(
@@ -72,7 +73,7 @@ export async function generateCompleteSvg(
     getProtocolUrl,
     availableLanguages,
     currentLanguage || 'ja',
-    0, // pageIndex
+    pageIndex, // 正しいページインデックスを渡す
     customAssets
   );
 
@@ -126,7 +127,6 @@ export async function generateSvgStructureCommon(
   customAssets?: Record<string, any>,
   customAssetManager?: any // CustomAssetManagerのインスタンス（Mainプロセス用）
 ): Promise<SvgStructureResult> {
-  console.log('[generateSvgStructureCommon] Start generating SVG structure');
   const assetDefinitions: string[] = [];
   const useElements: string[] = [];
   const processedAssets = new Set<string>();
@@ -280,7 +280,6 @@ async function generateDynamicVectorElement(
   customAssets?: Record<string, any>,
   customAssetManager?: any
 ): Promise<string | null> {
-  console.log(`[generateDynamicVectorElement] Generating SVG for DynamicVectorAsset "${asset.name}" (Instance ID: ${instance.id})`);
 
   try {
     // パラメータを構築（DynamicVectorEditModal.tsxのexecuteScript関数と同様）
@@ -305,7 +304,6 @@ async function generateDynamicVectorElement(
 
           if (valueInstance && 'override_value' in valueInstance) {
             resolvedValue = valueInstance.override_value ?? valueAsset.initial_value;
-            console.log(`[generateDynamicVectorElement] Resolved parameter "${paramName}" from ValueAsset "${valueAsset.name}" with value: ${resolvedValue}`);
           }
 
           // パラメータ値を上書き

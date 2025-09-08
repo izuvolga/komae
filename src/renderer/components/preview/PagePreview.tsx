@@ -36,10 +36,20 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
           return zIndexA - zIndexB;
         });
         
+        // 現在のページのインデックスを取得
+        const pageIndex = project.pages.findIndex(p => p.id === page.id);
+        
         // 完全なSVG文字列を生成
-        const svgContent = await generateCompleteSvg(project, instances, (filePath: string) => {
-          return getCustomProtocolUrl(filePath, currentProjectPath);
-        }, getCurrentLanguage());
+        const svgContent = await generateCompleteSvg(
+          project, 
+          instances, 
+          (filePath: string) => {
+            return getCustomProtocolUrl(filePath, currentProjectPath);
+          }, 
+          getCurrentLanguage(),
+          undefined, // customAssets
+          pageIndex // 正しいページインデックスを渡す
+        );
         
         if (isMounted) {
           setSvgContent(svgContent);
@@ -90,12 +100,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#ffebee',
-          border: '1px solid #f44336',
-          color: '#c62828',
+          backgroundColor: '#ffe6e6',
+          border: '1px solid #ff6666',
+          color: '#cc0000',
         }}
       >
-        <div>プレビューの生成に失敗しました</div>
+        <div>プレビューの生成でエラーが発生しました</div>
       </div>
     );
   }
@@ -106,6 +116,9 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
       style={{
         width: project.canvas.width * zoomLevel,
         height: project.canvas.height * zoomLevel,
+        position: 'absolute',
+        top: 0,
+        left: 0,
       }}
       dangerouslySetInnerHTML={{ __html: svgContent }}
     />
