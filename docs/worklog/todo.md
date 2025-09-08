@@ -2,7 +2,7 @@
 
 ## 細かい改善
 - [x]: EnhancedSpreadSheet のセルが非表示状態でも、✏️ を押下したらEditModalを表示する
-- [ ]: AssetLibrary の Asset のサムネイルを表示する
+- [x]: AssetLibrary の Asset のサムネイルを表示する
   - TextAsset ... T の文字（現在のまま）
   - ValueAsset ... V の文字（現在のまま）
   - VectorAsset ... 線画のアイコン
