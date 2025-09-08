@@ -835,28 +835,13 @@ const AssetItem: React.FC<AssetItemProps> = ({
   const renderThumbnail = () => {
     switch (asset.type) {
       case 'ImageAsset':
-        return <AssetThumbnail asset={asset as ImageAsset} />;
+      case 'VectorAsset':
+      case 'DynamicVectorAsset':
+        return <AssetThumbnail asset={asset} maxWidth={48} maxHeight={48} />;
       case 'TextAsset':
         return <div className="text-placeholder">T</div>;
       case 'ValueAsset':
         return <div className="text-placeholder">V</div>;
-      case 'VectorAsset':
-        return (
-          <div className="vector-thumbnail">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 3l18 18M3 21l9-9M21 3l-9 9M12 12l-6 6"/>
-            </svg>
-          </div>
-        );
-      case 'DynamicVectorAsset':
-        return (
-          <div className="vector-thumbnail">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 3l18 18M3 21l9-9M21 3l-9 9M12 12l-6 6"/>
-              <circle cx="18" cy="6" r="2" fill="currentColor"/>
-            </svg>
-          </div>
-        );
       default:
         return <div className="text-placeholder">?</div>;
     }

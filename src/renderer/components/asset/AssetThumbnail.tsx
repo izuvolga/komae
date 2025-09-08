@@ -16,6 +16,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   maxHeight = 80,
 }) => {
   const [customProtocolUrl, setCustomProtocolUrl] = useState<string | null>(null);
+  const [svgContent, setSvgContent] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
@@ -23,21 +24,58 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   useEffect(() => {
     let isMounted = true;
     
-    const generateProtocolUrl = () => {
+    const generateThumbnail = async () => {
       setIsLoading(true);
       setHasError(false);
+      setSvgContent(null);
+      setCustomProtocolUrl(null);
       
       try {
-        console.log('Generating custom protocol URL for asset:', currentProjectPath, (asset as any).original_file_path);
-        // カスタムプロトコルURLを生成（非同期処理不要）
-        const protocolUrl = getCustomProtocolUrl((asset as any).original_file_path, currentProjectPath);
-        
-        if (isMounted) {
-          setCustomProtocolUrl(protocolUrl);
-          setIsLoading(false);
+        if (asset.type === 'ImageAsset') {
+          // ImageAssetの場合は既存のロジック
+          const protocolUrl = getCustomProtocolUrl((asset as ImageAsset).original_file_path, currentProjectPath);
+          if (isMounted) {
+            setCustomProtocolUrl(protocolUrl);
+            setIsLoading(false);
+          }
+        } else if (asset.type === 'VectorAsset') {
+          // VectorAssetの場合はsvg_contentを直接使用
+          const vectorAsset = asset as VectorAsset;
+          if (vectorAsset.svg_content) {
+            if (isMounted) {
+              setSvgContent(vectorAsset.svg_content);
+              setIsLoading(false);
+            }
+          } else {
+            throw new Error('SVG content not found');
+          }
+        } else if (asset.type === 'DynamicVectorAsset') {
+          // DynamicVectorAssetの場合は初期値でSVGを生成
+          const dynamicAsset = asset as DynamicVectorAsset;
+          
+          // 初期パラメータを構築（DynamicVectorAsset.parametersをそのまま使用）
+          const initialParameters: Record<string, any> = { ...dynamicAsset.parameters };
+          
+          // IPCでSVG生成
+          const generatedSVG = await window.electronAPI.customAsset.generateSVG(
+            dynamicAsset.custom_asset_id,
+            initialParameters
+          );
+          
+          if (generatedSVG && isMounted) {
+            setSvgContent(generatedSVG);
+            setIsLoading(false);
+          } else {
+            throw new Error('Failed to generate SVG');
+          }
+        } else {
+          // 他のアセットタイプは従来通り
+          if (isMounted) {
+            setIsLoading(false);
+          }
         }
       } catch (error) {
-        console.error('Failed to generate protocol URL:', error);
+        console.error('Failed to generate thumbnail:', error);
         
         if (isMounted) {
           setHasError(true);
@@ -46,7 +84,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       }
     };
 
-    generateProtocolUrl();
+    generateThumbnail();
     
     return () => {
       isMounted = false;
@@ -97,29 +135,56 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     );
   }
 
-  // DynamicVectorAssetの場合は専用の表示
-  if (asset.type === 'DynamicVectorAsset') {
+  // ValueAssetの場合も専用の表示
+  if (asset.type === 'ValueAsset') {
     return (
       <div 
-        className="asset-thumbnail dynamic-vector-asset"
+        className="asset-thumbnail value-asset"
         style={{ width: maxWidth, height: maxHeight }}
       >
-        <div className="dynamic-vector-placeholder">
-          <span>⚡</span>
-          <small>Dynamic SVG</small>
+        <div className="value-asset-placeholder">
+          <span>VAL</span>
+          <small>{asset.name}</small>
         </div>
       </div>
     );
   }
 
-  // ImageAssetまたはVectorAssetでエラーまたはURLなしの場合
-  if (hasError || !customProtocolUrl) {
+  // SVGコンテンツがある場合（VectorAssetまたはDynamicVectorAsset）
+  if (svgContent) {
+    // SVGを適切なサイズに収めるためのラッパーSVG
+    const wrappedSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">${svgContent}</svg>`;
+    
+    return (
+      <div 
+        className={`asset-thumbnail ${asset.type === 'VectorAsset' ? 'vector-asset' : 'dynamic-vector-asset'}`}
+        style={{ width: maxWidth, height: maxHeight }}
+      >
+        <div 
+          style={{
+            width: thumbnailSize.width,
+            height: thumbnailSize.height,
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          dangerouslySetInnerHTML={{ __html: wrappedSvg }}
+        />
+      </div>
+    );
+  }
+
+  // ImageAssetでエラーまたはURLなしの場合、またはその他のエラー
+  if (hasError || (!customProtocolUrl && asset.type === 'ImageAsset')) {
     let placeholderText = 'IMG';
     const assetType = (asset as any).type;
     if (assetType === 'VectorAsset') {
       placeholderText = 'SVG';
     } else if (assetType === 'DynamicVectorAsset') {
       placeholderText = '⚡SVG';
+    } else if (assetType === 'ValueAsset') {
+      placeholderText = 'VAL';
     }
     
     return (
@@ -135,28 +200,36 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     );
   }
 
-  let thumbnailClass = 'image-asset';
-  const assetType = (asset as any).type;
-  if (assetType === 'VectorAsset') {
-    thumbnailClass = 'vector-asset';
-  } else if (assetType === 'DynamicVectorAsset') {
-    thumbnailClass = 'dynamic-vector-asset';
+  // ImageAssetの表示
+  if (customProtocolUrl && asset.type === 'ImageAsset') {
+    return (
+      <div 
+        className="asset-thumbnail image-asset"
+        style={{ width: maxWidth, height: maxHeight }}
+      >
+        <img
+          src={customProtocolUrl}
+          alt={asset.name}
+          style={{
+            width: thumbnailSize.width,
+            height: thumbnailSize.height,
+          }}
+          onError={() => setHasError(true)}
+        />
+      </div>
+    );
   }
 
+  // フォールバック
   return (
     <div 
-      className={`asset-thumbnail ${thumbnailClass}`}
+      className="asset-thumbnail error"
       style={{ width: maxWidth, height: maxHeight }}
     >
-      <img
-        src={customProtocolUrl}
-        alt={asset.name}
-        style={{
-          width: thumbnailSize.width,
-          height: thumbnailSize.height,
-        }}
-        onError={() => setHasError(true)}
-      />
+      <div className="error-placeholder">
+        <span>?</span>
+        <small>未対応</small>
+      </div>
     </div>
   );
 };
