@@ -832,6 +832,54 @@ const AssetItem: React.FC<AssetItemProps> = ({
   onDragStart,
   onDragEnd,
 }) => {
+  const renderThumbnail = () => {
+    switch (asset.type) {
+      case 'ImageAsset':
+        return <AssetThumbnail asset={asset as ImageAsset} />;
+      case 'TextAsset':
+        return <div className="text-placeholder">T</div>;
+      case 'ValueAsset':
+        return <div className="text-placeholder">V</div>;
+      case 'VectorAsset':
+        return (
+          <div className="vector-thumbnail">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3l18 18M3 21l9-9M21 3l-9 9M12 12l-6 6"/>
+            </svg>
+          </div>
+        );
+      case 'DynamicVectorAsset':
+        return (
+          <div className="vector-thumbnail">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3l18 18M3 21l9-9M21 3l-9 9M12 12l-6 6"/>
+              <circle cx="18" cy="6" r="2" fill="currentColor"/>
+            </svg>
+          </div>
+        );
+      default:
+        return <div className="text-placeholder">?</div>;
+    }
+  };
+
+  const getAssetTypeLabel = (): string => {
+    switch (asset.type) {
+      case 'ImageAsset':
+        return '画像';
+      case 'TextAsset':
+        return 'テキスト';
+      case 'ValueAsset':
+        return '値';
+      case 'VectorAsset':
+        return 'ベクター';
+      case 'DynamicVectorAsset':
+        return '動的ベクター';
+      default:
+        // TypeScript never到達の警告を回避
+        return (asset as any).type || 'Unknown';
+    }
+  };
+
   return (
     <div
       className={`asset-item ${isSelected ? 'selected' : ''} ${isDragged ? 'dragged' : ''}`}
@@ -843,18 +891,14 @@ const AssetItem: React.FC<AssetItemProps> = ({
       onDragEnd={onDragEnd}
     >
       <div className="asset-thumbnail">
-        {asset.type === 'ImageAsset' ? (
-          <AssetThumbnail asset={asset as ImageAsset} />
-        ) : (
-          <div className="text-placeholder">T</div>
-        )}
+        {renderThumbnail()}
       </div>
       <div className="asset-info">
         <div className="asset-name" title={asset.name}>
           {asset.name}
         </div>
         <div className="asset-type">
-          {asset.type === 'ImageAsset' ? '画像' : 'テキスト'}
+          {getAssetTypeLabel()}
         </div>
         {asset.type === 'ImageAsset' && (
           <div className="asset-path" title={asset.original_file_path}>
