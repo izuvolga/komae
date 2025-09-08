@@ -347,48 +347,55 @@ export const EnhancedSpreadsheet: React.FC = () => {
       (inst: AssetInstance) => inst.asset_id === assetId
     );
 
-    // インスタンスが存在しない場合（非表示セル）、toggleAssetInstanceで作成
+    let currentPage = page;
+
+    // インスタンスが存在しない場合（非表示セル）、toggleAssetInstanceで作成してから編集処理を実行
     if (!instance) {
       toggleAssetInstance(pageId, assetId);
-      // toggleAssetInstance後に再度検索してインスタンスを取得
-      const updatedPage = project.pages.find(p => p.id === pageId);
+      
+      // toggleAssetInstance後、最新の状態を取得して再度インスタンスを検索
+      // useProjectStoreのgetState()を使って最新の状態を取得
+      const currentState = useProjectStore.getState();
+      const updatedPage = currentState.project?.pages.find(p => p.id === pageId);
       if (updatedPage) {
+        currentPage = updatedPage;
         instance = Object.values(updatedPage.asset_instances).find(
           (inst: AssetInstance) => inst.asset_id === assetId
         );
       }
     }
 
+    // インスタンスが確実に存在する場合のみ編集モーダルを開く
     if (instance) {
       if (asset.type === 'ImageAsset') {
         setEditingImageInstance({
           instance: instance as ImageAssetInstance,
           asset: asset as ImageAsset,
-          page,
+          page: currentPage,
         });
       } else if (asset.type === 'TextAsset') {
         setEditingTextInstance({
           instance: instance as TextAssetInstance,
           asset: asset as TextAsset,
-          page,
+          page: currentPage,
         });
       } else if (asset.type === 'VectorAsset') {
         setEditingVectorInstance({
           instance: instance as VectorAssetInstance,
           asset: asset as VectorAsset,
-          page,
+          page: currentPage,
         });
       } else if (asset.type === 'ValueAsset') {
         setEditingValueInstance({
           instance: instance as ValueAssetInstance,
           asset: asset as ValueAsset,
-          page,
+          page: currentPage,
         });
       } else if (asset.type === 'DynamicVectorAsset') {
         setEditingDynamicVectorInstance({
           instance: instance as DynamicVectorAssetInstance,
           asset: asset as DynamicVectorAsset,
-          page,
+          page: currentPage,
         });
       }
     }
