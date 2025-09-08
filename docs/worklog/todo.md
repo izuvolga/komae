@@ -1,8 +1,26 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
-- [ ]: ImageAsset / TextAsset の Edit 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
+- [ ]: EnhancedSpreadSheet のセルが非表示状態でも、✏️ 編集ボタンを押下したら編集ボタンを表示する
+- [ ]: AssetLibrary の Asset のサムネイルを表示する
+  - TextAsset ... T の文字（現在のまま）
+  - ValueAsset ... V の文字（現在のまま）
+  - VectorAsset ... 線画のアイコン
+  - DynamicVectorAsset ... 線画のアイコン（ValueAssetが紐づいている場合は ValueAssetの初期値利用）
+- [ ]: 以下の EditModal で、マウス操作があるものは全て SVG のハンドラを利用する（DynamicVectorEditModal.tsx 参考）
+  - @src/renderer/components/asset/ValueEditModal.tsx
+  - @src/renderer/components/asset/DynamicVectorEditModal.tsx
+  - @src/renderer/components/asset/TextEditModal.tsx
+  - @src/renderer/components/asset/VectorEditModal.tsx
+  - @src/renderer/components/asset/ImageEditModal.tsx
+  - @src/renderer/components/text/BulkEditModal.tsx
+- [ ]: EditModal で、共通処理があるものは共通化する
+- [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
+- [ ]: EnhancedSpreadSheet のセルに SVG のサムネを表示する
+  - @src/renderer/components/asset/DynamicVectorEditModal.tsx
+  - @src/renderer/components/asset/VectorEditModal.tsx
+- [ ]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
