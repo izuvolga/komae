@@ -343,9 +343,21 @@ export const EnhancedSpreadsheet: React.FC = () => {
     if (!page || !asset) return;
 
     // そのページでアセットインスタンスを検索
-    const instance = Object.values(page.asset_instances).find(
+    let instance = Object.values(page.asset_instances).find(
       (inst: AssetInstance) => inst.asset_id === assetId
     );
+
+    // インスタンスが存在しない場合（非表示セル）、toggleAssetInstanceで作成
+    if (!instance) {
+      toggleAssetInstance(pageId, assetId);
+      // toggleAssetInstance後に再度検索してインスタンスを取得
+      const updatedPage = project.pages.find(p => p.id === pageId);
+      if (updatedPage) {
+        instance = Object.values(updatedPage.asset_instances).find(
+          (inst: AssetInstance) => inst.asset_id === assetId
+        );
+      }
+    }
 
     if (instance) {
       if (asset.type === 'ImageAsset') {
