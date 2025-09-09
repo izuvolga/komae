@@ -4,6 +4,7 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
+import { generateResizeHandles, convertMouseDelta, constrainToCanvas, EDIT_MODAL_SCALE } from '../../utils/editModalUtils';
 import './ImageEditModal.css';
 
 // 編集モードの種類
@@ -442,16 +443,20 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        const deltaX = (e.clientX - dragStartPos.x) / 0.35;
-        const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
-        const newX = Math.max(0, Math.min(project.canvas.width - currentSize.width, dragStartValues.x + deltaX));
-        const newY = Math.max(0, Math.min(project.canvas.height - currentSize.height, dragStartValues.y + deltaY));
+        const constrained = constrainToCanvas(
+          dragStartValues.x + deltaX,
+          dragStartValues.y + deltaY,
+          currentSize.width,
+          currentSize.height,
+          project.canvas.width,
+          project.canvas.height
+        );
         
-        updatePosition(newX, newY);
+        updatePosition(constrained.x, constrained.y);
       } else if (isResizing && resizeHandle) {
-        const deltaX = (e.clientX - dragStartPos.x) / 0.35;
-        const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
         let newWidth = dragStartValues.width;
         let newHeight = dragStartValues.height;
@@ -501,16 +506,12 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           }
         }
 
-        newX = Math.max(0, Math.min(project.canvas.width - newWidth, newX));
-        newY = Math.max(0, Math.min(project.canvas.height - newHeight, newY));
-        newWidth = Math.min(newWidth, project.canvas.width - newX);
-        newHeight = Math.min(newHeight, project.canvas.height - newY);
+        const constrained = constrainToCanvas(newX, newY, newWidth, newHeight, project.canvas.width, project.canvas.height);
 
-        updatePosition(newX, newY);
-        updateSize(newWidth, newHeight);
+        updatePosition(constrained.x, constrained.y);
+        updateSize(constrained.width, constrained.height);
       } else if (maskDragPointIndex !== null && currentMask) {
-        const deltaX = (e.clientX - maskDragStartPos.x) / 0.35;
-        const deltaY = (e.clientY - maskDragStartPos.y) / 0.35;
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, maskDragStartPos.x, maskDragStartPos.y);
         
         const newMask = [...maskDragStartValues] as [[number, number], [number, number], [number, number], [number, number]];
         const originalPoint = maskDragStartValues[maskDragPointIndex];
@@ -559,8 +560,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               <div className="image-preview-container">
                 <div className="canvas-frame" style={{ 
                   position: 'relative', 
-                  width: `${project.canvas.width * 0.35}px`, 
-                  height: `${project.canvas.height * 0.35}px`,
+                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`, 
+                  height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
                   border: '2px solid #007bff',
                   borderRadius: '4px',
                   overflow: 'hidden',
@@ -572,10 +573,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     alt={asset.name}
                     style={{
                       position: 'absolute',
-                      left: `${currentPos.x * 0.35}px`,
-                      top: `${currentPos.y * 0.35}px`,
-                      width: `${currentSize.width * 0.35}px`,
-                      height: `${currentSize.height * 0.35}px`,
+                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
+                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
+                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
+                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
                       opacity: currentOpacity,
                       zIndex: 1,
                     }}
@@ -585,10 +586,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div
                     style={{
                       position: 'absolute',
-                      left: `${currentPos.x * 0.35}px`,
-                      top: `${currentPos.y * 0.35}px`,
-                      width: `${currentSize.width * 0.35}px`,
-                      height: `${currentSize.height * 0.35}px`,
+                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
+                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
+                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
+                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
                       backgroundColor: 'transparent',
                       border: '1px dashed #007acc',
                       cursor: maskEditMode ? 'default' : 'move',
@@ -607,8 +608,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           position: 'absolute',
                           left: '0px',
                           top: '0px',
-                          width: `${project.canvas.width * 0.35}px`,
-                          height: `${project.canvas.height * 0.35}px`,
+                          width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                          height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
                           zIndex: 2,
                           pointerEvents: 'none',
                         }}
@@ -618,12 +619,12 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                             <rect
                               x="0"
                               y="0"
-                              width={project.canvas.width * 0.35}
-                              height={project.canvas.height * 0.35}
+                              width={project.canvas.width * EDIT_MODAL_SCALE}
+                              height={project.canvas.height * EDIT_MODAL_SCALE}
                               fill="white"
                             />
                             <polygon
-                              points={currentMask.map(point => `${point[0] * 0.35},${point[1] * 0.35}`).join(' ')}
+                              points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
                               fill="black"
                             />
                           </mask>
@@ -631,8 +632,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                         <rect
                           x="0"
                           y="0"
-                          width={project.canvas.width * 0.35}
-                          height={project.canvas.height * 0.35}
+                          width={project.canvas.width * EDIT_MODAL_SCALE}
+                          height={project.canvas.height * EDIT_MODAL_SCALE}
                           fill="rgba(255, 255, 255, 0.6)"
                           mask="url(#maskOverlay)"
                         />
@@ -644,22 +645,22 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           position: 'absolute',
                           left: '0px',
                           top: '0px',
-                          width: `${project.canvas.width * 0.35}px`,
-                          height: `${project.canvas.height * 0.35}px`,
+                          width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                          height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
                           zIndex: 3,
                           pointerEvents: 'none',
                         }}
                       >
                         <polygon
-                          points={currentMask.map(point => `${point[0] * 0.35},${point[1] * 0.35}`).join(' ')}
+                          points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
                           fill="rgba(255, 0, 0, 0.2)"
                           stroke="red"
                           strokeWidth="1"
                         />
                         {currentMask.map((point, index) => {
                           const handleSize = 16; // ハンドルのサイズ
-                          const x = point[0] * 0.35;
-                          const y = point[1] * 0.35;
+                          const x = point[0] * EDIT_MODAL_SCALE;
+                          const y = point[1] * EDIT_MODAL_SCALE;
                           // ハンドルを矩形の内側に配置するためのオフセット
                           const offset = handleSize / 2;
                           const offset_direction = [
@@ -707,68 +708,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                         position: 'absolute',
                         left: '0px',
                         top: '0px',
-                        width: `${project.canvas.width * 0.35}px`,
-                        height: `${project.canvas.height * 0.35}px`,
+                        width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                        height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
                         zIndex: 4,
                         pointerEvents: 'none',
                       }}
                     >
-                      {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
-                        const handleSize = 16;
-                        let x = 0;
-                        let y = 0;
-                        let cursor = 'nw-resize';
-                        
-                        switch (handle) {
-                          case 'top-left':
-                            x = (currentPos.x) * 0.35;
-                            y = (currentPos.y) * 0.35;
-                            cursor = 'nw-resize';
-                            break;
-                          case 'top-right':
-                            x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
-                            y = (currentPos.y) * 0.35;
-                            cursor = 'ne-resize';
-                            break;
-                          case 'bottom-left':
-                            x = (currentPos.x) * 0.35;
-                            y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
-                            cursor = 'sw-resize';
-                            break;
-                          case 'bottom-right':
-                            x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
-                            y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
-                            cursor = 'se-resize';
-                            break;
-                        }
-                        
-                        return (
-                          <g key={handle}>
-                            {/* 外側の白い枠 */}
-                            <rect
-                              x={x}
-                              y={y}
-                              width={handleSize}
-                              height={handleSize}
-                              fill="white"
-                              stroke="#007acc"
-                              strokeWidth="2"
-                              style={{ cursor, pointerEvents: 'all' }}
-                              onMouseDown={(e) => handleResizeMouseDown(e, handle)}
-                            />
-                            {/* 内側の青い四角 */}
-                            <rect
-                              x={x + 3}
-                              y={y + 3}
-                              width={handleSize - 6}
-                              height={handleSize - 6}
-                              fill="#007acc"
-                              stroke="none"
-                              style={{ pointerEvents: 'none' }}
-                            />
-                          </g>
-                        );
-                      })}
+                      {generateResizeHandles(currentPos, currentSize, handleResizeMouseDown)}
                     </svg>
                   )}
                 </div>
