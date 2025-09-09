@@ -153,7 +153,12 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   // SVGコンテンツがある場合（VectorAssetまたはDynamicVectorAsset）
   if (svgContent) {
     // SVGを適切なサイズに収めるためのラッパーSVG
-    const wrappedSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="none">${svgContent}</svg>`;
+    // g要素でグループ化して0.8倍にスケールダウンし、中央配置
+    const wrappedSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+      <g transform="translate(50, 50) scale(0.8) translate(-50, -50)">
+        ${svgContent}
+      </g>
+    </svg>`;
     
     return (
       <div 
@@ -168,6 +173,8 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            padding: '4px',
+            boxSizing: 'border-box',
           }}
           dangerouslySetInnerHTML={{ __html: wrappedSvg }}
         />
