@@ -20,7 +20,8 @@ import {
   getCurrentPosition,
   getCurrentSize,
   getCurrentOpacity,
-  getCurrentZIndex
+  getCurrentZIndex,
+  wrapSVGWithParentContainer
 } from '../../utils/editModalUtils';
 import './DynamicVectorEditModal.css';
 
@@ -390,27 +391,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
   const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
 
-  // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御
-  const wrapSVGWithParentContainer = (svgContent: string, x: number, y: number, width: number, height: number, opacity: number): string => {
-    const originalWidth = asset.original_width;
-    const originalHeight = asset.original_height;
-    const scaleX = width / originalWidth;
-    const scaleY = height / originalHeight;
-    // SVG 内部での X, Y 座標は scale 処理を考慮して調整
-    const adjustedX = x * (1 / scaleX);
-    const adjustedY = y * (1 / scaleY);
-
-    return `<svg version="1.1"
-      xmlns="http://www.w3.org/2000/svg"
-      x="${adjustedX}px"
-      y="${adjustedY}px"
-      width="${originalWidth}px"
-      height="${originalHeight}px"
-      transform="scale(${width / originalWidth}, ${height / originalHeight})"
-      style="opacity: ${opacity};">
-        ${svgContent}
-    </svg>`;
-  };
+  // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御 - 共通ユーティリティを使用
 
   // 値の更新
   const updatePosition = (x: number, y: number) => {
@@ -631,7 +612,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                         currentPos.y,
                         currentSize.width,
                         currentSize.height,
-                        currentOpacity)}` }}
+                        currentOpacity,
+                        editedAsset.original_width,
+                        editedAsset.original_height)}` }}
                       />
                   ) : svgResult.error ? (
                     <div className="dve-error-display">
