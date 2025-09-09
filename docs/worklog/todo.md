@@ -14,6 +14,7 @@
   - @src/renderer/components/asset/VectorEditModal.tsx
   - @src/renderer/components/asset/ImageEditModal.tsx
 - [x]: EditModal で、共通処理があるものは共通化する
+- [ ]: ValueAssetEditModal のプレビュー画面が不要なので削除
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: EnhancedSpreadSheet のセルに SVG のサムネを表示する
