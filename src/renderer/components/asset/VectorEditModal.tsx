@@ -260,66 +260,52 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    if (!project) return;
+    
     if (isDragging) {
-      const deltaX = e.clientX - dragStartPos.x;
-      const deltaY = e.clientY - dragStartPos.y;
-
-      // キャンバス比率に合わせたスケール計算
-      const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-      const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-      const scaleX = canvasWidth / (project?.canvas.width || 800);
-      const scaleY = canvasHeight / (project?.canvas.height || 600);
-
-      // 位置変更
-      const newX = dragStartValues.x + deltaX / scaleX;
-      const newY = dragStartValues.y + deltaY / scaleY;
-
+      const deltaX = (e.clientX - dragStartPos.x) / 0.35;
+      const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+      const currentSizeForDrag = getCurrentSize();
+      
+      const newX = Math.max(0, Math.min(project.canvas.width - currentSizeForDrag.width, dragStartValues.x + deltaX));
+      const newY = Math.max(0, Math.min(project.canvas.height - currentSizeForDrag.height, dragStartValues.y + deltaY));
+      
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
-      const deltaX = e.clientX - dragStartPos.x;
-      const deltaY = e.clientY - dragStartPos.y;
-
-      // キャンバス比率に合わせたスケール計算
-      const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-      const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-      const scaleX = canvasWidth / (project?.canvas.width || 800);
-      const scaleY = canvasHeight / (project?.canvas.height || 600);
-
+      const deltaX = (e.clientX - dragStartPos.x) / 0.35;
+      const deltaY = (e.clientY - dragStartPos.y) / 0.35;
+      
       let newWidth = dragStartValues.width;
       let newHeight = dragStartValues.height;
       let newX = dragStartValues.x;
       let newY = dragStartValues.y;
 
-      switch (resizeHandle) {
-        case 'top-left':
-          newWidth = Math.max(10, dragStartValues.width - deltaX / scaleX);
-          newHeight = Math.max(10, dragStartValues.height - deltaY / scaleY);
-          newX = dragStartValues.x + (dragStartValues.width - newWidth);
-          newY = dragStartValues.y + (dragStartValues.height - newHeight);
-          break;
-        case 'top-right':
-          newWidth = Math.max(10, dragStartValues.width + deltaX / scaleX);
-          newHeight = Math.max(10, dragStartValues.height - deltaY / scaleY);
-          newY = dragStartValues.y + (dragStartValues.height - newHeight);
-          break;
-        case 'bottom-left':
-          newWidth = Math.max(10, dragStartValues.width - deltaX / scaleX);
-          newHeight = Math.max(10, dragStartValues.height + deltaY / scaleY);
-          newX = dragStartValues.x + (dragStartValues.width - newWidth);
-          break;
-        case 'bottom-right':
-          newWidth = Math.max(10, dragStartValues.width + deltaX / scaleX);
-          newHeight = Math.max(10, dragStartValues.height + deltaY / scaleY);
-          break;
+      if (resizeHandle.includes('right')) {
+        newWidth = Math.max(10, dragStartValues.width + deltaX);
+      } else if (resizeHandle.includes('left')) {
+        newWidth = Math.max(10, dragStartValues.width - deltaX);
+        newX = dragStartValues.x + deltaX;
       }
+
+      if (resizeHandle.includes('bottom')) {
+        newHeight = Math.max(10, dragStartValues.height + deltaY);
+      } else if (resizeHandle.includes('top')) {
+        newHeight = Math.max(10, dragStartValues.height - deltaY);
+        newY = dragStartValues.y + deltaY;
+      }
+
+      newX = Math.max(0, Math.min(project.canvas.width - newWidth, newX));
+      newY = Math.max(0, Math.min(project.canvas.height - newHeight, newY));
+      newWidth = Math.min(newWidth, project.canvas.width - newX);
+      newHeight = Math.min(newHeight, project.canvas.height - newY);
 
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
       handleSizeChange('width', newWidth);
       handleSizeChange('height', newHeight);
     }
-  };
+  };;
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -356,115 +342,117 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
             {/* 左側：プレビュー */}
             <div className="preview-panel">
               <div className="canvas-preview">
-                {/* キャンバス比率のプレビュー領域 */}
-                <div
-                  className="canvas-container"
-                  style={{
-                    position: 'relative',
-                    width: Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                    height: Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600)),
-                    border: '2px solid #d1d5db',
-                    backgroundColor: '#ffffff',
-                    overflow: 'visible',
-                  }}
-                >
-                  {/* キャンバス背景 */}
-                  <div
-                    className="canvas-background"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: '#f8fafc',
-                      border: '1px dashed #cbd5e1',
-                    }}
-                  />
+                <div className="canvas-frame" style={{
+                  position: 'relative',
+                  width: `${project.canvas.width * 0.35}px`,
+                  height: `${project.canvas.height * 0.35}px`,
+                  border: '2px solid #007bff',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                  backgroundColor: '#f8f9fa'
+                }}>
+                  {/* SVG描画結果 */}
+                  <svg
+                    width='100%'
+                    height='100%'
+                    viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    dangerouslySetInnerHTML={{ __html: `${wrapSVGWithParentContainer(
+                      asset.svg_content,
+                      currentPos.x,
+                      currentPos.y,
+                      currentSize.width,
+                      currentSize.height,
+                      currentOpacity)}` }}
+                    />
 
-                  {/* SVGアセットプレビュー */}
+                  {/* インタラクション用の透明な要素（ドラッグエリア） */}
                   <div
-                    className="svg-asset-preview"
                     style={{
                       position: 'absolute',
-                      cursor: isDragging ? 'grabbing' : 'grab',
-                      userSelect: 'none',
-                      transformOrigin: 'top left',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
+                      left: `${currentPos.x * 0.35}px`,
+                      top: `${currentPos.y * 0.35}px`,
+                      width: `${currentSize.width * 0.35}px`,
+                      height: `${currentSize.height * 0.35}px`,
+                      backgroundColor: 'transparent',
+                      border: '1px dashed #007acc',
+                      cursor: 'move',
+                      zIndex: 2,
+                      pointerEvents: 'all',
                     }}
                     onMouseDown={handlePreviewMouseDown}
+                  />
+
+                  {/* SVGベースのリサイズハンドル */}
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      left: '0px',
+                      top: '0px',
+                      width: `${project.canvas.width * 0.35}px`,
+                      height: `${project.canvas.height * 0.35}px`,
+                      zIndex: 3,
+                      pointerEvents: 'none',
+                    }}
                   >
-                    {/* キャンバスサイズに合わせたSVG表示 */}
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: `<svg width="100%" height="100%" viewBox="0 0 ${project?.canvas.width || 800} ${project?.canvas.height || 600}" xmlns="http://www.w3.org/2000/svg">
-                          ${wrapSVGWithParentContainer(asset.svg_content, currentPos.x, currentPos.y, currentSize.width, currentSize.height, currentOpacity)}
-                        </svg>`
-                      }}
-                    />
-                  </div>
-
-                  {/* アセットのリサイズハンドル */}
-                  {(() => {
-                    const canvasWidth = Math.min(300, 300 * (project?.canvas.width || 800) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-                    const canvasHeight = Math.min(300, 300 * (project?.canvas.height || 600) / Math.max(project?.canvas.width || 800, project?.canvas.height || 600));
-                    const scaleX = canvasWidth / (project?.canvas.width || 800);
-                    const scaleY = canvasHeight / (project?.canvas.height || 600);
-                    const handleSize = 8;
-
-                    return ['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
+                    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
+                      const handleSize = 16;
                       let x = 0;
                       let y = 0;
                       let cursor = 'nw-resize';
-
+                      
                       switch (handle) {
                         case 'top-left':
-                          x = currentPos.x * scaleX - handleSize / 2;
-                          y = currentPos.y * scaleY - handleSize / 2;
+                          x = (currentPos.x) * 0.35;
+                          y = (currentPos.y) * 0.35;
                           cursor = 'nw-resize';
                           break;
                         case 'top-right':
-                          x = (currentPos.x + currentSize.width) * scaleX - handleSize / 2;
-                          y = currentPos.y * scaleY - handleSize / 2;
+                          x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                          y = (currentPos.y) * 0.35;
                           cursor = 'ne-resize';
                           break;
                         case 'bottom-left':
-                          x = currentPos.x * scaleX - handleSize / 2;
-                          y = (currentPos.y + currentSize.height) * scaleY - handleSize / 2;
+                          x = (currentPos.x) * 0.35;
+                          y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
                           cursor = 'sw-resize';
                           break;
                         case 'bottom-right':
-                          x = (currentPos.x + currentSize.width) * scaleX - handleSize / 2;
-                          y = (currentPos.y + currentSize.height) * scaleY - handleSize / 2;
+                          x = (currentPos.x + currentSize.width) * 0.35 - handleSize;
+                          y = (currentPos.y + currentSize.height) * 0.35 - handleSize;
                           cursor = 'se-resize';
                           break;
                       }
-
+                      
                       return (
-                        <div
-                          key={handle}
-                          style={{
-                            position: 'absolute',
-                            left: `${x}px`,
-                            top: `${y}px`,
-                            width: `${handleSize}px`,
-                            height: `${handleSize}px`,
-                            backgroundColor: '#3b82f6',
-                            cursor: cursor,
-                            zIndex: 10,
-                            border: '1px solid #ffffff',
-                            borderRadius: '2px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                          }}
-                          onMouseDown={(e) => handleResizeMouseDown(e, handle)}
-                        />
+                        <g key={handle}>
+                          {/* 外側の白い枠 */}
+                          <rect
+                            x={x}
+                            y={y}
+                            width={handleSize}
+                            height={handleSize}
+                            fill="white"
+                            stroke="#007acc"
+                            strokeWidth="2"
+                            style={{ cursor, pointerEvents: 'all' }}
+                            onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                          />
+                          {/* 内側の青い四角 */}
+                          <rect
+                            x={x + 3}
+                            y={y + 3}
+                            width={handleSize - 6}
+                            height={handleSize - 6}
+                            fill="#007acc"
+                            stroke="none"
+                            style={{ pointerEvents: 'none' }}
+                          />
+                        </g>
                       );
-                    });
-                  })()
-                  }
+                    })}
+                  </svg>
                 </div>
               </div>
             </div>
