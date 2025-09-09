@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import type { VectorAsset, VectorAssetInstance, ImageAsset, ImageAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance } from '../../types/entities';
 
 /**
  * SVGリサイズハンドルのプロパティ
@@ -156,4 +157,92 @@ export const constrainToCanvas = (
     width: constrainedWidth,
     height: constrainedHeight,
   };
+};
+
+// Asset types that support common current value operations
+type SupportedAsset = VectorAsset | ImageAsset | DynamicVectorAsset;
+type SupportedAssetInstance = VectorAssetInstance | ImageAssetInstance | DynamicVectorAssetInstance;
+
+/**
+ * Asset/Instanceモードに応じた現在位置を取得
+ * @param mode - 編集モード ('asset' | 'instance')
+ * @param asset - アセットデータ
+ * @param assetInstance - アセットインスタンスデータ (instanceモード時のみ)
+ * @returns 現在の位置 {x, y}
+ */
+export const getCurrentPosition = (
+  mode: 'asset' | 'instance',
+  asset: SupportedAsset,
+  assetInstance?: SupportedAssetInstance | null
+): { x: number; y: number } => {
+  if (mode === 'instance' && assetInstance) {
+    return {
+      x: assetInstance.override_pos_x ?? asset.default_pos_x,
+      y: assetInstance.override_pos_y ?? asset.default_pos_y,
+    };
+  }
+  return {
+    x: asset.default_pos_x,
+    y: asset.default_pos_y,
+  };
+};
+
+/**
+ * Asset/Instanceモードに応じた現在サイズを取得
+ * @param mode - 編集モード ('asset' | 'instance')
+ * @param asset - アセットデータ
+ * @param assetInstance - アセットインスタンスデータ (instanceモード時のみ)
+ * @returns 現在のサイズ {width, height}
+ */
+export const getCurrentSize = (
+  mode: 'asset' | 'instance',
+  asset: SupportedAsset,
+  assetInstance?: SupportedAssetInstance | null
+): { width: number; height: number } => {
+  if (mode === 'instance' && assetInstance) {
+    return {
+      width: assetInstance.override_width ?? asset.default_width,
+      height: assetInstance.override_height ?? asset.default_height,
+    };
+  }
+  return {
+    width: asset.default_width,
+    height: asset.default_height,
+  };
+};
+
+/**
+ * Asset/Instanceモードに応じた現在透明度を取得
+ * @param mode - 編集モード ('asset' | 'instance')
+ * @param asset - アセットデータ
+ * @param assetInstance - アセットインスタンスデータ (instanceモード時のみ)
+ * @returns 現在の透明度
+ */
+export const getCurrentOpacity = (
+  mode: 'asset' | 'instance',
+  asset: SupportedAsset,
+  assetInstance?: SupportedAssetInstance | null
+): number => {
+  if (mode === 'instance' && assetInstance) {
+    return assetInstance.override_opacity ?? asset.default_opacity;
+  }
+  return asset.default_opacity;
+};
+
+/**
+ * Asset/Instanceモードに応じた現在Z-Indexを取得
+ * @param mode - 編集モード ('asset' | 'instance')
+ * @param asset - アセットデータ
+ * @param assetInstance - アセットインスタンスデータ (instanceモード時のみ)
+ * @returns 現在のZ-Index
+ */
+export const getCurrentZIndex = (
+  mode: 'asset' | 'instance',
+  asset: SupportedAsset,
+  assetInstance?: SupportedAssetInstance | null
+): number => {
+  if (mode === 'instance' && assetInstance) {
+    return assetInstance.override_z_index ?? asset.default_z_index;
+  }
+  return asset.default_z_index;
 };

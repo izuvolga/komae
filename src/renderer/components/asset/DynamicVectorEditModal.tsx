@@ -12,7 +12,16 @@ import {
   validateDynamicVectorAssetData,
   validateDynamicVectorAssetInstanceData
 } from '../../../types/entities';
-import { generateResizeHandles, convertMouseDelta, constrainToCanvas, EDIT_MODAL_SCALE } from '../../utils/editModalUtils';
+import { 
+  generateResizeHandles, 
+  convertMouseDelta, 
+  constrainToCanvas, 
+  EDIT_MODAL_SCALE,
+  getCurrentPosition,
+  getCurrentSize,
+  getCurrentOpacity,
+  getCurrentZIndex
+} from '../../utils/editModalUtils';
 import './DynamicVectorEditModal.css';
 
 export interface DynamicVectorEditModalProps {
@@ -212,7 +221,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-        const currentSizeForDrag = getCurrentSize();
+        const currentSizeForDrag = getCurrentSize(mode, editedAsset, editedInstance);
         
         const constrained = constrainToCanvas(
           dragStartValues.x + deltaX,
@@ -374,51 +383,12 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
-  // 現在の値を取得
-  const getCurrentPosition = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        x: editedInstance.override_pos_x ?? asset.default_pos_x,
-        y: editedInstance.override_pos_y ?? asset.default_pos_y,
-      };
-    }
-    return {
-      x: editedAsset.default_pos_x,
-      y: editedAsset.default_pos_y,
-    };
-  };
+  // 現在の値を取得 - 共通ユーティリティを使用
 
-  const getCurrentSize = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        width: editedInstance.override_width ?? asset.default_width,
-        height: editedInstance.override_height ?? asset.default_height,
-      };
-    }
-    return {
-      width: editedAsset.default_width,
-      height: editedAsset.default_height,
-    };
-  };
-
-  const getCurrentOpacity = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_opacity ?? asset.default_opacity;
-    }
-    return editedAsset.default_opacity;
-  };
-
-  const getCurrentZIndex = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_z_index ?? asset.default_z_index;
-    }
-    return editedAsset.default_z_index;
-  };
-
-  const currentPos = getCurrentPosition();
-  const currentSize = getCurrentSize();
-  const currentOpacity = getCurrentOpacity();
-  const currentZIndex = getCurrentZIndex();
+  const currentPos = getCurrentPosition(mode, editedAsset, editedInstance);
+  const currentSize = getCurrentSize(mode, editedAsset, editedInstance);
+  const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
+  const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
 
   // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御
   const wrapSVGWithParentContainer = (svgContent: string, x: number, y: number, width: number, height: number, opacity: number): string => {

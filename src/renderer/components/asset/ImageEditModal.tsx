@@ -4,7 +4,16 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
-import { generateResizeHandles, convertMouseDelta, constrainToCanvas, EDIT_MODAL_SCALE } from '../../utils/editModalUtils';
+import { 
+  generateResizeHandles, 
+  convertMouseDelta, 
+  constrainToCanvas, 
+  EDIT_MODAL_SCALE,
+  getCurrentPosition,
+  getCurrentSize,
+  getCurrentOpacity,
+  getCurrentZIndex
+} from '../../utils/editModalUtils';
 import './ImageEditModal.css';
 
 // 編集モードの種類
@@ -93,46 +102,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   if (!isOpen || !project) return null;
 
-  // 現在の値を取得（Asset vs Instance）
-  const getCurrentPosition = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        x: editedInstance.override_pos_x ?? asset.default_pos_x,
-        y: editedInstance.override_pos_y ?? asset.default_pos_y,
-      };
-    }
-    return {
-      x: editedAsset.default_pos_x,
-      y: editedAsset.default_pos_y,
-    };
-  };
-
-  const getCurrentSize = () => {
-    if (mode === 'instance' && editedInstance) {
-      return {
-        width: editedInstance.override_width ?? asset.default_width,
-        height: editedInstance.override_height ?? asset.default_height,
-      };
-    }
-    return {
-      width: editedAsset.default_width,
-      height: editedAsset.default_height,
-    };
-  };
-
-  const getCurrentOpacity = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_opacity ?? asset.default_opacity;
-    }
-    return editedAsset.default_opacity;
-  };
-
-  const getCurrentZIndex = () => {
-    if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_z_index ?? asset.default_z_index;
-    }
-    return editedAsset.default_z_index;
-  };
+  // 現在の値を取得（Asset vs Instance） - 共通ユーティリティを使用
 
   const getCurrentMask = () => {
     if (mode === 'instance' && editedInstance) {
@@ -153,10 +123,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     );
   };
 
-  const currentPos = getCurrentPosition();
-  const currentSize = getCurrentSize();
-  const currentOpacity = getCurrentOpacity();
-  const currentZIndex = getCurrentZIndex();
+  const currentPos = getCurrentPosition(mode, editedAsset, editedInstance);
+  const currentSize = getCurrentSize(mode, editedAsset, editedInstance);
+  const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
+  const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
   const currentMask = getCurrentMask();
 
   // 値の更新（Asset vs Instance）
