@@ -7,13 +7,12 @@
   - ValueAsset ... V の文字（現在のまま）
   - VectorAsset ... 線画のアイコン
   - DynamicVectorAsset ... 線画のアイコン（ValueAssetが紐づいている場合は ValueAssetの初期値利用）
-- [ ]: 以下の EditModal で、マウス操作があるものは全て SVG のハンドラを利用する（DynamicVectorEditModal.tsx 参考）
+- [x]: 以下の EditModal で、マウス操作があるものは全て SVG のハンドラを利用する（DynamicVectorEditModal.tsx 参考）
   - @src/renderer/components/asset/ValueEditModal.tsx
   - @src/renderer/components/asset/DynamicVectorEditModal.tsx
   - @src/renderer/components/asset/TextEditModal.tsx
   - @src/renderer/components/asset/VectorEditModal.tsx
   - @src/renderer/components/asset/ImageEditModal.tsx
-  - @src/renderer/components/text/BulkEditModal.tsx
 - [ ]: EditModal で、共通処理があるものは共通化する
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
