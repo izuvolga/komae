@@ -700,23 +700,25 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     </>
                   )}
 
-                  {/* リサイズハンドル */}
+                  {/* SVGベースのリサイズハンドル */}
                   {!maskEditMode && (
-                    <>
-                      {/* 角のハンドル */}
+                    <svg
+                      style={{
+                        position: 'absolute',
+                        left: '0px',
+                        top: '0px',
+                        width: `${project.canvas.width * 0.35}px`,
+                        height: `${project.canvas.height * 0.35}px`,
+                        zIndex: 4,
+                        pointerEvents: 'none',
+                      }}
+                    >
                       {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(handle => {
-                        // ハンドルの位置を計算: 矩形の内側にハンドルが存在
-                        // +-----------------+
-                        // |  |           |  |
-                        // |--+           +--|
-                        // |                 |
-                        // |--+           +--|
-                        // |  |           |  |
-                        // +-----------------+
                         const handleSize = 16;
-                        let x = 0
+                        let x = 0;
                         let y = 0;
                         let cursor = 'nw-resize';
+                        
                         switch (handle) {
                           case 'top-left':
                             x = (currentPos.x) * 0.35;
@@ -739,24 +741,35 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                             cursor = 'se-resize';
                             break;
                         }
+                        
                         return (
-                          <div
-                            key={handle}
-                            style={{
-                              position: 'absolute',
-                              left: `${x}px`,
-                              top: `${y}px`,
-                              width: `${handleSize}px`,
-                              height: `${handleSize}px`,
-                              backgroundColor: '#007acc',
-                              cursor: cursor,
-                              zIndex: 4,
-                            }}
-                            onMouseDown={(e) => handleResizeMouseDown(e, handle)}
-                          />
+                          <g key={handle}>
+                            {/* 外側の白い枠 */}
+                            <rect
+                              x={x}
+                              y={y}
+                              width={handleSize}
+                              height={handleSize}
+                              fill="white"
+                              stroke="#007acc"
+                              strokeWidth="2"
+                              style={{ cursor, pointerEvents: 'all' }}
+                              onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                            />
+                            {/* 内側の青い四角 */}
+                            <rect
+                              x={x + 3}
+                              y={y + 3}
+                              width={handleSize - 6}
+                              height={handleSize - 6}
+                              fill="#007acc"
+                              stroke="none"
+                              style={{ pointerEvents: 'none' }}
+                            />
+                          </g>
                         );
                       })}
-                    </>
+                    </svg>
                   )}
                 </div>
               </div>
