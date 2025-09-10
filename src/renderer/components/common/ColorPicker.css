@@ -1,0 +1,117 @@
+/* ColorPicker コンポーネントのスタイル */
+.color-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.color-picker-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+  margin: 0;
+}
+
+.color-picker-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-display {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #ced4da;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.color-display:hover:not(.disabled) {
+  border-color: #007bff;
+}
+
+.color-display:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.color-display.disabled {
+  cursor: not-allowed;
+  border-color: #dee2e6;
+  opacity: 0.6;
+}
+
+.hex-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  text-align: center;
+  text-transform: uppercase;
+  transition: border-color 0.2s ease;
+}
+
+.hex-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.hex-input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.hex-input::placeholder {
+  color: #adb5bd;
+  opacity: 1;
+}
+
+.hidden-color-picker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .color-display {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .hex-input {
+    width: 70px;
+    font-size: 12px;
+    padding: 5px 6px;
+  }
+  
+  .color-picker-label {
+    font-size: 12px;
+  }
+}
+
+/* カラーピッカーのフォーカス状態 */
+.color-picker-container:focus-within .color-display {
+  border-color: #007bff;
+}
+
+/* アクセシビリティ: キーボードナビゲーション対応 */
+.color-display[tabindex] {
+  outline: none;
+}
+
+.color-display[tabindex]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}

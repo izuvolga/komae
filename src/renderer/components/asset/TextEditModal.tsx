@@ -4,6 +4,7 @@ import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
+import { ColorPicker } from '../common/ColorPicker';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
 import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
 import {
@@ -955,24 +956,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-section">
                 <h4>色設定</h4>
                 <div className="form-row">
-                  <label>
-                    塗りの色:
-                    <input
-                      type="color"
-                      value={getTextAssetDefaultSettings(editingAsset, 'fill_color')}
-                      onChange={(e) => handleInputChange('fill_color', e.target.value)}
-                    />
-                  </label>
+                  <ColorPicker
+                    label="塗りの色"
+                    value={getTextAssetDefaultSettings(editingAsset, 'fill_color') || '#000000'}
+                    onChange={(color) => handleInputChange('fill_color', color)}
+                  />
                 </div>
                 <div className="form-row">
-                  <label>
-                    縁取りの色:
-                    <input
-                      type="color"
-                      value={getTextAssetDefaultSettings(editingAsset, 'stroke_color')}
-                      onChange={(e) => handleInputChange('stroke_color', e.target.value)}
-                    />
-                  </label>
+                  <ColorPicker
+                    label="縁取りの色"
+                    value={getTextAssetDefaultSettings(editingAsset, 'stroke_color') || '#000000'}
+                    onChange={(color) => handleInputChange('stroke_color', color)}
+                  />
                 </div>
                 <div className="form-row">
                   <label>

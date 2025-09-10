@@ -277,37 +277,6 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
 
         <div className="modal-content">
           <div className="value-edit-main">
-            <div className="value-preview-section">
-              <h3>プレビュー</h3>
-              <div className="value-preview">
-                <div className="preview-value">
-                  {previewError ? (
-                    <span className="error-text">{previewValue}</span>
-                  ) : (
-                    <span className="preview-result">{String(previewValue)}</span>
-                  )}
-                </div>
-                {previewError && (
-                  <div className="preview-error">
-                    エラー: {previewError}
-                  </div>
-                )}
-              </div>
-              
-              {mode === 'instance' && (
-                <div className="current-result">
-                  <strong>現在の値:</strong> {String(
-                    getEffectiveValueAssetValue(
-                      asset, 
-                      project!, 
-                      page!, 
-                      project!.pages.findIndex(p => p.id === page!.id)
-                    )
-                  )}
-                </div>
-              )}
-            </div>
-
             <div className="value-edit-form">
               {mode === 'asset' && (
                 <>
@@ -399,6 +368,10 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
 
               {mode === 'instance' && (
                 <>
+                  <div className="current-result">
+                    <strong>現在の値:</strong> {previewError ? `エラー: ${previewError}` : String(previewValue)}
+                  </div>
+
                   <div className="form-group">
                     <ReadOnlyInput
                       label="アセット名"
