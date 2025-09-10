@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ValueAsset, ValueAssetInstance, Page, ProjectData, validateValueAssetData, validateValueAssetInstanceData } from '../../../types/entities';
 import { useProjectStore } from '../../stores/projectStore';
 import { evaluateFormula, getEffectiveValueAssetValue, parseFormulaReferences } from '../../../utils/valueEvaluation';
+import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import './ValueEditModal.css';
 
 type EditMode = 'asset' | 'instance';
@@ -399,32 +400,23 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
               {mode === 'instance' && (
                 <>
                   <div className="form-group">
-                    <label>アセット名 (読み取り専用)</label>
-                    <input
-                      type="text"
+                    <ReadOnlyInput
+                      label="アセット名"
                       value={asset.name}
-                      disabled
-                      className="readonly-input"
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>初期値 (読み取り専用)</label>
-                    <input
-                      type="text"
+                    <ReadOnlyInput
+                      label="初期値"
                       value={String(asset.initial_value)}
-                      disabled
-                      className="readonly-input"
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>値の型 (読み取り専用)</label>
-                    <input
-                      type="text"
+                    <ReadOnlyInput
+                      label="値の型"
                       value={asset.value_type === 'string' ? '文字列' : asset.value_type === 'number' ? '数値' : '数式'}
-                      disabled
-                      className="readonly-input"
                     />
                   </div>
 
