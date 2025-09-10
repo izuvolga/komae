@@ -3,6 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
+import { OpacityInput } from '../common/OpacityInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
 import { 
@@ -672,21 +673,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               {/* 透明度（マスク編集時は非表示） */}
               {!maskEditMode && (
               <div className="param-group">
-                <div className="opacity-section">
-                  <span>{mode === 'asset' ? 'Default Opacity' : 'Opacity'}</span>
-                  <div className="opacity-controls">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={currentOpacity}
-                      onChange={(e) => updateOpacity(parseFloat(e.target.value))}
-                      className="opacity-slider"
-                    />
-                    <span className="opacity-value">{currentOpacity.toFixed(2)}</span>
-                  </div>
-                </div>
+                <OpacityInput
+                  value={currentOpacity}
+                  onChange={updateOpacity}
+                  label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
+                />
               </div>
               )}
 

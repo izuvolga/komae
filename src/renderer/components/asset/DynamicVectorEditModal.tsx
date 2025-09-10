@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { ZIndexInput } from '../common/ZIndexInput';
+import { OpacityInput } from '../common/OpacityInput';
 import type {
   DynamicVectorAsset,
   DynamicVectorAssetInstance,
@@ -831,38 +832,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
               {/* Opacity */}
               <div className="dve-param-group">
-                <div className="dve-opacity-section">
-                  <span>Opacity</span>
-                  <div className="dve-opacity-controls">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={currentOpacity}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        updateOpacity(value);
-                      }}
-                      className="dve-opacity-slider"
-                    />
-                    <input
-                      type="number"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={currentOpacity}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value)) {
-                          const clampedValue = Math.max(0, Math.min(1, value));
-                          updateOpacity(clampedValue);
-                        }
-                      }}
-                      className="dve-opacity-number"
-                    />
-                  </div>
-                </div>
+                <OpacityInput
+                  value={currentOpacity}
+                  onChange={updateOpacity}
+                  label="Opacity"
+                />
               </div>
 
               {/* Z-Index */}

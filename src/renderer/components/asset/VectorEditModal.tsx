@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
+import { OpacityInput } from '../common/OpacityInput';
 import type { VectorAsset, VectorAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import { 
@@ -404,21 +405,11 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
               {/* 不透明度 */}
               <div className="property-group">
-                <div className="opacity-section">
-                  <span>{mode === 'asset' ? 'Default Opacity' : 'Opacity'}</span>
-                  <div className="opacity-controls">
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={currentOpacity}
-                      onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
-                      className="opacity-slider"
-                    />
-                    <span className="opacity-value">{currentOpacity.toFixed(2)}</span>
-                  </div>
-                </div>
+                <OpacityInput
+                  value={currentOpacity}
+                  onChange={handleOpacityChange}
+                  label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
+                />
               </div>
 
               {/* Z-Index */}
