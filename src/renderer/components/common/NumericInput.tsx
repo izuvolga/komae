@@ -97,8 +97,8 @@ export const NumericInput: React.FC<NumericInputProps> = ({
   // 入力フォーカス時
   const handleFocus = useCallback(() => {
     setIsEditing(true);
-    setInputValue(value.toString());
-  }, [value]);
+    setInputValue(value.toFixed(decimals));
+  }, [value, decimals]);
 
   // 入力フォーカスアウト時
   const handleBlur = useCallback(() => {
