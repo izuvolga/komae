@@ -21,7 +21,9 @@ import {
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
-  wrapSVGWithParentContainer
+  wrapSVGWithParentContainer,
+  validateZIndexNumber,
+  ZIndexValidationResult
 } from '../../utils/editModalUtils';
 import './DynamicVectorEditModal.css';
 
@@ -79,11 +81,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   }>({ string: [], number: [] });
 
   // バリデーション状態
-  const [zIndexValidation, setZIndexValidation] = useState<{
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  }>({ isValid: true });
+  const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
 
   // マウス操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
@@ -451,6 +449,12 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         ...prev,
         default_z_index: zIndex,
       }));
+    }
+    
+    // Z-Index バリデーション
+    if (project && page) {
+      const validation = validateZIndexNumber(zIndex, project, page, editedInstance?.id);
+      setZIndexValidation(validation);
     }
   };
 
@@ -903,6 +907,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     }}
                     className="dve-zindex-input"
                   />
+                  {zIndexValidation.error && (
+                    <div className="dve-validation-error">{zIndexValidation.error}</div>
+                  )}
                   {zIndexValidation.warning && (
                     <div className="dve-validation-warning">{zIndexValidation.warning}</div>
                   )}
