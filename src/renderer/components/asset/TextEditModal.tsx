@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
+import { ZIndexInput } from '../common/ZIndexInput';
+import { OpacityInput } from '../common/OpacityInput';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
 import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
 import {
@@ -917,24 +919,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-row">
                   <label>
                     行間:
-                    <input
-                      type="text"
-                      value={tempInputValues.leading ?? formatNumberForDisplay(getEffectiveLeading(editingAsset, null, getCurrentLanguage()))}
-                      onChange={(e) => {
-                        const sanitized = validateNumericInput(e.target.value, true);
-                        setTempInputValues(prev => ({ ...prev, leading: sanitized }));
-                      }}
-                      onBlur={(e) => {
-                        const validated = validateAndSetNumericValue(e.target.value, -9999, getEffectiveLeading(editingAsset, null, getCurrentLanguage()));
-                        // Leading is now handled through language settings
+                    <NumericInput
+                      value={getEffectiveLeading(editingAsset, null, getCurrentLanguage())}
+                      onChange={(value) => {
                         const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'leading', validated);
-                        setTempInputValues(prev => {
-                          const newTemp = { ...prev };
-                          delete newTemp.leading;
-                          return newTemp;
-                        });
+                        handleLanguageSettingChange(currentLang, 'leading', value);
                       }}
+                      min={0.1}
+                      decimals={2}
+                      className="small"
                     />
                   </label>
                 </div>
@@ -1077,29 +1070,33 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-row form-row-double">
                   <label>
                     X座標:
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_x || ''}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
+                    <NumericInput
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_x || 0}
+                      onChange={(value) => handleInstanceLanguageSettingChange(
                         getCurrentLanguage(),
                         'pos_x',
-                        e.target.value ? parseFloat(e.target.value) : undefined
+                        value
                       )}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
                       placeholder="アセット設定使用"
                     />
                   </label>
                   <label>
                     Y座標:
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_y || ''}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
+                    <NumericInput
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_y || 0}
+                      onChange={(value) => handleInstanceLanguageSettingChange(
                         getCurrentLanguage(),
                         'pos_y',
-                        e.target.value ? parseFloat(e.target.value) : undefined
+                        value
                       )}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
                       placeholder="アセット設定使用"
                     />
                   </label>
@@ -1124,42 +1121,28 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
                 {/* 不透明度設定 */}
                 <div className="form-row">
-                  <label>
-                    不透明度:
-                    <div className="opacity-controls">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.opacity || 1}
-                        onChange={(e) => handleInstanceLanguageSettingChange(
-                          getCurrentLanguage(),
-                          'opacity',
-                          parseFloat(e.target.value)
-                        )}
-                        className="opacity-slider"
-                      />
-                      <span className="opacity-value">
-                        {(editingInstance?.override_language_settings?.[getCurrentLanguage()]?.opacity || 1).toFixed(2)}
-                      </span>
-                    </div>
-                  </label>
+                  <OpacityInput
+                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.opacity || 1}
+                    onChange={(value) => handleInstanceLanguageSettingChange(
+                      getCurrentLanguage(),
+                      'opacity',
+                      value
+                    )}
+                    label="Opacity"
+                  />
                 </div>
 
                 {/* z-index設定 */}
                 <div className="form-row">
                   <label>
-                    レイヤー順序 (z-index):
-                    <input
-                      type="number"
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.z_index || ''}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
+                    Z-Index:
+                    <ZIndexInput
+                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.z_index || 0}
+                      onChange={(value) => handleInstanceLanguageSettingChange(
                         getCurrentLanguage(),
                         'z_index',
-                        e.target.value ? parseInt(e.target.value) : undefined
+                        value
                       )}
-                      placeholder="アセット設定使用"
                     />
                   </label>
                 </div>
@@ -1207,70 +1190,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   </label>
                 </div>
                 <div className="form-row">
-                  <label>
-                    不透明度:
-                    <div className="opacity-controls">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
-                        onChange={(e) => {
-                          const numValue = parseFloat(e.target.value);
-                          handleInputChange('opacity', numValue);
-                        }}
-                        className="opacity-slider"
-                      />
-                      <span className="opacity-value">
-                        {(getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0).toFixed(2)}
-                      </span>
-                    </div>
-                  </label>
+                  <OpacityInput
+                    value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
+                    onChange={(value) => handleInputChange('opacity', value)}
+                    label="Opacity"
+                  />
                 </div>
 
                 {/* z_index設定 */}
                 <div className="form-row">
                   <label>
-                    レイヤー順序 (z-index):
-                    <div className="z-index-controls">
-                      <input
-                        type="text"
-                        value={tempInputValues.z_index ?? (getTextAssetDefaultSettings(editingAsset, 'z_index') || 0).toString()}
-                        onChange={(e) => {
-                          const sanitized = sanitizeZIndexInput(e.target.value);
-                          setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
-                          // バリデーション実行
-                          const validation = validateZIndexValue(sanitized);
-                          setZIndexValidation(validation);
-                        }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetNumericValue(e.target.value, -9999, getTextAssetDefaultSettings(editingAsset, 'z_index') || 0);
-                          handleInputChange('z_index', validated);
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp.z_index;
-                            return newTemp;
-                          });
-                        }}
-                        className={`z-index-input ${
-                          !zIndexValidation.isValid ? 'error' :
-                          zIndexValidation.warning ? 'warning' : ''
-                        }`}
-                        placeholder="0"
-                      />
-                      <span className={`z-index-info ${
-                        !zIndexValidation.isValid ? 'error' :
-                        zIndexValidation.warning ? 'warning' : ''
-                      }`}>
-                        {!zIndexValidation.isValid && zIndexValidation.error ?
-                          zIndexValidation.error :
-                          zIndexValidation.warning ?
-                          zIndexValidation.warning :
-                          '(レイヤー順序: 数値が小さいほど背面)'
-                        }
-                      </span>
-                    </div>
+                    Z-Index:
+                    <ZIndexInput
+                      value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
+                      onChange={(value) => handleInputChange('z_index', value)}
+                      validation={zIndexValidation}
+                    />
                   </label>
                 </div>
               </div>
