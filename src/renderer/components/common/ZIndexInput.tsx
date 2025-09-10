@@ -39,7 +39,7 @@ export const ZIndexInput: React.FC<ZIndexInputProps> = ({
   // 現在の値をリアルタイムで参照するためのref
   const currentValueRef = useRef(intValue);
   
-  // valueが変更されたらrefも更新
+  // valueが変更されたらrefも更新（同期的に更新）
   useEffect(() => {
     const newIntValue = Math.floor(value);
     currentValueRef.current = newIntValue;
@@ -47,6 +47,11 @@ export const ZIndexInput: React.FC<ZIndexInputProps> = ({
       setInputValue(newIntValue.toString());
     }
   }, [value, isEditing]);
+
+  // refの初期値とvalueの同期を確実にする
+  useEffect(() => {
+    currentValueRef.current = Math.floor(value);
+  }, [value]);
 
   // タイマーをクリアする関数
   const clearTimers = useCallback(() => {
@@ -119,27 +124,29 @@ export const ZIndexInput: React.FC<ZIndexInputProps> = ({
   const performIncrement = useCallback(() => {
     if (disabled) return;
     
-    const currentValue = currentValueRef.current;
+    // より確実に現在の値を取得
+    const currentValue = Math.floor(value);
     const newValue = currentValue + 1;
     
     onChange(newValue);
     if (!isEditing) {
       setInputValue(newValue.toString());
     }
-  }, [disabled, onChange, isEditing]);
+  }, [disabled, onChange, isEditing, value]);
 
   // 値を減少させる関数
   const performDecrement = useCallback(() => {
     if (disabled) return;
     
-    const currentValue = currentValueRef.current;
+    // より確実に現在の値を取得
+    const currentValue = Math.floor(value);
     const newValue = currentValue - 1;
     
     onChange(newValue);
     if (!isEditing) {
       setInputValue(newValue.toString());
     }
-  }, [disabled, onChange, isEditing]);
+  }, [disabled, onChange, isEditing, value]);
 
   // 連続増減を開始する関数
   const startContinuousChange = useCallback((incrementFn: () => void) => {
