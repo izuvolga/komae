@@ -4,7 +4,17 @@
  */
 
 import React from 'react';
-import type { VectorAsset, VectorAssetInstance, ImageAsset, ImageAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance } from '../../types/entities';
+import type { 
+  VectorAsset, 
+  VectorAssetInstance, 
+  ImageAsset, 
+  ImageAssetInstance, 
+  DynamicVectorAsset, 
+  DynamicVectorAssetInstance,
+  ProjectData,
+  Page
+} from '../../types/entities';
+import { getEffectiveZIndex } from '../../types/entities';
 
 /**
  * SVGリサイズハンドルのプロパティ
@@ -285,4 +295,137 @@ export const wrapSVGWithParentContainer = (
       style="opacity: ${opacity};">
         ${svgContent}
     </svg>`;
+};
+
+/**
+ * Z-Indexバリデーション結果の型
+ */
+export interface ZIndexValidationResult {
+  isValid: boolean;
+  error?: string;
+  warning?: string;
+}
+
+/**
+ * Z-Index値を文字列からバリデーションする
+ * @param value - 検証するZ-Index文字列
+ * @param project - プロジェクトデータ
+ * @param page - ページデータ
+ * @param currentInstanceId - 現在編集中のインスタンスID
+ * @returns バリデーション結果
+ */
+export const validateZIndexValue = (
+  value: string,
+  project?: ProjectData,
+  page?: Page,
+  currentInstanceId?: string
+): ZIndexValidationResult => {
+  const numValue = parseInt(value.trim());
+  
+  // 空文字列または無効な数値
+  if (isNaN(numValue)) {
+    return {
+      isValid: false,
+      error: 'z-indexは数値である必要があります'
+    };
+  }
+  
+  // 範囲チェック（-9999 〜 9999）
+  if (numValue < -9999 || numValue > 9999) {
+    return {
+      isValid: false,
+      error: 'z-indexは-9999から9999の範囲で入力してください'
+    };
+  }
+  
+  // 競合チェック（同じページ内での重複）
+  let warning: string | undefined;
+  if (page && project) {
+    const conflicts: string[] = [];
+    
+    Object.values(page.asset_instances).forEach((instance) => {
+      // 自分自身は除外
+      if (instance.id === currentInstanceId) return;
+      
+      const instanceAsset = project.assets[instance.asset_id];
+      if (!instanceAsset) return;
+      
+      const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance);
+      
+      if (effectiveZIndex === numValue) {
+        const assetName = instanceAsset.name || instanceAsset.id;
+        conflicts.push(assetName);
+      }
+    });
+    
+    if (conflicts.length > 0) {
+      warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
+    }
+  }
+  
+  return {
+    isValid: true,
+    warning
+  };
+};
+
+/**
+ * Z-Index値を数値から競合チェックしてバリデーションする
+ * @param zIndex - 検証するZ-Index数値
+ * @param project - プロジェクトデータ
+ * @param page - ページデータ
+ * @param currentInstanceId - 現在編集中のインスタンスID
+ * @returns バリデーション結果
+ */
+export const validateZIndexNumber = (
+  zIndex: number,
+  project?: ProjectData,
+  page?: Page,
+  currentInstanceId?: string
+): ZIndexValidationResult => {
+  if (!page || !project) {
+    return { isValid: true };
+  }
+
+  // 同じページの他のアセットインスタンスとの重複チェック
+  const otherInstances = Object.values(page.asset_instances)
+    .filter(inst => inst.id !== currentInstanceId);
+
+  const conflicts = otherInstances.filter(inst => {
+    const otherAsset = project.assets[inst.asset_id];
+    if (!otherAsset) return false;
+
+    const effectiveZIndex = getEffectiveZIndex(otherAsset, inst);
+    return effectiveZIndex === zIndex;
+  });
+
+  if (conflicts.length > 0) {
+    const conflictNames = conflicts.map(inst => project.assets[inst.asset_id]?.name).join(', ');
+    return {
+      isValid: true,
+      warning: `Z-Index ${zIndex} は他のアセット (${conflictNames}) と重複しています`
+    };
+  }
+
+  return { isValid: true };
+};
+
+/**
+ * Z-Index入力を数値のみにサニタイズ
+ * @param value - 入力文字列
+ * @returns サニタイズされた文字列
+ */
+export const sanitizeZIndexInput = (value: string): string => {
+  // 数字と-のみを許可（小数点は除外）
+  let sanitized = value.replace(/[^0-9\-]/g, '');
+  
+  // 最初の文字以外の-を除去
+  if (sanitized.indexOf('-') > 0) {
+    sanitized = sanitized.replace(/-/g, '');
+    if (value.startsWith('-')) {
+      sanitized = '-' + sanitized;
+    }
+  }
+  
+  return sanitized;
 };

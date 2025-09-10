@@ -12,7 +12,9 @@ import {
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
-  wrapSVGWithParentContainer
+  wrapSVGWithParentContainer,
+  validateZIndexNumber,
+  ZIndexValidationResult
 } from '../../utils/editModalUtils';
 import './VectorEditModal.css';
 
@@ -50,11 +52,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   );
 
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
-  const [zIndexValidation, setZIndexValidation] = useState<{
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  }>({ isValid: true });
+  const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
 
   // マウス操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
@@ -133,32 +131,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   };
 
   const validateZIndex = (zIndex: number) => {
-    if (!project || !page) {
-      setZIndexValidation({ isValid: true });
-      return;
-    }
-
-    // 同じページの他のアセットインスタンスとの重複チェック
-    const otherInstances = Object.values(page.asset_instances)
-      .filter(inst => inst.id !== editedInstance?.id);
-
-    const conflicts = otherInstances.filter(inst => {
-      const otherAsset = project.assets[inst.asset_id];
-      if (!otherAsset) return false;
-
-      const effectiveZIndex = getEffectiveZIndex(otherAsset, inst);
-      return effectiveZIndex === zIndex;
-    });
-
-    if (conflicts.length > 0) {
-      const conflictNames = conflicts.map(inst => project.assets[inst.asset_id]?.name).join(', ');
-      setZIndexValidation({
-        isValid: true,
-        warning: `Z-Index ${zIndex} は他のアセット (${conflictNames}) と重複しています`
-      });
-    } else {
-      setZIndexValidation({ isValid: true });
-    }
+    const validation = validateZIndexNumber(zIndex, project, page, editedInstance?.id);
+    setZIndexValidation(validation);
   };
 
   const handleSave = () => {

@@ -19,6 +19,7 @@ import {
   getEffectiveOpacity,
   DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
+import { validateZIndexValue, sanitizeZIndexInput } from '../../utils/editModalUtils';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -607,79 +608,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  // z_index専用のサニタイズ関数（整数のみ）
-  const sanitizeZIndexInput = (value: string): string => {
-    // 数字と-のみを許可（小数点は除外）
-    let sanitized = value.replace(/[^0-9\-]/g, '');
-
-    // 最初の文字以外の-を除去
-    if (sanitized.indexOf('-') > 0) {
-      sanitized = sanitized.replace(/-/g, '');
-      if (value.startsWith('-')) {
-        sanitized = '-' + sanitized;
-      }
-    }
-
-    return sanitized;
-  };
-
-  // z_indexバリデーション関数
-  const validateZIndexValue = (value: string): {
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  } => {
-    const numValue = parseInt(value.trim());
-
-    // 空文字列または無効な数値
-    if (isNaN(numValue)) {
-      return {
-        isValid: false,
-        error: 'z-indexは数値である必要があります'
-      };
-    }
-
-    // 範囲チェック（-9999 〜 9999）
-    if (numValue < -9999 || numValue > 9999) {
-      return {
-        isValid: false,
-        error: 'z-indexは-9999から9999の範囲で入力してください'
-      };
-    }
-
-    // 競合チェック（同じページ内での重複）
-    let warning: string | undefined;
-    if (page) {
-      const project = useProjectStore.getState().project;
-      if (project) {
-        const conflicts: string[] = [];
-
-        Object.values(page.asset_instances).forEach((instance) => {
-          // 自分自身は除外
-          if (instance.id === assetInstance?.id) return;
-
-          const instanceAsset = project.assets[instance.asset_id];
-          if (!instanceAsset) return;
-
-          const effectiveZIndex = getEffectiveZIndex(instanceAsset, instance, getCurrentLanguage());
-
-          if (effectiveZIndex === numValue) {
-            const assetName = instanceAsset.name || instanceAsset.id;
-            conflicts.push(assetName);
-          }
-        });
-
-        if (conflicts.length > 0) {
-          warning = `同じz-indexを持つアセット: ${conflicts.join(', ')}`;
-        }
-      }
-    }
-
-    return {
-      isValid: true,
-      warning
-    };
-  };
+  // z_index専用のサニタイズ関数とバリデーション関数は共通ユーティリティを使用
   // 表示条件判定ヘルパー関数
   const shouldShowCommonSettings = () => {
     return mode === 'asset' && activePreviewTab === 'common';
