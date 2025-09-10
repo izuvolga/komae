@@ -871,7 +871,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <span className="dve-zindex-hint">(layer order: lower = background)</span>
                   <input
                     type="number"
-                    value={currentZIndex}
+                    value={Math.floor(currentZIndex)}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
                       if (!isNaN(value)) {

@@ -697,7 +697,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     <div className="z-index-controls">
                       <input
                         type="text"
-                        value={tempInputValues.z_index ?? currentZIndex.toString()}
+                        value={tempInputValues.z_index ?? Math.floor(currentZIndex).toString()}
                         onChange={(e) => {
                           const sanitized = sanitizeZIndexInput(e.target.value);
                           setTempInputValues(prev => ({ ...prev, z_index: sanitized }));

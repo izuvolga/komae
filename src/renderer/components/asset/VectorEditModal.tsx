@@ -430,7 +430,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               <div className="property-group">
                 <label>Z-Index</label>
                 <NumericInput
-                  value={currentZIndex}
+                  value={Math.floor(currentZIndex)}
                   onChange={handleZIndexChange}
                   step={1}
                 />
