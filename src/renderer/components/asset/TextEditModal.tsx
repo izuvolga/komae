@@ -1337,7 +1337,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <div className="form-row form-row-compact">
                         <label>
                           位置調整:
-                          <div className="position-inputs">
+                          <div className="textasset-position-inputs">
                             <input
                               type="number"
                               step="0.1"

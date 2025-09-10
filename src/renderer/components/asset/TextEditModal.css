@@ -414,12 +414,12 @@
   font-size: 12px;
 }
 
-.position-inputs {
+.textasset-position-inputs {
   display: flex;
   gap: 8px;
 }
 
-.position-inputs input {
+.textasset-position-inputs input {
   flex: 1;
   max-width: 80px;
 }
