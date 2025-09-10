@@ -23,7 +23,9 @@ import {
   getCurrentZIndex,
   wrapSVGWithParentContainer,
   validateZIndexNumber,
-  ZIndexValidationResult
+  ZIndexValidationResult,
+  calculateResizeValues,
+  ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import './DynamicVectorEditModal.css';
 
@@ -235,48 +237,19 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
-        let newWidth = dragStartValues.width;
-        let newHeight = dragStartValues.height;
-        let newX = dragStartValues.x;
-        let newY = dragStartValues.y;
+        const resizeResult = calculateResizeValues({
+          deltaX,
+          deltaY,
+          dragStartValues,
+          resizeHandle,
+          aspectRatioLocked: isShiftPressed,
+          canvasWidth: project.canvas.width,
+          canvasHeight: project.canvas.height,
+          minSize: 10
+        });
 
-        if (resizeHandle.includes('right')) {
-          newWidth = Math.max(10, dragStartValues.width + deltaX);
-        } else if (resizeHandle.includes('left')) {
-          newWidth = Math.max(10, dragStartValues.width - deltaX);
-          newX = dragStartValues.x + deltaX;
-        }
-
-        if (resizeHandle.includes('bottom')) {
-          newHeight = Math.max(10, dragStartValues.height + deltaY);
-        } else if (resizeHandle.includes('top')) {
-          newHeight = Math.max(10, dragStartValues.height - deltaY);
-          newY = dragStartValues.y + deltaY;
-        }
-
-        // 縦横比維持: Shiftキーが押されている場合
-        if (isShiftPressed) {
-          const aspectRatio = editedAsset.default_width / editedAsset.default_height;
-          
-          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
-            newHeight = newWidth / aspectRatio;
-            // 上端をドラッグしている場合は、位置も調整
-            if (resizeHandle.includes('top')) {
-              newY = dragStartValues.y + dragStartValues.height - newHeight;
-            }
-          } else {
-            newWidth = newHeight * aspectRatio;
-            // 左端をドラッグしている場合は、位置も調整
-            if (resizeHandle.includes('left')) {
-              newX = dragStartValues.x + dragStartValues.width - newWidth;
-            }
-          }
-        }
-
-        const constrained = constrainToCanvas(newX, newY, newWidth, newHeight, project.canvas.width, project.canvas.height);
-
-        updatePosition(constrained.x, constrained.y);
-        updateSize(constrained.width, constrained.height);
+        updatePosition(resizeResult.x, resizeResult.y);
+        updateSize(resizeResult.width, resizeResult.height);
       }
     };
 

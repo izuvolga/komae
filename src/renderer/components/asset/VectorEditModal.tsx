@@ -14,7 +14,9 @@ import {
   getCurrentZIndex,
   wrapSVGWithParentContainer,
   validateZIndexNumber,
-  ZIndexValidationResult
+  ZIndexValidationResult,
+  calculateResizeValues,
+  ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import './VectorEditModal.css';
 
@@ -211,31 +213,20 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     } else if (isResizing && resizeHandle) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
       
-      let newWidth = dragStartValues.width;
-      let newHeight = dragStartValues.height;
-      let newX = dragStartValues.x;
-      let newY = dragStartValues.y;
+      const resizeResult = calculateResizeValues({
+        deltaX,
+        deltaY,
+        dragStartValues,
+        resizeHandle,
+        canvasWidth: project.canvas.width,
+        canvasHeight: project.canvas.height,
+        minSize: 10
+      });
 
-      if (resizeHandle.includes('right')) {
-        newWidth = Math.max(10, dragStartValues.width + deltaX);
-      } else if (resizeHandle.includes('left')) {
-        newWidth = Math.max(10, dragStartValues.width - deltaX);
-        newX = dragStartValues.x + deltaX;
-      }
-
-      if (resizeHandle.includes('bottom')) {
-        newHeight = Math.max(10, dragStartValues.height + deltaY);
-      } else if (resizeHandle.includes('top')) {
-        newHeight = Math.max(10, dragStartValues.height - deltaY);
-        newY = dragStartValues.y + deltaY;
-      }
-
-      const constrained = constrainToCanvas(newX, newY, newWidth, newHeight, project.canvas.width, project.canvas.height);
-
-      handlePositionChange('x', constrained.x);
-      handlePositionChange('y', constrained.y);
-      handleSizeChange('width', constrained.width);
-      handleSizeChange('height', constrained.height);
+      handlePositionChange('x', resizeResult.x);
+      handlePositionChange('y', resizeResult.y);
+      handleSizeChange('width', resizeResult.width);
+      handleSizeChange('height', resizeResult.height);
     }
   };;
 

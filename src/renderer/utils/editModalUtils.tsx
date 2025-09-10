@@ -429,3 +429,145 @@ export const sanitizeZIndexInput = (value: string): string => {
   
   return sanitized;
 };
+// 数値入力の検証とサニタイズ
+export const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
+  // 数字、-、.のみを許可
+  let sanitized = value.replace(/[^0-9\-\.]/g, '');
+  
+  // 負数を許可しない場合は-を除去
+  if (!allowNegative) {
+    sanitized = sanitized.replace(/-/g, '');
+  }
+  
+  // 最初の文字以外の-を除去
+  if (sanitized.indexOf('-') > 0) {
+    sanitized = sanitized.replace(/-/g, '');
+    if (allowNegative && value.startsWith('-')) {
+      sanitized = '-' + sanitized;
+    }
+  }
+  
+  // 複数の.を除去（最初の.のみ残す）
+  const dotIndex = sanitized.indexOf('.');
+  if (dotIndex !== -1) {
+    const beforeDot = sanitized.substring(0, dotIndex);
+    const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
+    // 小数点以下2位まで制限
+    const limitedAfterDot = afterDot.substring(0, 2);
+    sanitized = beforeDot + '.' + limitedAfterDot;
+  }
+  
+  return sanitized;
+};
+
+// 数値バリデーション（フォーカスアウト時）
+export const validateAndSetNumericValue = (value: string, minValue: number = -Infinity, fallbackValue: number): number => {
+  if (value === '' || value === '-' || value === '.') {
+    return fallbackValue;
+  }
+  
+  const numValue = parseFloat(value);
+  if (isNaN(numValue) || numValue < minValue) {
+    return fallbackValue;
+  }
+  
+  // 小数点以下2位まで丸める
+  return Math.round(numValue * 100) / 100;
+};
+
+// 数値を小数点2位まで制限して表示する関数
+export const formatNumberForDisplay = (value: number): string => {
+  return value.toFixed(2).replace(/\.?0+$/, '');
+};
+
+/**
+ * リサイズ計算のパラメータ
+ */
+export interface ResizeCalculationParams {
+  deltaX: number;
+  deltaY: number;
+  dragStartValues: { x: number; y: number; width: number; height: number };
+  resizeHandle: string;
+  aspectRatioLocked?: boolean;
+  canvasWidth?: number;
+  canvasHeight?: number;
+  minSize?: number;
+}
+
+/**
+ * リサイズ計算の結果
+ */
+export interface ResizeCalculationResult {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * リサイズハンドルに基づいてアセットの新しいサイズと位置を計算
+ * @param params - リサイズ計算パラメータ
+ * @returns 計算結果
+ */
+export const calculateResizeValues = (params: ResizeCalculationParams): ResizeCalculationResult => {
+  const {
+    deltaX,
+    deltaY,
+    dragStartValues,
+    resizeHandle,
+    aspectRatioLocked = false,
+    canvasWidth,
+    canvasHeight,
+    minSize = 10
+  } = params;
+
+  let newWidth = dragStartValues.width;
+  let newHeight = dragStartValues.height;
+  let newX = dragStartValues.x;
+  let newY = dragStartValues.y;
+
+  // 基本的なサイズ調整
+  if (resizeHandle.includes('right')) {
+    newWidth = Math.max(minSize, dragStartValues.width + deltaX);
+  } else if (resizeHandle.includes('left')) {
+    newWidth = Math.max(minSize, dragStartValues.width - deltaX);
+    newX = dragStartValues.x + deltaX;
+  }
+
+  if (resizeHandle.includes('bottom')) {
+    newHeight = Math.max(minSize, dragStartValues.height + deltaY);
+  } else if (resizeHandle.includes('top')) {
+    newHeight = Math.max(minSize, dragStartValues.height - deltaY);
+    newY = dragStartValues.y + deltaY;
+  }
+
+  // アスペクト比の維持
+  if (aspectRatioLocked && dragStartValues.width > 0 && dragStartValues.height > 0) {
+    const aspectRatio = dragStartValues.width / dragStartValues.height;
+
+    if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+      // 幅ベースでアスペクト比を維持
+      newHeight = newWidth / aspectRatio;
+      if (resizeHandle.includes('top')) {
+        newY = dragStartValues.y + dragStartValues.height - newHeight;
+      }
+    } else {
+      // 高さベースでアスペクト比を維持
+      newWidth = newHeight * aspectRatio;
+      if (resizeHandle.includes('left')) {
+        newX = dragStartValues.x + dragStartValues.width - newWidth;
+      }
+    }
+  }
+
+  // キャンバス境界内への制限
+  if (canvasWidth && canvasHeight) {
+    const constrained = constrainToCanvas(newX, newY, newWidth, newHeight, canvasWidth, canvasHeight);
+    newX = constrained.x;
+    newY = constrained.y;
+    newWidth = constrained.width;
+    newHeight = constrained.height;
+  }
+
+  return { x: newX, y: newY, width: newWidth, height: newHeight };
+};

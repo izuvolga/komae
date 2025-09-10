@@ -19,7 +19,7 @@ import {
   getEffectiveOpacity,
   DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
-import { validateZIndexValue, sanitizeZIndexInput } from '../../utils/editModalUtils';
+import { validateZIndexValue, sanitizeZIndexInput, validateNumericInput, validateAndSetNumericValue, formatNumberForDisplay } from '../../utils/editModalUtils';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -514,53 +514,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     });
   };
 
-  // 数値入力バリデーション関数（ImageEditModalから流用）
-  const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
-    // 数字、-、.のみを許可
-    let sanitized = value.replace(/[^0-9\-\.]/g, '');
-
-    // 負数を許可しない場合は-を除去
-    if (!allowNegative) {
-      sanitized = sanitized.replace(/-/g, '');
-    }
-
-    // 最初の文字以外の-を除去
-    if (sanitized.indexOf('-') > 0) {
-      sanitized = sanitized.replace(/-/g, '');
-      if (allowNegative && value.startsWith('-')) {
-        sanitized = '-' + sanitized;
-      }
-    }
-
-    // 複数の.を除去（最初の.のみ残す）
-    const dotIndex = sanitized.indexOf('.');
-    if (dotIndex !== -1) {
-      const beforeDot = sanitized.substring(0, dotIndex);
-      const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
-      sanitized = beforeDot + '.' + afterDot;
-    }
-
-    return sanitized;
-  };
-
-  // 数値バリデーション（フォーカスアウト時）
-  const validateAndSetValue = (value: string, minValue: number = -9999, fallbackValue: number): number => {
-    if (value === '' || value === '-' || value === '.') {
-      return fallbackValue;
-    }
-
-    const numValue = parseFloat(value);
-    if (isNaN(numValue) || numValue < minValue) {
-      return fallbackValue;
-    }
-
-    // 小数点以下2位まで丸める
-    return Math.round(numValue * 100) / 100;
-  };
-
-  const formatNumberForDisplay = (value: number): string => {
-    return value.toFixed(2).replace(/\.?0+$/, '');
-  };
+  // 数値入力バリデーション関数、数値バリデーション関数、表示フォーマット関数は共通ユーティリティを使用
 
   const handleNumberInputChange = (field: keyof TextAsset, value: string) => {
     // 空文字列や無効な値の場合のみ0にする（マイナス値は許可）
@@ -971,7 +925,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         setTempInputValues(prev => ({ ...prev, leading: sanitized }));
                       }}
                       onBlur={(e) => {
-                        const validated = validateAndSetValue(e.target.value, -9999, getEffectiveLeading(editingAsset, null, getCurrentLanguage()));
+                        const validated = validateAndSetNumericValue(e.target.value, -9999, getEffectiveLeading(editingAsset, null, getCurrentLanguage()));
                         // Leading is now handled through language settings
                         const currentLang = getCurrentLanguage();
                         handleLanguageSettingChange(currentLang, 'leading', validated);
@@ -1291,7 +1245,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           setZIndexValidation(validation);
                         }}
                         onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, -9999, getTextAssetDefaultSettings(editingAsset, 'z_index') || 0);
+                          const validated = validateAndSetNumericValue(e.target.value, -9999, getTextAssetDefaultSettings(editingAsset, 'z_index') || 0);
                           handleInputChange('z_index', validated);
                           setTempInputValues(prev => {
                             const newTemp = { ...prev };

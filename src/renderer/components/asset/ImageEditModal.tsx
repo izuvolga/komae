@@ -14,7 +14,12 @@ import {
   getCurrentOpacity,
   getCurrentZIndex,
   validateZIndexValue,
-  sanitizeZIndexInput
+  sanitizeZIndexInput,
+  validateNumericInput,
+  validateAndSetNumericValue,
+  formatNumberForDisplay,
+  calculateResizeValues,
+  ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import './ImageEditModal.css';
 
@@ -192,7 +197,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   };
 
-  // z_index専用のサニタイズ関数とバリデーション関数は共通ユーティリティを使用
+  // z_index専用のサニタイズ関数、バリデーション関数、数値入力検証は共通ユーティリティを使用
 
   const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | undefined) => {
     if (mode === 'instance' && editedInstance) {
@@ -235,56 +240,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     onClose();
   };
 
-  // 数値入力バリデーション関数
-  const validateNumericInput = (value: string, allowNegative: boolean = true): string => {
-    // 数字、-、.のみを許可
-    let sanitized = value.replace(/[^0-9\-\.]/g, '');
-    
-    // 負数を許可しない場合は-を除去
-    if (!allowNegative) {
-      sanitized = sanitized.replace(/-/g, '');
-    }
-    
-    // 最初の文字以外の-を除去
-    if (sanitized.indexOf('-') > 0) {
-      sanitized = sanitized.replace(/-/g, '');
-      if (allowNegative && value.startsWith('-')) {
-        sanitized = '-' + sanitized;
-      }
-    }
-    
-    // 複数の.を除去（最初の.のみ残す）
-    const dotIndex = sanitized.indexOf('.');
-    if (dotIndex !== -1) {
-      const beforeDot = sanitized.substring(0, dotIndex);
-      const afterDot = sanitized.substring(dotIndex + 1).replace(/\./g, '');
-      // 小数点以下2位まで制限
-      const limitedAfterDot = afterDot.substring(0, 2);
-      sanitized = beforeDot + '.' + limitedAfterDot;
-    }
-    
-    return sanitized;
-  };
-
-  // 数値バリデーション（フォーカスアウト時）
-  const validateAndSetValue = (value: string, minValue: number = 0, fallbackValue: number): number => {
-    if (value === '' || value === '-' || value === '.') {
-      return fallbackValue;
-    }
-    
-    const numValue = parseFloat(value);
-    if (isNaN(numValue) || numValue < minValue) {
-      return fallbackValue;
-    }
-    
-    // 小数点以下2位まで丸める
-    return Math.round(numValue * 100) / 100;
-  };
-
-  // 数値を小数点2位まで制限して表示する関数
-  const formatNumberForDisplay = (value: number): string => {
-    return value.toFixed(2).replace(/\.?0+$/, '');
-  };
+  // 数値入力バリデーション関数、数値バリデーション、表示フォーマット関数は共通ユーティリティを使用
 
   // Enterキーでフォーカスを外すハンドラー
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -361,58 +317,19 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
-        let newWidth = dragStartValues.width;
-        let newHeight = dragStartValues.height;
-        let newX = dragStartValues.x;
-        let newY = dragStartValues.y;
+        const resizeResult = calculateResizeValues({
+          deltaX,
+          deltaY,
+          dragStartValues,
+          resizeHandle,
+          aspectRatioLocked: aspectRatioLocked || isShiftPressed,
+          canvasWidth: project.canvas.width,
+          canvasHeight: project.canvas.height,
+          minSize: 10
+        });
 
-        if (resizeHandle.includes('right')) {
-          newWidth = Math.max(10, dragStartValues.width + deltaX);
-        } else if (resizeHandle.includes('left')) {
-          newWidth = Math.max(10, dragStartValues.width - deltaX);
-          newX = dragStartValues.x + deltaX;
-        }
-
-        if (resizeHandle.includes('bottom')) {
-          newHeight = Math.max(10, dragStartValues.height + deltaY);
-        } else if (resizeHandle.includes('top')) {
-          newHeight = Math.max(10, dragStartValues.height - deltaY);
-          newY = dragStartValues.y + deltaY;
-        }
-
-        // 縦横比維持: aspectRatioLockedまたはShiftキーが押されている場合
-        if (aspectRatioLocked || isShiftPressed) {
-          let aspectRatio;
-          
-          if (aspectRatioLocked) {
-            // aspectRatioLockedの場合は元画像の縦横比を使用
-            aspectRatio = asset.original_width / asset.original_height;
-          } else if (isShiftPressed) {
-            // Shiftキーの場合は現在のサイズの縦横比を使用
-            aspectRatio = dragStartValues.width / dragStartValues.height;
-          }
-          
-          if (aspectRatio) {
-            if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
-              newHeight = newWidth / aspectRatio;
-              // 上端をドラッグしている場合は、位置も調整
-              if (resizeHandle.includes('top')) {
-                newY = dragStartValues.y + dragStartValues.height - newHeight;
-              }
-            } else {
-              newWidth = newHeight * aspectRatio;
-              // 左端をドラッグしている場合は、位置も調整
-              if (resizeHandle.includes('left')) {
-                newX = dragStartValues.x + dragStartValues.width - newWidth;
-              }
-            }
-          }
-        }
-
-        const constrained = constrainToCanvas(newX, newY, newWidth, newHeight, project.canvas.width, project.canvas.height);
-
-        updatePosition(constrained.x, constrained.y);
-        updateSize(constrained.width, constrained.height);
+        updatePosition(resizeResult.x, resizeResult.y);
+        updateSize(resizeResult.width, resizeResult.height);
       } else if (maskDragPointIndex !== null && currentMask) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, maskDragStartPos.x, maskDragStartPos.y);
         
@@ -869,7 +786,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
                         }}
                         onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, -9999, point[0]);
+                          const validated = validateAndSetNumericValue(e.target.value, -9999, point[0]);
                           const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
                           newMask[index] = [validated, point[1]];
                           updateMask(newMask);
@@ -891,7 +808,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
                         }}
                         onBlur={(e) => {
-                          const validated = validateAndSetValue(e.target.value, -9999, point[1]);
+                          const validated = validateAndSetNumericValue(e.target.value, -9999, point[1]);
                           const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
                           newMask[index] = [point[0], validated];
                           updateMask(newMask);
