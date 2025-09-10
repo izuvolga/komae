@@ -1,0 +1,37 @@
+/* ReadOnlyInput コンポーネントのスタイル */
+.readonly-input-container {
+  width: 100%;
+}
+
+.readonly-input-label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+  margin-bottom: 6px;
+}
+
+.readonly-input-display {
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #6b7280;
+  font-family: inherit;
+  line-height: 1.5;
+  min-height: 20px;
+  word-break: break-all;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .readonly-input-display {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+  
+  .readonly-input-label {
+    font-size: 12px;
+  }
+}

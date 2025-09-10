@@ -4,6 +4,7 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
+import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
 import { 
@@ -564,29 +565,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               {/* 元画像情報（Asset編集時のみ、マスク編集時は非表示） */}
               {mode === 'asset' && !maskEditMode && (
                 <div className="original-info">
-                  <div className="size-display">
-                    <span>Original Width/Height</span>
-                    <div className="size-inputs">
-                      <NumericInput
-                        value={asset.original_width}
-                        onChange={(value) => {
-                          setEditedAsset(prev => ({ ...prev, original_width: value }));
-                        }}
-                        min={0.01}
-                        decimals={2}
-                        className="small"
-                      />
-                      <NumericInput
-                        value={asset.original_height}
-                        onChange={(value) => {
-                          setEditedAsset(prev => ({ ...prev, original_height: value }));
-                        }}
-                        min={0.01}
-                        decimals={2}
-                        className="small"
-                      />
-                    </div>
-                  </div>
+                  <ReadOnlyInput
+                    label="Original Width/Height"
+                    value={`${asset.original_width} × ${asset.original_height}`}
+                  />
                 </div>
               )}
 

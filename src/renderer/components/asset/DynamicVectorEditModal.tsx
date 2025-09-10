@@ -3,6 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
+import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type {
   DynamicVectorAsset,
   DynamicVectorAssetInstance,
@@ -765,23 +766,10 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
               {/* Original Width / Height (Default values, read-only) */}
               <div className="dve-param-group">
-                <div className="dve-size-section">
-                  <span>Original Width / Height</span>
-                  <div className="dve-input-row">
-                    <input
-                      type="number"
-                      value={editedAsset.original_width}
-                      disabled
-                      className="dve-number-input dve-readonly"
-                    />
-                    <input
-                      type="number"
-                      value={editedAsset.original_height}
-                      disabled
-                      className="dve-number-input dve-readonly"
-                    />
-                  </div>
-                </div>
+                <ReadOnlyInput
+                  label="Original Width / Height"
+                  value={`${editedAsset.original_width} × ${editedAsset.original_height}`}
+                />
               </div>
 
               {/* Width / Height */}

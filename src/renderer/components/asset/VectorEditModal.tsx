@@ -3,6 +3,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
+import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type { VectorAsset, VectorAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import { 
@@ -335,24 +336,24 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
               {/* 基本情報 */}
               <div className="property-group">
-                <label>アセット名</label>
-                <div className="size-display">
-                  {asset.name}
-                </div>
+                <ReadOnlyInput
+                  label="アセット名"
+                  value={asset.name}
+                />
               </div>
 
               <div className="property-group">
-                <label>ファイルパス</label>
-                <div className="size-display">
-                  {asset.original_file_path}
-                </div>
+                <ReadOnlyInput
+                  label="ファイルパス"
+                  value={asset.original_file_path}
+                />
               </div>
 
               <div className="property-group">
-                <label>元サイズ</label>
-                <div className="size-display">
-                  {asset.original_width} × {asset.original_height}
-                </div>
+                <ReadOnlyInput
+                  label="元サイズ"
+                  value={`${asset.original_width} × ${asset.original_height}`}
+                />
               </div>
 
               {/* 位置 */}
