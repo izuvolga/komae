@@ -335,22 +335,16 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               {/* 基本情報 */}
               <div className="property-group">
                 <label>アセット名</label>
-                <input
-                  type="text"
-                  value={asset.name}
-                  readOnly
-                  className="readonly-input"
-                />
+                <div className="size-display">
+                  {asset.name}
+                </div>
               </div>
 
               <div className="property-group">
                 <label>ファイルパス</label>
-                <input
-                  type="text"
-                  value={asset.original_file_path}
-                  readOnly
-                  className="readonly-input"
-                />
+                <div className="size-display">
+                  {asset.original_file_path}
+                </div>
               </div>
 
               <div className="property-group">
