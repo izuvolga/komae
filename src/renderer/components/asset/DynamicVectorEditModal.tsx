@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { ZIndexInput } from '../common/ZIndexInput';
 import type {
   DynamicVectorAsset,
   DynamicVectorAssetInstance,
@@ -869,23 +870,12 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 <div className="dve-zindex-section">
                   <span>Z-Index</span>
                   <span className="dve-zindex-hint">(layer order: lower = background)</span>
-                  <input
-                    type="number"
-                    value={Math.floor(currentZIndex)}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (!isNaN(value)) {
-                        updateZIndex(value);
-                      }
-                    }}
-                    className="dve-zindex-input"
+                  <ZIndexInput
+                    value={currentZIndex}
+                    onChange={updateZIndex}
+                    validation={zIndexValidation}
+                    className="dve-zindex-input-wrapper"
                   />
-                  {zIndexValidation.error && (
-                    <div className="dve-validation-error">{zIndexValidation.error}</div>
-                  )}
-                  {zIndexValidation.warning && (
-                    <div className="dve-validation-warning">{zIndexValidation.warning}</div>
-                  )}
                 </div>
               </div>
             </div>

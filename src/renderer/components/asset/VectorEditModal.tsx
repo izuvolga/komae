@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
+import { ZIndexInput } from '../common/ZIndexInput';
 import type { VectorAsset, VectorAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import { 
@@ -429,16 +430,11 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               {/* Z-Index */}
               <div className="property-group">
                 <label>Z-Index</label>
-                <NumericInput
-                  value={Math.floor(currentZIndex)}
+                <ZIndexInput
+                  value={currentZIndex}
                   onChange={handleZIndexChange}
-                  step={1}
+                  validation={zIndexValidation}
                 />
-                {zIndexValidation.warning && (
-                  <div className="validation-warning">
-                    ⚠️ {zIndexValidation.warning}
-                  </div>
-                )}
               </div>
             </div>
           </div>

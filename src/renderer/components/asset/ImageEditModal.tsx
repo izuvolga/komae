@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
+import { ZIndexInput } from '../common/ZIndexInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
 import { 
@@ -695,31 +696,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <div className="z-index-section">
                     <span>{mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}</span>
                     <div className="z-index-controls">
-                      <input
-                        type="text"
-                        value={tempInputValues.z_index ?? Math.floor(currentZIndex).toString()}
-                        onChange={(e) => {
-                          const sanitized = sanitizeZIndexInput(e.target.value);
-                          setTempInputValues(prev => ({ ...prev, z_index: sanitized }));
-                          
-                          // バリデーション実行
-                          const validation = validateZIndexValue(sanitized);
-                          setZIndexValidation(validation);
-                        }}
-                        onBlur={(e) => {
-                          const validated = parseInt(e.target.value) || currentZIndex;
-                          updateZIndex(validated);
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp.z_index;
-                            return newTemp;
-                          });
-                        }}
-                        onKeyDown={handleKeyDown}
-                        className={`z-index-input ${
-                          !zIndexValidation.isValid ? 'error' : 
-                          zIndexValidation.warning ? 'warning' : ''
-                        }`}
+                      <ZIndexInput
+                        value={currentZIndex}
+                        onChange={updateZIndex}
+                        validation={zIndexValidation}
+                        className="image-zindex-input"
                       />
                       <span className={`z-index-info ${
                         !zIndexValidation.isValid ? 'error' : 
