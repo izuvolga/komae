@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
 import type {
@@ -746,29 +747,17 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 <div className="dve-position-section">
                   <span>PosX / PosY</span>
                   <div className="dve-input-row">
-                    <input
-                      type="number"
+                    <NumericInput
                       value={currentPos.x}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value)) {
-                          updatePosition(value, currentPos.y);
-                        }
-                      }}
-                      className="dve-number-input"
-                      step="0.01"
+                      onChange={(value) => updatePosition(value, currentPos.y)}
+                      step={1}
+                      decimals={2}
                     />
-                    <input
-                      type="number"
+                    <NumericInput
                       value={currentPos.y}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value)) {
-                          updatePosition(currentPos.x, value);
-                        }
-                      }}
-                      className="dve-number-input"
-                      step="0.01"
+                      onChange={(value) => updatePosition(currentPos.x, value)}
+                      step={1}
+                      decimals={2}
                     />
                   </div>
                 </div>
@@ -800,31 +789,19 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                 <div className="dve-size-section">
                   <span>Width / Height</span>
                   <div className="dve-input-row">
-                    <input
-                      type="number"
+                    <NumericInput
                       value={currentSize.width}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value) && value >= 0) {
-                          updateSize(value, currentSize.height);
-                        }
-                      }}
-                      className="dve-number-input"
-                      step="0.01"
-                      min="0"
+                      onChange={(value) => updateSize(value, currentSize.height)}
+                      min={1}
+                      step={1}
+                      decimals={2}
                     />
-                    <input
-                      type="number"
+                    <NumericInput
                       value={currentSize.height}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        if (!isNaN(value) && value >= 0) {
-                          updateSize(currentSize.width, value);
-                        }
-                      }}
-                      className="dve-number-input"
-                      step="0.01"
-                      min="0"
+                      onChange={(value) => updateSize(currentSize.width, value)}
+                      min={1}
+                      step={1}
+                      decimals={2}
                     />
                   </div>
                 </div>
