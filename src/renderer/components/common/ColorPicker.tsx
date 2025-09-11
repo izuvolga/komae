@@ -53,9 +53,41 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   }, []);
 
   // 色表示矩形クリック時
-  const handleColorDisplayClick = useCallback(() => {
+  const handleColorDisplayClick = useCallback((e: React.MouseEvent) => {
     if (disabled || !hiddenColorPickerRef.current) return;
-    hiddenColorPickerRef.current.click();
+    
+    // 色表示ボタンの位置を取得
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const colorPicker = hiddenColorPickerRef.current;
+    
+    // 一時的に表示してクリック（色表示ボタンの左側に配置）
+    colorPicker.style.position = 'fixed';
+    colorPicker.style.left = `${rect.left - 250}px`; // 色表示ボタンの左側に250px移動
+    colorPicker.style.top = `${rect.top}px`; // 色表示ボタンと同じ高さ
+    colorPicker.style.zIndex = '9999';
+    colorPicker.style.opacity = '0';
+    colorPicker.style.pointerEvents = 'auto';
+    colorPicker.style.width = '50px';
+    colorPicker.style.height = '50px';
+    
+    // HEXモードを示すデータ属性を設定（ブラウザによってはサポート）
+    colorPicker.setAttribute('data-format', 'hex');
+    colorPicker.setAttribute('data-color-format', 'hex');
+    
+    // 位置設定が確実に適用されるまで少し待ってからクリック
+    setTimeout(() => {
+      colorPicker.click();
+    }, 10);
+    
+    // クリック後に元に戻す
+    setTimeout(() => {
+      colorPicker.style.position = 'absolute';
+      colorPicker.style.width = '1px';
+      colorPicker.style.height = '1px';
+      colorPicker.style.opacity = '0';
+      colorPicker.style.pointerEvents = 'none';
+      colorPicker.style.zIndex = '-1';
+    }, 150);
   }, [disabled]);
 
   // カラーピッカーからの色変更
@@ -111,6 +143,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           disabled={disabled}
           className="hidden-color-picker"
           ref={hiddenColorPickerRef}
+          data-format="hex"
+          data-color-format="hex"
         />
       </div>
     </div>
