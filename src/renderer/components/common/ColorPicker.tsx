@@ -96,24 +96,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     onChange(e.target.value);
   }, [disabled, onChange]);
 
-  // 16進数入力欄の変更
-  const handleHexInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled) return;
-    
-    const inputValue = e.target.value.toUpperCase();
-    
-    // 16進数文字のみを許可
-    const filteredValue = inputValue.replace(/[^0-9A-F]/g, '');
-    
-    // 6文字制限
-    const limitedValue = filteredValue.slice(0, 6);
-    
-    // 3桁または6桁の場合のみ色を更新
-    if (limitedValue.length === 3 || limitedValue.length === 6) {
-      const normalizedColor = normalizeColorValue(limitedValue);
-      onChange(normalizedColor);
-    }
-  }, [disabled, onChange, normalizeColorValue]);
+  // 16進数表示部分のクリック（カラーピッカーを開く）
+  const handleHexDisplayClick = useCallback((e: React.MouseEvent) => {
+    handleColorDisplayClick(e);
+  }, [handleColorDisplayClick]);
 
   const hexValue = getHexValue(value);
 
@@ -127,15 +113,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           onClick={handleColorDisplayClick}
           title="クリックでカラーピッカーを開く"
         />
-        <input
-          type="text"
-          value={hexValue}
-          onChange={handleHexInputChange}
-          disabled={disabled}
-          className="hex-input"
-          placeholder="FFFFFF"
-          maxLength={6}
-        />
+        <div 
+          className={`hex-display ${disabled ? 'disabled' : ''}`}
+          onClick={handleHexDisplayClick}
+          title="クリックでカラーピッカーを開く"
+        >
+          {hexValue || 'FFFFFF'}
+        </div>
         <input
           type="color"
           value={value}
