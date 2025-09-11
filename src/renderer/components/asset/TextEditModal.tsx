@@ -8,7 +8,6 @@ import { ColorPicker } from '../common/ColorPicker';
 import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
 import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
 import {
-  getEffectiveZIndex,
   validateTextAssetData,
   validateTextAssetInstanceData,
   getEffectiveTextValue,
@@ -22,7 +21,6 @@ import {
   getEffectiveOpacity,
   DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
-import { validateZIndexValue, sanitizeZIndexInput, validateNumericInput, validateAndSetNumericValue, formatNumberForDisplay } from '../../utils/editModalUtils';
 import './TextEditModal.css';
 
 // 編集モードの種類
@@ -53,7 +51,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [editingInstance, setEditingInstance] = useState<TextAssetInstance | null>(
     assetInstance || null
   );
-  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
   const [zIndexValidation, setZIndexValidation] = useState<{
     isValid: boolean;
     error?: string;
@@ -341,7 +338,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-
   // 言語別設定変更ハンドラー（Asset編集用）
   const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
     if (mode !== 'asset') return;
@@ -398,6 +394,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
     setEditingAsset(updatedAsset);
   };
+
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
     if (mode !== 'asset') return;
@@ -421,7 +418,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
 
     setEditingAsset(updatedAsset);
-  };;
+  };
+
   // 複数の言語オーバーライド設定を同時に更新する関数
   const handleLanguageOverrideChanges = (language: string, settings: Partial<LanguageSettings>) => {
     if (mode !== 'asset') return;
@@ -454,7 +452,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
 
     setEditingAsset(updatedAsset);
-  };;
+  };
 
   // 複数のインスタンス言語設定を同時に更新する関数
   const handleInstanceLanguageSettingChanges = (language: string, settings: Partial<LanguageSettings>) => {
@@ -517,34 +515,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     });
   };
 
-  // 数値入力バリデーション関数、数値バリデーション関数、表示フォーマット関数は共通ユーティリティを使用
-
-  const handleNumberInputChange = (field: keyof TextAsset, value: string) => {
-    // 空文字列や無効な値の場合のみ0にする（マイナス値は許可）
-    const numValue = value === '' ? 0 : (parseFloat(value) || 0);
-    handleInputChange(field, numValue);
-  };
-
-  // 縦書き関連のヘルパー関数
-  const getCurrentVertical = () => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const langSettings = editingInstance.override_language_settings?.[currentLang];
-      return getEffectiveVertical(editingAsset, editingInstance, currentLang);
-    }
-    return getEffectiveVertical(editingAsset, null, getCurrentLanguage());
-  };
-
-  const updateVertical = (value: boolean) => {
-    if (mode === 'asset') {
-      // Vertical is now handled through language settings
-      const currentLang = getCurrentLanguage();
-      handleLanguageSettingChange(currentLang, 'vertical', value);
-    } else {
-      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'vertical', value);
-    }
-  };
-
   // フォント関連のヘルパー関数
   const getCurrentFont = () => {
     if (mode === 'instance' && editingInstance) {
@@ -572,11 +542,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   const shouldShowLanguageSettings = () => {
-    return mode === 'asset' && 
-           activePreviewTab !== 'common' && 
+    return mode === 'asset' &&
+           activePreviewTab !== 'common' &&
            project?.metadata.supportedLanguages?.includes(activePreviewTab || '') &&
            project?.metadata.supportedLanguages?.length > 1;
-  };;;;
+  };
 
   // ドラッグ操作のハンドラー
   const handleTextMouseDown = (e: React.MouseEvent) => {
@@ -698,10 +668,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const frameSize = getTextFrameSize();
     const canvasWidth = canvasConfig?.width || 800;
     const canvasHeight = canvasConfig?.height || 600;
-    
-    return `<svg 
-      width="100%" 
-      height="100%" 
+
+    return `<svg
+      width="100%"
+      height="100%"
       viewBox="0 0 ${canvasWidth} ${canvasHeight}"
       xmlns="http://www.w3.org/2000/svg"
       style="position: absolute; top: 0; left: 0; pointer-events: none;"
@@ -974,15 +944,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <label>縁取り幅</label>
                   <NumericInput
-                    value={getEffectiveStrokeWidth(editingAsset, null, getCurrentLanguage())}
+                    value={getCurrentValue('stroke_width')}
                     onChange={(value) => {
-                      // For new spec, stroke width is managed through language settings
-                      const currentLang = getCurrentLanguage();
-                      handleLanguageSettingChange(currentLang, 'stroke_width', value);
+                      handleInputChange('stroke_width', value);
                     }}
                     min={0}
-                    max={1}
-                    decimals={2}
+                    max={9999}
+                    decimals={0}
                     className="small"
                   />
                 </div>
