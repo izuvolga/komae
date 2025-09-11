@@ -1029,22 +1029,20 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
 
                 {/* フォントサイズ */}
-                <div className="form-row">
-                  <label>
-                    フォントサイズ:
-                    <input
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font_size || ''}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'font_size',
-                        e.target.value ? parseFloat(e.target.value) : undefined
-                      )}
-                      placeholder="アセット設定使用"
-                    />
-                  </label>
+                <div className="form-group">
+                  <label>フォントサイズ</label>
+                  <NumericInput
+                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font_size || 0}
+                    onChange={(value) => handleInstanceLanguageSettingChange(
+                      getCurrentLanguage(),
+                      'font_size',
+                      value || undefined
+                    )}
+                    min={0.01}
+                    decimals={2}
+                    className="small"
+                    placeholder="アセット設定使用"
+                  />
                 </div>
 
                 {/* 位置設定 */}
@@ -1224,27 +1222,25 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           </select>
                         </label>
                       </div>
-                      <div className="form-row form-row-compact">
-                        <label>
-                          フォントサイズ:
-                          <input
-                            type="number"
-                            min="0.1"
-                            step="0.1"
-                            value={mode === 'asset'
-                              ? (editingAsset.default_language_override?.[activePreviewTab]?.font_size || '')
-                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.font_size || '')
+                      <div className="form-group">
+                        <label>フォントサイズ</label>
+                        <NumericInput
+                          value={mode === 'asset'
+                            ? (editingAsset.default_language_override?.[activePreviewTab]?.font_size || 0)
+                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.font_size || 0)
+                          }
+                          onChange={(value) => {
+                            if (mode === 'asset') {
+                              handleLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
+                            } else {
+                              handleInstanceLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
                             }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(activePreviewTab, 'font_size', e.target.value ? parseFloat(e.target.value) : undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(activePreviewTab, 'font_size', e.target.value ? parseFloat(e.target.value) : undefined);
-                              }
-                            }}
-                            placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
-                          />
-                        </label>
+                          }}
+                          min={0.01}
+                          decimals={2}
+                          className="small"
+                          placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
+                        />
                       </div>
                       <div className="form-row form-row-compact">
                         <label>
