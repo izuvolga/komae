@@ -784,7 +784,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {shouldShowCommonSettings() && (
               <div className="form-section">
                 <h4>基本設定</h4>
-              {mode === 'asset' && (
                 <div className="form-group">
                   <label>名前</label>
                   <input
@@ -793,7 +792,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     onChange={(e) => handleInputChange('name', e.target.value)}
                   />
                 </div>
-              )}
               <div className="form-group">
                 <label>{mode === 'asset' ? 'デフォルトテキスト' : 'テキスト内容'}</label>
                 <textarea
@@ -801,13 +799,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   onChange={(e) => updateTextValue(e.target.value)}
                   rows={3}
                 />
-                {mode === 'instance' && (
-                  <div className="language-info">
-                    現在の言語: {getCurrentLanguage()}
-                  </div>
-                )}
               </div>
-              {mode === 'asset' && (
                 <div className="form-group">
                   <label>文脈・用途</label>
                   <input
@@ -817,10 +809,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
                   />
                   <div className="form-help">
-                    このテキストの用途や文脈を記録しておけます
+                    このテキストの用途や文脈をメモし、生成AIでの翻訳に役立てます。
                   </div>
                 </div>
-              )}
               </div>
             )}
 

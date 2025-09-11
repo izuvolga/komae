@@ -145,7 +145,7 @@
 
 /* 縦配置フォームグループ */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;

@@ -674,8 +674,8 @@ export function getEffectiveColors(
   const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'fill_color', phase);
   const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'stroke_color', phase);
 
-  const fill = fillOverride ?? '#FFFFFF'; // デフォルトの塗りつぶし色
-  const stroke = strokeOverride ?? '#000000'; // デフォルトのストローク色
+  const fill = fillOverride ?? '#000000'; // デフォルトの塗りつぶし色
+  const stroke = strokeOverride ?? '#FFFFFF'; // デフォルトのストローク色
 
   return { fill, stroke };
 }
