@@ -894,9 +894,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   value={getCurrentValue('font_size')}
                   onChange={(value) => {
                     if (mode === 'asset') {
-                      // Font size is now handled through language settings
-                      const currentLang = getCurrentLanguage();
-                      handleLanguageSettingChange(currentLang, 'font_size', value);
+                      if (activePreviewTab !== 'common') {
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'font_size', value);
+                      } else {
+                        handleCommonSettingsChange({ font_size: value });
+                      }
                     } else {
                       handleInstanceLanguageSettingChange(getCurrentLanguage(), 'font_size', value);
                     }
@@ -910,12 +913,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <label>行間</label>
                   <NumericInput
-                    value={getEffectiveLeading(editingAsset, null, getCurrentLanguage())}
+                    value={getCurrentValue('leading')}
                     onChange={(value) => {
-                      const currentLang = getCurrentLanguage();
-                      handleLanguageSettingChange(currentLang, 'leading', value);
+                      if (activePreviewTab !== 'common') {
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'leading', value);
+                      } else {
+                        handleCommonSettingsChange({ leading: value });
+                      }
                     }}
-                    min={0.1}
                     decimals={2}
                     className="small"
                   />
@@ -925,8 +931,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <label>
                   <input
                     type="checkbox"
-                    checked={getCurrentVertical()}
-                    onChange={(e) => updateVertical(e.target.checked)}
+                    checked={getCurrentValue('vertical')}
+                    onChange={(e) => {
+                      const value = e.target.checked
+                      if (activePreviewTab !== 'common') {
+                        const currentLang = getCurrentLanguage();
+                        handleLanguageSettingChange(currentLang, 'vertical', value);
+                      } else {
+                        handleCommonSettingsChange({ vertical: value });
+                      }
+                    }}
                   />
                   縦書き
                   {mode === 'instance' && (
