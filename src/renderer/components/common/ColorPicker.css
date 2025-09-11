@@ -30,10 +30,6 @@
   position: relative;
 }
 
-.color-display:hover:not(.disabled) {
-  border-color: #007bff;
-}
-
 .color-display:focus {
   outline: 2px solid #007bff;
   outline-offset: 2px;
@@ -64,16 +60,21 @@
   justify-content: center;
 }
 
-.hex-display:hover:not(.disabled) {
-  border-color: #007bff;
-  background-color: #e9ecef;
-}
-
 .hex-display.disabled {
   background-color: #f8f9fa;
   color: #6c757d;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* 統一されたホバー効果 - color-picker-controls全体にホバーした時に両方の要素が変化 */
+.color-picker-controls:hover:not(:has(.disabled)) .color-display:not(.disabled) {
+  border-color: #007bff;
+}
+
+.color-picker-controls:hover:not(:has(.disabled)) .hex-display:not(.disabled) {
+  border-color: #007bff;
+  background-color: #e9ecef;
 }
 
 .hidden-color-picker {
