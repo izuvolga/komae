@@ -1114,18 +1114,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
 
                 {/* z-index設定 */}
-                <div className="form-row">
-                  <label>
-                    Z-Index:
-                    <ZIndexInput
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.z_index || 0}
-                      onChange={(value) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'z_index',
-                        value
-                      )}
-                    />
-                  </label>
+                <div className="form-group">
+                  <label>Z-Index</label>
+                  <ZIndexInput
+                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.z_index || 0}
+                    onChange={(value) => handleInstanceLanguageSettingChange(
+                      getCurrentLanguage(),
+                      'z_index',
+                      value
+                    )}
+                  />
                 </div>
               </div>
             )}
@@ -1179,15 +1177,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
 
                 {/* z_index設定 */}
-                <div className="form-row">
-                  <label>
-                    Z-Index:
-                    <ZIndexInput
-                      value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
-                      onChange={(value) => handleInputChange('z_index', value)}
-                      validation={zIndexValidation}
-                    />
-                  </label>
+                <div className="form-group">
+                  <label>Z-Index</label>
+                  <ZIndexInput
+                    value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
+                    onChange={(value) => handleInputChange('z_index', value)}
+                    validation={zIndexValidation}
+                  />
                 </div>
               </div>
             )}
