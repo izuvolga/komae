@@ -815,46 +815,40 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="form-section">
                 <h4>基本設定</h4>
               {mode === 'asset' && (
-                <div className="form-row">
-                  <label>
-                    名前:
-                    <input
-                      type="text"
-                      value={editingAsset.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                    />
-                  </label>
+                <div className="form-group">
+                  <label>名前</label>
+                  <input
+                    type="text"
+                    value={editingAsset.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                  />
                 </div>
               )}
-              <div className="form-row">
-                <label>
-                  {mode === 'asset' ? 'デフォルトテキスト:' : 'テキスト内容:'}
-                  <textarea
-                    value={getCurrentTextValue()}
-                    onChange={(e) => updateTextValue(e.target.value)}
-                    rows={3}
-                  />
-                  {mode === 'instance' && (
-                    <div className="language-info">
-                      現在の言語: {getCurrentLanguage()}
-                    </div>
-                  )}
-                </label>
+              <div className="form-group">
+                <label>{mode === 'asset' ? 'デフォルトテキスト' : 'テキスト内容'}</label>
+                <textarea
+                  value={getCurrentTextValue()}
+                  onChange={(e) => updateTextValue(e.target.value)}
+                  rows={3}
+                />
+                {mode === 'instance' && (
+                  <div className="language-info">
+                    現在の言語: {getCurrentLanguage()}
+                  </div>
+                )}
               </div>
               {mode === 'asset' && (
-                <div className="form-row">
-                  <label>
-                    文脈・用途:
-                    <input
-                      type="text"
-                      value={editingAsset.default_context || ''}
-                      onChange={(e) => handleInputChange('default_context', e.target.value)}
-                      placeholder="例: キャラクターAの叫び声、ナレーション等"
-                    />
-                    <div className="form-help">
-                      このテキストの用途や文脈を記録しておけます
-                    </div>
-                  </label>
+                <div className="form-group">
+                  <label>文脈・用途</label>
+                  <input
+                    type="text"
+                    value={editingAsset.default_context || ''}
+                    onChange={(e) => handleInputChange('default_context', e.target.value)}
+                    placeholder="例: キャラクターAの叫び声、ナレーション等"
+                  />
+                  <div className="form-help">
+                    このテキストの用途や文脈を記録しておけます
+                  </div>
                 </div>
               )}
               </div>
@@ -864,76 +858,70 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {shouldShowCommonSettings() && (
               <div className="form-section">
                 <h4>フォント設定</h4>
-              <div className="form-row">
-                <label>
-                  フォント:
-                  {fontsLoading ? (
-                    <select disabled>
-                      <option>フォント読み込み中...</option>
-                    </select>
-                  ) : (
-                    <select
-                      value={getCurrentFont()}
-                      onChange={(e) => updateFont(e.target.value)}
-                    >
-                      {availableFonts.map((font) => (
-                        <option key={font.id} value={font.id}>
-                          {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                        </option>
-                      ))}
-                      {/* 現在のフォントが一覧にない場合の対応 */}
-                      {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
-                        <option value={getCurrentFont()}>
-                          {getCurrentFont()} (未定義)
-                        </option>
-                      )}
-                    </select>
-                  )}
-                  {mode === 'instance' && (
-                    <span className="override-indicator">
-                      {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font !== undefined ? ' (オーバーライド中)' : ''}
-                    </span>
-                  )}
-                </label>
+              <div className="form-group">
+                <label>フォント</label>
+                {fontsLoading ? (
+                  <select disabled>
+                    <option>フォント読み込み中...</option>
+                  </select>
+                ) : (
+                  <select
+                    value={getCurrentFont()}
+                    onChange={(e) => updateFont(e.target.value)}
+                  >
+                    {availableFonts.map((font) => (
+                      <option key={font.id} value={font.id}>
+                        {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                      </option>
+                    ))}
+                    {/* 現在のフォントが一覧にない場合の対応 */}
+                    {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
+                      <option value={getCurrentFont()}>
+                        {getCurrentFont()} (未定義)
+                      </option>
+                    )}
+                  </select>
+                )}
+                {mode === 'instance' && (
+                  <span className="override-indicator">
+                    {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font !== undefined ? ' (オーバーライド中)' : ''}
+                  </span>
+                )}
               </div>
-              <div className="form-row">
-                <label>
-                  フォントサイズ:
+              <div className="form-group">
+                <label>フォントサイズ</label>
+                <NumericInput
+                  value={getCurrentValue('font_size')}
+                  onChange={(value) => {
+                    if (mode === 'asset') {
+                      // Font size is now handled through language settings
+                      const currentLang = getCurrentLanguage();
+                      handleLanguageSettingChange(currentLang, 'font_size', value);
+                    } else {
+                      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'font_size', value);
+                    }
+                  }}
+                  min={0.01}
+                  decimals={2}
+                  className="small"
+                />
+              </div>
+              {mode === 'asset' && (
+                <div className="form-group">
+                  <label>行間</label>
                   <NumericInput
-                    value={getCurrentValue('font_size')}
+                    value={getEffectiveLeading(editingAsset, null, getCurrentLanguage())}
                     onChange={(value) => {
-                      if (mode === 'asset') {
-                        // Font size is now handled through language settings
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'font_size', value);
-                      } else {
-                        handleInstanceLanguageSettingChange(getCurrentLanguage(), 'font_size', value);
-                      }
+                      const currentLang = getCurrentLanguage();
+                      handleLanguageSettingChange(currentLang, 'leading', value);
                     }}
-                    min={0.01}
+                    min={0.1}
                     decimals={2}
                     className="small"
                   />
-                </label>
-              </div>
-              {mode === 'asset' && (
-                <div className="form-row">
-                  <label>
-                    行間:
-                    <NumericInput
-                      value={getEffectiveLeading(editingAsset, null, getCurrentLanguage())}
-                      onChange={(value) => {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'leading', value);
-                      }}
-                      min={0.1}
-                      decimals={2}
-                      className="small"
-                    />
-                  </label>
                 </div>
               )}
-              <div className="form-row">
+              <div className="form-group">
                 <label>
                   <input
                     type="checkbox"
@@ -955,36 +943,34 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {shouldShowCommonSettings() && (
               <div className="form-section">
                 <h4>色設定</h4>
-                <div className="form-row">
+                <div className="form-group">
                   <ColorPicker
                     label="塗りの色"
                     value={getTextAssetDefaultSettings(editingAsset, 'fill_color') || '#000000'}
                     onChange={(color) => handleInputChange('fill_color', color)}
                   />
                 </div>
-                <div className="form-row">
+                <div className="form-group">
                   <ColorPicker
                     label="縁取りの色"
                     value={getTextAssetDefaultSettings(editingAsset, 'stroke_color') || '#000000'}
                     onChange={(color) => handleInputChange('stroke_color', color)}
                   />
                 </div>
-                <div className="form-row">
-                  <label>
-                    縁取り幅:
-                    <NumericInput
-                      value={getEffectiveStrokeWidth(editingAsset, null, getCurrentLanguage())}
-                      onChange={(value) => {
-                        // For new spec, stroke width is managed through language settings
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'stroke_width', value);
-                      }}
-                      min={0}
-                      max={1}
-                      decimals={2}
-                      className="small"
-                    />
-                  </label>
+                <div className="form-group">
+                  <label>縁取り幅</label>
+                  <NumericInput
+                    value={getEffectiveStrokeWidth(editingAsset, null, getCurrentLanguage())}
+                    onChange={(value) => {
+                      // For new spec, stroke width is managed through language settings
+                      const currentLang = getCurrentLanguage();
+                      handleLanguageSettingChange(currentLang, 'stroke_width', value);
+                    }}
+                    min={0}
+                    max={1}
+                    decimals={2}
+                    className="small"
+                  />
                 </div>
               </div>
             )}
