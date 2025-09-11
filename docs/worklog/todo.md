@@ -23,6 +23,8 @@
   - @src/renderer/components/asset/VectorEditModal.tsx
 - [ ]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
 - [ ]: Library -> Custom Assets にサムネを表示する
+- [ ]: EnhancedSpreadSheet を横方向に中途半端な位置にスクロールしたままにすると、列の入れ替えのときに半透明な四角が違和感のある位置に出る
+- [ ]: EnhancedSpreadSheet のセルそれぞれに画像を表示するのはやめて、デザインを刷新する
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
