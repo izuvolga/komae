@@ -919,6 +919,66 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               </div>
             )}
 
+            {/* 位置・透明度設定（アセット編集時のみ） */}
+            {shouldShowCommonSettings() && (
+              <div className="form-section">
+                <h4>位置・透明度設定</h4>
+                <div className="form-row form-row-double">
+                  <label>
+                    X座標:
+                    <NumericInput
+                      value={getEffectivePosition(
+                        editingAsset,
+                        null,
+                        getCurrentLanguage(),
+                        TextAssetInstancePhase.COMMON).x}
+                      onChange={(value) => {
+                        handleCommonSettingChange('pos_x', value);
+                      }}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
+                    />
+                  </label>
+                  <label>
+                    Y座標:
+                    <NumericInput
+                      value={getEffectivePosition(
+                        editingAsset,
+                        null,
+                        getCurrentLanguage(),
+                        TextAssetInstancePhase.COMMON).y}
+                      onChange={(value) => {
+                        handleCommonSettingChange('pos_y', value);
+                      }}
+                      min={-9999}
+                      max={9999}
+                      decimals={2}
+                      className="small"
+                    />
+                  </label>
+                </div>
+                <div className="form-row">
+                  <OpacityInput
+                    value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
+                    onChange={(value) => handleInputChange('opacity', value)}
+                    label="Opacity"
+                  />
+                </div>
+
+                {/* z_index設定 */}
+                <div className="form-group">
+                  <label>Z-Index</label>
+                  <ZIndexInput
+                    value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
+                    onChange={(value) => handleInputChange('z_index', value)}
+                    validation={zIndexValidation}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* 現在言語の設定（インスタンス編集時のみ） */}
             {mode === 'instance' && (
               <div className="form-section">
@@ -1065,66 +1125,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       'z_index',
                       value
                     )}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* 位置・透明度設定（アセット編集時のみ） */}
-            {shouldShowCommonSettings() && (
-              <div className="form-section">
-                <h4>位置・透明度設定</h4>
-                <div className="form-row form-row-double">
-                  <label>
-                    X座標:
-                    <NumericInput
-                      value={getEffectivePosition(
-                        editingAsset,
-                        null,
-                        getCurrentLanguage(),
-                        TextAssetInstancePhase.COMMON).x}
-                      onChange={(value) => {
-                        handleCommonSettingChange('pos_x', value);
-                      }}
-                      min={-9999}
-                      max={9999}
-                      decimals={2}
-                      className="small"
-                    />
-                  </label>
-                  <label>
-                    Y座標:
-                    <NumericInput
-                      value={getEffectivePosition(
-                        editingAsset,
-                        null,
-                        getCurrentLanguage(),
-                        TextAssetInstancePhase.COMMON).y}
-                      onChange={(value) => {
-                        handleCommonSettingChange('pos_y', value);
-                      }}
-                      min={-9999}
-                      max={9999}
-                      decimals={2}
-                      className="small"
-                    />
-                  </label>
-                </div>
-                <div className="form-row">
-                  <OpacityInput
-                    value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
-                    onChange={(value) => handleInputChange('opacity', value)}
-                    label="Opacity"
-                  />
-                </div>
-
-                {/* z_index設定 */}
-                <div className="form-group">
-                  <label>Z-Index</label>
-                  <ZIndexInput
-                    value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
-                    onChange={(value) => handleInputChange('z_index', value)}
-                    validation={zIndexValidation}
                   />
                 </div>
               </div>
