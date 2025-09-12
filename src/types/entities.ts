@@ -621,8 +621,8 @@ export function getEffectivePosition(
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): { x: number; y: number } {
-  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_x', phase) ?? 100;
-  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_y', phase) ?? 100;
+  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_x', phase) ?? 300;
+  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_y', phase) ?? 300;
   return { x, y };
 }
 
@@ -757,8 +757,8 @@ export function getEffectiveZIndexForLanguage(
  */
 export function createDefaultLanguageSettings(): LanguageSettings {
   return {
-    pos_x: 0,
-    pos_y: 0,
+    pos_x: 300,
+    pos_y: 300,
     font: DEFAULT_FONT_ID,
     font_size: 64,
     stroke_width: 2,
@@ -766,8 +766,8 @@ export function createDefaultLanguageSettings(): LanguageSettings {
     vertical: false,
     opacity: 1.0,
     z_index: 2,
-    fill_color: '#FFFFFF',
-    stroke_color: '#000000',
+    fill_color: '#000000',
+    stroke_color: '#FFFFFF',
   };
 }
 
