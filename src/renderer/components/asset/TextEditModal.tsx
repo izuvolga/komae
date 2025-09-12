@@ -793,12 +793,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
               <div className="form-group">
-                <label>{mode === 'asset' ? 'デフォルトテキスト' : 'テキスト内容'}</label>
+                <label>サンプルテキスト</label>
                 <textarea
                   value={getCurrentTextValue()}
                   onChange={(e) => updateTextValue(e.target.value)}
                   rows={3}
                 />
+                <div className="form-help">
+                  テキストの内容は各ページで個別に設定できます。ここで設定した内容は新規ページ作成時の初期値として使用されます。
+                </div>
               </div>
                 <div className="form-group">
                   <label>文脈・用途</label>
@@ -819,102 +822,70 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {shouldShowCommonSettings() && (
               <div className="form-section">
                 <h4>フォント設定</h4>
-              <div className="form-group">
-                <label>フォント</label>
-                {fontsLoading ? (
-                  <select disabled>
-                    <option>フォント読み込み中...</option>
-                  </select>
-                ) : (
-                  <select
-                    value={getCurrentFont()}
-                    onChange={(e) => updateFont(e.target.value)}
-                  >
-                    {availableFonts.map((font) => (
-                      <option key={font.id} value={font.id}>
-                        {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                      </option>
-                    ))}
-                    {/* 現在のフォントが一覧にない場合の対応 */}
-                    {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
-                      <option value={getCurrentFont()}>
-                        {getCurrentFont()} (未定義)
-                      </option>
-                    )}
-                  </select>
-                )}
-                {mode === 'instance' && (
-                  <span className="override-indicator">
-                    {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font !== undefined ? ' (オーバーライド中)' : ''}
-                  </span>
-                )}
-              </div>
-              <div className="form-group">
-                <label>フォントサイズ</label>
-                <NumericInput
-                  value={getCurrentValue('font_size')}
-                  onChange={(value) => {
-                    if (mode === 'asset') {
-                      if (activePreviewTab !== 'common') {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'font_size', value);
-                      } else {
-                        handleCommonSettingsChange({ font_size: value });
-                      }
-                    } else {
-                      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'font_size', value);
-                    }
-                  }}
-                  min={0.01}
-                  decimals={2}
-                  className="small"
-                />
-              </div>
-              {mode === 'asset' && (
+                <div className="form-group">
+                  <label>フォント</label>
+                  {fontsLoading ? (
+                    <select disabled>
+                      <option>フォント読み込み中...</option>
+                    </select>
+                  ) : (
+                    <select
+                      value={getCurrentFont()}
+                      onChange={(e) => updateFont(e.target.value)}
+                    >
+                      {availableFonts.map((font) => (
+                        <option key={font.id} value={font.id}>
+                          {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                        </option>
+                      ))}
+                      {/* 現在のフォントが一覧にない場合の対応 */}
+                      {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
+                        <option value={getCurrentFont()}>
+                          {getCurrentFont()} (未定義)
+                        </option>
+                      )}
+                    </select>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>フォントサイズ</label>
+                  <NumericInput
+                    value={getCurrentValue('font_size')}
+                    onChange={(value) => {
+                      handleCommonSettingsChange({ font_size: value })
+                    }}
+                    min={0.01}
+                    decimals={2}
+                    className="small"
+                  />
+                </div>
                 <div className="form-group">
                   <label>行間</label>
                   <NumericInput
                     value={getCurrentValue('leading')}
                     onChange={(value) => {
-                      if (activePreviewTab !== 'common') {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'leading', value);
-                      } else {
-                        handleCommonSettingsChange({ leading: value });
-                      }
+                      handleCommonSettingsChange({ leading: value })
                     }}
                     decimals={2}
                     className="small"
                   />
                 </div>
-              )}
-              <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={getCurrentValue('vertical')}
-                    onChange={(e) => {
-                      const value = e.target.checked
-                      if (activePreviewTab !== 'common') {
-                        const currentLang = getCurrentLanguage();
-                        handleLanguageSettingChange(currentLang, 'vertical', value);
-                      } else {
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={getCurrentValue('vertical')}
+                      onChange={(e) => {
+                        const value = e.target.checked
                         handleCommonSettingsChange({ vertical: value });
-                      }
-                    }}
-                  />
-                  縦書き
-                  {mode === 'instance' && (
-                    <span className="override-indicator">
-                      {editingInstance?.override_language_settings?.[getCurrentLanguage()]?.vertical !== undefined ? ' (オーバーライド中)' : ''}
-                    </span>
-                  )}
-                </label>
-              </div>
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
             )}
 
-            {/* 色設定 - AssetInstanceモードでは表示しない */}
+            {/* 色設定 */}
             {shouldShowCommonSettings() && (
               <div className="form-section">
                 <h4>色設定</h4>
@@ -1162,117 +1133,114 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {/* 言語別設定（アセット編集時のみ） */}
             {shouldShowLanguageSettings() && (
               <div className="form-section">
-                <h4>言語別デフォルト設定</h4>
+                <h4>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                 <div className="form-help">
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
                 {activePreviewTab && activePreviewTab !== 'common' && (
-                  <div className="language-settings-group">
-                    <h5>{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}</h5>
-                    <div className="language-settings">
-                      <div className="form-row form-row-compact">
-                        <label>
-                          フォント:
-                          <select
-                            value={mode === 'asset'
-                              ? (editingAsset.default_language_override?.[activePreviewTab]?.font || '')
-                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.font || '')
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
-                              }
-                            }}
-                          >
-                            <option value="">{mode === 'asset' ? 'デフォルトフォントを使用' : 'アセット設定を使用'}</option>
-                            {availableFonts.map((font) => (
-                              <option key={font.id} value={font.id}>
-                                {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                      <div className="form-group">
-                        <label>フォントサイズ</label>
-                        <NumericInput
+                  <div className="language-settings">
+                    <div className="form-row form-row-compact">
+                      <label>
+                        フォント:
+                        <select
                           value={mode === 'asset'
-                            ? (editingAsset.default_language_override?.[activePreviewTab]?.font_size || 0)
-                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.font_size || 0)
+                            ? (editingAsset.default_language_override?.[activePreviewTab]?.font || '')
+                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.font || '')
                           }
-                          onChange={(value) => {
+                          onChange={(e) => {
                             if (mode === 'asset') {
-                              handleLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
+                              handleLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
                             } else {
-                              handleInstanceLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
+                              handleInstanceLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
                             }
                           }}
-                          min={0.01}
-                          decimals={2}
-                          className="small"
-                          placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
-                        />
-                      </div>
-                      <div className="form-row form-row-compact">
-                        <label>
-                          位置調整:
-                          <div className="textasset-position-inputs">
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={mode === 'asset'
-                                ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_x || '')
-                                : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_x || '')
-                              }
-                              onChange={(e) => {
-                                if (mode === 'asset') {
-                                  handleLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                                } else {
-                                  handleInstanceLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                                }
-                              }}
-                              placeholder="X座標"
-                            />
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={mode === 'asset'
-                                ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_y || '')
-                                : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_y || '')
-                              }
-                              onChange={(e) => {
-                                if (mode === 'asset') {
-                                  handleLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                                } else {
-                                  handleInstanceLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                                }
-                              }}
-                              placeholder="Y座標"
-                            />
-                          </div>
-                        </label>
-                      </div>
-                      <div className="form-row form-row-compact">
-                        <label>
+                        >
+                          <option value="">{mode === 'asset' ? '共通設定のフォントを使用' : 'アセット設定を使用'}</option>
+                          {availableFonts.map((font) => (
+                            <option key={font.id} value={font.id}>
+                              {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="form-group">
+                      <label>フォントサイズ</label>
+                      <NumericInput
+                        value={mode === 'asset'
+                          ? (editingAsset.default_language_override?.[activePreviewTab]?.font_size || 0)
+                          : (editingInstance?.override_language_settings?.[activePreviewTab]?.font_size || 0)
+                        }
+                        onChange={(value) => {
+                          if (mode === 'asset') {
+                            handleLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
+                          } else {
+                            handleInstanceLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
+                          }
+                        }}
+                        min={0.01}
+                        decimals={2}
+                        className="small"
+                        placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
+                      />
+                    </div>
+                    <div className="form-row form-row-compact">
+                      <label>
+                        位置調整:
+                        <div className="textasset-position-inputs">
                           <input
-                            type="checkbox"
-                            checked={mode === 'asset'
-                              ? (editingAsset.default_language_override?.[activePreviewTab]?.vertical !== undefined ? editingAsset.default_language_override[activePreviewTab].vertical : false)
-                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.vertical !== undefined ? editingInstance.override_language_settings[activePreviewTab].vertical : false)
+                            type="number"
+                            step="0.1"
+                            value={mode === 'asset'
+                              ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_x || '')
+                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_x || '')
                             }
                             onChange={(e) => {
                               if (mode === 'asset') {
-                                handleLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
+                                handleLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
                               } else {
-                                handleInstanceLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
+                                handleInstanceLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
                               }
                             }}
+                            placeholder="X座標"
                           />
-                          縦書き
-                        </label>
-                      </div>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={mode === 'asset'
+                              ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_y || '')
+                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_y || '')
+                            }
+                            onChange={(e) => {
+                              if (mode === 'asset') {
+                                handleLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                              } else {
+                                handleInstanceLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
+                              }
+                            }}
+                            placeholder="Y座標"
+                          />
+                        </div>
+                      </label>
+                    </div>
+                    <div className="form-row form-row-compact">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={mode === 'asset'
+                            ? (editingAsset.default_language_override?.[activePreviewTab]?.vertical !== undefined ? editingAsset.default_language_override[activePreviewTab].vertical : false)
+                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.vertical !== undefined ? editingInstance.override_language_settings[activePreviewTab].vertical : false)
+                          }
+                          onChange={(e) => {
+                            if (mode === 'asset') {
+                              handleLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
+                            } else {
+                              handleInstanceLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
+                            }
+                          }}
+                        />
+                        縦書き
+                      </label>
                     </div>
                   </div>
                 )}
