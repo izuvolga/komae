@@ -8,8 +8,7 @@ import {
   getEffectiveLanguageSetting,
   getEffectiveFontSize,
   getEffectivePosition,
-  getEffectiveColors,
-  getEffectiveFont,
+  getEffectiveFontFace,
   getEffectiveVertical,
   validateTextAssetData,
   validateTextAssetInstanceData,
@@ -20,15 +19,15 @@ describe('TextAsset Multilingual Features', () => {
   describe('createDefaultTextAsset', () => {
     it('should create TextAsset with basic required fields', () => {
       const asset = createDefaultTextAsset({ name: 'Test Text' });
-      
+
       expect(asset.name).toBe('Test Text');
       expect(asset.type).toBe('TextAsset');
       expect(asset.default_text).toBe('');
       expect(asset.default_context).toBe('');
       // 新仕様では default_settings に完全なデフォルト値が設定される
       expect(asset.default_settings).toEqual({
-        pos_x: 0,
-        pos_y: 0,
+        pos_x: 300,
+        pos_y: 300,
         font: 'system-ui',
         font_size: 64,
         stroke_width: 2,
@@ -36,24 +35,24 @@ describe('TextAsset Multilingual Features', () => {
         vertical: false,
         opacity: 1.0,
         z_index: 2,
-        fill_color: '#FFFFFF',
-        stroke_color: '#000000',
+        fill_color: '#000000',
+        stroke_color: '#FFFFFF',
       });
       expect(asset.default_language_override).toBeUndefined();
     });
 
     it('should create TextAsset with language settings when supported languages are provided', () => {
       const supportedLanguages = ['ja', 'en', 'zh'];
-      const asset = createDefaultTextAsset({ 
+      const asset = createDefaultTextAsset({
         name: 'Multilingual Text',
-        supportedLanguages 
+        supportedLanguages
       });
-      
+
       // 新しい設計では、supportedLanguagesが提供された場合でも
       // default_settingsには完全なデフォルト値が設定され、default_language_overrideはundefined
       expect(asset.default_settings).toEqual({
-        pos_x: 0,
-        pos_y: 0,
+        pos_x: 300,
+        pos_y: 300,
         font: 'system-ui',
         font_size: 64,
         stroke_width: 2,
@@ -61,8 +60,8 @@ describe('TextAsset Multilingual Features', () => {
         vertical: false,
         opacity: 1.0,
         z_index: 2,
-        fill_color: '#FFFFFF',
-        stroke_color: '#000000',
+        fill_color: '#000000',
+        stroke_color: '#FFFFFF',
       });
       expect(asset.default_language_override).toBeUndefined();
     });
@@ -78,14 +77,14 @@ describe('TextAsset Multilingual Features', () => {
         name: 'Test Asset',
         supportedLanguages: ['ja', 'en']
       });
-      
+
       // Set up asset with new design: default_settings + default_language_override
       testAsset.default_settings = {
         font_size: 20, // Common default
         pos_x: 100,
         pos_y: 100,
       };
-      
+
       testAsset.default_language_override = {
         'en': {
           font_size: 18,
@@ -166,14 +165,14 @@ describe('TextAsset Multilingual Features', () => {
       });
     });
 
-    describe('getEffectiveFont', () => {
+    describe('getEffectiveFontFace', () => {
       it('should return language-specific font when available', () => {
-        const result = getEffectiveFont(testAsset, testInstance, 'en');
+        const result = getEffectiveFontFace(testAsset, testInstance, 'en');
         expect(result).toBe('Arial'); // From asset language default
       });
 
       it('should return base font when no language-specific override', () => {
-        const result = getEffectiveFont(testAsset, testInstance, 'ja');
+        const result = getEffectiveFontFace(testAsset, testInstance, 'ja');
         expect(result).toBe('system-ui'); // Default font
       });
     });
@@ -198,7 +197,7 @@ describe('TextAsset Multilingual Features', () => {
           name: 'Valid Asset',
           supportedLanguages: ['ja', 'en']
         });
-        
+
         asset.default_language_override = {
           'en': {
             font_size: 20,
@@ -216,7 +215,7 @@ describe('TextAsset Multilingual Features', () => {
           name: 'Invalid Asset',
           supportedLanguages: ['ja', 'en']
         });
-        
+
         asset.default_language_override = {
           'en': {
             font_size: -5, // Invalid
@@ -233,7 +232,7 @@ describe('TextAsset Multilingual Features', () => {
           name: 'Invalid Asset',
           supportedLanguages: ['ja']
         });
-        
+
         asset.default_language_override = {
           'ja': {
             opacity: 1.5, // Invalid (> 1.0)
