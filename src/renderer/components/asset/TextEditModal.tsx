@@ -165,18 +165,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     // 単一値処理のヘルパー関数
     const getSingleValue = (assetField: SupportedField): any => {
       const phase = getCurrentPhase();
-      const currentLang = getCurrentLanguage();
+      const selectedLang = phase === TextAssetInstancePhase.ASSET_LANG ? activePreviewTab : getCurrentLanguage();
       if (isTextAssetEditableField(assetField as string)) {
         if (assetField === 'text') {
-          return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
+          return getEffectiveTextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'context') {
-          return getEffectiveContextValue(editingAsset, editingInstance, currentLang, phase);
+          return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'name') {
           return editingAsset.name;
         }
       }
       if (isLanguageSettingsField(assetField as string)) {
-        return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
+        const ret = getEffectiveLanguageSetting(editingAsset, editingInstance, selectedLang, assetField as keyof LanguageSettings, phase);
+        if (phase === 3) {
+          console.log('debug: getCurrentValue phase:', phase, 'lang:', selectedLang, 'field:', assetField, 'value:', ret);
+        }
+        return ret
       }
       return undefined;
     };
@@ -198,7 +202,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 現在の値を設定する（アトミック更新）
   const setCurrentValue = (values: Record<string, any>): void => {
     const phase = getCurrentPhase();
-    const currentLang = getCurrentLanguage();
+    const selectedLang = phase === TextAssetInstancePhase.ASSET_LANG ? activePreviewTab : getCurrentLanguage();
+    console.log('debug: setCurrentValue phase:', phase, 'lang:', selectedLang, 'values:', values);
 
     // 値を分類
     const textAssetFields: Partial<TextAsset> = {};
@@ -243,9 +248,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (phase === TextAssetInstancePhase.ASSET_COMMON) {
         handleCommonSettingsChange(languageSettingsFields);
       } else if (phase === TextAssetInstancePhase.ASSET_LANG) {
-        handleLanguageOverrideChanges(currentLang, languageSettingsFields);
+        handleLanguageOverrideChanges(selectedLang, languageSettingsFields);
       } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
-        handleInstanceLanguageSettingChanges(currentLang, languageSettingsFields);
+        handleInstanceLanguageSettingChanges(selectedLang, languageSettingsFields);
       }
     }
 
@@ -256,7 +261,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (instanceFields.text !== undefined) {
         updatedInstance.multilingual_text = {
           ...updatedInstance.multilingual_text,
-          [currentLang]: instanceFields.text
+          [selectedLang]: instanceFields.text
         };
       }
 
@@ -1030,7 +1035,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     縦書き
                     <input
                       type="checkbox"
-                      value={getCurrentValue('vertical')}
+                      checked={getCurrentValue('vertical')}
                       onChange={(e) => setCurrentValue({vertical: e.target.checked})}
                     />
                   </label>
@@ -1059,10 +1064,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {/* 言語別設定（アセット編集時のみ） */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_LANG && (
               <div className="form-section">
-                <h4>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                 <div className="form-help">
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
+                <h4>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                 {activePreviewTab && activePreviewTab !== 'common' && (
                   <div className="language-settings">
                     <div className="form-row form-row-compact">
