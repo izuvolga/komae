@@ -177,9 +177,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
       if (isLanguageSettingsField(assetField as string)) {
         const ret = getEffectiveLanguageSetting(editingAsset, editingInstance, selectedLang, assetField as keyof LanguageSettings, phase);
-        if (phase === 3) {
-          console.log('debug: getCurrentValue phase:', phase, 'lang:', selectedLang, 'field:', assetField, 'value:', ret);
-        }
         return ret
       }
       return undefined;
@@ -203,7 +200,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const setCurrentValue = (values: Record<string, any>): void => {
     const phase = getCurrentPhase();
     const selectedLang = phase === TextAssetInstancePhase.ASSET_LANG ? activePreviewTab : getCurrentLanguage();
-    console.log('debug: setCurrentValue phase:', phase, 'lang:', selectedLang, 'values:', values);
+    // console.log('debug: setCurrentValue phase:', phase, 'lang:', selectedLang, 'values:', values);
 
     // 値を分類
     const textAssetFields: Partial<TextAsset> = {};
@@ -937,14 +934,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             {/* 現在言語の設定（インスタンス編集時のみ） */}
             {getCurrentPhase() === TextAssetInstancePhase.INSTANCE_LANG && (
               <div className="form-section">
-                <h4>現在言語の設定オーバーライド</h4>
-                <div className="form-help">
-                  現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' :
-                              getCurrentLanguage() === 'en' ? 'English' :
-                              getCurrentLanguage() === 'zh' ? '中文' :
-                              getCurrentLanguage() === 'ko' ? '한국어' :
-                              getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
-                </div>
+                <h4>ページの内容</h4>
                 {/* テキスト設定 */}
                 <div className="form-group">
                   <label>テキスト</label>
@@ -957,7 +947,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* 文脈設定 */}
                 <div className="form-group">
                   <label>
-                    文脈・用途:
+                    文脈・用途
                     <input
                       type="text"
                       value={getCurrentValue('context')}
@@ -969,7 +959,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     </div>
                   </label>
                 </div>
-
+                <h4>現在言語の設定オーバーライド</h4>
+                <div className="form-help">
+                  現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' :
+                              getCurrentLanguage() === 'en' ? 'English' :
+                              getCurrentLanguage() === 'zh' ? '中文' :
+                              getCurrentLanguage() === 'ko' ? '한국어' :
+                              getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
+                </div>
                 {/* フォント設定 */}
                 <div className="form-group">
                   <label>
@@ -1072,7 +1069,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <div className="language-settings">
                     <div className="form-row form-row-compact">
                       <label>
-                        フォント:
+                        フォント
                         <select
                           value={getCurrentValue('font')}
                           onChange={(e) => setCurrentValue({font: e.target.value})}
@@ -1097,25 +1094,30 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
                       />
                     </div>
-                    <div className="form-row form-row-compact">
+                    <div className="form-row form-row-double">
                       <label>
-                        位置調整:
-                        <div className="textasset-position-inputs">
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={getCurrentPosition().x}
-                            onChange={(e) => setCurrentValue({pos_x: e.target.value})}
-                            placeholder="X座標"
-                          />
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={getCurrentPosition().y}
-                            onChange={(e) => setCurrentValue({pos_y: e.target.value})}
-                            placeholder="Y座標"
-                          />
-                        </div>
+                        X座標
+                        <NumericInput
+                          value={getCurrentValue('pos_x')}
+                          onChange={(value) => setCurrentValue({pos_x: value})}
+                          min={-9999}
+                          max={9999}
+                          decimals={2}
+                          className="small"
+                          placeholder="アセット設定使用"
+                        />
+                      </label>
+                      <label>
+                        Y座標
+                        <NumericInput
+                          value={getCurrentValue('pos_y')}
+                          onChange={(value) => setCurrentValue({pos_y: value})}
+                          min={-9999}
+                          max={9999}
+                          decimals={2}
+                          className="small"
+                          placeholder="アセット設定使用"
+                        />
                       </label>
                     </div>
                     <div className="form-row form-row-compact">
