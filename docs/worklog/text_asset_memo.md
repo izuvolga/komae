@@ -125,24 +125,3 @@ stroke_width
   get: getCurrentValue('stroke_width')
   set: setCurrentValue('stroke_width', value)
 
-
-■■■■■■■■■■■■■■■■■■■■
-
-現在 TextEditModal では、設定値の更新に２つの関数を使い分けています。
-
-- handleInputChange: getCurrentValue に似ている。値を受け取って TextAsset の直接のプロパティならばアセットを直接編集、そうでなければ状況に応じて Asset/Instance の編集。
-- handleCommonSettingsChange: 強制的に editingAsset を編集する関数
-
-両者が混在する状況は保守性が悪いです。
-一旦、setCurrentValue を新たに作成してください。
-handleInputChange と handleCommonSettingsChange の両方で利用するようにしたいです。
-ただし、まだ handleInputChange と handleCommonSettingsChange の置き換えはしないでください。
-私が手動で動作確認をします。
-
-      setEditingInstance({
-        ...editingInstance,
-        multilingual_text: {
-          ...editingInstance.multilingual_text,
-          [currentLang]: newText
-        }
-      });
