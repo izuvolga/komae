@@ -47,12 +47,19 @@ export interface TextAsset extends BaseAsset {
   default_language_override?: Record<string, LanguageSettings>;
 }
 
-export function isTextAssetEditableField(field: string): field is keyof TextAsset {
+export interface TextAssetEditableField {
+  name: true; // associated to name
+  text: true; // associated to default_text
+  context: true; // associated to default_context
+}
+
+export function isTextAssetEditableField(field: string): field is keyof TextAssetEditableField {
   const fields: Record<string, true> = {
-    default_text: true,
-    default_context: true,
+    name: true,
+    text: true,
+    context: true,
   };
-  return fields[field as keyof TextAsset] === true;
+  return fields[field as keyof TextAssetEditableField] === true;
 }
 
 export enum TextAssetInstancePhase {
@@ -537,18 +544,44 @@ export function createImageAsset(params: {
  */
 export function getEffectiveTextValue(
   asset: TextAsset,
-  instance: TextAssetInstance,
+  instance: TextAssetInstance | null,
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
   if (phase === TextAssetInstancePhase.INSTANCE_LANG || phase === TextAssetInstancePhase.AUTO) {
     // 1. インスタンスの多言語テキストをチェック
-    if (instance.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
+    if (instance?.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
       return instance.multilingual_text[currentLang];
     }
   }
   // 2. アセットのデフォルト値を使用
   return asset.default_text || '';
+}
+
+/**
+ * 多言語対応：現在言語の有効のコンテキスト値を取得
+ * 優先順位: instance.override_context > asset.default_context
+ */
+export function getEffectiveContextValue(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
+): string {
+  // 1. インスタンスの多言語テキストをチェックして使用
+  if (phase === TextAssetInstancePhase.INSTANCE_LANG || phase === TextAssetInstancePhase.AUTO) {
+    if (instance?.override_context) {
+      return instance.override_context;
+    }
+  }
+  // 2. 共通設定フェーズではアセットのdefault_contextを使用
+  if (phase === TextAssetInstancePhase.COMMON) {
+    if (asset.default_context) {
+      return asset.default_context;
+    }
+  }
+  // 該当なしなので空文字を返す
+  return '';
 }
 
 export function getTextAssetDefaultSettings<K extends keyof LanguageSettings>(

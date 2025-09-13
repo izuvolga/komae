@@ -5,18 +5,21 @@ import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
 import { ColorPicker } from '../common/ColorPicker';
-import type { TextAsset, TextAssetInstance, Page, FontInfo, LanguageSettings} from '../../../types/entities';
+import type { TextAsset, TextAssetInstance, TextAssetEditableField, Page, FontInfo, LanguageSettings} from '../../../types/entities';
 import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
 import {
   validateTextAssetData,
   validateTextAssetInstanceData,
   getEffectiveTextValue,
+  getEffectiveContextValue,
   getEffectivePosition,
   getEffectiveLanguageSetting,
   isLanguageSettingsField,
+  isTextAssetEditableField,
   DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
 import './TextEditModal.css';
+import { get } from 'http';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -196,7 +199,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   // 現在の値を取得する
-  const getCurrentValue = (assetField: keyof TextAsset | keyof LanguageSettings): any => {
+  const getCurrentValue = (assetField: keyof TextAssetEditableField | keyof LanguageSettings): any => {
     let currentLang: string;
     let phase: TextAssetInstancePhase;
     if (mode === 'asset' && activePreviewTab === 'common') {
@@ -209,13 +212,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
-    // TODO: もし assetField が TextAsset のフィールドであれば以下の処理
-    if (['name', 'default_text', 'default_context'].includes(assetField)) {
-      return editingAsset[assetField as keyof TextAsset] || '';
+
+    if (isTextAssetEditableField(assetField as string)) {
+      if (assetField === 'text') {
+        return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
+      } else if (assetField === 'context') {
+        return getEffectiveContextValue(editingAsset, editingInstance, currentLang, phase);
+      } else if (assetField === 'name') {
+        return editingAsset.name;
+      }
     }
+
     if (isLanguageSettingsField(assetField as string)) {
       return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
     }
+
   };
 
   // テキスト内容を取得する（新しいmultilingual_textシステム対応）
@@ -494,16 +505,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     });
   };
 
-  const updateFont = (value: string) => {
-    if (mode === 'asset') {
-      // Font is now handled through language settings
-      const currentLang = getCurrentLanguage();
-      handleLanguageSettingChange(currentLang, 'font', value);
-    } else {
-      handleInstanceLanguageSettingChange(getCurrentLanguage(), 'font', value);
-    }
-  };
-
   // z_index専用のサニタイズ関数とバリデーション関数は共通ユーティリティを使用
   // 表示条件判定ヘルパー関数
   const shouldShowCommonSettings = () => {
@@ -757,14 +758,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>名前</label>
                   <input
                     type="text"
-                    value={editingAsset.name}
+                    value={getCurrentValue('name')}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                   />
                 </div>
               <div className="form-group">
                 <label>サンプルテキスト</label>
                 <textarea
-                  value={getCurrentTextValue()}
+                  value={getCurrentValue('text')}
                   onChange={(e) => updateTextValue(e.target.value)}
                   rows={3}
                 />
@@ -776,7 +777,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>文脈・用途</label>
                   <input
                     type="text"
-                    value={editingAsset.default_context || ''}
+                    value={getCurrentValue('context')}
                     onChange={(e) => handleInputChange('default_context', e.target.value)}
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
                   />
