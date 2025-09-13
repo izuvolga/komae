@@ -870,7 +870,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
                 <div className="form-group">
-                  <label>縦書き</label>
+                  <label>縦書き
                     <input
                       type="checkbox"
                       checked={getCurrentValue('vertical')}
@@ -879,6 +879,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         handleCommonSettingsChange({ vertical: value });
                       }}
                     />
+                  </label>
                 </div>
               </div>
             )}
