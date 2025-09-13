@@ -13,7 +13,7 @@ import {
   getEffectiveTextValue,
   getEffectivePosition,
   getEffectiveFontSize,
-  getEffectiveFont,
+  getEffectiveFontFace,
   getEffectiveVertical,
   getEffectiveColors,
   getEffectiveStrokeWidth,
@@ -200,7 +200,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  // 現在の値を取得する（新仕様のentitiesヘルパー関数を使用）
+  // 現在の値を取得する
   const getCurrentValue = (assetField: string): any => {
     let currentLang: string;
     let phase: TextAssetInstancePhase;
@@ -220,7 +220,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       case 'font_size':
         return getEffectiveFontSize(editingAsset, editingInstance, currentLang, phase);
       case 'font':
-        return getEffectiveFont(editingAsset, editingInstance, currentLang, phase);
+        return getEffectiveFontFace(editingAsset, editingInstance, currentLang, phase);
       case 'vertical':
         return getEffectiveVertical(editingAsset, editingInstance, currentLang, phase);
       case 'leading':
@@ -513,16 +513,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ?
         updatedDefaultLanguageOverride : undefined
     });
-  };
-
-  // フォント関連のヘルパー関数
-  const getCurrentFont = () => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      const langSettings = editingInstance.override_language_settings?.[currentLang];
-      return getEffectiveFont(editingAsset, editingInstance, currentLang);
-    }
-    return getEffectiveFont(editingAsset, null, getCurrentLanguage());
   };
 
   const updateFont = (value: string) => {
@@ -830,8 +820,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     </select>
                   ) : (
                     <select
-                      value={getCurrentFont()}
-                      onChange={(e) => updateFont(e.target.value)}
+                      value={getCurrentValue('font')}
+                      onChange={(e) => handleCommonSettingsChange({ font: e.target.value })}
                     >
                       {availableFonts.map((font) => (
                         <option key={font.id} value={font.id}>
@@ -839,9 +829,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         </option>
                       ))}
                       {/* 現在のフォントが一覧にない場合の対応 */}
-                      {getCurrentFont() && !availableFonts.find(f => f.id === getCurrentFont()) && (
-                        <option value={getCurrentFont()}>
-                          {getCurrentFont()} (未定義)
+                      {getCurrentValue('font') && !availableFonts.find(f => f.id === getCurrentValue('font')) && (
+                        <option value={getCurrentValue('font')}>
+                          {getCurrentValue('font')} (未定義)
                         </option>
                       )}
                     </select>
@@ -871,7 +861,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
                 <div className="form-group">
-                  <label>
+                  <label>縦書き</label>
                     <input
                       type="checkbox"
                       checked={getCurrentValue('vertical')}
@@ -880,7 +870,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         handleCommonSettingsChange({ vertical: value });
                       }}
                     />
-                  </label>
                 </div>
               </div>
             )}
@@ -963,7 +952,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <OpacityInput
                     value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
                     onChange={(value) => handleInputChange('opacity', value)}
-                    label="Opacity"
+                    label="透明度"
                   />
                 </div>
 

@@ -609,7 +609,7 @@ export function getEffectiveFontSize(
   }
 
   // デフォルト値: 64ピクセル
-  return 64;
+  return DEFAULT_LANGUAGE_SETTINGS.font_size!;
 }
 
 /**
@@ -621,15 +621,15 @@ export function getEffectivePosition(
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): { x: number; y: number } {
-  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_x', phase) ?? 300;
-  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_y', phase) ?? 300;
+  const x = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_x', phase) ?? DEFAULT_LANGUAGE_SETTINGS.pos_x!;
+  const y = getEffectiveLanguageSetting(asset, instance, currentLang, 'pos_y', phase) ?? DEFAULT_LANGUAGE_SETTINGS.pos_y!;
   return { x, y };
 }
 
 /**
  * 最終的なフォントを取得する
  */
-export function getEffectiveFont(
+export function getEffectiveFontFace(
   asset: TextAsset,
   instance: TextAssetInstance | null,
   currentLang: string,
@@ -674,8 +674,8 @@ export function getEffectiveColors(
   const fillOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'fill_color', phase);
   const strokeOverride = getEffectiveLanguageSetting(asset, instance, currentLang, 'stroke_color', phase);
 
-  const fill = fillOverride ?? '#000000'; // デフォルトの塗りつぶし色
-  const stroke = strokeOverride ?? '#FFFFFF'; // デフォルトのストローク色
+  const fill = fillOverride ?? DEFAULT_LANGUAGE_SETTINGS.fill_color!
+  const stroke = strokeOverride ?? DEFAULT_LANGUAGE_SETTINGS.stroke_color!
 
   return { fill, stroke };
 }

@@ -73,3 +73,57 @@ text更新 asset/instance
 context取得 asset/instance
 context更新 asset/instance
 
+■■■■■■■■■■■■■■■■■■■■
+
+-- 2 段階: asset -> instance --
+default_text
+  get: getCurrentTextValue
+  set: updateTextValue
+default_context
+  get: editingAsset.default_context
+  set: handleInputChange('default_context', e.target.value)
+-- 3 段階: asset -> asset.lang -> instance --
+pos_x
+  get: getEffectivePosition
+  set: handleCommonSettingChange('pos_x', value)
+pos_y
+  get: getEffectivePosition
+  set: handleCommonSettingChange('pos_y', value)
+font
+  get: getCurrentFont
+  set: updateFont
+font_size
+  get: getCurrentValue('font_size')
+  set: handleCommonSettingsChange
+leading
+  get: getCurrentValue('leading')
+  set: handleCommonSettingsChange({ leading: value })
+vertical
+  get: getCurrentValue('vertical')
+  set: handleCommonSettingsChange({ vertical: value })
+opacity
+  get: getTextAssetDefaultSettings(editingAsset, 'opacity')
+  set: handleInputChange('opacity', value)
+z_index
+  get: getTextAssetDefaultSettings(editingAsset, 'z_index')
+  set: handleInputChange('z_index', value)
+fill_color
+  get: getTextAssetDefaultSettings(editingAsset, 'fill_color') 
+  set: handleInputChange('fill_color', color)
+stroke_color
+  get: getTextAssetDefaultSettings(editingAsset, 'stroke_color')
+  set: handleInputChange('stroke_color', color)
+stroke_width
+  get: getCurrentValue('stroke_width')
+  set: handleInputChange('stroke_width', value)
+
+
+まず、現時点だと複数の関数が同じことをしているので、整理する必要がある。
+get 系からまとめることにする。
+
+1. getCurrentXXX 系
+2. 直接参照系 (editingAsset.XXX)
+3. getEffectiveXXX 系
+
+getCurrentValue なのだが、内部的には getEffectiveXXX を利用している。
+この getEffectiveXXX は結局のところ SVG 生成などでも利用することになるだろうから、 getCurrentValue に統一するのがきれいそうだ。

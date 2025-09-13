@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFont, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -558,7 +558,7 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
  * 単一言語のテキスト要素を生成する（内部ヘルパー関数）
  */
 function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
-  const effectiveFont = getEffectiveFont(asset, textInstance, language);
+  const effectiveFont = getEffectiveFontFace(asset, textInstance, language);
   const font = resolveSvgFontName(effectiveFont || 'Arial');
   const strokeWidth = getEffectiveStrokeWidth(asset, textInstance, language);
   const colors = getEffectiveColors(asset, textInstance, language);
