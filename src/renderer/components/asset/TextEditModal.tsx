@@ -156,7 +156,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }
 
   // フィールドタイプの定義
-  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings;
+  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings | 'override_language_settings';
 
   // 現在の値を取得する（オーバーロード対応）
   function getCurrentValue(field: SupportedField): any;
@@ -178,6 +178,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (isLanguageSettingsField(assetField as string)) {
         const ret = getEffectiveLanguageSetting(editingAsset, editingInstance, selectedLang, assetField as keyof LanguageSettings, phase);
         return ret
+      }
+      if (assetField === 'override_language_settings') {
+        return editingInstance?.override_language_settings;
       }
       return undefined;
     };
@@ -228,6 +231,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         }
       } else if (isLanguageSettingsField(field)) {
         (languageSettingsFields as any)[field] = val;
+      } else if (field === 'override_language_settings') {
+        instanceFields.override_language_settings = val;
       }
     });
 
@@ -266,6 +271,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         updatedInstance.override_context = instanceFields.context || undefined;
       }
 
+      if ('override_language_settings' in instanceFields) {
+        if (instanceFields.override_language_settings === undefined) {
+          // undefinedの場合はプロパティを削除
+          delete updatedInstance.override_language_settings;
+        } else {
+          updatedInstance.override_language_settings = instanceFields.override_language_settings;
+        }
+      }
+
       setEditingInstance(updatedInstance);
     }
   };
@@ -273,6 +287,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 位置設定の便利関数
   const setCurrentPosition = (x: number, y: number): void => {
     setCurrentValue({ pos_x: x, pos_y: y });
+  };
+
+  // 言語設定オーバーライドが有効かどうかを判定
+  const isLanguageOverrideEnabled = (): boolean => {
+    const overrideSettings = getCurrentValue('override_language_settings');
+    const currentLang = getCurrentLanguage();
+    return overrideSettings && overrideSettings[currentLang] !== undefined;
   };
 
   // プレビューサイズを計算
@@ -959,7 +980,37 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     </div>
                   </label>
                 </div>
-                <h4>現在言語の設定オーバーライド</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4 style={{ margin: 0 }}>現在言語の設定オーバーライド</h4>
+                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+                    <input
+                      type="checkbox"
+                      checked={isLanguageOverrideEnabled()}
+                      onChange={(e) => {
+                        const currentLang = getCurrentLanguage();
+                        const currentOverrides = getCurrentValue('override_language_settings') || {};
+
+                        if (e.target.checked) {
+                          // チェックを入れたら空の設定を作成
+                          setCurrentValue({
+                            override_language_settings: {
+                              ...currentOverrides,
+                              [currentLang]: {}
+                            }
+                          });
+                        } else {
+                          // チェックを外したら該当言語の設定を削除
+                          const newOverrides = { ...currentOverrides };
+                          delete newOverrides[currentLang];
+                          setCurrentValue({
+                            override_language_settings: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                          });
+                        }
+                      }}
+                    />
+                    有効
+                  </label>
+                </div>
                 <div className="form-help">
                   現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' :
                               getCurrentLanguage() === 'en' ? 'English' :
@@ -967,13 +1018,17 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               getCurrentLanguage() === 'ko' ? '한국어' :
                               getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
                 </div>
-                {/* フォント設定 */}
-                <div className="form-group">
+
+                {/* 言語設定項目のラッパー */}
+                <div className={`language-settings-container ${isLanguageOverrideEnabled() ? 'enabled' : 'disabled'}`}>
+                  {/* フォント設定 */}
+                  <div className="form-group">
                   <label>
                     フォント:
                     <select
                       value={getCurrentValue('font')}
                       onChange={(value) => setCurrentValue({font: value})}
+                      disabled={!isLanguageOverrideEnabled()}
                     >
                       <option value="">アセット設定を使用</option>
                       {availableFonts.map((font) => (
@@ -995,6 +1050,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     decimals={2}
                     className="small"
                     placeholder="アセット設定使用"
+                    disabled={!isLanguageOverrideEnabled()}
                   />
                 </div>
 
@@ -1010,6 +1066,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       decimals={2}
                       className="small"
                       placeholder="アセット設定使用"
+                      disabled={!isLanguageOverrideEnabled()}
                     />
                   </label>
                   <label>
@@ -1022,6 +1079,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       decimals={2}
                       className="small"
                       placeholder="アセット設定使用"
+                      disabled={!isLanguageOverrideEnabled()}
                     />
                   </label>
                 </div>
@@ -1034,6 +1092,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       type="checkbox"
                       checked={getCurrentValue('vertical')}
                       onChange={(e) => setCurrentValue({vertical: e.target.checked})}
+                      disabled={!isLanguageOverrideEnabled()}
                     />
                   </label>
                 </div>
@@ -1044,6 +1103,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     value={getCurrentValue('opacity')}
                     onChange={(value) => setCurrentValue({opacity: value})}
                     label="Opacity"
+                    disabled={!isLanguageOverrideEnabled()}
                   />
                 </div>
 
@@ -1053,7 +1113,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <ZIndexInput
                     value={getCurrentValue('z_index')}
                     onChange={(value) => setCurrentValue({z_index: value})}
+                    disabled={!isLanguageOverrideEnabled()}
                   />
+                </div>
                 </div>
               </div>
             )}
