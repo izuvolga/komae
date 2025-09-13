@@ -47,6 +47,14 @@ export interface TextAsset extends BaseAsset {
   default_language_override?: Record<string, LanguageSettings>;
 }
 
+export function isTextAssetEditableField(field: string): field is keyof TextAsset {
+  const fields: Record<string, true> = {
+    default_text: true,
+    default_context: true,
+  };
+  return fields[field as keyof TextAsset] === true;
+}
+
 export enum TextAssetInstancePhase {
   AUTO          = 0, // 自動判定（インスタンスの言語設定 > アセットの言語設定 > 共通設定）
   COMMON        = 1, // 共通設定（アセットのdefault_settingsを使用）
@@ -228,6 +236,15 @@ export interface LanguageSettings {
   z_index?: number;
   fill_color?: string;
   stroke_color?: string;
+}
+
+export function isLanguageSettingsField(field: string): field is keyof LanguageSettings {
+  const languageSettingsFields: Record<keyof LanguageSettings, true> = {
+    pos_x: true, pos_y: true, font: true, font_size: true, stroke_width: true,
+    leading: true, vertical: true, opacity: true, z_index: true,
+    fill_color: true, stroke_color: true
+  };
+  return field in languageSettingsFields;
 }
 
 export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance | DynamicVectorAssetInstance | ValueAssetInstance;
@@ -483,6 +500,7 @@ export interface SaveDialogOptions {
   defaultPath?: string;
   filters?: Array<{ name: string; extensions: string[] }>;
 }
+
 
 // Asset初期化用のヘルパー関数
 import { v4 as uuidv4 } from 'uuid';

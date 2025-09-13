@@ -75,14 +75,15 @@ context更新 asset/instance
 
 ■■■■■■■■■■■■■■■■■■■■
 
--- 2 段階: asset -> instance --
+■ 2 段階: asset -> instance
 default_text
   get: getCurrentTextValue
   set: updateTextValue
 default_context
   get: editingAsset.default_context
   set: handleInputChange('default_context', e.target.value)
--- 3 段階: asset -> asset.lang -> instance --
+
+■ 3 段階: asset -> asset.lang -> instance
 pos_x
   get: getEffectivePosition
   set: handleCommonSettingChange('pos_x', value)
@@ -90,8 +91,8 @@ pos_y
   get: getEffectivePosition
   set: handleCommonSettingChange('pos_y', value)
 font
-  get: getCurrentFont
-  set: updateFont
+  get: getCurrentValue('font')
+  set: handleCommonSettingsChange({ font: e.target.value })
 font_size
   get: getCurrentValue('font_size')
   set: handleCommonSettingsChange
@@ -102,16 +103,16 @@ vertical
   get: getCurrentValue('vertical')
   set: handleCommonSettingsChange({ vertical: value })
 opacity
-  get: getTextAssetDefaultSettings(editingAsset, 'opacity')
+  get: getCurrentValue('opacity')
   set: handleInputChange('opacity', value)
 z_index
-  get: getTextAssetDefaultSettings(editingAsset, 'z_index')
+  get: getCurrentValue('z_index')
   set: handleInputChange('z_index', value)
 fill_color
-  get: getTextAssetDefaultSettings(editingAsset, 'fill_color') 
+  get: getCurrentValue('fill_color') 
   set: handleInputChange('fill_color', color)
 stroke_color
-  get: getTextAssetDefaultSettings(editingAsset, 'stroke_color')
+  get: getCurrentValue('stroke_color')
   set: handleInputChange('stroke_color', color)
 stroke_width
   get: getCurrentValue('stroke_width')
@@ -127,3 +128,6 @@ get 系からまとめることにする。
 
 getCurrentValue なのだが、内部的には getEffectiveXXX を利用している。
 この getEffectiveXXX は結局のところ SVG 生成などでも利用することになるだろうから、 getCurrentValue に統一するのがきれいそうだ。
+
+TextEditModal において getCurrentValue 関数を改善してください。
+現在、getEffectivePosition が pos_x と pos_y の取得に使われていますが、getCurrentValue を使うように変更してください。

@@ -12,13 +12,8 @@ import {
   validateTextAssetInstanceData,
   getEffectiveTextValue,
   getEffectivePosition,
-  getEffectiveFontSize,
-  getEffectiveFontFace,
-  getEffectiveVertical,
-  getEffectiveColors,
-  getEffectiveStrokeWidth,
-  getEffectiveLeading,
-  getEffectiveOpacity,
+  getEffectiveLanguageSetting,
+  isLanguageSettingsField,
   DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
 import './TextEditModal.css';
@@ -201,7 +196,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   // 現在の値を取得する
-  const getCurrentValue = (assetField: string): any => {
+  const getCurrentValue = (assetField: keyof TextAsset | keyof LanguageSettings): any => {
     let currentLang: string;
     let phase: TextAssetInstancePhase;
     if (mode === 'asset' && activePreviewTab === 'common') {
@@ -214,28 +209,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
-
-    // フィールド名に応じて適切なヘルパー関数を使用
-    switch (assetField) {
-      case 'font_size':
-        return getEffectiveFontSize(editingAsset, editingInstance, currentLang, phase);
-      case 'font':
-        return getEffectiveFontFace(editingAsset, editingInstance, currentLang, phase);
-      case 'vertical':
-        return getEffectiveVertical(editingAsset, editingInstance, currentLang, phase);
-      case 'leading':
-        return getEffectiveLeading(editingAsset, editingInstance, currentLang, phase);
-      case 'opacity':
-        return getEffectiveOpacity(editingAsset, editingInstance, currentLang, phase);
-      case 'stroke_width':
-        return getEffectiveStrokeWidth(editingAsset, editingInstance, currentLang, phase);
-      case 'fill_color':
-        return getEffectiveColors(editingAsset, editingInstance, currentLang, phase).fill;
-      case 'stroke_color':
-        return getEffectiveColors(editingAsset, editingInstance, currentLang, phase).stroke;
-      default:
-        // フォールバック: 直接アセットの値を返す（デフォルト値で代替）
-        return editingAsset[assetField as keyof TextAsset] || '';
+    // TODO: もし assetField が TextAsset のフィールドであれば以下の処理
+    if (['name', 'default_text', 'default_context'].includes(assetField)) {
+      return editingAsset[assetField as keyof TextAsset] || '';
+    }
+    if (isLanguageSettingsField(assetField as string)) {
+      return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
     }
   };
 
@@ -881,14 +860,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <ColorPicker
                     label="塗りの色"
-                    value={getTextAssetDefaultSettings(editingAsset, 'fill_color') || '#000000'}
+                    value={getCurrentValue('fill_color')}
                     onChange={(color) => handleInputChange('fill_color', color)}
                   />
                 </div>
                 <div className="form-group">
                   <ColorPicker
                     label="縁取りの色"
-                    value={getTextAssetDefaultSettings(editingAsset, 'stroke_color') || '#000000'}
+                    value={getCurrentValue('stroke_color')}
                     onChange={(color) => handleInputChange('stroke_color', color)}
                   />
                 </div>
@@ -950,7 +929,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
                 <div className="form-row">
                   <OpacityInput
-                    value={getTextAssetDefaultSettings(editingAsset, 'opacity') || 1.0}
+                    value={getCurrentValue('opacity')}
                     onChange={(value) => handleInputChange('opacity', value)}
                     label="透明度"
                   />
@@ -960,7 +939,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <label>Z-Index</label>
                   <ZIndexInput
-                    value={getTextAssetDefaultSettings(editingAsset, 'z_index') || 0}
+                    value={getCurrentValue('z_index')}
                     onChange={(value) => handleInputChange('z_index', value)}
                     validation={zIndexValidation}
                   />
