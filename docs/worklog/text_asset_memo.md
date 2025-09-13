@@ -78,17 +78,17 @@ context更新 asset/instance
 ■ 1-phase priority: asset.name
 name
   get: getCurrentValue('name')
-  set: handleInputChange('name', e.target.value)
+  set: setCurrentValue('name', e.target.value)
 
 ■ 2-phase priority: asset.default_text -> instance.multilingual_text
 default_text
   get: getCurrentValue('text')
-  set: updateTextValue
+  set: setCurrentValue('text', e.target.value)
 
 ■ 2-phase priority: asset.default_context -> instance.override_context
 default_context
   get: getCurrentValue('context')
-  set: handleInputChange('default_context', e.target.value)
+  set: setCurrentValue('context', e.target.value)
 
 ■ 3-phase priority : asset -> asset.lang -> instance
 pos_x
@@ -111,24 +111,38 @@ vertical
   set: handleCommonSettingsChange({ vertical: value })
 opacity
   get: getCurrentValue('opacity')
-  set: handleInputChange('opacity', value)
+  set: setCurrentValue('opacity', value)
 z_index
   get: getCurrentValue('z_index')
-  set: handleInputChange('z_index', value)
+  set: setCurrentValue('z_index', value)
 fill_color
   get: getCurrentValue('fill_color') 
-  set: handleInputChange('fill_color', color)
+  set: setCurrentValue('fill_color', color)
 stroke_color
   get: getCurrentValue('stroke_color')
-  set: handleInputChange('stroke_color', color)
+  set: setCurrentValue('stroke_color', color)
 stroke_width
   get: getCurrentValue('stroke_width')
-  set: handleInputChange('stroke_width', value)
+  set: setCurrentValue('stroke_width', value)
 
 
 ■■■■■■■■■■■■■■■■■■■■
 
-handleInputChange --getCurrentValue に似ている。値を受け取って TextAsset の直接のプロパティならばアセットを直接編集、そうでなければ状況に応じて Asset/Instance の編集。
-handleCommonSettingsChange -- 強制的に editingAsset を編集する関数
+現在 TextEditModal では、設定値の更新に２つの関数を使い分けています。
 
-setCurrentValue を新たに作成して、handleInputChange と handleCommonSettingsChange の両方で利用するようにする。
+- handleInputChange: getCurrentValue に似ている。値を受け取って TextAsset の直接のプロパティならばアセットを直接編集、そうでなければ状況に応じて Asset/Instance の編集。
+- handleCommonSettingsChange: 強制的に editingAsset を編集する関数
+
+両者が混在する状況は保守性が悪いです。
+一旦、setCurrentValue を新たに作成してください。
+handleInputChange と handleCommonSettingsChange の両方で利用するようにしたいです。
+ただし、まだ handleInputChange と handleCommonSettingsChange の置き換えはしないでください。
+私が手動で動作確認をします。
+
+      setEditingInstance({
+        ...editingInstance,
+        multilingual_text: {
+          ...editingInstance.multilingual_text,
+          [currentLang]: newText
+        }
+      });

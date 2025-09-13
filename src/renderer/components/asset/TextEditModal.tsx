@@ -18,6 +18,7 @@ import {
 } from '../../../types/entities';
 import './TextEditModal.css';
 import { get } from 'http';
+import { current } from 'immer';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -173,6 +174,22 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
     }
   };
+  // 現在のフェーズと言語を取得する
+  function getCurrentPhaseAndLanguage(): { phase: TextAssetInstancePhase; language: string } {
+    let currentLang: string;
+    let phase: TextAssetInstancePhase;
+    if (mode === 'asset' && activePreviewTab === 'common') {
+      currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
+      phase = TextAssetInstancePhase.COMMON;
+    } else if (mode === 'asset' && activePreviewTab) {
+      currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
+      phase = TextAssetInstancePhase.LANG;
+    } else {
+      currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
+      phase = TextAssetInstancePhase.INSTANCE_LANG;
+    }
+    return { phase, language: currentLang };
+  }
 
   // フィールドタイプの定義
   type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings;
@@ -183,19 +200,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   function getCurrentValue(fieldOrFields: SupportedField | SupportedField[]): any {
     // 単一値処理のヘルパー関数
     const getSingleValue = (assetField: SupportedField): any => {
-      let currentLang: string;
-      let phase: TextAssetInstancePhase;
-      if (mode === 'asset' && activePreviewTab === 'common') {
-        currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
-        phase = TextAssetInstancePhase.COMMON;
-      } else if (mode === 'asset' && activePreviewTab) {
-        currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
-        phase = TextAssetInstancePhase.LANG;
-      } else {
-        currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
-        phase = TextAssetInstancePhase.INSTANCE_LANG;
-      }
-
+      const { phase, language: currentLang } = getCurrentPhaseAndLanguage();
       if (isTextAssetEditableField(assetField as string)) {
         if (assetField === 'text') {
           return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
@@ -205,11 +210,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           return editingAsset.name;
         }
       }
-
       if (isLanguageSettingsField(assetField as string)) {
         return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
       }
-
       return undefined;
     };
 
@@ -227,20 +230,79 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }
 
-  // テキスト内容を更新する（新しいmultilingual_textシステム対応）
-  const updateTextValue = (newText: string) => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      setEditingInstance({
-        ...editingInstance,
-        multilingual_text: {
-          ...editingInstance.multilingual_text,
-          [currentLang]: newText
+  // 現在の値を設定する（オーバーロード対応）
+  function setCurrentValue(field: SupportedField, value: any): void;
+  function setCurrentValue(values: Record<string, any>): void;
+  function setCurrentValue(fieldOrValues: SupportedField | Record<string, any>, value?: any): void {
+    // 単一値設定のヘルパー関数
+    const setSingleValue = (field: SupportedField, val: any): void => {
+      const { phase, language: currentLang } = getCurrentPhaseAndLanguage();
+      if (isTextAssetEditableField(field as string)) {
+        // TextAssetEditableFieldの処理
+        if (field === 'name') {
+          setEditingAsset({
+            ...editingAsset,
+            name: val
+          });
+        } else if (field === 'text') {
+          if (phase === TextAssetInstancePhase.COMMON ) {
+            setEditingAsset({
+              ...editingAsset,
+              default_text: val
+            });
+          } else if (phase === TextAssetInstancePhase.INSTANCE_LANG && editingInstance) {
+            setEditingInstance({
+              ...editingInstance,
+              multilingual_text: {
+                ...editingInstance.multilingual_text,
+                [currentLang]: val
+              }
+            });
+          }
+        } else if (field === 'context') {
+          if (phase === TextAssetInstancePhase.COMMON ) {
+            setEditingAsset({
+              ...editingAsset,
+              default_context: val
+            });
+          } else if (phase === TextAssetInstancePhase.INSTANCE_LANG && editingInstance) {
+            setEditingInstance({
+              ...editingInstance,
+              override_context: val || undefined
+            });
+          }
         }
-      });
+        return;
+      }
+
+      if (isLanguageSettingsField(field as string)) {
+        const languageField = field as keyof LanguageSettings;
+        if (phase === TextAssetInstancePhase.COMMON) {
+          handleCommonSettingChange(languageField, val);
+        } else if (phase === TextAssetInstancePhase.LANG) {
+          handleLanguageOverrideChange(currentLang, languageField, val);
+        } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
+          handleInstanceLanguageSettingChange(currentLang, languageField, val);
+        }
+        return;
+      }
+    };
+
+    // 複数値か単一値かを判定
+    if (typeof fieldOrValues === 'string') {
+      // 単一値設定
+      setSingleValue(fieldOrValues, value);
     } else {
-      handleInputChange('default_text', newText);
+      // 複数値設定
+      Object.entries(fieldOrValues).forEach(([field, val]) => {
+        setSingleValue(field as SupportedField, val);
+      });
     }
+  }
+
+  // 位置設定の便利関数
+  const setCurrentPosition = (x: number, y: number): void => {
+    setCurrentValue({ pos_x: x, pos_y: y });
   };
 
   // プレビューサイズを計算
@@ -294,28 +356,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
     }
   }, [currentPos, previewDimensions.scale, getCurrentValue]);
-
-  const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
-    if (mode === 'asset') {
-      const textAssetFields: (keyof TextAsset)[] = ['name', 'default_text', 'default_context'];
-
-      if (textAssetFields.includes(field as keyof TextAsset)) {
-        // TextAssetの直接フィールド
-        setEditingAsset({
-          ...editingAsset,
-          [field]: value
-        });
-      } else {
-        // LanguageSettingsのフィールド - タブに応じて処理
-        const languageField = field as keyof LanguageSettings;
-        if (activePreviewTab === 'common') {
-          handleCommonSettingChange(languageField, value);
-        } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
-          handleLanguageOverrideChange(activePreviewTab, languageField, value);
-        }
-      }
-    }
-  };
 
   // 言語別設定変更ハンドラー（Asset編集用）
   const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
@@ -748,14 +788,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <input
                     type="text"
                     value={getCurrentValue('name')}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={(e) => setCurrentValue('name', e.target.value)}
                   />
                 </div>
               <div className="form-group">
                 <label>初期テキスト</label>
                 <textarea
                   value={getCurrentValue('text')}
-                  onChange={(e) => updateTextValue(e.target.value)}
+                  onChange={(e) => setCurrentValue('text', e.target.value)}
                   rows={3}
                 />
                 <div className="form-help">
@@ -767,7 +807,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <input
                     type="text"
                     value={getCurrentValue('context')}
-                    onChange={(e) => handleInputChange('default_context', e.target.value)}
+                    onChange={(e) => setCurrentValue('context', e.target.value)}
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
                   />
                   <div className="form-help">
@@ -851,14 +891,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <ColorPicker
                     label="塗りの色"
                     value={getCurrentValue('fill_color')}
-                    onChange={(color) => handleInputChange('fill_color', color)}
+                    onChange={(color) => setCurrentValue('fill_color', color)}
                   />
                 </div>
                 <div className="form-group">
                   <ColorPicker
                     label="縁取りの色"
                     value={getCurrentValue('stroke_color')}
-                    onChange={(color) => handleInputChange('stroke_color', color)}
+                    onChange={(color) => setCurrentValue('stroke_color', color)}
                   />
                 </div>
                 <div className="form-group">
@@ -866,7 +906,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <NumericInput
                     value={getCurrentValue('stroke_width')}
                     onChange={(value) => {
-                      handleInputChange('stroke_width', value);
+                      setCurrentValue('stroke_width', value);
                     }}
                     min={0}
                     max={9999}
@@ -912,7 +952,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-row">
                   <OpacityInput
                     value={getCurrentValue('opacity')}
-                    onChange={(value) => handleInputChange('opacity', value)}
+                    onChange={(value) => setCurrentValue('opacity', value)}
                     label="透明度"
                   />
                 </div>
@@ -922,7 +962,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>Z-Index</label>
                   <ZIndexInput
                     value={getCurrentValue('z_index')}
-                    onChange={(value) => handleInputChange('z_index', value)}
+                    onChange={(value) => setCurrentValue('z_index', value)}
                     validation={zIndexValidation}
                   />
                 </div>
