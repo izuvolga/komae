@@ -6,7 +6,7 @@ import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
 import { ColorPicker } from '../common/ColorPicker';
 import type { TextAsset, TextAssetInstance, TextAssetEditableField, Page, FontInfo, LanguageSettings} from '../../../types/entities';
-import { getTextAssetDefaultSettings, TextAssetInstancePhase  } from '../../../types/entities';
+import { TextAssetInstancePhase  } from '../../../types/entities';
 import {
   validateTextAssetData,
   validateTextAssetInstanceData,
@@ -229,15 +229,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   };
 
-  // テキスト内容を取得する（新しいmultilingual_textシステム対応）
-  const getCurrentTextValue = (): string => {
-    if (mode === 'instance' && editingInstance) {
-      const currentLang = getCurrentLanguage();
-      return getEffectiveTextValue(editingAsset, editingInstance, currentLang);
-    }
-    return editingAsset.default_text || '';
-  };
-
   // テキスト内容を更新する（新しいmultilingual_textシステム対応）
   const updateTextValue = (newText: string) => {
     if (mode === 'instance' && editingInstance) {
@@ -278,7 +269,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const scale = previewDimensions.scale;
     const fontSize = getCurrentValue('font_size')
     const charWidth = fontSize * previewDimensions.scale
-    const lines = getCurrentTextValue().split('\n');
+    const lines = getCurrentValue('text').split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
     // console.log('debug: getTextFrameSize (x,y):', pos.x, pos.y,);
@@ -304,7 +295,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         width: maxWidth * charWidth,
       }
     }
-  }, [currentPos, previewDimensions.scale, getCurrentValue, getCurrentTextValue]);
+  }, [currentPos, previewDimensions.scale, getCurrentValue]);
 
   const handleInputChange = (field: keyof TextAsset | keyof LanguageSettings, value: any) => {
     if (mode === 'asset') {
@@ -763,7 +754,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
               <div className="form-group">
-                <label>サンプルテキスト</label>
+                <label>初期テキスト</label>
                 <textarea
                   value={getCurrentValue('text')}
                   onChange={(e) => updateTextValue(e.target.value)}
