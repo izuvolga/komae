@@ -128,9 +128,7 @@ stroke_width
 
 ■■■■■■■■■■■■■■■■■■■■
 
-TextEditModal の getCurrentValue 関数は、現在一つの値を受け取り、一つの値を返却する設計担っています。
-これを、複数の値を受け取り、複数の値を返却する設計に変更できないでしょうか。
-最終的に、getEffectivePosition 関数のリプレースを考えています。
+handleInputChange --getCurrentValue に似ている。値を受け取って TextAsset の直接のプロパティならばアセットを直接編集、そうでなければ状況に応じて Asset/Instance の編集。
+handleCommonSettingsChange -- 強制的に editingAsset を編集する関数
 
-イメージとしては、handleCommonSettingChange のように、オブジェクトで受け取り、オブジェクトで返却するイメージです。
-もし実装上、保守性が悪くなるようであれば教えて下さい。
+setCurrentValue を新たに作成して、handleInputChange と handleCommonSettingsChange の両方で利用するようにする。
