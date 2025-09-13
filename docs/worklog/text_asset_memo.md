@@ -92,10 +92,10 @@ default_context
 
 ■ 3-phase priority : asset -> asset.lang -> instance
 pos_x
-  get: getEffectivePosition
+  get: getCurrentPosition
   set: handleCommonSettingChange('pos_x', value)
 pos_y
-  get: getEffectivePosition
+  get: getCurrentPosition
   set: handleCommonSettingChange('pos_y', value)
 font
   get: getCurrentValue('font')
@@ -126,4 +126,11 @@ stroke_width
   set: handleInputChange('stroke_width', value)
 
 
+■■■■■■■■■■■■■■■■■■■■
 
+TextEditModal の getCurrentValue 関数は、現在一つの値を受け取り、一つの値を返却する設計担っています。
+これを、複数の値を受け取り、複数の値を返却する設計に変更できないでしょうか。
+最終的に、getEffectivePosition 関数のリプレースを考えています。
+
+イメージとしては、handleCommonSettingChange のように、オブジェクトで受け取り、オブジェクトで返却するイメージです。
+もし実装上、保守性が悪くなるようであれば教えて下さい。

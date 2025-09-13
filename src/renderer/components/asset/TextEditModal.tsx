@@ -12,11 +12,9 @@ import {
   validateTextAssetInstanceData,
   getEffectiveTextValue,
   getEffectiveContextValue,
-  getEffectivePosition,
   getEffectiveLanguageSetting,
   isLanguageSettingsField,
   isTextAssetEditableField,
-  DEFAULT_LANGUAGE_SETTINGS,
 } from '../../../types/entities';
 import './TextEditModal.css';
 import { get } from 'http';
@@ -137,32 +135,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     setActivePreviewTab(tabId);
   };
 
-  // 現在の位置を取得（Asset vs Instance）
-  const getCurrentPosition = () => {
-    if (mode === 'instance' && editingInstance) {
-      // インスタンス編集モードでは言語別設定を使用
-      const currentLang = getCurrentLanguage();
-      return getEffectivePosition(editingAsset, editingInstance, currentLang);
-    } else {
-      // アセット編集モード: タブに応じて位置を取得
-      if (activePreviewTab === 'common') {
-        // 共通設定タブ: default_settings から位置を取得
-        const x = editingAsset.default_settings?.pos_x ?? DEFAULT_LANGUAGE_SETTINGS.pos_x!;
-        const y = editingAsset.default_settings?.pos_y ?? DEFAULT_LANGUAGE_SETTINGS.pos_y!;
-        return { x, y };
-      } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
-        // 言語タブ: その言語のオーバーライド設定から位置を取得
-        const x = editingAsset.default_language_override?.[activePreviewTab]?.pos_x ??
-                 editingAsset.default_settings?.pos_x ?? DEFAULT_LANGUAGE_SETTINGS.pos_x!;
-        const y = editingAsset.default_language_override?.[activePreviewTab]?.pos_y ??
-                 editingAsset.default_settings?.pos_y ?? DEFAULT_LANGUAGE_SETTINGS.pos_y!;
-        return { x, y };
-      } else {
-        // フォールバック: 現在の言語設定を使用
-        const currentLang = getCurrentLanguage();
-        return getEffectivePosition(editingAsset, editingInstance, currentLang);
-      }
-    }
+  // 現在の位置を取得（getCurrentValueベースの実装）
+  const getCurrentPosition = (): { x: number; y: number } => {
+    const values = getCurrentValue(['pos_x', 'pos_y']) as { pos_x: number; pos_y: number };
+    return { x: values.pos_x || 0, y: values.pos_y || 0 };
   };
 
   const currentPos = getCurrentPosition();
@@ -198,36 +174,58 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   };
 
-  // 現在の値を取得する
-  const getCurrentValue = (assetField: keyof TextAssetEditableField | keyof LanguageSettings): any => {
-    let currentLang: string;
-    let phase: TextAssetInstancePhase;
-    if (mode === 'asset' && activePreviewTab === 'common') {
-      currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
-      phase = TextAssetInstancePhase.COMMON;
-    } else if (mode === 'asset' && activePreviewTab) {
-      currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
-      phase = TextAssetInstancePhase.LANG;
-    } else {
-      currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
-      phase = TextAssetInstancePhase.INSTANCE_LANG;
-    }
+  // フィールドタイプの定義
+  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings;
 
-    if (isTextAssetEditableField(assetField as string)) {
-      if (assetField === 'text') {
-        return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
-      } else if (assetField === 'context') {
-        return getEffectiveContextValue(editingAsset, editingInstance, currentLang, phase);
-      } else if (assetField === 'name') {
-        return editingAsset.name;
+  // 現在の値を取得する（オーバーロード対応）
+  function getCurrentValue(field: SupportedField): any;
+  function getCurrentValue(fields: SupportedField[]): Record<string, any>;
+  function getCurrentValue(fieldOrFields: SupportedField | SupportedField[]): any {
+    // 単一値処理のヘルパー関数
+    const getSingleValue = (assetField: SupportedField): any => {
+      let currentLang: string;
+      let phase: TextAssetInstancePhase;
+      if (mode === 'asset' && activePreviewTab === 'common') {
+        currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
+        phase = TextAssetInstancePhase.COMMON;
+      } else if (mode === 'asset' && activePreviewTab) {
+        currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
+        phase = TextAssetInstancePhase.LANG;
+      } else {
+        currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
+        phase = TextAssetInstancePhase.INSTANCE_LANG;
       }
-    }
 
-    if (isLanguageSettingsField(assetField as string)) {
-      return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
-    }
+      if (isTextAssetEditableField(assetField as string)) {
+        if (assetField === 'text') {
+          return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
+        } else if (assetField === 'context') {
+          return getEffectiveContextValue(editingAsset, editingInstance, currentLang, phase);
+        } else if (assetField === 'name') {
+          return editingAsset.name;
+        }
+      }
 
-  };
+      if (isLanguageSettingsField(assetField as string)) {
+        return getEffectiveLanguageSetting(editingAsset, editingInstance, currentLang, assetField as keyof LanguageSettings, phase);
+      }
+
+      return undefined;
+    };
+
+    // 複数値か単一値かを判定
+    if (Array.isArray(fieldOrFields)) {
+      // 複数値処理
+      const result: Record<string, any> = {};
+      fieldOrFields.forEach(field => {
+        result[field as string] = getSingleValue(field);
+      });
+      return result;
+    } else {
+      // 単一値処理（既存の動作）
+      return getSingleValue(fieldOrFields);
+    }
+  }
 
   // テキスト内容を更新する（新しいmultilingual_textシステム対応）
   const updateTextValue = (newText: string) => {
@@ -887,11 +885,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     X座標:
                     <NumericInput
-                      value={getEffectivePosition(
-                        editingAsset,
-                        null,
-                        getCurrentLanguage(),
-                        TextAssetInstancePhase.COMMON).x}
+                      value={getCurrentPosition().x}
                       onChange={(value) => {
                         handleCommonSettingChange('pos_x', value);
                       }}
@@ -904,11 +898,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     Y座標:
                     <NumericInput
-                      value={getEffectivePosition(
-                        editingAsset,
-                        null,
-                        getCurrentLanguage(),
-                        TextAssetInstancePhase.COMMON).y}
+                      value={getCurrentPosition().y}
                       onChange={(value) => {
                         handleCommonSettingChange('pos_y', value);
                       }}
