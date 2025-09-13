@@ -174,6 +174,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
     }
   };
+
   // 現在のフェーズと言語を取得する
   function getCurrentPhaseAndLanguage(): { phase: TextAssetInstancePhase; language: string } {
     let currentLang: string;
@@ -573,6 +574,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const newY = Math.max(0, Math.min(canvasHeight - 50, dragStartValues.y + deltaY));
 
         updatePosition(newX, newY);
+        // setCurrentPosition(newX, newY);
       }
     };
 
