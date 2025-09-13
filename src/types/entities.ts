@@ -64,8 +64,8 @@ export function isTextAssetEditableField(field: string): field is keyof TextAsse
 
 export enum TextAssetInstancePhase {
   AUTO          = 0, // 自動判定（インスタンスの言語設定 > アセットの言語設定 > 共通設定）
-  COMMON        = 1, // 共通設定（アセットのdefault_settingsを使用）
-  LANG          = 2, // アセットの言語別設定（default_language_overrideを使用）
+  ASSET_COMMON  = 1, // 共通設定（アセットのdefault_settingsを使用）
+  ASSET_LANG    = 2, // アセットの言語別設定（default_language_overrideを使用）
   INSTANCE_LANG = 3, // インスタンスの言語別設定（override_language_settingsを使用）
 }
 
@@ -575,7 +575,7 @@ export function getEffectiveContextValue(
     }
   }
   // 2. 共通設定フェーズではアセットのdefault_contextを使用
-  if (phase === TextAssetInstancePhase.COMMON) {
+  if (phase === TextAssetInstancePhase.ASSET_COMMON) {
     if (asset.default_context) {
       return asset.default_context;
     }
@@ -629,13 +629,13 @@ export function getEffectiveLanguageSetting<K extends keyof LanguageSettings>(
         return instance.override_language_settings[currentLang][setting];
       }
     }
-    if (phase === TextAssetInstancePhase.LANG) {
+    if (phase === TextAssetInstancePhase.ASSET_LANG) {
       // アセットの言語別オーバーライド設定をチェック
       if (asset.default_language_override?.[currentLang]?.[setting] !== undefined) {
         return asset.default_language_override[currentLang][setting];
       }
     }
-    if (phase === TextAssetInstancePhase.COMMON) {
+    if (phase === TextAssetInstancePhase.ASSET_COMMON) {
       // アセットの共通設定をチェック
       if (asset.default_settings?.[setting] !== undefined) {
         return asset.default_settings[setting];

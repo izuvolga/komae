@@ -142,18 +142,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 現在のフェーズと言語を取得する
   function getCurrentPhase(): TextAssetInstancePhase {
-    let currentLang: string;
     let phase: TextAssetInstancePhase;
     if (mode === 'asset' && activePreviewTab === 'common') {
-      currentLang = 'dummy'; // common なので何でも良く、後続で使われるべきではない（意図的にエラーを起こすためダミー文字列）
-      phase = TextAssetInstancePhase.COMMON;
+      phase = TextAssetInstancePhase.ASSET_COMMON;
     } else if (mode === 'asset' && activePreviewTab) {
-      currentLang = activePreviewTab; // 言語タブの場合はその言語を使用
       // TODO: もしも言語タブの存在とプロジェクト設定が齟齬を起こしていた場合の処理を考える
       // project?.metadata.supportedLanguages?.includes(activePreviewTab || '') && project?.metadata.supportedLanguages?.length > 1;
-      phase = TextAssetInstancePhase.LANG;
+      phase = TextAssetInstancePhase.ASSET_LANG;
     } else {
-      currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
     return phase;
@@ -203,7 +199,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const setCurrentValue = (values: Record<string, any>): void => {
     const phase = getCurrentPhase();
     const currentLang = getCurrentLanguage();
-    
+
     // 値を分類
     const textAssetFields: Partial<TextAsset> = {};
     const languageSettingsFields: Partial<LanguageSettings> = {};
@@ -214,13 +210,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         if (field === 'name') {
           textAssetFields.name = val;
         } else if (field === 'text') {
-          if (phase === TextAssetInstancePhase.COMMON) {
+          if (phase === TextAssetInstancePhase.ASSET_COMMON) {
             textAssetFields.default_text = val;
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.text = val;
           }
         } else if (field === 'context') {
-          if (phase === TextAssetInstancePhase.COMMON) {
+          if (phase === TextAssetInstancePhase.ASSET_COMMON) {
             textAssetFields.default_context = val;
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.context = val;
@@ -242,9 +238,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
     // 2. LanguageSettings更新
     if (Object.keys(languageSettingsFields).length > 0) {
-      if (phase === TextAssetInstancePhase.COMMON) {
+      if (phase === TextAssetInstancePhase.ASSET_COMMON) {
         handleCommonSettingsChange(languageSettingsFields);
-      } else if (phase === TextAssetInstancePhase.LANG) {
+      } else if (phase === TextAssetInstancePhase.ASSET_LANG) {
         handleLanguageOverrideChanges(currentLang, languageSettingsFields);
       } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
         handleInstanceLanguageSettingChanges(currentLang, languageSettingsFields);
@@ -254,18 +250,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     // 3. Instance専用フィールド更新
     if (Object.keys(instanceFields).length > 0 && editingInstance) {
       const updatedInstance = { ...editingInstance };
-      
+
       if (instanceFields.text !== undefined) {
         updatedInstance.multilingual_text = {
           ...updatedInstance.multilingual_text,
           [currentLang]: instanceFields.text
         };
       }
-      
+
       if (instanceFields.context !== undefined) {
         updatedInstance.override_context = instanceFields.context || undefined;
       }
-      
+
       setEditingInstance(updatedInstance);
     }
   };
@@ -677,7 +673,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             )}
 
             {/* インスタンス編集時の言語表示 */}
-            {mode === 'instance' && (
+            {getCurrentPhase() === TextAssetInstancePhase.INSTANCE_LANG && (
               <div className="current-language-indicator">
                 編集中の言語: {getCurrentLanguage() === 'ja' ? '日本語' :
                               getCurrentLanguage() === 'en' ? 'English' :
@@ -737,7 +733,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
           <div className="text-edit-form">
             {/* 基本情報 */}
-            {getCurrentPhase() === TextAssetInstancePhase.COMMON && (
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
               <div className="form-section">
                 <h4>基本設定</h4>
                 <div className="form-group">
@@ -775,7 +771,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             )}
 
             {/* フォント設定 */}
-            {getCurrentPhase() === TextAssetInstancePhase.COMMON && (
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
               <div className="form-section">
                 <h4>フォント設定</h4>
                 <div className="form-group">
@@ -842,7 +838,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             )}
 
             {/* 色設定 */}
-            {getCurrentPhase() === TextAssetInstancePhase.COMMON && (
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
               <div className="form-section">
                 <h4>色設定</h4>
                 <div className="form-group">
@@ -876,7 +872,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             )}
 
             {/* 位置・透明度設定（アセット編集時のみ） */}
-            {getCurrentPhase() === TextAssetInstancePhase.COMMON && (
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
               <div className="form-section">
                 <h4>位置・透明度設定</h4>
                 <div className="form-row form-row-double">
@@ -884,9 +880,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     X座標:
                     <NumericInput
                       value={getCurrentPosition().x}
-                      onChange={(value) => {
-                        handleCommonSettingChange('pos_x', value);
-                      }}
+                      onChange={(value) => setCurrentValue({pos_x: value})}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -897,9 +891,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     Y座標:
                     <NumericInput
                       value={getCurrentPosition().y}
-                      onChange={(value) => {
-                        handleCommonSettingChange('pos_y', value);
-                      }}
+                      onChange={(value) => setCurrentValue({pos_y: value})}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1079,7 +1071,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             )}
 
             {/* 言語別設定（アセット編集時のみ） */}
-            {getCurrentPhase() === TextAssetInstancePhase.LANG && (
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_LANG && (
               <div className="form-section">
                 <h4>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                 <div className="form-help">
@@ -1155,17 +1147,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           <input
                             type="number"
                             step="0.1"
-                            value={mode === 'asset'
-                              ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_y || '')
-                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_y || '')
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(activePreviewTab, 'pos_y', e.target.value ? parseFloat(e.target.value) : undefined);
-                              }
-                            }}
+                            value={getCurrentPosition().y}
+                            onChange={(e) => setCurrentValue({pos_y: e.target.value})}
                             placeholder="Y座標"
                           />
                         </div>
@@ -1175,17 +1158,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <label>
                         <input
                           type="checkbox"
-                          checked={mode === 'asset'
-                            ? (editingAsset.default_language_override?.[activePreviewTab]?.vertical !== undefined ? editingAsset.default_language_override[activePreviewTab].vertical : false)
-                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.vertical !== undefined ? editingInstance.override_language_settings[activePreviewTab].vertical : false)
-                          }
-                          onChange={(e) => {
-                            if (mode === 'asset') {
-                              handleLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
-                            } else {
-                              handleInstanceLanguageSettingChange(activePreviewTab, 'vertical', e.target.checked ? true : undefined);
-                            }
-                          }}
+                          checked={getCurrentValue('vertical')}
+                          onChange={(e) => setCurrentValue({vertical: e.target.checked})}
                         />
                         縦書き
                       </label>

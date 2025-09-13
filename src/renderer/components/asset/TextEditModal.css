@@ -145,10 +145,7 @@
 
 /* 縦配置フォームグループ */
 .form-group {
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  margin-bottom: 0px;
 }
 
 .form-group label {
