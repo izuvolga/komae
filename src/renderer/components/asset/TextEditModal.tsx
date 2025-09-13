@@ -783,7 +783,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   ) : (
                     <select
                       value={getCurrentValue('font')}
-                      onChange={(e) => handleCommonSettingsChange({ font: e.target.value })}
+                      onChange={(e) => setCurrentValue({ font: e.target.value })}
                     >
                       {availableFonts.map((font) => (
                         <option key={font.id} value={font.id}>
@@ -803,9 +803,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>フォントサイズ</label>
                   <NumericInput
                     value={getCurrentValue('font_size')}
-                    onChange={(value) => {
-                      handleCommonSettingsChange({ font_size: value })
-                    }}
+                    onChange={(value) => setCurrentValue({ font_size: value })}
                     min={0.01}
                     decimals={2}
                     className="small"
@@ -815,9 +813,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>行間</label>
                   <NumericInput
                     value={getCurrentValue('leading')}
-                    onChange={(value) => {
-                      handleCommonSettingsChange({ leading: value })
-                    }}
+                    onChange={(value) => setCurrentValue({ leading: value })}
                     decimals={2}
                     className="small"
                   />
@@ -827,10 +823,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <input
                       type="checkbox"
                       checked={getCurrentValue('vertical')}
-                      onChange={(e) => {
-                        const value = e.target.checked
-                        handleCommonSettingsChange({ vertical: value });
-                      }}
+                      onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
                     />
                   </label>
                 </div>
@@ -937,11 +930,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     文脈・用途:
                     <input
                       type="text"
-                      value={editingInstance?.override_context || ''}
-                      onChange={(e) => setEditingInstance(prev => prev ? {
-                        ...prev,
-                        override_context: e.target.value || undefined
-                      } : null)}
+                      value={getCurrentValue('context')}
+                      onChange={(value) => setCurrentValue({context: value})}
                       placeholder="例: キャラクターAの叫び声、ナレーション等"
                     />
                     <div className="form-help">
@@ -955,12 +945,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     フォント:
                     <select
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font || ''}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'font',
-                        e.target.value || undefined
-                      )}
+                      value={getCurrentValue('font')}
+                      onChange={(value) => setCurrentValue({font: value})}
                     >
                       <option value="">アセット設定を使用</option>
                       {availableFonts.map((font) => (
@@ -976,12 +962,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <label>フォントサイズ</label>
                   <NumericInput
-                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.font_size || 0}
-                    onChange={(value) => handleInstanceLanguageSettingChange(
-                      getCurrentLanguage(),
-                      'font_size',
-                      value || undefined
-                    )}
+                    value={getCurrentValue('font_size')}
+                    onChange={(value) => setCurrentValue({font_size: value})}
                     min={0.01}
                     decimals={2}
                     className="small"
@@ -994,12 +976,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     X座標:
                     <NumericInput
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_x || 0}
-                      onChange={(value) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'pos_x',
-                        value
-                      )}
+                      value={getCurrentValue('pos_x')}
+                      onChange={(value) => setCurrentValue({pos_x: value})}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1010,12 +988,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     Y座標:
                     <NumericInput
-                      value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.pos_y || 0}
-                      onChange={(value) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'pos_y',
-                        value
-                      )}
+                      value={getCurrentValue('pos_y')}
+                      onChange={(value) => setCurrentValue({pos_y: value})}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1030,13 +1004,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     <input
                       type="checkbox"
-                      checked={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.vertical !== undefined ?
-                               editingInstance.override_language_settings[getCurrentLanguage()].vertical : false}
-                      onChange={(e) => handleInstanceLanguageSettingChange(
-                        getCurrentLanguage(),
-                        'vertical',
-                        e.target.checked ? true : undefined
-                      )}
+                      value={getCurrentValue('vertical')}
+                      onChange={(value) => setCurrentValue({vertical: value})}
                     />
                     縦書き
                   </label>
@@ -1045,12 +1014,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* 不透明度設定 */}
                 <div className="form-row">
                   <OpacityInput
-                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.opacity || 1}
-                    onChange={(value) => handleInstanceLanguageSettingChange(
-                      getCurrentLanguage(),
-                      'opacity',
-                      value
-                    )}
+                    value={getCurrentValue('opacity')}
+                    onChange={(value) => setCurrentValue({opacity: value})}
                     label="Opacity"
                   />
                 </div>
@@ -1059,12 +1024,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-group">
                   <label>Z-Index</label>
                   <ZIndexInput
-                    value={editingInstance?.override_language_settings?.[getCurrentLanguage()]?.z_index || 0}
-                    onChange={(value) => handleInstanceLanguageSettingChange(
-                      getCurrentLanguage(),
-                      'z_index',
-                      value
-                    )}
+                    value={getCurrentValue('z_index')}
+                    onChange={(value) => setCurrentValue({z_index: value})}
                   />
                 </div>
               </div>
@@ -1083,17 +1044,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <label>
                         フォント:
                         <select
-                          value={mode === 'asset'
-                            ? (editingAsset.default_language_override?.[activePreviewTab]?.font || '')
-                            : (editingInstance?.override_language_settings?.[activePreviewTab]?.font || '')
-                          }
-                          onChange={(e) => {
-                            if (mode === 'asset') {
-                              handleLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
-                            } else {
-                              handleInstanceLanguageSettingChange(activePreviewTab, 'font', e.target.value || undefined);
-                            }
-                          }}
+                          value={getCurrentValue('font')}
+                          onChange={(e) => setCurrentValue({font: e.target.value})}
                         >
                           <option value="">{mode === 'asset' ? '共通設定のフォントを使用' : 'アセット設定を使用'}</option>
                           {availableFonts.map((font) => (
@@ -1107,17 +1059,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <div className="form-group">
                       <label>フォントサイズ</label>
                       <NumericInput
-                        value={mode === 'asset'
-                          ? (editingAsset.default_language_override?.[activePreviewTab]?.font_size || 0)
-                          : (editingInstance?.override_language_settings?.[activePreviewTab]?.font_size || 0)
-                        }
-                        onChange={(value) => {
-                          if (mode === 'asset') {
-                            handleLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
-                          } else {
-                            handleInstanceLanguageSettingChange(activePreviewTab, 'font_size', value || undefined);
-                          }
-                        }}
+                        value={getCurrentValue('font_size')}
+                        onChange={(value) => setCurrentValue({font_size: value})}
                         min={0.01}
                         decimals={2}
                         className="small"
@@ -1131,17 +1074,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           <input
                             type="number"
                             step="0.1"
-                            value={mode === 'asset'
-                              ? (editingAsset.default_language_override?.[activePreviewTab]?.pos_x || '')
-                              : (editingInstance?.override_language_settings?.[activePreviewTab]?.pos_x || '')
-                            }
-                            onChange={(e) => {
-                              if (mode === 'asset') {
-                                handleLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                              } else {
-                                handleInstanceLanguageSettingChange(activePreviewTab, 'pos_x', e.target.value ? parseFloat(e.target.value) : undefined);
-                              }
-                            }}
+                            value={getCurrentPosition().x}
+                            onChange={(e) => setCurrentValue({pos_x: e.target.value})}
                             placeholder="X座標"
                           />
                           <input
