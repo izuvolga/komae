@@ -221,6 +221,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.context = val;
           }
+        } else if (field === 'use_default_text_for_pages') {
+          textAssetFields.use_default_text_for_pages = val;
         }
       } else if (isLanguageSettingsField(field)) {
         (languageSettingsFields as any)[field] = val;
@@ -745,7 +747,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
               <div className="form-group">
-                <label>初期テキスト</label>
+                <label>テキスト</label>
                 <textarea
                   value={getCurrentValue('text')}
                   onChange={(e) => setCurrentValue({text: e.target.value})}
@@ -755,6 +757,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   テキストの内容は各ページで個別に設定できます。ここで設定した内容は新規ページ作成時の初期値として使用されます。
                 </div>
               </div>
+              {mode === 'asset' && (
+                <div className="form-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editingAsset.use_default_text_for_pages || false}
+                      onChange={(e) => setCurrentValue({use_default_text_for_pages: e.target.checked})}
+                    />
+                    各ページの初期値に上記テキストを使う
+                  </label>
+                  <div className="form-help">
+                    チェックを入れると、新しいページ作成時に上記のデフォルトテキストが自動的に設定されます。
+                  </div>
+                </div>
+              )}
                 <div className="form-group">
                   <label>文脈・用途</label>
                   <input
@@ -870,7 +887,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <h4>位置・透明度設定</h4>
                 <div className="form-row form-row-double">
                   <label>
-                    X座標:
+                    X座標
                     <NumericInput
                       value={getCurrentPosition().x}
                       onChange={(value) => setCurrentValue({pos_x: value})}
@@ -881,7 +898,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     />
                   </label>
                   <label>
-                    Y座標:
+                    Y座標
                     <NumericInput
                       value={getCurrentPosition().y}
                       onChange={(value) => setCurrentValue({pos_y: value})}
@@ -923,9 +940,17 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               getCurrentLanguage() === 'ko' ? '한국어' :
                               getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
                 </div>
-
+                {/* テキスト設定 */}
+                <div className="form-group">
+                  <label>テキスト</label>
+                  <textarea
+                    value={getCurrentValue('text')}
+                    onChange={(e) => setCurrentValue({text: e.target.value})}
+                    rows={3}
+                  />
+                </div>
                 {/* 文脈設定 */}
-                <div className="form-row">
+                <div className="form-group">
                   <label>
                     文脈・用途:
                     <input
@@ -941,7 +966,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
 
                 {/* フォント設定 */}
-                <div className="form-row">
+                <div className="form-group">
                   <label>
                     フォント:
                     <select
@@ -974,7 +999,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* 位置設定 */}
                 <div className="form-row form-row-double">
                   <label>
-                    X座標:
+                    X座標
                     <NumericInput
                       value={getCurrentValue('pos_x')}
                       onChange={(value) => setCurrentValue({pos_x: value})}
@@ -986,7 +1011,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     />
                   </label>
                   <label>
-                    Y座標:
+                    Y座標
                     <NumericInput
                       value={getCurrentValue('pos_y')}
                       onChange={(value) => setCurrentValue({pos_y: value})}
@@ -1002,12 +1027,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* 縦書き設定 */}
                 <div className="form-row">
                   <label>
+                    縦書き
                     <input
                       type="checkbox"
                       value={getCurrentValue('vertical')}
-                      onChange={(value) => setCurrentValue({vertical: value})}
+                      onChange={(e) => setCurrentValue({vertical: e.target.checked})}
                     />
-                    縦書き
                   </label>
                 </div>
 
@@ -1089,13 +1114,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       </label>
                     </div>
                     <div className="form-row form-row-compact">
-                      <label>
+                      <label>縦書き
                         <input
                           type="checkbox"
                           checked={getCurrentValue('vertical')}
-                          onChange={(e) => setCurrentValue({vertical: e.target.checked})}
+                          onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
                         />
-                        縦書き
                       </label>
                     </div>
                   </div>

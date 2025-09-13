@@ -43,6 +43,7 @@ export interface TextAsset extends BaseAsset {
 
   default_text: string;
   default_context?: string;
+  use_default_text_for_pages?: boolean;
   default_settings: LanguageSettings;
   default_language_override?: Record<string, LanguageSettings>;
 }
@@ -51,6 +52,7 @@ export interface TextAssetEditableField {
   name: true; // associated to name
   text: true; // associated to default_text
   context: true; // associated to default_context
+  use_default_text_for_pages: true; // associated to use_default_text_for_pages
 }
 
 export function isTextAssetEditableField(field: string): field is keyof TextAssetEditableField {
@@ -58,6 +60,7 @@ export function isTextAssetEditableField(field: string): field is keyof TextAsse
     name: true,
     text: true,
     context: true,
+    use_default_text_for_pages: true,
   };
   return fields[field as keyof TextAssetEditableField] === true;
 }
