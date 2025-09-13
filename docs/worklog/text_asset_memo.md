@@ -75,15 +75,22 @@ context更新 asset/instance
 
 ■■■■■■■■■■■■■■■■■■■■
 
-■ 2 段階: asset -> instance
+■ 1-phase priority: asset.name
+name
+  get: getCurrentValue('name')
+  set: handleInputChange('name', e.target.value)
+
+■ 2-phase priority: asset.default_text -> instance.multilingual_text
 default_text
-  get: getCurrentTextValue
+  get: getCurrentValue('text')
   set: updateTextValue
+
+■ 2-phase priority: asset.default_context -> instance.override_context
 default_context
-  get: editingAsset.default_context
+  get: getCurrentValue('context')
   set: handleInputChange('default_context', e.target.value)
 
-■ 3 段階: asset -> asset.lang -> instance
+■ 3-phase priority : asset -> asset.lang -> instance
 pos_x
   get: getEffectivePosition
   set: handleCommonSettingChange('pos_x', value)
@@ -119,15 +126,4 @@ stroke_width
   set: handleInputChange('stroke_width', value)
 
 
-まず、現時点だと複数の関数が同じことをしているので、整理する必要がある。
-get 系からまとめることにする。
 
-1. getCurrentXXX 系
-2. 直接参照系 (editingAsset.XXX)
-3. getEffectiveXXX 系
-
-getCurrentValue なのだが、内部的には getEffectiveXXX を利用している。
-この getEffectiveXXX は結局のところ SVG 生成などでも利用することになるだろうから、 getCurrentValue に統一するのがきれいそうだ。
-
-TextEditModal において getCurrentValue 関数を改善してください。
-現在、getEffectivePosition が pos_x と pos_y の取得に使われていますが、getCurrentValue を使うように変更してください。
