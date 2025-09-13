@@ -17,8 +17,6 @@ import {
   isTextAssetEditableField,
 } from '../../../types/entities';
 import './TextEditModal.css';
-import { get } from 'http';
-import { current } from 'immer';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -144,39 +142,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   const currentPos = getCurrentPosition();
 
-  // 位置更新関数
-  const updatePosition = (x: number, y: number) => {
-    if (mode === 'instance' && editingInstance) {
-      // インスタンス編集では常に現在の言語設定を同時に更新
-      handleInstanceLanguageSettingChanges(getCurrentLanguage(), {
-        pos_x: x,
-        pos_y: y
-      });
-    } else {
-      // アセット編集モード: タブに応じて更新先を決定
-      if (activePreviewTab === 'common') {
-        // 共通設定タブ: default_settings を同時に更新
-        handleCommonSettingsChange({
-          pos_x: x,
-          pos_y: y
-        });
-      } else if (activePreviewTab && project?.metadata.supportedLanguages?.includes(activePreviewTab)) {
-        // 言語タブ: その言語の default_language_override を同時に更新
-        handleLanguageOverrideChanges(activePreviewTab, {
-          pos_x: x,
-          pos_y: y
-        });
-      } else {
-        // フォールバック: 現在の言語設定を更新（旧方式との互換性）
-        const currentLang = getCurrentLanguage();
-        handleLanguageSettingChange(currentLang, 'pos_x', x);
-        handleLanguageSettingChange(currentLang, 'pos_y', y);
-      }
-    }
-  };
-
   // 現在のフェーズと言語を取得する
-  function getCurrentPhaseAndLanguage(): { phase: TextAssetInstancePhase; language: string } {
+  function getCurrentPhase(): TextAssetInstancePhase {
     let currentLang: string;
     let phase: TextAssetInstancePhase;
     if (mode === 'asset' && activePreviewTab === 'common') {
@@ -189,7 +156,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       currentLang = getCurrentLanguage(); // インスタンス編集モードでは現在の言語を使用
       phase = TextAssetInstancePhase.INSTANCE_LANG;
     }
-    return { phase, language: currentLang };
+    return phase;
   }
 
   // フィールドタイプの定義
@@ -201,7 +168,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   function getCurrentValue(fieldOrFields: SupportedField | SupportedField[]): any {
     // 単一値処理のヘルパー関数
     const getSingleValue = (assetField: SupportedField): any => {
-      const { phase, language: currentLang } = getCurrentPhaseAndLanguage();
+      const phase = getCurrentPhase();
+      const currentLang = getCurrentLanguage();
       if (isTextAssetEditableField(assetField as string)) {
         if (assetField === 'text') {
           return getEffectiveTextValue(editingAsset, editingInstance, currentLang, phase);
@@ -231,13 +199,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }
 
-  // 現在の値を設定する（オーバーロード対応）
+  // 現在の値を設定する（オーバーロード対応・アトミック更新）
   function setCurrentValue(field: SupportedField, value: any): void;
   function setCurrentValue(values: Record<string, any>): void;
   function setCurrentValue(fieldOrValues: SupportedField | Record<string, any>, value?: any): void {
-    // 単一値設定のヘルパー関数
-    const setSingleValue = (field: SupportedField, val: any): void => {
-      const { phase, language: currentLang } = getCurrentPhaseAndLanguage();
+    const phase = getCurrentPhase();
+    const currentLang = getCurrentLanguage();
+    // 複数値か単一値かを判定
+    if (typeof fieldOrValues === 'string') {
+      // 単一値設定
+      const field = fieldOrValues;
+      const val = value;
+
       if (isTextAssetEditableField(field as string)) {
         // TextAssetEditableFieldの処理
         if (field === 'name') {
@@ -287,17 +260,74 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         }
         return;
       }
-    };
-
-    // 複数値か単一値かを判定
-    if (typeof fieldOrValues === 'string') {
-      // 単一値設定
-      setSingleValue(fieldOrValues, value);
     } else {
-      // 複数値設定
-      Object.entries(fieldOrValues).forEach(([field, val]) => {
-        setSingleValue(field as SupportedField, val);
+      // 複数値設定（アトミック更新）
+      const values = fieldOrValues;
+      
+      // 値を分類
+      const textAssetFields: Partial<TextAsset> = {};
+      const languageSettingsFields: Partial<LanguageSettings> = {};
+      const instanceFields: any = {};
+
+      Object.entries(values).forEach(([field, val]) => {
+        if (isTextAssetEditableField(field)) {
+          if (field === 'name') {
+            textAssetFields.name = val;
+          } else if (field === 'text') {
+            if (phase === TextAssetInstancePhase.COMMON) {
+              textAssetFields.default_text = val;
+            } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
+              instanceFields.text = val;
+            }
+          } else if (field === 'context') {
+            if (phase === TextAssetInstancePhase.COMMON) {
+              textAssetFields.default_context = val;
+            } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
+              instanceFields.context = val;
+            }
+          }
+        } else if (isLanguageSettingsField(field)) {
+          (languageSettingsFields as any)[field] = val;
+        }
       });
+
+      // アトミック更新実行
+      // 1. TextAsset更新
+      if (Object.keys(textAssetFields).length > 0) {
+        setEditingAsset({
+          ...editingAsset,
+          ...textAssetFields
+        });
+      }
+
+      // 2. LanguageSettings更新
+      if (Object.keys(languageSettingsFields).length > 0) {
+        if (phase === TextAssetInstancePhase.COMMON) {
+          handleCommonSettingsChange(languageSettingsFields);
+        } else if (phase === TextAssetInstancePhase.LANG) {
+          handleLanguageOverrideChanges(currentLang, languageSettingsFields);
+        } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
+          handleInstanceLanguageSettingChanges(currentLang, languageSettingsFields);
+        }
+      }
+
+      // 3. Instance専用フィールド更新
+      if (Object.keys(instanceFields).length > 0 && editingInstance) {
+        const updatedInstance = { ...editingInstance };
+        
+        if (instanceFields.text !== undefined) {
+          updatedInstance.multilingual_text = {
+            ...updatedInstance.multilingual_text,
+            [currentLang]: instanceFields.text
+          };
+        }
+        
+        if (instanceFields.context !== undefined) {
+          updatedInstance.override_context = instanceFields.context || undefined;
+        }
+        
+        setEditingInstance(updatedInstance);
+      }
     }
   }
 
@@ -573,8 +603,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const newX = Math.max(0, Math.min(canvasWidth - 50, dragStartValues.x + deltaX)); // 50px余裕を持たせる
         const newY = Math.max(0, Math.min(canvasHeight - 50, dragStartValues.y + deltaY));
 
-        updatePosition(newX, newY);
-        // setCurrentPosition(newX, newY);
+        setCurrentPosition(newX, newY);
       }
     };
 
