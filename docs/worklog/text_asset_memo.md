@@ -125,3 +125,10 @@ stroke_width
   get: getCurrentValue('stroke_width')
   set: setCurrentValue('stroke_width', value)
 
+■■■■■■■■■■■■■■■■■■■■
+
+TextEditModal で TextAsset を編集しているときに編集できる項目を一つ増やしてください。
+「テキスト」（default_text）に、さらに「各ページの初期値に上記テキストを使う」のチェックボックスを追加してください。
+
+- boolean 型の use_default_text_for_pages というフィールドを TextAsset に追加してください。
+- TextEditModal で asset.default_text の編集項目の下にチェックボックスを追加してください。
