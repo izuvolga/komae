@@ -156,7 +156,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }
 
   // フィールドタイプの定義
-  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings | 'override_language_settings';
+  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings | 'override_language_settings' | 'default_language_override';
 
   // 現在の値を取得する（オーバーロード対応）
   function getCurrentValue(field: SupportedField): any;
@@ -181,6 +181,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       }
       if (assetField === 'override_language_settings') {
         return editingInstance?.override_language_settings;
+      }
+      if (assetField === 'default_language_override') {
+        return editingAsset?.default_language_override;
       }
       return undefined;
     };
@@ -233,6 +236,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         (languageSettingsFields as any)[field] = val;
       } else if (field === 'override_language_settings') {
         instanceFields.override_language_settings = val;
+      } else if (field === 'default_language_override') {
+        textAssetFields.default_language_override = val;
       }
     });
 
@@ -293,6 +298,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const isLanguageOverrideEnabled = (): boolean => {
     const overrideSettings = getCurrentValue('override_language_settings');
     const currentLang = getCurrentLanguage();
+    return overrideSettings && overrideSettings[currentLang] !== undefined;
+  };
+
+  // 言語別デフォルト設定が有効かどうかを判定
+  const isLanguageDefaultOverrideEnabled = (): boolean => {
+    const overrideSettings = getCurrentValue('default_language_override');
+    const currentLang = activePreviewTab;
     return overrideSettings && overrideSettings[currentLang] !== undefined;
   };
 
@@ -1126,15 +1138,47 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-help">
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
-                <h4>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4 style={{ margin: 0 }}>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+                    <input
+                      type="checkbox"
+                      checked={isLanguageDefaultOverrideEnabled()}
+                      onChange={(e) => {
+                        const currentLang = activePreviewTab;
+                        const currentOverrides = getCurrentValue('default_language_override') || {};
+
+                        if (e.target.checked) {
+                          // 空の設定を作成
+                          setCurrentValue({
+                            default_language_override: {
+                              ...currentOverrides,
+                              [currentLang]: {}
+                            }
+                          });
+                        } else {
+                          // 該当言語の設定を削除
+                          const newOverrides = { ...currentOverrides };
+                          delete newOverrides[currentLang];
+                          setCurrentValue({
+                            default_language_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                          });
+                        }
+                      }}
+                    />
+                    有効
+                  </label>
+                </div>
                 {activePreviewTab && activePreviewTab !== 'common' && (
-                  <div className="language-settings">
+                  <div className={`language-default-settings-container ${isLanguageDefaultOverrideEnabled() ? 'enabled' : 'disabled'}`}>
+                    <div className="language-settings">
                     <div className="form-row form-row-compact">
                       <label>
                         フォント
                         <select
                           value={getCurrentValue('font')}
                           onChange={(e) => setCurrentValue({font: e.target.value})}
+                          disabled={!isLanguageDefaultOverrideEnabled()}
                         >
                           <option value="">{mode === 'asset' ? '共通設定のフォントを使用' : 'アセット設定を使用'}</option>
                           {availableFonts.map((font) => (
@@ -1154,6 +1198,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         decimals={2}
                         className="small"
                         placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
+                        disabled={!isLanguageDefaultOverrideEnabled()}
                       />
                     </div>
                     <div className="form-row form-row-double">
@@ -1167,6 +1212,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           decimals={2}
                           className="small"
                           placeholder="アセット設定使用"
+                          disabled={!isLanguageDefaultOverrideEnabled()}
                         />
                       </label>
                       <label>
@@ -1179,6 +1225,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           decimals={2}
                           className="small"
                           placeholder="アセット設定使用"
+                          disabled={!isLanguageDefaultOverrideEnabled()}
                         />
                       </label>
                     </div>
@@ -1188,8 +1235,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           type="checkbox"
                           checked={getCurrentValue('vertical')}
                           onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
+                          disabled={!isLanguageDefaultOverrideEnabled()}
                         />
                       </label>
+                    </div>
                     </div>
                   </div>
                 )}
