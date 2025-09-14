@@ -554,7 +554,14 @@ export function getEffectiveTextValue(
   if (phase === TextAssetInstancePhase.INSTANCE_LANG || phase === TextAssetInstancePhase.AUTO) {
     // 1. インスタンスの多言語テキストをチェック
     if (instance?.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
-      return instance.multilingual_text[currentLang];
+      const text = instance.multilingual_text[currentLang];
+      if (text === '' && asset.use_default_text_for_pages) {
+        // 空文字で、アセットのデフォルトテキストを使用する設定の場合にはアセットのデフォルトテキストを使用
+        return asset.default_text || '';
+      }
+      if (text !== undefined && text !== null) {
+        return text;
+      }
     }
   }
   // 2. アセットのデフォルト値を使用
