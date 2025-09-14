@@ -173,6 +173,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'name') {
           return editingAsset.name;
+        } else if (assetField === 'use_default_text_for_pages') {
+          return editingAsset.use_default_text_for_pages;
         }
       }
       if (isLanguageSettingsField(assetField as string)) {

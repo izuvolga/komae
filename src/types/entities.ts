@@ -843,6 +843,7 @@ export function createDefaultTextAsset(params: {
     name,
     default_text: '',
     default_context: '',
+    use_default_text_for_pages: false,
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定
   };
