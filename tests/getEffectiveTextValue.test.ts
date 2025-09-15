@@ -225,6 +225,7 @@ describe('getEffectiveTextValue', () => {
       const result = getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.AUTO);
       expect(result).toBe('Asset Japanese');
     });
+  });
 
   describe('空文字列の扱い', () => {
     test('インスタンステキストが空文字列でも有効として扱われる', () => {
@@ -288,11 +289,10 @@ describe('getEffectiveTextValue', () => {
       const instance = createTestInstance({
         multilingual_text: {
           ja: '',
-          en: '',
         }
       });
 
-      expect(getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.AUTO)).toBe('asset_common');
+      expect(getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.AUTO)).toBe('');
       expect(getEffectiveTextValue(asset, instance, 'en', TextAssetInstancePhase.AUTO)).toBe('asset_common');
     });
   });
@@ -309,13 +309,12 @@ describe('getEffectiveTextValue', () => {
       });
       const instance = createTestInstance({
         multilingual_text: {
-          ja: '',
           en: '',
         }
       });
 
       expect(getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.AUTO)).toBe('asset_lang ja');
-      expect(getEffectiveTextValue(asset, instance, 'en', TextAssetInstancePhase.AUTO)).toBe('asset_lang en');
+      expect(getEffectiveTextValue(asset, instance, 'en', TextAssetInstancePhase.AUTO)).toBe('');
     });
   });
 });

@@ -315,6 +315,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     return !!(overrideSettings && overrideSettings[currentLang] !== undefined);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
+  // インスタンスの多言語テキストがオーバーライドされているかどうかを判定
+  const isInstanceTextOverrideEnabled = (): boolean => {
+    if (!editingInstance) return false;
+    const currentLang = getCurrentLanguage();
+    return !!(editingInstance.multilingual_text && currentLang in editingInstance.multilingual_text);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
+  };
+
   // プレビューサイズを計算
   const previewDimensions = useMemo(() => {
     const canvasWidth = canvasConfig?.width || 800;
@@ -976,12 +983,50 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <h4>ページの内容</h4>
                 {/* テキスト設定 */}
                 <div className="form-group">
-                  <label>テキスト</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <label style={{ margin: 0 }}>テキスト</label>
+                    <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+                      <input
+                        type="checkbox"
+                        checked={isInstanceTextOverrideEnabled()}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCurrentValue({
+                              text: '' // 空文字列で初期化
+                            });
+                          } else {
+                            // チェックを外したら該当言語の設定を削除（アセットのテキストを使用）
+                            if (editingInstance?.multilingual_text) {
+                              const currentLang = getCurrentLanguage();
+                              const newMultilingualText = { ...editingInstance.multilingual_text };
+                              delete newMultilingualText[currentLang];
+                              setEditingInstance({
+                                ...editingInstance,
+                                multilingual_text: newMultilingualText
+                              });
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                   <textarea
                     value={getCurrentValue('text')}
                     onChange={(e) => setCurrentValue({text: e.target.value})}
                     rows={3}
+                    disabled={!isInstanceTextOverrideEnabled()}
+                    style={{
+                      backgroundColor: isInstanceTextOverrideEnabled() ? 'white' : '#f5f5f5',
+                      color: isInstanceTextOverrideEnabled() ? 'black' : '#666',
+                      cursor: isInstanceTextOverrideEnabled() ? 'text' : 'not-allowed'
+                    }}
                   />
+                  <div className="form-help">
+                    {isInstanceTextOverrideEnabled()
+                      ? 'このページ専用のテキストを設定します'
+                      : 'アセットの設定が使用されます（チェックを入れるとこのページ専用のテキストを設定できます）'
+                    }
+                  </div>
                 </div>
                 {/* 文脈設定 */}
                 <div className="form-group">

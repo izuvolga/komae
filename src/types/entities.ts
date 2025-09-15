@@ -563,13 +563,11 @@ export function getEffectiveTextValue(
   const enable_asset_lang_text = asset.autofill_default_text
     && asset.default_text_override !== undefined
     && currentLang in asset.default_text_override
-    && asset.default_text_override[currentLang] !== undefined
-    && asset.default_text_override[currentLang] !== null;
+    && asset.default_text_override[currentLang] !== undefined;
   // インスタンスの多言語テキストが存在
-  const enable_instance_text = instance?.multilingual_text
+  const enable_instance_text = instance?.multilingual_text !== undefined
     && currentLang in instance.multilingual_text
-    && instance.multilingual_text[currentLang] !== undefined
-    && instance.multilingual_text[currentLang] !== null;
+    && instance.multilingual_text[currentLang] !== undefined;
 
   // 優先度を自動設定
   if (phase === TextAssetInstancePhase.AUTO) {
