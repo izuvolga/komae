@@ -44,7 +44,7 @@ export interface TextAsset extends BaseAsset {
   default_text: string;
   default_context?: string;
   autofill_default_text?: boolean;
-  default_text_override?: Record<string, string | null>;  // 言語ごとのデフォルトテキスト
+  default_text_override?: Record<string, string>;  // 言語ごとのデフォルトテキスト
   default_settings: LanguageSettings; // 共通設定
   default_language_override?: Record<string, LanguageSettings>; // 共通設定を上書きする、言語ごとのオーバーライド設定
 }

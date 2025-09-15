@@ -999,7 +999,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   </label>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>現在言語の設定オーバーライド</h4>
+                  <h4 style={{ margin: 0 }}>このページの設定の上書き</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                     <input
                       type="checkbox"
@@ -1217,7 +1217,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 })()}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <h4 style={{ margin: 0 }}>言語別スタイル設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                     <input
                       type="checkbox"
