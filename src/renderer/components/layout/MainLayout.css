@@ -57,6 +57,7 @@
   border-right: 1px solid #ddd;
   height: 100vh;
   overflow: hidden;
+  z-index: 10 !important; /* 基本的な階層を設定 */
 }
 
 .center-panel {
@@ -66,6 +67,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  z-index: 5; /* 左パネルより低く設定 */
 }
 
 .right-panel {
@@ -82,7 +84,7 @@
   bottom: 0;
   width: 8px;
   cursor: col-resize;
-  z-index: 100;
+  z-index: 200 !important; /* スプレッドシートヘッダーより高く設定 */
   transition: background-color 0.2s;
 }
 

@@ -1,0 +1,168 @@
+/* 共通モーダルスタイル */
+
+/* モーダルオーバーレイ - 全モーダルで共通 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* 基本モーダルコンテナ */
+.modal-container {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* モーダルヘッダー */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px 24px;
+  border-bottom: 1px solid #e5e5e5;
+  background: white;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* モーダルクローズボタン */
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modal-close-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* モーダルコンテンツエリア */
+.modal-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: white;
+}
+
+/* モーダルフッター */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e5e5;
+  background: white;
+}
+
+/* モーダルサイズバリエーション */
+.modal-container.modal-sm {
+  width: 400px;
+}
+
+.modal-container.modal-md {
+  width: 600px;
+}
+
+.modal-container.modal-lg {
+  width: 800px;
+}
+
+.modal-container.modal-xl {
+  width: 1000px;
+}
+
+/* モーダル内のフォームセクション */
+.modal-section {
+  margin-bottom: 24px;
+}
+
+.modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.modal-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.modal-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+/* タブ付きモーダル用 */
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e5e5;
+  background: #f9fafb;
+  margin: 0 -24px 24px -24px;
+  padding: 0 24px;
+}
+
+.modal-tab {
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: #6b7280;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.modal-tab.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.modal-tab:hover:not(.active) {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+/* アクションボタングループ */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}

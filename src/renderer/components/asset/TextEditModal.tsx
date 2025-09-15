@@ -169,7 +169,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (isTextAssetEditableField(assetField as string)) {
         if (assetField === 'text') {
           const ret = getEffectiveTextValue(editingAsset, editingInstance, selectedLang, phase);
-          console.log('DEBUG getCurrentValue:', {assetField, phase, selectedLang, ret});
           return ret;
         } else if (assetField === 'context') {
           return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);

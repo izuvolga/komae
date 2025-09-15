@@ -16,3 +16,41 @@ src/renderer/components/export/ExportDialog.css:.form-group {
 
 
 わかりました。CSS統一をしましょう。しかしその前に質問です。将来的に、このアプリはダークモードに対応したいと考えています。その場合、CSSの定義を動的に変更する必要があるかと思うのですが、技術的にどのように実現できるのでしょうか。一旦、手動でのライトモード・ダークモードの切替ができるようにしたいです。
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+現状、レイアウト崩れが発生しているため、修正をしてください。
+具体的には、左パネル（.left-panel, AssetLibrary）と中央パネル（.center-panel、Spreadsheet）の境界をドラッグしても、左パネルのサイズが変わらなくなってしまいました。中央パネルはサイズは変わりますが、中央パネルのテーブルのヘッダやセルが、左パネルよりも手前側に表示されてしまいます。 @screen.png
+
+■■■■■■■■■■■■■■■■■■■■
+
+
+diff --git a/src/renderer/App.tsx b/src/renderer/App.tsx
+index 845feca..0ac04e6 100644
+--- a/src/renderer/App.tsx
++++ b/src/renderer/App.tsx
+@@ -6,6 +6,9 @@ import type { FontInfo } from '../types/entities';
+ import { setFontInfoCache } from '../utils/svgGeneratorCommon';
+ import './App.css';
+ import './styles/common-forms.css';
++import './styles/common-modals.css';
++import './styles/common-buttons.css';
++import './styles/utilities.css';
+
+
+  フェーズ1-4: 共通CSSファイル群完成
+  - ✅ common-modals.css - モーダル統一スタイル（overlay, header, footer等）
+  - ✅ common-buttons.css - ボタン統一スタイル（primary, secondary, size variants等）
+  - ✅ common-forms.css - フォーム統一スタイル（既存からの拡張）
+  - ✅ utilities.css - 汎用ユーティリティクラス（flexbox, spacing, colors等）
+  - ✅ App.tsxでの統合インポート完成
+
+  フェーズ5: 主要モーダルファイルのリファクタリング完了
+  - ✅ ValueEditModal.css - 800px幅設定、独自カラーパレット維持
+  - ✅ ImageEditModal.css - 700px幅設定、画像編集特化UI保持
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+

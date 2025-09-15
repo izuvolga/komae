@@ -554,7 +554,6 @@ export function getEffectiveTextValue(
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
-  console.log('DEBUG: getEffectiveTextValue', { asset, instance, currentLang, phase });
   // アセットでテキストが存在
   const enable_asset_text = asset.default_text !== undefined;
   // アセットで言語ごとの設定でテキストが存在
@@ -585,7 +584,6 @@ export function getEffectiveTextValue(
     return asset.default_text_override[currentLang];
   }
   if (phase === TextAssetInstancePhase.INSTANCE_LANG && instance) {
-    console.log('DEBUG: getEffectiveTextValue: INSTANCE_LANG', instance.multilingual_text, currentLang);
     return instance.multilingual_text[currentLang];
   }
   if (phase === TextAssetInstancePhase.ASSET_COMMON) {

@@ -1,43 +1,18 @@
-/* Value 編集モーダル */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+/* ValueEditModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
 .value-edit-modal {
-  background: white;
-  border-radius: 8px;
-  width: 800px;
-  max-width: 90vw;
-  max-height: 90vh;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 800px; /* modal-containerの幅をオーバーライド */
 }
 
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f8f9fa;
+  padding: 16px 20px; /* 共通CSSから padding をオーバーライド */
+  background-color: #f8f9fa; /* 背景色を独自に設定 */
+  border-bottom: 1px solid #e0e0e0; /* ボーダー色を独自に設定 */
 }
 
 .modal-header h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 16px; /* 共通CSSからフォントサイズをオーバーライド */
+  color: #333; /* カラーを独自に設定 */
 }
 
 .close-button {
@@ -61,93 +36,115 @@
 }
 
 .modal-content {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 0; /* 共通CSSに追加 */
 }
 
 .value-edit-main {
   display: flex;
-  height: 100%;
+  min-height: 0;
+  height: 500px;
+}
+
+.left-panel {
+  /* width: 350px; */
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
-.value-preview-section {
-  flex: 0 0 350px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  overflow: auto;
-  border-right: 1px solid #e0e0e0;
+.left-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
 }
 
-.value-preview-section h3 {
-  margin: 0 0 16px 0;
+.left-panel-header h3 {
+  margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
   color: #333;
 }
 
-.value-preview {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 12px;
-  margin-bottom: 16px;
-  min-height: 60px;
+.preview-language-selector {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 4px;
 }
 
-.preview-value {
-  font-family: 'Courier New', monospace;
+.language-tab {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.language-tab.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.language-tab:hover:not(.active) {
+  background: #f8f9fa;
+}
+
+.left-panel-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.right-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.right-panel-tab {
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
   font-size: 14px;
-  word-break: break-all;
-  text-align: center;
+  color: #666;
+  transition: all 0.2s;
 }
 
-.preview-result {
+.right-panel-tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  font-weight: 500;
+}
+
+.right-panel-tab:hover:not(.active) {
   color: #333;
-  font-weight: 500;
 }
 
-.error-text {
-  color: #dc3545;
-  font-weight: 500;
-}
-
-.preview-error {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #856404;
-  margin-top: 8px;
-}
-
-.current-result {
-  background-color: #e7f3ff;
-  border: 1px solid #b3d9ff;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #0066cc;
-  margin-top: 12px;
-}
-
-.value-edit-form {
+.right-panel-content {
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 /* ValueEditModal固有のフォームスタイル */
 .form-group label {
   display: flex;
   flex-direction: column;
-  font-size: 13px; /* 共通CSSの14pxから13pxに上書き */
-  color: #555; /* 共通CSSの#495057から#555に上書き */
+  font-size: 13px; /* 共通CSSの14pxから13pxにオーバーライド */
+  color: #555; /* 共通CSSの#495057から#555にオーバーライド */
   gap: 6px;
   position: relative;
 }
@@ -155,15 +152,15 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 8px 10px; /* 共通CSSの8px 12pxから8px 10pxに上書き */
-  font-size: 13px; /* 共通CSSの14pxから13pxに上書き */
+  padding: 8px 10px; /* 共通CSSの8px 12pxから8px 10pxにオーバーライド */
+  font-size: 13px; /* 共通CSSの14pxから13pxにオーバーライド */
   background: white;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #2196f3; /* 共通CSSの#007bffから#2196f3に上書き */
+  border-color: #2196f3; /* 共通CSSの#007bffから#2196f3にオーバーライド */
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1); /* カスタムボックスシャドウ */
 }
 
@@ -172,165 +169,62 @@
 }
 
 .form-group input[type="number"] {
-  text-align: right;
+  -moz-appearance: textfield;
 }
 
-.readonly-input {
-  background-color: #f8f9fa !important;
-  color: #6c757d !important;
-  cursor: not-allowed !important;
-}
-
-.help-icon {
-  position: absolute;
-  top: 0;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: #6c757d;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: help;
-  transition: background-color 0.2s;
-}
-
-.help-icon:hover {
-  background-color: #495057;
-}
-
-.radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.radio-label {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center;
-  font-size: 13px !important;
-  font-weight: normal !important;
-  gap: 8px !important;
-  cursor: pointer;
-}
-
-.radio-label input[type="radio"] {
-  width: auto;
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
   margin: 0;
-  cursor: pointer;
 }
 
-.modal-actions {
+.form-row-double {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 16px 20px;
+  gap: 12px;
+}
+
+.form-row-double label {
+  flex: 1;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* アクションボタンのスタイリング - 共通ボタンCSSを拡張 */
+.modal-actions {
+  padding: 16px 20px; /* フッターパディングをオーバーライド */
+  background-color: #f8f9fa; /* 背景色を独自設定 */
   border-top: 1px solid #e0e0e0;
-  background-color: #f8f9fa;
 }
 
-.cancel-button,
-.save-button {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
+.action-button {
+  min-width: 80px;
 }
 
-.cancel-button {
-  background: white;
-  color: #666;
+.action-button.primary {
+  background-color: #007bff;
 }
 
-.cancel-button:hover {
-  background-color: #f0f0f0;
+.action-button.primary:hover {
+  background-color: #0056b3;
 }
 
-.save-button {
-  background: #2196f3;
-  color: white;
-  border-color: #2196f3;
+.action-button.secondary {
+  background-color: #6c757d;
 }
 
-.save-button:hover {
-  background: #1976d2;
-  border-color: #1976d2;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 900px) {
-  .value-edit-modal {
-    width: 95vw;
-    height: 90vh;
-  }
-  
-  .value-edit-main {
-    flex-direction: column;
-  }
-  
-  .value-preview-section {
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
-    flex: 0 0 auto;
-    max-height: 40%;
-  }
-  
-  .value-edit-form {
-    flex: 1;
-  }
-  
-  .radio-group {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}
-
-/* 数式エラー表示 */
-.formula-error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #721c24;
-  margin-top: 8px;
-}
-
-/* 数式成功表示 */
-.formula-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #155724;
-  margin-top: 8px;
-}
-
-/* バリデーションエラー用スタイル */
-.input-error {
-  border-color: #dc3545 !important;
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25) !important;
-}
-
-.validation-error {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 4px;
-  line-height: 1.4;
-}
-
-.save-button:disabled {
-  background-color: #6c757d !important;
-  border-color: #6c757d !important;
-  cursor: not-allowed !important;
-  opacity: 0.65;
+.action-button.secondary:hover {
+  background-color: #545b62;
 }

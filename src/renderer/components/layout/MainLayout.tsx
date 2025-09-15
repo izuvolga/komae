@@ -72,15 +72,15 @@ export const MainLayout: React.FC = () => {
     if (!isDragging) return;
 
     const deltaX = e.clientX - dragStartX;
-    
+
     if (isDragging === 'asset') {
-      const newWidth = dragStartWidth + deltaX;
+      const newWidth = Math.max(200, Math.min(800, dragStartWidth + deltaX)); // 最小200px、最大800px
       setAssetLibraryWidth(newWidth);
     } else if (isDragging === 'preview') {
-      const newWidth = dragStartWidth - deltaX; // プレビューは右側なので反転
+      const newWidth = Math.max(200, Math.min(800, dragStartWidth - deltaX)); // プレビューは右側なので反転
       setPreviewWidth(newWidth);
     }
-  }, [isDragging, dragStartX, dragStartWidth, setAssetLibraryWidth, setPreviewWidth]);
+  }, [isDragging, dragStartX, dragStartWidth, setAssetLibraryWidth, setPreviewWidth, assetLibraryWidth, previewWidth]);
 
   // マウスアップ処理
   const handleMouseUp = useCallback(() => {
@@ -434,7 +434,8 @@ export const MainLayout: React.FC = () => {
     if (showPreview) {
       parts.push(`${previewWidth}px`);
     }
-    return parts.join(' ');
+    const result = parts.join(' ');
+    return result;
   };
 
   // 動的なグリッドテンプレートエリアの計算
@@ -452,7 +453,7 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="main-layout">
-      <div 
+      <div
         className="layout-grid"
         style={{
           gridTemplateColumns: getGridTemplateColumns(),
@@ -461,7 +462,9 @@ export const MainLayout: React.FC = () => {
       >
         {/* Left Panel - Asset Library */}
         {showAssetLibrary && (
-          <div className="left-panel">
+          <div
+            className="left-panel"
+          >
             <AssetLibrary />
             {/* Asset Library Resizer */}
             <div 
