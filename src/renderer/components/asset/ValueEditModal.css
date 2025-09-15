@@ -45,21 +45,24 @@
   height: 500px;
 }
 
-.left-panel {
-  /* width: 350px; */
+/* 現在のValueEditModalでは使用されていない左右パネル構造のCSS
+   将来的に再利用する可能性があるためコメントアウトで保持
+
+.value-edit-left-panel {
+  width: 350px;
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.left-panel-header {
+.value-edit-left-panel-header {
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
   background-color: #fafafa;
 }
 
-.left-panel-header h3 {
+.value-edit-left-panel-header h3 {
   margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
@@ -91,7 +94,7 @@
   background: #f8f9fa;
 }
 
-.left-panel-content {
+.value-edit-left-panel-content {
   flex: 1;
   overflow: hidden;
   display: flex;
@@ -138,6 +141,7 @@
   overflow-y: auto;
   min-height: 0;
 }
+*/
 
 /* ValueEditModal固有のフォームスタイル */
 .form-group label {
