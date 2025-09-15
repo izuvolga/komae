@@ -174,7 +174,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         } else if (assetField === 'name') {
           return editingAsset.name;
         } else if (assetField === 'use_default_text_for_pages') {
-          return editingAsset.use_default_text_for_pages;
+          return editingAsset.use_default_text_for_pages || false;
         }
       }
       if (isLanguageSettingsField(assetField as string)) {
@@ -300,14 +300,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const isLanguageOverrideEnabled = (): boolean => {
     const overrideSettings = getCurrentValue('override_language_settings');
     const currentLang = getCurrentLanguage();
-    return overrideSettings && overrideSettings[currentLang] !== undefined;
+    return !!(overrideSettings && overrideSettings[currentLang] !== undefined);   // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
   // 言語別デフォルト設定が有効かどうかを判定
   const isLanguageDefaultOverrideEnabled = (): boolean => {
     const overrideSettings = getCurrentValue('default_language_override');
     const currentLang = activePreviewTab;
-    return overrideSettings && overrideSettings[currentLang] !== undefined;
+    return !!(overrideSettings && overrideSettings[currentLang] !== undefined);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
   // プレビューサイズを計算
