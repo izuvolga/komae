@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveLanguageSetting, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, TextAssetInstancePhase } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -522,7 +522,13 @@ function getMaskId(asset: ImageAsset, instance: ImageAssetInstance): string | nu
  * 全ての利用可能言語についてlang-{languageCode}クラス付きでテキスト要素を生成
  * svg-structure.md仕様に完全準拠
  */
-export function generateMultilingualTextElement(asset: TextAsset, instance: AssetInstance, availableLanguages: string[], currentLanguage: string): string {
+export function generateMultilingualTextElement(
+  asset: TextAsset,
+  instance: AssetInstance,
+  availableLanguages: string[],
+  currentLanguage: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO,
+): string {
   const textInstance = instance as TextAssetInstance;
   const results: string[] = [];
 
@@ -532,12 +538,12 @@ export function generateMultilingualTextElement(asset: TextAsset, instance: Asse
     const displayStyle = isCurrentLanguage ? '' : ' style="display: none;"';
 
     // 新仕様多言語対応ヘルパー関数を使用して各言語の値を取得
-    const finalPos = getEffectivePosition(asset, textInstance, lang);
+    const finalPos = getEffectivePosition(asset, textInstance, lang, phase);
     const finalPosX = finalPos.x;
     const finalPosY = finalPos.y;
-    const finalFontSize = getEffectiveFontSize(asset, textInstance, lang);
-    const finalOpacity = getEffectiveOpacity(asset, textInstance, lang);
-    const textContent = getEffectiveTextValue(asset, textInstance, lang);
+    const finalFontSize = getEffectiveFontSize(asset, textInstance, lang, phase);
+    const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
+    const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);
 
     // テキスト内容が空の場合はスキップ
     if (!textContent || textContent.trim() === '') {
@@ -673,7 +679,8 @@ export function generateTextPreviewSVG(
     width?: number;
     height?: number;
     backgroundColor?: string;
-  } = {}
+  } = {},
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO,
 ): string {
   const { width = 800, height = 600, backgroundColor = 'transparent' } = options;
 
@@ -685,7 +692,7 @@ export function generateTextPreviewSVG(
 
   // TextSVG要素を生成（プレビュー用は単一言語）
   const availableLanguages = [currentLanguage];
-  const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage);
+  const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage, phase);
 
   return `<svg
   width="${width}"

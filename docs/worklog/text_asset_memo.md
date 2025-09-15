@@ -144,7 +144,7 @@ export interface TextAsset extends BaseAsset {
 
   default_text: string;                                    // 全言語共通のフォールバック
   default_context?: string;
-  enable_default_text?: boolean;                          // デフォルトテキスト機能の有効/無効
+  autofill_default_text?: boolean;                          // デフォルトテキスト機能の有効/無効
   default_text_override?: Record<string, string>;         // 言語ごとのデフォルトテキスト（新機能）
   default_settings: LanguageSettings;
   default_language_override?: Record<string, LanguageSettings>;
@@ -152,14 +152,14 @@ export interface TextAsset extends BaseAsset {
 ```
 
 
-これは、 TextAsset の enable_default_text を、さらに言語ごとに上書きできるようにするためのものです。
+これは、 TextAsset の autofill_default_text を、さらに言語ごとに上書きできるようにするためのものです。
 例えば日本語を言語として設定しているプロジェクトにおいて
 
 TextAssetInstance.multilingual_text['ja'] に何らかの値が入っている場合、当然それを使います。
 しかし、もし空の場合、以下の条件でそのインスタンスの初期テキストを使う動作となるかと思います。
 
-パターン1. TextAssetInstance.default_text_override['ja'] が設定されており、なおかつ asset.enable_default_text が true の場合、 default_text_override['ja'] の内容を使う
-パターン2. パターン1に該当しない場合、asset.enable_default_text が設定されており enable_default_text が true の場合、asset.default_text を使う
+パターン1. TextAssetInstance.default_text_override['ja'] が設定されており、なおかつ asset.autofill_default_text が true の場合、 default_text_override['ja'] の内容を使う
+パターン2. パターン1に該当しない場合、asset.autofill_default_text が設定されており autofill_default_text が true の場合、asset.default_text を使う
 
 default_text_override['ja'] のように言語ごとにデフォルトテキストを設定できるようにすると思いますが、ここに null ないし undefined は設定できるのでしょうか？
 例えば、ja だけは default_text_override['ja'] を設定し、他の言語は asset.default_text を使うようにしたい場合、 default_text_override['en'] = null のようにできると便利かと思います。
@@ -168,4 +168,4 @@ default_text_override['ja'] のように言語ごとにデフォルトテキス�
 
 default_language_override -> default_settings_lang
 default_text_override -> default_text_lang
-enable_default_text -> autofill_defaut_text
+autofill_default_text -> autofill_defaut_text

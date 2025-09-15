@@ -43,7 +43,7 @@ export interface TextAsset extends BaseAsset {
 
   default_text: string;
   default_context?: string;
-  enable_default_text?: boolean;
+  autofill_default_text?: boolean;
   default_text_override?: Record<string, string | null>;  // 言語ごとのデフォルトテキスト
   default_settings: LanguageSettings; // 共通設定
   default_language_override?: Record<string, LanguageSettings>; // 共通設定を上書きする、言語ごとのオーバーライド設定
@@ -54,7 +54,7 @@ export interface TextAssetEditableField {
   name: true; // associated to name
   text: true; // associated to default_text
   context: true; // associated to default_context
-  enable_default_text: true; // associated to enable_default_text
+  autofill_default_text: true; // associated to autofill_default_text
   default_text_override: true; // associated to default_text_override
   default_language_override: true; // associated to default_language_override
 }
@@ -65,7 +65,7 @@ export function isTextAssetEditableField(field: string): field is keyof TextAsse
     name: true,
     text: true,
     context: true,
-    enable_default_text: true,
+    autofill_default_text: true,
     default_text_override: true,
     default_language_override: true
   };
@@ -557,20 +557,19 @@ export function getEffectiveTextValue(
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
-  // 大元のアセットでテキストが存在
-  const enable_asset_text = asset.enable_default_text
-    && asset.default_text !== undefined;
-  // 大本のアセットの言語ごとの設定でテキストが存在
-  const enable_asset_lang_text = asset.enable_default_text
+  // アセットでテキストが存在
+  const enable_asset_text = asset.autofill_default_text;
+  // アセットで言語ごとの設定でテキストが存在
+  const enable_asset_lang_text = asset.autofill_default_text
     && asset.default_text_override !== undefined
     && currentLang in asset.default_text_override
-    && asset.default_text_override[currentLang] !== null
-    && asset.default_text_override[currentLang] !== '';
+    && asset.default_text_override[currentLang] !== undefined
+    && asset.default_text_override[currentLang] !== null;
   // インスタンスの多言語テキストが存在
   const enable_instance_text = instance?.multilingual_text
     && currentLang in instance.multilingual_text
     && instance.multilingual_text[currentLang] !== undefined
-    && instance.multilingual_text[currentLang] !== '';
+    && instance.multilingual_text[currentLang] !== null;
 
   // 優先度を自動設定
   if (phase === TextAssetInstancePhase.AUTO) {
@@ -583,19 +582,21 @@ export function getEffectiveTextValue(
       return asset.default_text_override![currentLang]!;
     }
     // 3. アセットのデフォルトテキストを使用
-    return asset.default_text || '';
+    if (enable_asset_text) {
+      return asset.default_text;
+    }
   }
-  if (phase === TextAssetInstancePhase.ASSET_LANG && enable_asset_lang_text) {
-    return asset.default_text_override![currentLang]!;
+  if (phase === TextAssetInstancePhase.ASSET_LANG && asset.default_text_override) {
+    return asset.default_text_override[currentLang] || '';
   }
-  if (phase === TextAssetInstancePhase.INSTANCE_LANG && enable_instance_text) {
-    return instance!.multilingual_text[currentLang]!;
+  if (phase === TextAssetInstancePhase.INSTANCE_LANG && instance) {
+    return instance.multilingual_text[currentLang] || '';
   }
-  if (phase === TextAssetInstancePhase.ASSET_COMMON && enable_asset_text) {
-    return asset.default_text || '';
+  if (phase === TextAssetInstancePhase.ASSET_COMMON) {
+    return asset.default_text;
   }
-  // 最終フォールバック：アセットのデフォルト値
-  return asset.default_text || '';
+  // 最終フォールバック：空文字を返す
+  return '';
 }
 
 /**
@@ -880,7 +881,7 @@ export function createDefaultTextAsset(params: {
     name,
     default_text: '',
     default_context: '',
-    enable_default_text: false,
+    autofill_default_text: false,
     default_text_override: {}, // 空のオブジェクトで初期化
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定

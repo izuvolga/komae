@@ -168,13 +168,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       const selectedLang = phase === TextAssetInstancePhase.ASSET_LANG ? activePreviewTab : getCurrentLanguage();
       if (isTextAssetEditableField(assetField as string)) {
         if (assetField === 'text') {
-          return getEffectiveTextValue(editingAsset, editingInstance, selectedLang, phase);
+          const ret = getEffectiveTextValue(editingAsset, editingInstance, selectedLang, phase);
+          console.log('DEBUG getCurrentValue:', {assetField, phase, selectedLang, ret});
+          return ret;
         } else if (assetField === 'context') {
           return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'name') {
           return editingAsset.name;
-        } else if (assetField === 'enable_default_text') {
-          return editingAsset.enable_default_text;
+        } else if (assetField === 'autofill_default_text') {
+          return editingAsset.autofill_default_text;
         } else if (assetField === 'default_language_override') {
           return editingAsset?.default_language_override;
         } else if (assetField === 'default_text_override') {
@@ -232,8 +234,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.context = val;
           }
-        } else if (field === 'enable_default_text') {
-          textAssetFields.enable_default_text = val;
+        } else if (field === 'autofill_default_text') {
+          textAssetFields.autofill_default_text = val;
         } else if (field === 'default_text_override') {
           textAssetFields.default_text_override = val;
         } else if (field === 'default_language_override') {
@@ -647,7 +649,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           width: canvasConfig?.width || 800,
           height: canvasConfig?.height || 600,
           backgroundColor: 'transparent',
-        }
+        },
+        getCurrentPhase()
       );
     } catch (error) {
       console.error('Failed to generate preview SVG:', error);
@@ -800,8 +803,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     <input
                       type="checkbox"
-                      checked={getCurrentValue('enable_default_text')}
-                      onChange={(e) => setCurrentValue({enable_default_text: e.target.checked})}
+                      checked={getCurrentValue('autofill_default_text')}
+                      onChange={(e) => setCurrentValue({autofill_default_text: e.target.checked})}
                     />
                     各ページの初期値に上記テキストを使う
                   </label>

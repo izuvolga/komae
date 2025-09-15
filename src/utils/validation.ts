@@ -107,7 +107,7 @@ const TextAssetSchema = z.object({
   name: z.string().min(1),
   default_text: z.string(),
   default_context: z.string().optional(),
-  enable_default_text: z.boolean().optional(),
+  autofill_default_text: z.boolean().optional(),
   default_text_override: z.record(z.string(), z.string().nullable()).optional(),
   default_settings: LanguageSettingsSchema,
   default_language_override: z.record(z.string(), LanguageSettingsSchema).optional(),
