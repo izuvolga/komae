@@ -173,8 +173,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'name') {
           return editingAsset.name;
-        } else if (assetField === 'use_default_text_for_pages') {
-          return editingAsset.use_default_text_for_pages || false;
+        } else if (assetField === 'enable_default_text') {
+          return editingAsset.enable_default_text || false;
         }
       }
       if (isLanguageSettingsField(assetField as string)) {
@@ -231,8 +231,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.context = val;
           }
-        } else if (field === 'use_default_text_for_pages') {
-          textAssetFields.use_default_text_for_pages = val;
+        } else if (field === 'enable_default_text') {
+          textAssetFields.enable_default_text = val;
         }
       } else if (isLanguageSettingsField(field)) {
         (languageSettingsFields as any)[field] = val;
@@ -799,8 +799,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     <input
                       type="checkbox"
-                      checked={editingAsset.use_default_text_for_pages || false}
-                      onChange={(e) => setCurrentValue({use_default_text_for_pages: e.target.checked})}
+                      checked={editingAsset.enable_default_text || false}
+                      onChange={(e) => setCurrentValue({enable_default_text: e.target.checked})}
                     />
                     各ページの初期値に上記テキストを使う
                   </label>

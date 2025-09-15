@@ -132,3 +132,24 @@ TextEditModal で TextAsset を編集しているときに編集できる項目�
 
 - boolean 型の use_default_text_for_pages というフィールドを TextAsset に追加してください。
 - TextEditModal で asset.default_text の編集項目の下にチェックボックスを追加してください。
+
+■■■■■■■■■■■■■■■■■■■■
+
+TextAssetInstance にも同様に use_default_text_for_pages というフィールドを追加してください。
+
+```
+export interface TextAssetInstance extends BaseAssetInstance {
+  override_context?: string;
+  multilingual_text: Record<string, string>;
+  override_use_default_text_for_pages?: Record<string, boolean>; // 追加
+  override_language_settings?: Record<string, LanguageSettings>;
+}
+```
+
+これは、 TextAsset の use_default_text_for_pages を、さらに言語ごとに上書きできるようにするためのものです。
+例えば日本語を言語として設定しているプロジェクトにおいて
+
+TextAssetInstance.multilingual_text['ja'] に何らかの値が入っている場合、当然それを使います。
+しかし、もし空の場合、以下の条件でそのインスタンスの初期テキストを使う動作となります。
+
+1. TextAsset.default_text が設定されており、use_default_text_for_pages が true の場合

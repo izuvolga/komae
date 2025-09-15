@@ -43,7 +43,7 @@ export interface TextAsset extends BaseAsset {
 
   default_text: string;
   default_context?: string;
-  use_default_text_for_pages?: boolean;
+  enable_default_text?: boolean;
   default_settings: LanguageSettings;
   default_language_override?: Record<string, LanguageSettings>;
 }
@@ -52,7 +52,7 @@ export interface TextAssetEditableField {
   name: true; // associated to name
   text: true; // associated to default_text
   context: true; // associated to default_context
-  use_default_text_for_pages: true; // associated to use_default_text_for_pages
+  enable_default_text: true; // associated to enable_default_text
 }
 
 export function isTextAssetEditableField(field: string): field is keyof TextAssetEditableField {
@@ -60,7 +60,7 @@ export function isTextAssetEditableField(field: string): field is keyof TextAsse
     name: true,
     text: true,
     context: true,
-    use_default_text_for_pages: true,
+    enable_default_text: true,
   };
   return fields[field as keyof TextAssetEditableField] === true;
 }
@@ -555,7 +555,7 @@ export function getEffectiveTextValue(
     // 1. インスタンスの多言語テキストをチェック
     if (instance?.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
       const text = instance.multilingual_text[currentLang];
-      if (text === '' && asset.use_default_text_for_pages) {
+      if (text === '' && asset.enable_default_text) {
         // 空文字で、アセットのデフォルトテキストを使用する設定の場合にはアセットのデフォルトテキストを使用
         return asset.default_text || '';
       }
@@ -850,7 +850,7 @@ export function createDefaultTextAsset(params: {
     name,
     default_text: '',
     default_context: '',
-    use_default_text_for_pages: false,
+    enable_default_text: false,
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定
   };
