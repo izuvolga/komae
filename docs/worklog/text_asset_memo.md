@@ -135,21 +135,53 @@ TextEditModal で TextAsset を編集しているときに編集できる項目�
 
 ■■■■■■■■■■■■■■■■■■■■
 
-TextAssetInstance にも同様に use_default_text_for_pages というフィールドを追加してください。
+そうですね。まずは修正方針を考えましょう。
+以下のようになる理解です。
 
 ```
-export interface TextAssetInstance extends BaseAssetInstance {
-  override_context?: string;
-  multilingual_text: Record<string, string>;
-  override_use_default_text_for_pages?: Record<string, boolean>; // 追加
-  override_language_settings?: Record<string, LanguageSettings>;
+export interface TextAsset extends BaseAsset {
+  type: 'TextAsset';
+
+  default_text: string;                                    // 全言語共通のフォールバック
+  default_context?: string;
+  enable_default_text?: boolean;                          // デフォルトテキスト機能の有効/無効
+  default_text_override?: Record<string, string>;         // 言語ごとのデフォルトテキスト（新機能）
+  default_settings: LanguageSettings;
+  default_language_override?: Record<string, LanguageSettings>;
 }
 ```
 
-これは、 TextAsset の use_default_text_for_pages を、さらに言語ごとに上書きできるようにするためのものです。
+
+これは、 TextAsset の enable_default_text を、さらに言語ごとに上書きできるようにするためのものです。
 例えば日本語を言語として設定しているプロジェクトにおいて
 
 TextAssetInstance.multilingual_text['ja'] に何らかの値が入っている場合、当然それを使います。
-しかし、もし空の場合、以下の条件でそのインスタンスの初期テキストを使う動作となります。
+しかし、もし空の場合、以下の条件でそのインスタンスの初期テキストを使う動作となるかと思います。
 
-1. TextAsset.default_text が設定されており、use_default_text_for_pages が true の場合
+パターン1. TextAssetInstance.default_text_override['ja'] が設定されており、なおかつ asset.enable_default_text が true の場合、 default_text_override['ja'] の内容を使う
+パターン2. パターン1に該当しない場合、asset.enable_default_text が設定されており enable_default_text が true の場合、asset.default_text を使う
+
+default_text_override['ja'] のように言語ごとにデフォルトテキストを設定できるようにすると思いますが、ここに null ないし undefined は設定できるのでしょうか？
+例えば、ja だけは default_text_override['ja'] を設定し、他の言語は asset.default_text を使うようにしたい場合、 default_text_override['en'] = null のようにできると便利かと思います。
+
+■■■■■■■■■■■■■■■■■■■■
+
+null 設定の場合かつ、enable_default_text が true であれば、asset.default_text を利用してください。
+
+TextEditModalでの編集方針ですが1137行目の言語別設定に、新たな見出し項目を追加してください。
+
+```
+            {/* 言語別設定（アセット編集時のみ） */}
+            {getCurrentPhase() === TextAssetInstancePhase.ASSET_LANG && (
+              <div className="form-section">
+                <div className="form-help">
+                  特定の言語でのみ異なる設定にしたい場合に使用します
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4 style={{ margin: 0 }}>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+```
+
+現在は h4 で言語別デフォルト設定となっていますが、
+さらにそれよりも上の見出しに h4 で「言語別デフォルトテキスト」を追加し、チェックボックスも追加してください。
+default_text_override が null の場合にはテキストボックスが外れ、さらにその小項目は非活性になります（現状の言語別デフォルト設定と同様）。もしチェックボックスをオンにした場合、 `default_text_override[activePreviewTab]` に空文字列をセットし、テキストボックスが表示されるようにしてください。

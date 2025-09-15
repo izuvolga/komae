@@ -156,7 +156,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }
 
   // フィールドタイプの定義
-  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings | 'override_language_settings' | 'default_language_override';
+  type SupportedField = keyof TextAssetEditableField | keyof LanguageSettings | 'override_language_settings';
 
   // 現在の値を取得する（オーバーロード対応）
   function getCurrentValue(field: SupportedField): any;
@@ -174,7 +174,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         } else if (assetField === 'name') {
           return editingAsset.name;
         } else if (assetField === 'enable_default_text') {
-          return editingAsset.enable_default_text || false;
+          return editingAsset.enable_default_text;
+        } else if (assetField === 'default_language_override') {
+          return editingAsset?.default_language_override;
+        } else if (assetField === 'default_text_override') {
+        return editingAsset?.default_text_override;
         }
       }
       if (isLanguageSettingsField(assetField as string)) {
@@ -184,9 +188,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (assetField === 'override_language_settings') {
         return editingInstance?.override_language_settings;
       }
-      if (assetField === 'default_language_override') {
-        return editingAsset?.default_language_override;
-      }
+
       return undefined;
     };
 
@@ -208,7 +210,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const setCurrentValue = (values: Record<string, any>): void => {
     const phase = getCurrentPhase();
     const selectedLang = phase === TextAssetInstancePhase.ASSET_LANG ? activePreviewTab : getCurrentLanguage();
-    // console.log('debug: setCurrentValue phase:', phase, 'lang:', selectedLang, 'values:', values);
 
     // 値を分類
     const textAssetFields: Partial<TextAsset> = {};
@@ -233,13 +234,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           }
         } else if (field === 'enable_default_text') {
           textAssetFields.enable_default_text = val;
+        } else if (field === 'default_text_override') {
+          textAssetFields.default_text_override = val;
+        } else if (field === 'default_language_override') {
+          textAssetFields.default_language_override = val;
         }
       } else if (isLanguageSettingsField(field)) {
         (languageSettingsFields as any)[field] = val;
       } else if (field === 'override_language_settings') {
         instanceFields.override_language_settings = val;
-      } else if (field === 'default_language_override') {
-        textAssetFields.default_language_override = val;
       }
     });
 
@@ -337,7 +340,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const lines = getCurrentValue('text').split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
-    // console.log('debug: getTextFrameSize (x,y):', pos.x, pos.y,);
     let maxWidth = 0;
     for (const line of lines) {
       const lineLength = line.length;
@@ -636,7 +638,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         previewLanguage = getCurrentLanguage();
         previewAsset = editingAsset;
       }
-      // console.log('debug: previewSVG (x,y):', currentPos.x, currentPos.y);
 
       return generateTextPreviewSVG(
         previewAsset,
@@ -799,7 +800,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <label>
                     <input
                       type="checkbox"
-                      checked={editingAsset.enable_default_text || false}
+                      checked={getCurrentValue('enable_default_text')}
                       onChange={(e) => setCurrentValue({enable_default_text: e.target.checked})}
                     />
                     各ページの初期値に上記テキストを使う
@@ -1140,6 +1141,78 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <div className="form-help">
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
+
+                {/* 言語別デフォルトテキスト */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h4 style={{ margin: 0 }}>言語別デフォルトテキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+                    <input
+                      type="checkbox"
+                      checked={(() => {
+                        const overrideTexts = getCurrentValue('default_text_override') || {};
+                        return !!(activePreviewTab in overrideTexts); // React controlled inputエラー防止のため、!!演算子でboolean型を保証
+                      })()}
+                      onChange={(e) => {
+                        const currentLang = activePreviewTab;
+                        const currentOverrides = getCurrentValue('default_text_override') || {};
+
+                        if (e.target.checked) {
+                          // チェックを入れたら空文字列を設定
+                          const newValue = {
+                            default_text_override: {
+                              ...currentOverrides,
+                              [currentLang]: ''
+                            }
+                          };
+                          setCurrentValue(newValue);
+                        } else {
+                          // チェックを外したら該当言語の設定を削除
+                          const newOverrides = { ...currentOverrides };
+                          delete newOverrides[currentLang];
+                          const newValue = {
+                            default_text_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                          };
+                          setCurrentValue(newValue);
+                        }
+                      }}
+                    />
+                    有効
+                  </label>
+                </div>
+
+                {/* テキスト入力欄 */}
+                {activePreviewTab && activePreviewTab !== 'common' && (() => {
+                  const overrideTexts = getCurrentValue('default_text_override') || {};
+                  const isTextOverrideEnabled = activePreviewTab in overrideTexts;
+                  return (
+                    <div className={`language-text-override-container ${isTextOverrideEnabled ? 'enabled' : 'disabled'}`}>
+                      <div className="form-group">
+                        <label>デフォルトテキスト</label>
+                        <textarea
+                          value={isTextOverrideEnabled ? (overrideTexts[activePreviewTab] || '') : ''}
+                          onChange={(e) => {
+                            if (isTextOverrideEnabled) {
+                              const currentOverrides = getCurrentValue('default_text_override') || {};
+                              setCurrentValue({
+                                default_text_override: {
+                                  ...currentOverrides,
+                                  [activePreviewTab]: e.target.value
+                                }
+                              });
+                            }
+                          }}
+                          disabled={!isTextOverrideEnabled}
+                          rows={3}
+                          placeholder={isTextOverrideEnabled ? '言語固有のデフォルトテキスト' : '全言語共通のデフォルトテキストを使用'}
+                        />
+                        <div className="form-help">
+                          この言語でのページ作成時の初期テキストです。空の場合は全言語共通のデフォルトテキストを使用します。
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h4 style={{ margin: 0 }}>言語別デフォルト設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>

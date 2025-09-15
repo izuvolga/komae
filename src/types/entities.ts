@@ -44,23 +44,30 @@ export interface TextAsset extends BaseAsset {
   default_text: string;
   default_context?: string;
   enable_default_text?: boolean;
-  default_settings: LanguageSettings;
-  default_language_override?: Record<string, LanguageSettings>;
+  default_text_override?: Record<string, string | null>;  // 言語ごとのデフォルトテキスト
+  default_settings: LanguageSettings; // 共通設定
+  default_language_override?: Record<string, LanguageSettings>; // 共通設定を上書きする、言語ごとのオーバーライド設定
 }
 
+// TextEditModal で直接編集可能な TextAsset フィールドは以下に記載する（TextAssetInstance のフィールドは除外）
 export interface TextAssetEditableField {
   name: true; // associated to name
   text: true; // associated to default_text
   context: true; // associated to default_context
   enable_default_text: true; // associated to enable_default_text
+  default_text_override: true; // associated to default_text_override
+  default_language_override: true; // associated to default_language_override
 }
 
+// TextEditModal で直接編集可能な TextAsset フィールドは以下に記載する（TextAssetInstance のフィールドは除外）
 export function isTextAssetEditableField(field: string): field is keyof TextAssetEditableField {
   const fields: Record<string, true> = {
     name: true,
     text: true,
     context: true,
     enable_default_text: true,
+    default_text_override: true,
+    default_language_override: true
   };
   return fields[field as keyof TextAssetEditableField] === true;
 }
@@ -556,7 +563,21 @@ export function getEffectiveTextValue(
     if (instance?.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
       const text = instance.multilingual_text[currentLang];
       if (text === '' && asset.enable_default_text) {
-        // 空文字で、アセットのデフォルトテキストを使用する設定の場合にはアセットのデフォルトテキストを使用
+        // 空文字で、デフォルトテキスト機能が有効な場合の優先順位処理
+
+        // 2. 言語ごとのデフォルトテキストをチェック
+        if (asset.default_text_override && currentLang in asset.default_text_override) {
+          const langOverride = asset.default_text_override[currentLang];
+          if (langOverride === null) {
+            // null設定の場合でもenable_default_textがtrueなら共通テキストを使用
+            return asset.default_text || '';
+          }
+          if (langOverride !== undefined) {
+            return langOverride;
+          }
+        }
+
+        // 3. 全言語共通のデフォルトテキストを使用
         return asset.default_text || '';
       }
       if (text !== undefined && text !== null) {
@@ -564,7 +585,7 @@ export function getEffectiveTextValue(
       }
     }
   }
-  // 2. アセットのデフォルト値を使用
+  // 4. 最終フォールバック：アセットのデフォルト値
   return asset.default_text || '';
 }
 
@@ -851,6 +872,7 @@ export function createDefaultTextAsset(params: {
     default_text: '',
     default_context: '',
     enable_default_text: false,
+    default_text_override: {}, // 空のオブジェクトで初期化
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定
   };

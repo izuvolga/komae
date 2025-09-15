@@ -544,7 +544,7 @@ export const useProjectStore = create<ProjectStore>()(
               const supportedLanguages = state.project.metadata.supportedLanguages || ['ja'];
               const multilingual_text: Record<string, string> = {};
 
-              // 各対応言語に対して空文字列で初期化（use_default_text_for_pagesの動作はgetEffectiveTextValueで制御）
+              // 各対応言語に対して空文字列で初期化
               supportedLanguages.forEach(langCode => {
                 multilingual_text[langCode] = '';
               });
