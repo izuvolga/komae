@@ -792,7 +792,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   rows={3}
                 />
                 <div className="form-help">
-                  テキストの内容は各ページで個別に設定できます。ここで設定した内容は新規ページ作成時の初期値として使用されます。
+                  テキストの内容は各ページで個別に設定できます
                 </div>
               </div>
               {mode === 'asset' && (
@@ -806,7 +806,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     各ページの初期値に上記テキストを使う
                   </label>
                   <div className="form-help">
-                    チェックを入れると、新しいページ作成時に上記のデフォルトテキストが自動的に設定されます。
+                    チェックを入れると、新しいページでテキストが自動的に設定されます
                   </div>
                 </div>
               )}

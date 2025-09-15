@@ -550,7 +550,6 @@ export function createImageAsset(params: {
 
 /**
  * 多言語対応：現在言語の有効テキスト値を取得
- * 優先順位: multilingual_text[currentLang] > asset default
  */
 export function getEffectiveTextValue(
   asset: TextAsset,
@@ -558,34 +557,44 @@ export function getEffectiveTextValue(
   currentLang: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
 ): string {
-  if (phase === TextAssetInstancePhase.INSTANCE_LANG || phase === TextAssetInstancePhase.AUTO) {
-    // 1. インスタンスの多言語テキストをチェック
-    if (instance?.multilingual_text && instance.multilingual_text[currentLang] !== undefined) {
-      const text = instance.multilingual_text[currentLang];
-      if (text === '' && asset.enable_default_text) {
-        // 空文字で、デフォルトテキスト機能が有効な場合の優先順位処理
+  // 大元のアセットでテキストが存在
+  const enable_asset_text = asset.enable_default_text
+    && asset.default_text !== undefined;
+  // 大本のアセットの言語ごとの設定でテキストが存在
+  const enable_asset_lang_text = asset.enable_default_text
+    && asset.default_text_override !== undefined
+    && currentLang in asset.default_text_override
+    && asset.default_text_override[currentLang] !== null
+    && asset.default_text_override[currentLang] !== '';
+  // インスタンスの多言語テキストが存在
+  const enable_instance_text = instance?.multilingual_text
+    && currentLang in instance.multilingual_text
+    && instance.multilingual_text[currentLang] !== undefined
+    && instance.multilingual_text[currentLang] !== '';
 
-        // 2. 言語ごとのデフォルトテキストをチェック
-        if (asset.default_text_override && currentLang in asset.default_text_override) {
-          const langOverride = asset.default_text_override[currentLang];
-          if (langOverride === null) {
-            // null設定の場合でもenable_default_textがtrueなら共通テキストを使用
-            return asset.default_text || '';
-          }
-          if (langOverride !== undefined) {
-            return langOverride;
-          }
-        }
-
-        // 3. 全言語共通のデフォルトテキストを使用
-        return asset.default_text || '';
-      }
-      if (text !== undefined && text !== null) {
-        return text;
-      }
+  // 優先度を自動設定
+  if (phase === TextAssetInstancePhase.AUTO) {
+    // 1. ページに直接記載されているの多言語テキストを最優先
+    if (enable_instance_text) {
+      return instance!.multilingual_text[currentLang]!;
     }
+    // 2. アセットの言語ごとのデフォルトテキストをチェック
+    if (enable_asset_lang_text) {
+      return asset.default_text_override![currentLang]!;
+    }
+    // 3. アセットのデフォルトテキストを使用
+    return asset.default_text || '';
   }
-  // 4. 最終フォールバック：アセットのデフォルト値
+  if (phase === TextAssetInstancePhase.ASSET_LANG && enable_asset_lang_text) {
+    return asset.default_text_override![currentLang]!;
+  }
+  if (phase === TextAssetInstancePhase.INSTANCE_LANG && enable_instance_text) {
+    return instance!.multilingual_text[currentLang]!;
+  }
+  if (phase === TextAssetInstancePhase.ASSET_COMMON && enable_asset_text) {
+    return asset.default_text || '';
+  }
+  // 最終フォールバック：アセットのデフォルト値
   return asset.default_text || '';
 }
 
