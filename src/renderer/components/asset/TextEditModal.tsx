@@ -713,14 +713,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
               <div className="form-group">
-                <label>デフォルトテキスト</label>
+                <label>確認用テキスト</label>
                 <textarea
                   value={getCurrentValue('text')}
                   onChange={(e) => setCurrentValue({text: e.target.value})}
                   rows={3}
                 />
                 <div className="form-help">
-                  テキストの内容は各ページで個別に設定できます
+                  上記は確認用であり、テキストの内容は各ページで個別に設定できます。
                 </div>
               </div>
                 <div className="form-group">
@@ -1093,9 +1093,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </div>
 
-                {/* 言語別デフォルトテキスト */}
+                {/* 言語別の確認用テキスト */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>言語別デフォルトテキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <h4 style={{ margin: 0 }}>言語別の確認用テキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                     <input
                       type="checkbox"
@@ -1138,7 +1138,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   return (
                     <div className={`language-text-override-container ${isTextOverrideEnabled ? 'enabled' : 'disabled'}`}>
                       <div className="form-group">
-                        <label>デフォルトテキスト</label>
+                        <label>確認用テキスト</label>
                         <textarea
                           value={isTextOverrideEnabled ? (overrideTexts[activePreviewTab] || '') : ''}
                           onChange={(e) => {
@@ -1156,16 +1156,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           rows={3}
                           placeholder={isTextOverrideEnabled ? '言語固有のデフォルトテキスト' : '全言語共通のデフォルトテキストを使用'}
                         />
-                        <div className="form-help">
-                          この言語でのページ作成時の初期テキストです。空の場合は全言語共通のデフォルトテキストを使用します。
-                        </div>
                       </div>
                     </div>
                   );
                 })()}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>言語別スタイル設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
+                  <h4 style={{ margin: 0 }}>言語別のスタイル設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                     <input
                       type="checkbox"
