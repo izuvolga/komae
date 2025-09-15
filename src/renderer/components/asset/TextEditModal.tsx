@@ -720,7 +720,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   rows={3}
                 />
                 <div className="form-help">
-                  上記は確認用であり、テキストの内容は各ページで個別に設定できます。
+                  テキストの内容は各ページで個別に設定できます。
                 </div>
               </div>
                 <div className="form-group">
@@ -942,12 +942,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       placeholder="例: キャラクターAの叫び声、ナレーション等"
                     />
                     <div className="form-help">
-                      このインスタンスでの用途や文脈を記録しておけます
+                      このページでの用途や文脈を記録しておけます（任意）
                     </div>
                   </label>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>このページの設定の上書き</h4>
+                  <h4 style={{ margin: 0 }}>このページのスタイルを上書き</h4>
                   <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                     <input
                       type="checkbox"
@@ -982,7 +982,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                               getCurrentLanguage() === 'en' ? 'English' :
                               getCurrentLanguage() === 'zh' ? '中文' :
                               getCurrentLanguage() === 'ko' ? '한국어' :
-                              getCurrentLanguage().toUpperCase()}）の設定をページ固有にオーバーライドします
+                              getCurrentLanguage().toUpperCase()}）におけるこのページのスタイルを上書きします
                 </div>
 
                 {/* 言語設定項目のラッパー */}

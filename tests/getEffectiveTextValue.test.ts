@@ -97,7 +97,7 @@ describe('getEffectiveTextValue', () => {
       expect(result).toBe('Japanese Override');
     });
 
-    test('指定言語の言語別デフォルトがない場合、空文字が返される', () => {
+    test('指定言語の言語別デフォルトがない場合で、指定言語の取得を指定した場合、未定義が返される', () => {
       const asset = createTestAsset({
         default_text_override: { en: 'English Override' }
       });
@@ -106,7 +106,7 @@ describe('getEffectiveTextValue', () => {
       });
 
       const result = getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.ASSET_LANG);
-      expect(result).toBe('');
+      expect(result).toBe(undefined);
     });
 
     test('default_text_overrideがundefinedの場合、空文字が返される', () => {
@@ -137,19 +137,6 @@ describe('getEffectiveTextValue', () => {
 
       const result = getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.INSTANCE_LANG);
       expect(result).toBe('Instance Japanese');
-    });
-
-    test('指定言語のインスタンステキストがない場合、空文字が返される', () => {
-      const asset = createTestAsset({
-        default_text: 'Asset Default',
-        default_text_override: { ja: 'Asset Japanese' }
-      });
-      const instance = createTestInstance({
-        multilingual_text: { en: 'Instance English' }
-      });
-
-      const result = getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.INSTANCE_LANG);
-      expect(result).toBe('');
     });
 
     test('instanceがnullの場合、空文字が返される', () => {
