@@ -886,19 +886,17 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 <h4>ページの内容</h4>
                 {/* テキスト設定 */}
                 <div className="form-group">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <label style={{ margin: 0 }}>このページのテキスト</label>
-                    <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'nowrap' }}>
+                    <span style={{ margin: 0, fontWeight: '600', fontSize: '14px' }}>このページのテキスト</span>
+                    <div style={{ borderLeft: '1px solid #ddd', height: '16px', margin: '0 4px' }}></div>
+                    <label style={{ margin: 0, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', fontSize: '14px', whiteSpace: 'nowrap' }}>
                       <input
                         type="checkbox"
-                        checked={isInstanceTextOverrideEnabled()}
+                        checked={!isInstanceTextOverrideEnabled()}
+                        style={{ margin: '0', flexShrink: 0 }}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setCurrentValue({
-                              text: '' // 空文字列で初期化
-                            });
-                          } else {
-                            // チェックを外したら該当言語の設定を削除（アセットのテキストを使用）
+                            // チェックを入れたら該当言語の設定を削除（確認用テキストを使用）
                             if (editingInstance?.multilingual_text) {
                               const currentLang = getCurrentLanguage();
                               const newMultilingualText = { ...editingInstance.multilingual_text };
@@ -908,9 +906,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                                 multilingual_text: newMultilingualText
                               });
                             }
+                          } else {
+                            // チェックを外したらこのページ専用のテキストを設定（初期値は空文字列）
+                            setCurrentValue({
+                              text: '' // 空文字列で初期化
+                            });
                           }
                         }}
                       />
+                      <span>確認用テキストを利用</span>
                     </label>
                   </div>
                   <textarea
@@ -919,15 +923,15 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     rows={3}
                     disabled={!isInstanceTextOverrideEnabled()}
                     style={{
-                      backgroundColor: isInstanceTextOverrideEnabled() ? 'white' : '#f5f5f5',
-                      color: isInstanceTextOverrideEnabled() ? 'black' : '#666',
-                      cursor: isInstanceTextOverrideEnabled() ? 'text' : 'not-allowed'
+                      backgroundColor: !isInstanceTextOverrideEnabled() ? '#f5f5f5' : 'white',
+                      color: !isInstanceTextOverrideEnabled() ? '#666' : 'black',
+                      cursor: !isInstanceTextOverrideEnabled() ? 'not-allowed' : 'text'
                     }}
                   />
                   <div className="form-help">
-                    {isInstanceTextOverrideEnabled()
-                      ? 'このページ専用のテキストを設定します'
-                      : 'アセットの設定が使用されます（チェックを入れるとこのページ専用のテキストを設定できます）'
+                    {!isInstanceTextOverrideEnabled()
+                      ? '確認用テキストが使用されます（チェックを外すとこのページ専用のテキストを設定できます）'
+                      : 'このページ専用のテキストを設定します'
                     }
                   </div>
                 </div>
