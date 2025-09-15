@@ -43,7 +43,6 @@ export interface TextAsset extends BaseAsset {
 
   default_text: string;
   default_context?: string;
-  autofill_default_text?: boolean;
   default_text_override?: Record<string, string>;  // 言語ごとのデフォルトテキスト
   default_settings: LanguageSettings; // 共通設定
   default_language_override?: Record<string, LanguageSettings>; // 共通設定を上書きする、言語ごとのオーバーライド設定
@@ -54,7 +53,6 @@ export interface TextAssetEditableField {
   name: true; // associated to name
   text: true; // associated to default_text
   context: true; // associated to default_context
-  autofill_default_text: true; // associated to autofill_default_text
   default_text_override: true; // associated to default_text_override
   default_language_override: true; // associated to default_language_override
 }
@@ -65,7 +63,6 @@ export function isTextAssetEditableField(field: string): field is keyof TextAsse
     name: true,
     text: true,
     context: true,
-    autofill_default_text: true,
     default_text_override: true,
     default_language_override: true
   };
@@ -559,10 +556,9 @@ export function getEffectiveTextValue(
 ): string {
   console.log('DEBUG: getEffectiveTextValue', { asset, instance, currentLang, phase });
   // アセットでテキストが存在
-  const enable_asset_text = asset.autofill_default_text;
+  const enable_asset_text = asset.default_text !== undefined;
   // アセットで言語ごとの設定でテキストが存在
-  const enable_asset_lang_text = asset.autofill_default_text
-    && asset.default_text_override !== undefined
+  const enable_asset_lang_text = asset.default_text_override !== undefined
     && currentLang in asset.default_text_override
     && asset.default_text_override[currentLang] !== undefined;
   // インスタンスの多言語テキストが存在
@@ -881,7 +877,6 @@ export function createDefaultTextAsset(params: {
     name,
     default_text: '',
     default_context: '',
-    autofill_default_text: false,
     default_text_override: {}, // 空のオブジェクトで初期化
     default_settings: createDefaultLanguageSettings(),
     // default_language_overrideは必要に応じて後で設定

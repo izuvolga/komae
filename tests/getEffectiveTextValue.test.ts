@@ -14,7 +14,6 @@ describe('getEffectiveTextValue', () => {
     name: 'Test Asset',
     default_text: 'Common Default Text',
     default_context: 'Test context',
-    autofill_default_text: true,
     default_text_override: {},
     default_settings: createDefaultLanguageSettings(),
     ...overrides
@@ -31,7 +30,6 @@ describe('getEffectiveTextValue', () => {
   describe('Phase: AUTO (自動優先度)', () => {
     test('インスタンスのテキストが最優先される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: { ja: 'Asset Japanese' }
       });
@@ -45,7 +43,6 @@ describe('getEffectiveTextValue', () => {
 
     test('インスタンステキストがない場合、言語別デフォルトが使用される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: { ja: 'Asset Japanese' }
       });
@@ -59,7 +56,6 @@ describe('getEffectiveTextValue', () => {
 
     test('言語別デフォルトがない場合、共通デフォルトが使用される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: {}
       });
@@ -71,23 +67,8 @@ describe('getEffectiveTextValue', () => {
       expect(result).toBe('Asset Default');
     });
 
-    test('autofill_default_textがfalseの場合、空文字が返される', () => {
-      const asset = createTestAsset({
-        autofill_default_text: false,
-        default_text: 'Asset Default',
-        default_text_override: { ja: 'Asset Japanese' }
-      });
-      const instance = createTestInstance({
-        multilingual_text: {}
-      });
-
-      const result = getEffectiveTextValue(asset, instance, 'ja', TextAssetInstancePhase.AUTO);
-      expect(result).toBe('');
-    });
-
     test('すべてのテキストソースがない場合、空文字が返される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: '',
         default_text_override: {}
       });
@@ -214,7 +195,6 @@ describe('getEffectiveTextValue', () => {
 
     test('multilingual_textの値が未定義の場合は除外される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: { ja: 'Asset Japanese' }
       });
@@ -230,7 +210,6 @@ describe('getEffectiveTextValue', () => {
   describe('空文字列の扱い', () => {
     test('インスタンステキストが空文字列でも有効として扱われる', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: { ja: 'Asset Japanese' }
       });
@@ -244,7 +223,6 @@ describe('getEffectiveTextValue', () => {
 
     test('言語別デフォルトが空文字列でも有効として扱われる', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Asset Default',
         default_text_override: { ja: '' }
       });
@@ -260,7 +238,6 @@ describe('getEffectiveTextValue', () => {
   describe('複数言語での動作', () => {
     test('異なる言語で異なるテキストが返される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'Default',
         default_text_override: {
           ja: 'Japanese',
@@ -282,7 +259,6 @@ describe('getEffectiveTextValue', () => {
   describe('default_text_override が null を含む状況', () => {
     test('default_text_override を無視して default_text が返される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'asset_common',
         default_text_override: {}
       });
@@ -300,7 +276,6 @@ describe('getEffectiveTextValue', () => {
   describe('default_text_override が値を含む状況', () => {
     test('default_text_override を無視して default_text が返される', () => {
       const asset = createTestAsset({
-        autofill_default_text: true,
         default_text: 'asset_common',
         default_text_override: {
           ja: 'asset_lang ja',

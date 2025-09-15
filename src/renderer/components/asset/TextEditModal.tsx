@@ -175,8 +175,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           return getEffectiveContextValue(editingAsset, editingInstance, selectedLang, phase);
         } else if (assetField === 'name') {
           return editingAsset.name;
-        } else if (assetField === 'autofill_default_text') {
-          return editingAsset.autofill_default_text;
         } else if (assetField === 'default_language_override') {
           return editingAsset?.default_language_override;
         } else if (assetField === 'default_text_override') {
@@ -234,8 +232,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           } else if (phase === TextAssetInstancePhase.INSTANCE_LANG) {
             instanceFields.context = val;
           }
-        } else if (field === 'autofill_default_text') {
-          textAssetFields.autofill_default_text = val;
         } else if (field === 'default_text_override') {
           textAssetFields.default_text_override = val;
         } else if (field === 'default_language_override') {
@@ -727,21 +723,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   テキストの内容は各ページで個別に設定できます
                 </div>
               </div>
-              {mode === 'asset' && (
-                <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={getCurrentValue('autofill_default_text')}
-                      onChange={(e) => setCurrentValue({autofill_default_text: e.target.checked})}
-                    />
-                    各ページの初期値に上記テキストを使う
-                  </label>
-                  <div className="form-help">
-                    チェックを入れると、新しいページでテキストが自動的に設定されます
-                  </div>
-                </div>
-              )}
                 <div className="form-group">
                   <label>文脈・用途</label>
                   <input
