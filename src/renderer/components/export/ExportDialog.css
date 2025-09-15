@@ -65,30 +65,21 @@
   overflow-y: auto;
 }
 
-.form-group {
-  margin-bottom: 0px;
-}
-
+/* ExportDialog固有のフォームスタイル */
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #374151;
+  color: #374151; /* 共通CSSの#495057から#374151に上書き */
 }
 
 .form-group input[type="text"] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 10px 12px; /* 共通CSSの8px 12pxから10px 12pxに上書き */
+  border-radius: 6px; /* 共通CSSの4pxから6pxに上書き */
 }
 
 .form-group input[type="text"]:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6; /* 共通CSSの#007bffから#3b82f6に上書き */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); /* カスタムボックスシャドウ */
 }
 
 .format-options {

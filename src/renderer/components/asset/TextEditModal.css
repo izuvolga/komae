@@ -142,48 +142,16 @@
   margin-bottom: 12px;
 }
 
-/* 縦配置フォームグループ */
-.form-group {
-  margin-bottom: 0px;
-}
-
+/* TextEditModal固有のフォームスタイル（共通CSSでカバーされない部分のみ） */
 .form-group label {
-  font-weight: 600;
-  color: #495057;
-  font-size: 14px;
-  margin: 0;
+  font-weight: 600; /* 共通CSSの500から600に上書き */
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
   background: white;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: #007bff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.form-group input[type="checkbox"] {
-  width: auto;
-  margin-right: 8px;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
+  box-sizing: border-box;
 }
 
 .form-row-double {

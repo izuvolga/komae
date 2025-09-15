@@ -142,16 +142,12 @@
   overflow-y: auto;
 }
 
-.form-group {
-  margin-bottom: 0px;
-}
-
+/* ValueEditModal固有のフォームスタイル */
 .form-group label {
   display: flex;
   flex-direction: column;
-  font-size: 13px;
-  font-weight: 500;
-  color: #555;
+  font-size: 13px; /* 共通CSSの14pxから13pxに上書き */
+  color: #555; /* 共通CSSの#495057から#555に上書き */
   gap: 6px;
   position: relative;
 }
@@ -159,26 +155,20 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 8px 10px; /* 共通CSSの8px 12pxから8px 10pxに上書き */
+  font-size: 13px; /* 共通CSSの14pxから13pxに上書き */
   background: white;
-  transition: border-color 0.2s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
-  border-color: #2196f3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+  border-color: #2196f3; /* 共通CSSの#007bffから#2196f3に上書き */
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1); /* カスタムボックスシャドウ */
 }
 
 .form-group textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: 'Courier New', monospace;
+  font-family: 'Courier New', monospace; /* ValueEditModal用にモノスペースフォント指定 */
 }
 
 .form-group input[type="number"] {

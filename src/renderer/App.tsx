@@ -5,6 +5,7 @@ import { useProjectStore } from './stores/projectStore';
 import type { FontInfo } from '../types/entities';
 import { setFontInfoCache } from '../utils/svgGeneratorCommon';
 import './App.css';
+import './styles/common-forms.css';
 
 const App: React.FC = () => {
   const isLoading = useProjectStore((state) => state.app.isLoading);
