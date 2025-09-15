@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, TextAssetInstancePhase } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, TextAssetInstancePhase } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -135,7 +135,7 @@ export async function generateSvgStructureCommon(
   const sortedInstances = instances
     .map(instance => {
       const asset = project.assets[instance.asset_id];
-      return { instance, asset, zIndex: asset ? getEffectiveZIndex(asset, instance) : 0 };
+      return { instance, asset, zIndex: asset ? getEffectiveZIndex(asset, instance, currentLanguage) : 0 };
     })
     .filter(item => item.asset) // Assetが存在するもののみ
     .sort((a, b) => a.zIndex - b.zIndex);
@@ -543,6 +543,7 @@ export function generateMultilingualTextElement(
     const finalPosY = finalPos.y;
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang, phase);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
+    const finalZIndex = getEffectiveZIndexForLanguage(asset, textInstance, lang, phase);
     const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);
 
     // テキスト内容が空の場合はスキップ

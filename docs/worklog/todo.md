@@ -15,7 +15,7 @@
   - @src/renderer/components/asset/ImageEditModal.tsx
 - [x]: EditModal で、共通処理があるものは共通化する
 - [x]: ValueAssetEditModal のプレビュー画面が不要なので削除
-- [ ]: TextEditModal の Z-Index が正常に動作していない？
+- [x]: TextEditModal の Z-Index が正常に動作していない？
 - [ ]: スプレッドシートのヘッダ部分から、アセットの編集・削除ができるようにする（そもそも左パネル必要なのか？という...）
 - [ ]: スプレッドシートの TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text のその言語の値を undefined にする
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
