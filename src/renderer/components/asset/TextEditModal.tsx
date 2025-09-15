@@ -565,6 +565,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (phase === TextAssetInstancePhase.INSTANCE_LANG && editingInstance && !(previewLanguage in editingInstance.multilingual_text)) {
         phase = TextAssetInstancePhase.AUTO;
       }
+      // アセット編集モードかつ、言語 editingAsset.default_text_override に言語設定が存在しない場合には、AUTO モードにする
+      if (phase === TextAssetInstancePhase.ASSET_LANG && !(editingAsset.default_text_override && previewLanguage in editingAsset.default_text_override)) {
+        phase = TextAssetInstancePhase.AUTO;
+      }
 
       return generateTextPreviewSVG(
         previewAsset,
