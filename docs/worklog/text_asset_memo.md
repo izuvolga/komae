@@ -168,4 +168,4 @@ default_text_override['ja'] のように言語ごとにデフォルトテキス�
 
 default_language_override -> default_settings_lang
 default_text_override -> default_text_lang
-enable_default_text -> defaut_text_autofill
+enable_default_text -> autofill_defaut_text
