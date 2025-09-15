@@ -373,63 +373,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [currentPos, previewDimensions.scale, getCurrentValue]);
 
-  // 言語別設定変更ハンドラー（Asset編集用）
-  const handleLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
-    if (mode !== 'asset') return;
-    // 新設計では、これは language override として扱われる
-    handleLanguageOverrideChange(language, settingKey, value);
-  };
-
-  // インスタンス用言語別設定変更ハンドラー
-  const handleInstanceLanguageSettingChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
-    if (mode !== 'instance' || !editingInstance) return;
-
-    const currentSettings = editingInstance.override_language_settings || {};
-    const languageSettings = currentSettings[language] || {};
-
-    // 値がundefinedまたは空の場合は設定を削除
-    const updatedLanguageSettings = { ...languageSettings };
-    if (value === undefined || value === '' || value === null) {
-      delete updatedLanguageSettings[settingKey];
-    } else {
-      updatedLanguageSettings[settingKey] = value;
-    }
-
-    // 言語設定全体が空になった場合は言語エントリを削除
-    const hasAnySettings = Object.keys(updatedLanguageSettings).length > 0;
-    const updatedOverrideLanguageSettings = { ...currentSettings };
-
-    if (hasAnySettings) {
-      updatedOverrideLanguageSettings[language] = updatedLanguageSettings;
-    } else {
-      delete updatedOverrideLanguageSettings[language];
-    }
-
-    setEditingInstance({
-      ...editingInstance,
-      override_language_settings: Object.keys(updatedOverrideLanguageSettings).length > 0 ?
-        updatedOverrideLanguageSettings : undefined
-    });
-  };
-
-  // 共通設定変更ハンドラー（Asset編集用）
-  const handleCommonSettingChange = (settingKey: keyof LanguageSettings, value: any) => {
-    if (mode !== 'asset') return;
-    const currentSettings = editingAsset.default_settings;
-    const updatedSettings = { ...currentSettings };
-    if (value === undefined || value === '' || value === null) {
-      delete updatedSettings[settingKey];
-    } else {
-      updatedSettings[settingKey] = value;
-    }
-    // 更新されたアセットデータを作成
-    const updatedAsset = {
-      ...editingAsset,
-      default_settings: updatedSettings
-    };
-    setEditingAsset(updatedAsset);
-  };
-
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
     if (mode !== 'asset') return;
@@ -521,33 +464,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
 
     setEditingInstance(updatedInstance);
-  };
-
-  // 言語別オーバーライド変更ハンドラー（Asset編集用）
-  const handleLanguageOverrideChange = (language: string, settingKey: keyof LanguageSettings, value: any) => {
-    if (mode !== 'asset') return;
-    const currentOverrides = editingAsset.default_language_override || {};
-    const languageOverrides = currentOverrides[language] || {};
-    // 値がundefinedまたは空の場合は設定を削除
-    const updatedLanguageOverrides = { ...languageOverrides };
-    if (value === undefined || value === '' || value === null) {
-      delete updatedLanguageOverrides[settingKey];
-    } else {
-      updatedLanguageOverrides[settingKey] = value;
-    }
-    // 言語オーバーライド全体が空になった場合は言語エントリを削除
-    const hasAnyOverrides = Object.keys(updatedLanguageOverrides).length > 0;
-    const updatedDefaultLanguageOverride = { ...currentOverrides };
-    if (hasAnyOverrides) {
-      updatedDefaultLanguageOverride[language] = updatedLanguageOverrides;
-    } else {
-      delete updatedDefaultLanguageOverride[language];
-    }
-    setEditingAsset({
-      ...editingAsset,
-      default_language_override: Object.keys(updatedDefaultLanguageOverride).length > 0 ?
-        updatedDefaultLanguageOverride : undefined
-    });
   };
 
   // ドラッグ操作のハンドラー
@@ -648,6 +564,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         previewAsset = editingAsset;
       }
 
+      let phase = getCurrentPhase();
+      // インスタンス編集モードかつ、 editingInstance に言語の text 設定が存在しない場合には、AUTO モードにする
+      if (phase === TextAssetInstancePhase.INSTANCE_LANG && editingInstance && !(previewLanguage in editingInstance.multilingual_text)) {
+        phase = TextAssetInstancePhase.AUTO;
+      }
+
       return generateTextPreviewSVG(
         previewAsset,
         mode === 'instance' ? editingInstance : undefined,
@@ -657,7 +579,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           height: canvasConfig?.height || 600,
           backgroundColor: 'transparent',
         },
-        getCurrentPhase()
+        phase,
       );
     } catch (error) {
       console.error('Failed to generate preview SVG:', error);
