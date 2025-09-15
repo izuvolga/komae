@@ -346,7 +346,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const scale = previewDimensions.scale;
     const fontSize = getCurrentValue('font_size')
     const charWidth = fontSize * previewDimensions.scale
-    const lines = getCurrentValue('text').split('\n');
+    const lines = (getCurrentValue('text') || '').split('\n');
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
     let maxWidth = 0;
@@ -795,7 +795,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                 </div>
               <div className="form-group">
-                <label>テキスト</label>
+                <label>デフォルトテキスト</label>
                 <textarea
                   value={getCurrentValue('text')}
                   onChange={(e) => setCurrentValue({text: e.target.value})}
@@ -984,7 +984,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* テキスト設定 */}
                 <div className="form-group">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <label style={{ margin: 0 }}>テキスト</label>
+                    <label style={{ margin: 0 }}>このページのテキスト</label>
                     <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
                       <input
                         type="checkbox"
@@ -1011,7 +1011,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     </label>
                   </div>
                   <textarea
-                    value={getCurrentValue('text')}
+                    value={getEffectiveTextValue(editingAsset, editingInstance, getCurrentLanguage(), TextAssetInstancePhase.AUTO)}
                     onChange={(e) => setCurrentValue({text: e.target.value})}
                     rows={3}
                     disabled={!isInstanceTextOverrideEnabled()}
