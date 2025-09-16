@@ -1,68 +1,14 @@
-.font-management-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
+/* FontManagementModal固有のスタイル（共通CSSでカバーされない部分のみ） */
+
+/* modal-overlay、modal-container、modal-header、modal-close-btnはcommon-modals.cssで定義済み */
 
 .font-management-modal {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 90%;
   max-width: 800px;
   height: 90%;
   max-height: 700px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
-.font-management-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
-}
-
-.font-management-modal-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #666;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.close-button:hover {
-  background-color: #e9ecef;
-  color: #333;
-}
-
-.font-management-modal-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  overflow: hidden;
-}
 
 .sample-text-section {
   margin-bottom: 24px;
@@ -213,49 +159,7 @@
   gap: 16px;
 }
 
-.delete-font-button,
-.add-font-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 120px;
-}
-
-.delete-font-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.delete-font-button:hover:not(:disabled) {
-  background-color: #c82333;
-  transform: translateY(-1px);
-}
-
-.delete-font-button:disabled {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.add-font-button {
-  background-color: #007bff;
-  color: white;
-}
-
-.add-font-button:hover:not(:disabled) {
-  background-color: #0056b3;
-  transform: translateY(-1px);
-}
-
-.add-font-button:disabled {
-  background-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
+/* btnクラスはcommon-buttons.cssで定義済み */
 
 /* スクロールバーのスタイリング */
 .fonts-list::-webkit-scrollbar {

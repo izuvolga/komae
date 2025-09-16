@@ -207,16 +207,16 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   }
 
   return (
-    <div className="font-management-modal-overlay" onClick={onClose}>
-      <div className="font-management-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="font-management-modal-header">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container font-management-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
           <h2>Font Management</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="modal-close-btn" onClick={onClose}>
             ×
           </button>
         </div>
 
-        <div className="font-management-modal-content">
+        <div className="modal-content">
           {/* Sample Text入力 */}
           <div className="sample-text-section">
             <label htmlFor="sample-text">Sample Text</label>
@@ -290,7 +290,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           {/* 操作ボタン */}
           <div className="font-management-actions">
             <button
-              className="delete-font-button"
+              className="btn btn-danger"
               onClick={handleDeleteFont}
               disabled={!selectedFont || isLoading || (
                 // システムフォントは削除不可
@@ -309,7 +309,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
               Delete Font
             </button>
             <button
-              className="add-font-button"
+              className="btn btn-primary"
               onClick={() => setShowAddModal(true)}
               disabled={isLoading}
             >

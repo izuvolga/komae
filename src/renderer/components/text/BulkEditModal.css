@@ -1,4 +1,6 @@
-/* TextAsset Bulk Edit Modal */
+/* BulkEditModal固有のスタイル（共通CSSでカバーされない部分のみ） */
+
+/* modal-overlay、modal-container、modal-header、modal-close-btn、modal-footerはcommon-modals.cssで定義済み */
 .bulk-edit-modal {
   width: 90vw;
   max-width: 1200px;
@@ -8,22 +10,6 @@
   flex-direction: column;
 }
 
-.bulk-edit-modal .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e1e5e9;
-  background: #f8f9fa;
-  flex-shrink: 0;
-}
-
-.bulk-edit-modal .modal-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
 
 .header-actions {
   display: flex;
@@ -64,20 +50,6 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.bulk-edit-modal .modal-close-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: #6c757d;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.bulk-edit-modal .modal-close-btn:hover {
-  background-color: #f1f3f4;
-}
 
 /* ヘルプセクション */
 .help-section {
@@ -187,16 +159,6 @@
   background: #f1f1f1;
 }
 
-/* モーダルフッター */
-.bulk-edit-modal .modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-top: 1px solid #e1e5e9;
-  background: #f8f9fa;
-  flex-shrink: 0;
-}
 
 .footer-info {
   display: flex;
@@ -217,39 +179,7 @@
   gap: 12px;
 }
 
-.bulk-edit-modal .btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-}
-
-.bulk-edit-modal .btn-primary {
-  background: #3b82f6;
-  color: white;
-}
-
-.bulk-edit-modal .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.bulk-edit-modal .btn-primary:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.bulk-edit-modal .btn-secondary {
-  background: white;
-  color: #374151;
-  border-color: #d1d5db;
-}
-
-.bulk-edit-modal .btn-secondary:hover {
-  background: #f9fafb;
-}
+/* btnクラスはcommon-buttons.cssで定義済み */
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
@@ -258,9 +188,6 @@
     height: 90vh;
   }
   
-  .bulk-edit-modal .modal-header {
-    padding: 12px 16px;
-  }
   
   .header-actions {
     gap: 8px;
@@ -277,7 +204,4 @@
     font-size: 12px;
   }
   
-  .bulk-edit-modal .modal-footer {
-    padding: 12px 16px;
-  }
 }

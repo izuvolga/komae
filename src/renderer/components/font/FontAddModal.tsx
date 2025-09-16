@@ -180,14 +180,14 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   };
 
   return (
-    <div className="font-add-modal-overlay" onClick={handleCancel}>
-      <div className="font-add-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="font-add-modal-header">
-          <h3>Add Font</h3>
-          <button className="close-button" onClick={handleCancel}>×</button>
+    <div className="modal-overlay" onClick={handleCancel}>
+      <div className="modal-container font-add-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Add Font</h2>
+          <button className="modal-close-btn" onClick={handleCancel}>×</button>
         </div>
         
-        <div className="font-add-modal-content">
+        <div className="modal-content">
           {/* フォントタイプ選択 */}
           <div className="form-section">
             <label>フォントタイプ</label>
@@ -380,17 +380,17 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           )}
         </div>
 
-        <div className="font-add-modal-footer">
-          <button 
-            onClick={handleCancel} 
-            className="cancel-button"
+        <div className="modal-footer">
+          <button
+            onClick={handleCancel}
+            className="btn btn-secondary"
             disabled={isLoading}
           >
             Cancel
           </button>
-          <button 
-            onClick={handleAdd} 
-            className="add-button"
+          <button
+            onClick={handleAdd}
+            className="btn btn-primary"
             disabled={(fontType === 'embed' && !fontFile) || (fontType === 'google' && !googleFontUrl.trim()) || (fontType === 'builtin' && !fontFile) || isLoading}
           >
             {isLoading ? '追加中...' : '追加'}

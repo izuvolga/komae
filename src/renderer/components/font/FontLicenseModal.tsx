@@ -26,14 +26,14 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
   };
 
   return (
-    <div className="font-license-modal-overlay" onClick={onClose}>
-      <div className="font-license-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="font-license-modal-header">
-          <h3>License Information</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container font-license-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>License Information</h2>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
-        
-        <div className="font-license-modal-content">
+
+        <div className="modal-content">
           <div className="font-info">
             <h4>{font.name}</h4>
             <p className="font-type">
@@ -86,8 +86,8 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
           </div>
         </div>
 
-        <div className="font-license-modal-footer">
-          <button onClick={onClose} className="close-modal-button">Close</button>
+        <div className="modal-footer">
+          <button onClick={onClose} className="btn btn-secondary">Close</button>
         </div>
       </div>
     </div>

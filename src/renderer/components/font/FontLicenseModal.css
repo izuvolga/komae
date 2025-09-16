@@ -1,65 +1,12 @@
-.font-license-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
+/* FontLicenseModal固有のスタイル（共通CSSでカバーされない部分のみ） */
+
+/* modal-overlay、modal-container、modal-header、modal-close-btnはcommon-modals.cssで定義済み */
 
 .font-license-modal {
-  background: white;
-  border-radius: 8px;
   width: 600px;
-  max-width: 90vw;
   max-height: 80vh;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
-.font-license-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f8f9fa;
-}
-
-.font-license-modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: #666;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  line-height: 1;
-}
-
-.close-button:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  color: #333;
-}
-
-.font-license-modal-content {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
 
 .font-info {
   margin-bottom: 20px;
@@ -164,25 +111,4 @@
   text-decoration: underline;
 }
 
-.font-license-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 20px;
-  border-top: 1px solid #e0e0e0;
-  background: #f8f9fa;
-}
-
-.close-modal-button {
-  padding: 8px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 80px;
-}
-
-.close-modal-button:hover {
-  background: #0056b3;
-}
+/* modal-footer、btnクラスはcommon-modals.cssとcommon-buttons.cssで定義済み */
