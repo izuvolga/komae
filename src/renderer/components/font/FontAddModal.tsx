@@ -214,9 +214,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
             pr: 1,
           }}
         >
-          <Typography variant="h6" component="h2">
-            Add Font
-          </Typography>
+          Add Font
           <IconButton
             onClick={handleCancel}
             disabled={isLoading}

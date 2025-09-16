@@ -42,9 +42,7 @@ export const FontLicenseHelpModal: React.FC<FontLicenseHelpModalProps> = ({
           pr: 1,
         }}
       >
-        <Typography variant="h6" component="h2">
-          ライセンス情報について
-        </Typography>
+        ライセンス情報について
         <IconButton
           onClick={onClose}
           size="small"

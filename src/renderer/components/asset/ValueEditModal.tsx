@@ -3,6 +3,28 @@ import { ValueAsset, ValueAssetInstance, Page, ProjectData, validateValueAssetDa
 import { useProjectStore } from '../../stores/projectStore';
 import { evaluateFormula, getEffectiveValueAssetValue, parseFormulaReferences } from '../../../utils/valueEvaluation';
 import { ReadOnlyInput } from '../common/ReadOnlyInput';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  FormLabel,
+  Alert,
+  Tooltip,
+} from '@mui/material';
+import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import './ValueEditModal.css';
 
 type EditMode = 'asset' | 'instance';
@@ -266,175 +288,190 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container value-edit-modal">
-        <div className="modal-header">
-          <h2>{getTitle()}</h2>
-          <button className="modal-close-btn" onClick={onClose}>
-            ×
-          </button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        {getTitle()}
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="value-edit-main">
-            <div className="value-edit-form">
-              {mode === 'asset' && (
-                <>
-                  <div className="form-group">
-                    <label>
+      <DialogContent>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt:3 }}>
+          {mode === 'asset' && (
+            <>
+              <Box>
+                <TextField
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       アセット名
-                      <span className="help-icon" title={getHelpText('name')}>?</span>
-                      <input
-                        type="text"
-                        value={tempInputValues.name}
-                        onChange={(e) => setTempInputValues(prev => ({...prev, name: e.target.value}))}
-                        placeholder="アセット名を入力"
-                        className={!nameValidation.isValid ? 'input-error' : ''}
-                      />
-                      {!nameValidation.isValid && (
-                        <div className="validation-error">
-                          {nameValidation.errorMessage}
-                        </div>
-                      )}
-                    </label>
-                  </div>
+                      <Tooltip title={getHelpText('name')}>
+                        <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                      </Tooltip>
+                    </Box>
+                  }
+                  value={tempInputValues.name}
+                  onChange={(e) => setTempInputValues(prev => ({...prev, name: e.target.value}))}
+                  placeholder="アセット名を入力"
+                  error={!nameValidation.isValid}
+                  helperText={!nameValidation.isValid ? nameValidation.errorMessage : ''}
+                  fullWidth
+                  variant="outlined"
+                />
+              </Box>
 
-                  <div className="form-group">
-                    <label>
-                      値の型
-                      <select
-                        value={tempInputValues.value_type}
-                        onChange={(e) => setTempInputValues(prev => ({...prev, value_type: e.target.value as any}))}
-                      >
-                        <option value="string">文字列</option>
-                        <option value="number">数値</option>
-                        <option value="formula">数式</option>
-                      </select>
-                    </label>
-                  </div>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>値の型</InputLabel>
+                <Select
+                  value={tempInputValues.value_type}
+                  onChange={(e) => setTempInputValues(prev => ({...prev, value_type: e.target.value as any}))}
+                  label="値の型"
+                >
+                  <MenuItem value="string">文字列</MenuItem>
+                  <MenuItem value="number">数値</MenuItem>
+                  <MenuItem value="formula">数式</MenuItem>
+                </Select>
+              </FormControl>
 
-                  <div className="form-group">
-                    <label>
+              <Box>
+                <TextField
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       初期値
                       {tempInputValues.value_type === 'formula' && (
-                        <span className="help-icon" title={getHelpText('formula')}>?</span>
+                        <Tooltip title={getHelpText('formula')}>
+                          <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                        </Tooltip>
                       )}
-                      {tempInputValues.value_type === 'formula' ? (
-                        <textarea
-                          value={tempInputValues.initial_value}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, initial_value: e.target.value}))}
-                          placeholder="例: %{value1} + %{value2} + 1"
-                          rows={3}
-                        />
-                      ) : (
-                        <input
-                          type={tempInputValues.value_type === 'number' ? 'number' : 'text'}
-                          value={tempInputValues.initial_value}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, initial_value: e.target.value}))}
-                          placeholder={tempInputValues.value_type === 'number' ? '0' : '初期値を入力'}
-                        />
-                      )}
-                    </label>
-                  </div>
+                    </Box>
+                  }
+                  value={tempInputValues.initial_value}
+                  onChange={(e) => setTempInputValues(prev => ({...prev, initial_value: e.target.value}))}
+                  placeholder={
+                    tempInputValues.value_type === 'formula'
+                      ? "例: %{value1} + %{value2} + 1"
+                      : tempInputValues.value_type === 'number'
+                        ? '0'
+                        : '初期値を入力'
+                  }
+                  fullWidth
+                  variant="outlined"
+                  multiline={tempInputValues.value_type === 'formula'}
+                  rows={tempInputValues.value_type === 'formula' ? 3 : 1}
+                  type={tempInputValues.value_type === 'number' ? 'number' : 'text'}
+                />
+              </Box>
 
-                  <div className="form-group">
-                    <label>
-                      新規ページでの動作
-                      <span className="help-icon" title={getHelpText('new_page_behavior')}>?</span>
-                    </label>
-                    <div className="radio-group">
-                      <label className="radio-label">
-                        <input
-                          type="radio"
-                          value="reset"
-                          checked={tempInputValues.new_page_behavior === 'reset'}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, new_page_behavior: 'reset'}))}
-                        />
-                        初期値にリセット
-                      </label>
-                      <label className="radio-label">
-                        <input
-                          type="radio"
-                          value="inherit"
-                          checked={tempInputValues.new_page_behavior === 'inherit'}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, new_page_behavior: 'inherit'}))}
-                        />
-                        前のページの値を継承
-                      </label>
-                    </div>
-                  </div>
+              <FormControl component="fieldset">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+                  <FormLabel component="legend">
+                    新規ページでの動作
+                  </FormLabel>
+                  <Tooltip title={getHelpText('new_page_behavior')}>
+                    <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                  </Tooltip>
+                </Box>
+                <RadioGroup
+                  value={tempInputValues.new_page_behavior}
+                  onChange={(e) => setTempInputValues(prev => ({...prev, new_page_behavior: e.target.value as 'reset' | 'inherit'}))}
+                >
+                  <FormControlLabel
+                    value="reset"
+                    control={<Radio />}
+                    label="初期値にリセット"
+                  />
+                  <FormControlLabel
+                    value="inherit"
+                    control={<Radio />}
+                    label="前のページの値を継承"
+                  />
+                </RadioGroup>
+              </FormControl>
                 </>
               )}
 
-              {mode === 'instance' && (
-                <>
-                  <div className="current-result">
-                    <strong>現在の値:</strong> {previewError ? `エラー: ${previewError}` : String(previewValue)}
-                  </div>
+          {mode === 'instance' && (
+            <>
+              <Alert
+                severity={previewError ? 'error' : 'info'}
+                sx={{ mb: 2 }}
+              >
+                <Typography variant="body2">
+                  <strong>現在の値:</strong> {previewError ? `エラー: ${previewError}` : String(previewValue)}
+                </Typography>
+              </Alert>
 
-                  <div className="form-group">
-                    <ReadOnlyInput
-                      label="アセット名"
-                      value={asset.name}
-                    />
-                  </div>
+              <ReadOnlyInput
+                label="アセット名"
+                value={asset.name}
+              />
 
-                  <div className="form-group">
-                    <ReadOnlyInput
-                      label="初期値"
-                      value={String(asset.initial_value)}
-                    />
-                  </div>
+              <ReadOnlyInput
+                label="初期値"
+                value={String(asset.initial_value)}
+              />
 
-                  <div className="form-group">
-                    <ReadOnlyInput
-                      label="値の型"
-                      value={asset.value_type === 'string' ? '文字列' : asset.value_type === 'number' ? '数値' : '数式'}
-                    />
-                  </div>
+              <ReadOnlyInput
+                label="値の型"
+                value={asset.value_type === 'string' ? '文字列' : asset.value_type === 'number' ? '数値' : '数式'}
+              />
 
-                  <div className="form-group">
-                    <label>
-                      オーバーライド値
-                      {asset.value_type === 'formula' && (
-                        <span className="help-icon" title={getHelpText('formula')}>?</span>
-                      )}
-                      {asset.value_type === 'formula' ? (
-                        <textarea
-                          value={tempInputValues.override_value}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
-                          placeholder="このページ用の数式を入力（空白の場合はアセットの初期値を使用）"
-                          rows={3}
-                        />
-                      ) : (
-                        <input
-                          type={asset.value_type === 'number' ? 'number' : 'text'}
-                          value={tempInputValues.override_value}
-                          onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
-                          placeholder="このページ用の値（空白の場合はアセットの初期値を使用）"
-                        />
-                      )}
-                    </label>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+              <TextField
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    オーバーライド値
+                    {asset.value_type === 'formula' && (
+                      <Tooltip title={getHelpText('formula')}>
+                        <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                      </Tooltip>
+                    )}
+                  </Box>
+                }
+                value={tempInputValues.override_value}
+                onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
+                placeholder={
+                  asset.value_type === 'formula'
+                    ? "このページ用の数式を入力（空白の場合はアセットの初期値を使用）"
+                    : "このページ用の値（空白の場合はアセットの初期値を使用）"
+                }
+                fullWidth
+                variant="outlined"
+                multiline={asset.value_type === 'formula'}
+                rows={asset.value_type === 'formula' ? 3 : 1}
+                type={asset.value_type === 'number' ? 'number' : 'text'}
+              />
+            </>
+          )}
+        </Box>
+      </DialogContent>
 
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-secondary">
-            キャンセル
-          </button>
-          <button
-            onClick={handleSave}
-            className="btn btn-primary"
-            disabled={mode === 'asset' && !nameValidation.isValid}
-          >
-            保存
-          </button>
-        </div>
-      </div>
-    </div>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          キャンセル
+        </Button>
+        <Button
+          onClick={handleSave}
+          variant="contained"
+          disabled={mode === 'asset' && !nameValidation.isValid}
+        >
+          保存
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };

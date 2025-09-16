@@ -52,9 +52,7 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
           pr: 1,
         }}
       >
-        <Typography variant="h6" component="h2">
-          Google Fonts の利用方法
-        </Typography>
+        Google Fonts の利用方法
         <IconButton
           onClick={onClose}
           size="small"
@@ -64,7 +62,6 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
       </DialogTitle>
 
       <DialogContent>
-          
         <Typography variant="body1" sx={{ mb: 2 }}>
           フォントのファイルを指定せず、
           <Link

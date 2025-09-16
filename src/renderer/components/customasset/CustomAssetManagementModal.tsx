@@ -170,9 +170,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
           pr: 1,
         }}
       >
-        <Typography variant="h6" component="h2">
-          Custom Asset Management
-        </Typography>
+        Custom Asset Management
         <IconButton
           onClick={onClose}
           disabled={isLoading}
