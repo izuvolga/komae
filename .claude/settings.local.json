@@ -18,7 +18,8 @@
       "mcp__serena__find_referencing_symbols",
       "Bash(npm test:*)",
       "mcp__serena__list_dir",
-      "mcp__serena__think_about_collected_information"
+      "mcp__serena__think_about_collected_information",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }

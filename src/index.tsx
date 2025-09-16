@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App';
+import { ThemeProvider } from './theme/ThemeProvider';
 
 console.log('React app starting...');
 
@@ -12,6 +13,10 @@ if (!container) {
 console.log('Root element found, creating React root...');
 
 const root = createRoot(container);
-root.render(<App />);
+root.render(
+  <ThemeProvider>
+    <App />
+  </ThemeProvider>
+);
 
 console.log('React app rendered');
