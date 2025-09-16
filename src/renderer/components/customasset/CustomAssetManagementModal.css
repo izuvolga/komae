@@ -1,73 +1,22 @@
-/* Custom Asset Management Modal */
-.custom-asset-management-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
+/* ========================================
+   Custom Asset Management Modal
+   ========================================
+   基本的なモーダル構造は common-modals.css で定義済み
+   ここではコンポーネント固有のレイアウトのみ定義
+   ======================================== */
 
-.custom-asset-management-modal {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+/* Modal Size Configuration */
+.modal-container.custom-asset-management-modal {
   width: 90vw;
   max-width: 1000px;
   height: 80vh;
   max-height: 800px;
+}
+
+/* Modal Content Layout */
+.custom-asset-management-modal .modal-content {
   display: flex;
   flex-direction: column;
-}
-
-.custom-asset-management-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
-  flex-shrink: 0;
-}
-
-.custom-asset-management-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #333;
-}
-
-.custom-asset-management-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 4px;
-}
-
-.custom-asset-management-close:hover {
-  background-color: #f0f0f0;
-}
-
-.custom-asset-management-close:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.custom-asset-management-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
   overflow: hidden;
 }
 
@@ -78,39 +27,13 @@
   flex-shrink: 0;
 }
 
-.custom-asset-add-button,
-.custom-asset-delete-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
+/* ========================================
+   Toolbar and Actions
+   ======================================== */
 
-.custom-asset-add-button {
-  background-color: #007bff;
-  color: white;
-}
-
-.custom-asset-add-button:hover {
-  background-color: #0056b3;
-}
-
-.custom-asset-delete-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.custom-asset-delete-button:hover:not(:disabled) {
-  background-color: #c82333;
-}
-
-.custom-asset-add-button:disabled,
-.custom-asset-delete-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* ========================================
+   Main Layout - Two Panel Structure
+   ======================================== */
 .custom-asset-management-main {
   flex: 1;
   display: flex;
@@ -118,6 +41,9 @@
   overflow: hidden;
 }
 
+/* ========================================
+   Asset List Section (Left Panel)
+   ======================================== */
 .custom-asset-list-section {
   flex: 1;
   display: flex;
@@ -211,6 +137,9 @@
   color: #999;
 }
 
+/* ========================================
+   Asset Detail Section (Right Panel)
+   ======================================== */
 .custom-asset-detail-section {
   flex: 1;
   display: flex;
@@ -255,6 +184,9 @@
   color: #666;
 }
 
+/* ========================================
+   Parameters and Code Preview
+   ======================================== */
 .custom-asset-parameters-list {
   margin-top: 8px;
 }

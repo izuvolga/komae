@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as crypto from 'crypto';
+import '../../styles/common-modals.css';
+import '../../styles/common-buttons.css';
 import './CustomAssetManagementModal.css';
 
 interface CustomAssetInfo {
@@ -139,12 +141,12 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
   const selectedAsset = customAssets.find(a => a.id === selectedAssetId);
 
   return (
-    <div className="custom-asset-management-modal-overlay" onClick={onClose}>
-      <div className="custom-asset-management-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="custom-asset-management-header">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container custom-asset-management-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
           <h2>Custom Asset Management</h2>
           <button
-            className="custom-asset-management-close"
+            className="modal-close-btn"
             onClick={onClose}
             disabled={isLoading}
           >
@@ -152,17 +154,17 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
           </button>
         </div>
 
-        <div className="custom-asset-management-content">
+        <div className="modal-content">
           <div className="custom-asset-management-toolbar">
             <button
-              className="custom-asset-add-button"
+              className="btn btn-primary"
               onClick={handleAddAsset}
               disabled={isLoading}
             >
               Add Custom Asset
             </button>
             <button
-              className="custom-asset-delete-button"
+              className="btn btn-danger"
               onClick={handleDeleteAsset}
               disabled={isLoading || !selectedAssetId}
             >
