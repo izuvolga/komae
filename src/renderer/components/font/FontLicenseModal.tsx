@@ -25,10 +25,6 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
   onClose,
   font,
 }) => {
-  if (!isOpen || !font) {
-    return null;
-  }
-
   const handleExternalLink = async (url: string) => {
     try {
       await window.electronAPI.system.openExternal(url);
@@ -38,36 +34,78 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container font-license-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>License Information</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
-        </div>
+    <Dialog
+      open={isOpen && !!font}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{ zIndex: 1400 }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6">
+          License Information
+        </Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="font-info">
-            <Typography variant="h6" component="h4">{font.name}</Typography>
-            <Typography variant="body2" className="font-type">
+      <DialogContent>
+        {font && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" component="h4" sx={{ mb: 1 }}>
+              {font.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               {font.isGoogleFont ? 'Google Fonts' :
                font.type === 'builtin' ? 'Built-in Font' : 'Custom Font'}
             </Typography>
             {font.isGoogleFont && font.googleFontUrl && (
-              <p className="font-url">URL: <Link href="#" onClick={(e) => { e.preventDefault(); handleExternalLink(font.googleFontUrl!); }}>{font.googleFontUrl}</Link></p>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                URL: <Link href="#" onClick={(e) => { e.preventDefault(); handleExternalLink(font.googleFontUrl!); }}>{font.googleFontUrl}</Link>
+              </Typography>
             )}
             {!font.isGoogleFont && font.filename && (
-              <p className="font-filename">File: {font.filename}</p>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                File: {font.filename}
+              </Typography>
             )}
-          </div>
+          </Box>
+        )}
 
-          <div className="license-content">
+        {font && (
+          <Box>
             {font.license ? (
-              <pre className="license-text">{font.license}</pre>
+              <Box
+                sx={{
+                  bgcolor: 'grey.10',
+                  p: 2,
+                  borderRadius: 1,
+                  fontFamily: 'monospace',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'pre-wrap',
+                  overflow: 'auto',
+                  maxHeight: '400px',
+                }}
+              >
+                {font.license}
+              </Box>
             ) : font.isGoogleFont ? (
-              <div className="google-fonts-license">
-                <p>This is a Google Fonts font. Google Fonts are generally licensed under open source licenses (such as OFL, Apache, etc.).</p>
-                <p>For detailed license information, please visit:</p>
-                <ul>
+              <Box sx={{ p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  This is a Google Fonts font. Google Fonts are generally licensed under open source licenses (such as OFL, Apache, etc.).
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  For detailed license information, please visit:
+                </Typography>
+                <Box component="ul" sx={{ pl: 2 }}>
                   <li>
                     <Link href="#" onClick={(e) => {
                       e.preventDefault();
@@ -82,26 +120,34 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
                       Google Fonts General Information
                     </Link>
                   </li>
-                </ul>
-              </div>
+                </Box>
+              </Box>
             ) : (
-              <div className="no-license">
-                <p>No license information available for this font.</p>
+              <Box sx={{ p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  No license information available for this font.
+                </Typography>
                 {font.type === 'builtin' && (
-                  <p>This is a built-in font. Please check the font's original license if you plan to use it commercially.</p>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    This is a built-in font. Please check the font's original license if you plan to use it commercially.
+                  </Typography>
                 )}
                 {font.type === 'custom' && (
-                  <p>Consider adding license information when using this font in your projects.</p>
+                  <Typography variant="body2">
+                    Consider adding license information when using this font in your projects.
+                  </Typography>
                 )}
-              </div>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        )}
+      </DialogContent>
 
-        <div className="modal-footer">
-          <Button onClick={onClose} variant="outlined">Close</Button>
-        </div>
-      </div>
-    </div>
+      <DialogActions>
+        <Button onClick={onClose} variant="contained">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
