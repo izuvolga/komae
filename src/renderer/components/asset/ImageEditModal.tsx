@@ -370,10 +370,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   return (
     <div className="modal-overlay">
-      <div className="image-asset-edit-modal">
+      <div className="modal-container image-asset-edit-modal">
         <div className="modal-header">
           <h2>{modalTitle}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
         <div className="modal-content">
@@ -799,10 +799,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          <button type="button" onClick={onClose} className="btn-secondary">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             キャンセル
           </button>
-          <button type="button" onClick={handleSubmit} className="btn-primary">
+          <button type="button" onClick={handleSubmit} className="btn btn-primary">
             保存
           </button>
         </div>
