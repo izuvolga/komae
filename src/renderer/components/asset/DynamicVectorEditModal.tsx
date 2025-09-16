@@ -1,4 +1,23 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  Alert,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -558,19 +577,50 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const hasParameters = Object.keys(assetParameters).length > 0;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container dve-modal">
-        <div className="modal-header">
-          <h2>{modalTitle}</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '1200px',
+          height: '80vh',
+          maxHeight: '800px',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        {modalTitle}
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="dve-edit-layout">
-            {/* 左側: プレビューパネル */}
-            <div className="dve-preview-panel">
-              <div className="dve-preview-container">
-                <div className="dve-canvas-frame" style={{
+      <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          {/* 左側: プレビューパネル - 固定幅 */}
+          <Box sx={{
+            width: 400,
+            minWidth: 400,
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRight: '1px solid #e9ecef',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div className="dve-canvas-frame" style={{
                   position: 'relative',
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
@@ -649,187 +699,198 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     {generateResizeHandles(currentPos, currentSize, handleResizeMouseDown)}
                   </svg>
                 </div>
-              </div>
-            </div>
+          </Box>
 
-            {/* 右側: 設定パネル */}
-            <div className="dve-settings-panel">
-              {/* Asset Name（Asset編集時のみ） */}
-              {mode === 'asset' && (
-                <div className="dve-param-group">
-                  <div className="dve-name-section">
-                    <span>Name</span>
-                    <input
-                      type="text"
-                      value={editedAsset.name}
-                      onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
-                      className="dve-name-input"
-                    />
-                  </div>
-                </div>
-              )}
+          {/* 右側: 設定パネル - スクロール可能 */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+            {/* Asset Name（Asset編集時のみ） */}
+            {mode === 'asset' && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <TextField
+                  label="Name"
+                  value={editedAsset.name}
+                  onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )}
 
-              {/* パラメータ編集（@parametersがある場合のみ） */}
-              {hasParameters && (
-                <div className="dve-param-group">
-                  <div className="dve-parameters-section">
-                    <span>@parameters</span>
-                    <div className="dve-parameters-list">
-                      {Object.entries(assetParameters).map(([paramName, paramValue], index: number) => {
-                        const isNumber = typeof paramValue === 'number';
-                        const isBindingSet = parameterBindings[paramName];
-                        const resolvedValue = resolveParameterValue(paramName);
-                        const availableAssets = isNumber ? availableValueAssets.number : availableValueAssets.string;
-                        
-                        return (
-                          <div key={paramName} className="dve-parameter-row">
-                            <div className="dve-parameter-info">
-                              <label className="dve-parameter-name">{paramName}</label>
-                              <span className="dve-parameter-type">({isNumber ? 'number' : 'string'})</span>
-                            </div>
-                            <div className="dve-parameter-input">
-                              <div className="dve-parameter-input-field">
-                                {isNumber ? (
-                                  <input
-                                    type="number"
-                                    value={isBindingSet ? resolvedValue : (parameterValues[paramName] || paramValue || 0)}
-                                    onChange={(e) => {
-                                      const value = parseFloat(e.target.value);
-                                      if (!isNaN(value)) {
-                                        handleParameterChange(paramName, value);
-                                        scheduleExecution();
-                                      }
-                                    }}
-                                    onBlur={() => scheduleExecution()}
-                                    className="dve-number-input"
-                                    step="any"
-                                    disabled={!!isBindingSet}
-                                  />
-                                ) : (
-                                  <input
-                                    type="text"
-                                    value={isBindingSet ? resolvedValue : (parameterValues[paramName] || paramValue || '')}
-                                    onChange={(e) => {
-                                      handleParameterChange(paramName, e.target.value);
-                                      scheduleExecution();
-                                    }}
-                                    onBlur={() => scheduleExecution()}
-                                    className="dve-text-input"
-                                    disabled={!!isBindingSet}
-                                  />
-                                )}
-                              </div>
-                              <select
-                                value={parameterBindings[paramName] || ''}
-                                onChange={(e) => {
-                                  handleParameterBindingChange(paramName, e.target.value);
+            {/* パラメータ編集（@parametersがある場合のみ） */}
+            {hasParameters && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  @parameters
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {Object.entries(assetParameters).map(([paramName, paramValue], index: number) => {
+                    const isNumber = typeof paramValue === 'number';
+                    const isBindingSet = parameterBindings[paramName];
+                    const resolvedValue = resolveParameterValue(paramName);
+                    const availableAssets = isNumber ? availableValueAssets.number : availableValueAssets.string;
+
+                    return (
+                      <Box key={paramName} sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {paramName}
+                          </Typography>
+                          <Chip
+                            label={isNumber ? 'number' : 'string'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem', height: '20px' }}
+                          />
+                        </Box>
+                        <Box sx={{ mb: 1 }}>
+                          <TextField
+                            type={isNumber ? 'number' : 'text'}
+                            value={isBindingSet ? resolvedValue : (parameterValues[paramName] || paramValue || (isNumber ? 0 : ''))}
+                            onChange={(e) => {
+                              if (isNumber) {
+                                const value = parseFloat(e.target.value);
+                                if (!isNaN(value)) {
+                                  handleParameterChange(paramName, value);
                                   scheduleExecution();
-                                }}
-                                className="dve-parameter-dropdown"
-                              >
-                                <option value="">直接入力</option>
-                                {availableAssets.map(valueAsset => (
-                                  <option key={valueAsset.id} value={valueAsset.id}>
-                                    {valueAsset.name} ({valueAsset.value})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
+                                }
+                              } else {
+                                handleParameterChange(paramName, e.target.value);
+                                scheduleExecution();
+                              }
+                            }}
+                            onBlur={() => scheduleExecution()}
+                            disabled={!!isBindingSet}
+                            fullWidth
+                            size="small"
+                            variant="outlined"
+                            inputProps={isNumber ? { step: 'any' } : undefined}
+                          />
+                        </Box>
+                        <FormControl fullWidth size="small" variant="outlined">
+                          <InputLabel>ValueAsset参照</InputLabel>
+                          <Select
+                            value={parameterBindings[paramName] || ''}
+                            onChange={(e) => {
+                              handleParameterBindingChange(paramName, e.target.value);
+                              scheduleExecution();
+                            }}
+                            label="ValueAsset参照"
+                          >
+                            <MenuItem value="">直接入力</MenuItem>
+                            {availableAssets.map(valueAsset => (
+                              <MenuItem key={valueAsset.id} value={valueAsset.id}>
+                                {valueAsset.name} ({valueAsset.value})
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+            )}
 
-              {/* PosX / PosY */}
-              <div className="dve-param-group">
-                <div className="dve-position-section">
-                  <span>PosX / PosY</span>
-                  <div className="dve-input-row">
-                    <NumericInput
-                      value={currentPos.x}
-                      onChange={(value) => updatePosition(value, currentPos.y)}
-                      step={1}
-                      decimals={2}
-                    />
-                    <NumericInput
-                      value={currentPos.y}
-                      onChange={(value) => updatePosition(currentPos.x, value)}
-                      step={1}
-                      decimals={2}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Original Width / Height (Default values, read-only) */}
-              <div className="dve-param-group">
-                <ReadOnlyInput
-                  label="Original Width / Height"
-                  value={`${editedAsset.original_width} × ${editedAsset.original_height}`}
-                />
-              </div>
-
-              {/* Width / Height */}
-              <div className="dve-param-group">
-                <div className="dve-size-section">
-                  <span>Width / Height</span>
-                  <div className="dve-input-row">
-                    <NumericInput
-                      value={currentSize.width}
-                      onChange={(value) => updateSize(value, currentSize.height)}
-                      min={1}
-                      step={1}
-                      decimals={2}
-                    />
-                    <NumericInput
-                      value={currentSize.height}
-                      onChange={(value) => updateSize(currentSize.width, value)}
-                      min={1}
-                      step={1}
-                      decimals={2}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Opacity */}
-              <div className="dve-param-group">
-                <OpacityInput
-                  value={currentOpacity}
-                  onChange={updateOpacity}
-                  label="Opacity"
-                />
-              </div>
-
-              {/* Z-Index */}
-              <div className="dve-param-group">
-                <div className="dve-zindex-section">
-                  <span>Z-Index</span>
-                  <span className="dve-zindex-hint">(layer order: lower = background)</span>
-                  <ZIndexInput
-                    value={currentZIndex}
-                    onChange={updateZIndex}
-                    validation={zIndexValidation}
-                    className="dve-zindex-input-wrapper"
+            {/* PosX / PosY */}
+            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                PosX / PosY
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption">X (px)</Typography>
+                  <NumericInput
+                    value={currentPos.x}
+                    onChange={(value) => updatePosition(value, currentPos.y)}
+                    step={1}
+                    decimals={2}
                   />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption">Y (px)</Typography>
+                  <NumericInput
+                    value={currentPos.y}
+                    onChange={(value) => updatePosition(currentPos.x, value)}
+                    step={1}
+                    decimals={2}
+                  />
+                </Box>
+              </Box>
+            </Box>
 
-        <div className="modal-footer">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
-            Cancel
-          </button>
-          <button type="button" onClick={handleSubmit} className="btn btn-primary">
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
+            {/* Original Width / Height (Default values, read-only) */}
+            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+              <ReadOnlyInput
+                label="Original Width / Height"
+                value={`${editedAsset.original_width} × ${editedAsset.original_height}`}
+              />
+            </Box>
+
+            {/* Width / Height */}
+            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                Width / Height
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption">幅 (px)</Typography>
+                  <NumericInput
+                    value={currentSize.width}
+                    onChange={(value) => updateSize(value, currentSize.height)}
+                    min={1}
+                    step={1}
+                    decimals={2}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption">高さ (px)</Typography>
+                  <NumericInput
+                    value={currentSize.height}
+                    onChange={(value) => updateSize(currentSize.width, value)}
+                    min={1}
+                    step={1}
+                    decimals={2}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Opacity */}
+            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+              <OpacityInput
+                value={currentOpacity}
+                onChange={updateOpacity}
+                label="Opacity"
+              />
+            </Box>
+
+            {/* Z-Index */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                Z-Index
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
+                (layer order: lower = background)
+              </Typography>
+              <ZIndexInput
+                value={currentZIndex}
+                onChange={updateZIndex}
+                validation={zIndexValidation}
+                  />
+            </Box>
+          </Box>
+        </Box>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="contained">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
