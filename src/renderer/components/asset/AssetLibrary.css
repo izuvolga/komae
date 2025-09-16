@@ -37,30 +37,7 @@
   gap: 4px;
 }
 
-.btn-icon {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #ddd;
-  background-color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  line-height: 1;
-  transition: all 0.2s;
-}
-
-.btn-icon:hover:not(:disabled) {
-  background-color: #f0f0f0;
-  border-color: #ccc;
-}
-
-.btn-icon:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+/* btn-iconクラスはcommon-buttons.cssで定義済み */
 
 /* アセットリスト */
 .asset-list {
@@ -90,21 +67,7 @@
   font-size: 14px;
 }
 
-.btn-small {
-  padding: 6px 12px;
-  border: 1px solid #007bff;
-  background-color: white;
-  color: #007bff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.btn-small:hover {
-  background-color: #007bff;
-  color: white;
-}
+/* btn-smallクラスはcommon-buttons.cssで定義済み */
 
 /* アセットアイテム */
 .asset-item {

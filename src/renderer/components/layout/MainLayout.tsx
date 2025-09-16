@@ -403,13 +403,13 @@ export const MainLayout: React.FC = () => {
               <p>Create illustration collections</p>
               <div className="welcome-actions">
                 <button 
-                  className="btn-primary" 
+                  className="btn btn-primary" 
                   onClick={() => setShowProjectCreateDialog(true)}
                 >
                   新規プロジェクト
                 </button>
-                <button className="btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
-                <button className="btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
+                <button className="btn btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
+                <button className="btn btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
               </div>
             </div>
           </div>

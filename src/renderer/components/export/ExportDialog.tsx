@@ -125,14 +125,14 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
   if (!isOpen) return null;
 
   return (
-    <div className="export-dialog-overlay">
-      <div className="export-dialog">
-        <div className="export-dialog-header">
+    <div className="modal-overlay">
+      <div className="modal-container export-dialog">
+        <div className="modal-header">
           <h2>プロジェクトのエクスポート</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="export-dialog-content">
+        <div className="modal-content">
           {/* エクスポート形式選択 */}
           <div className="form-group">
             <label>エクスポート形式</label>
@@ -256,15 +256,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
           )}
         </div>
 
-        <div className="export-dialog-footer">
-          <button type="button" onClick={onClose}>
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             キャンセル
           </button>
           <button
             type="button"
             onClick={handleExport}
             disabled={!project || validationErrors.length > 0 || isValidating}
-            className="primary"
+            className="btn btn-primary"
           >
             エクスポート
           </button>

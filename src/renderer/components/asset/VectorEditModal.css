@@ -1,47 +1,13 @@
-/* VectorEditModal共通スタイル */
+/* VectorEditModal固有のスタイル（共通CSSでカバーされない部分のみ） */
+
+/* modal-overlay、modal-container、modal-header、modal-close-btn、modal-footer はcommon-modals.cssで定義済み */
+
 .vector-edit-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 90vw;
   max-width: 1000px;
   max-height: 85vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
-.vector-edit-modal .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
-
-.vector-edit-modal .modal-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-}
-
-.vector-edit-modal .modal-close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.vector-edit-modal .modal-close-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
 
 .vector-edit-modal .modal-content {
   flex: 1;
@@ -229,16 +195,8 @@
 }
 
 /* フッター */
-.vector-edit-modal .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
 
-/* ボタンスタイルはcommon-buttons.cssで定義済み */
+/* modal-footer、btnクラスはcommon-modals.cssとcommon-buttons.cssで定義済み */
 
 /* レスポンシブ対応 */
 @media (max-width: 900px) {

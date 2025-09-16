@@ -254,7 +254,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
   return (
     <div className="modal-overlay">
-      <div className="vector-edit-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container vector-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
             {mode === 'asset' ? 'SVGアセット編集' : 'SVGインスタンス編集'}
