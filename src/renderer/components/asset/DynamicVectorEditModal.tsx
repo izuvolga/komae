@@ -558,14 +558,14 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const hasParameters = Object.keys(assetParameters).length > 0;
 
   return (
-    <div className="dve-modal-overlay">
-      <div className="dve-modal">
-        <div className="dve-modal-header">
+    <div className="modal-overlay">
+      <div className="modal-container dve-modal">
+        <div className="modal-header">
           <h2>{modalTitle}</h2>
-          <button className="dve-close-button" onClick={onClose}>×</button>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="dve-modal-content">
+        <div className="modal-content">
           <div className="dve-edit-layout">
             {/* 左側: プレビューパネル */}
             <div className="dve-preview-panel">
@@ -821,11 +821,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
           </div>
         </div>
 
-        <div className="dve-modal-footer">
-          <button type="button" onClick={onClose} className="dve-button-secondary">
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button type="button" onClick={handleSubmit} className="dve-button-primary">
+          <button type="button" onClick={handleSubmit} className="btn btn-primary">
             Save
           </button>
         </div>

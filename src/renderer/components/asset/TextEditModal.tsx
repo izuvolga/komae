@@ -617,14 +617,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // モーダル外側クリックでの閉じる処理を削除
 
   return (
-    <div className="text-edit-modal-overlay">
-      <div className="text-edit-modal">
-        <div className="text-edit-modal-header">
-          <h3>{mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集'}</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+    <div className="modal-overlay">
+      <div className="modal-container text-edit-modal">
+        <div className="modal-header">
+          <h2>{mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集'}</h2>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
         </div>
 
-        <div className="text-edit-modal-content">
+        <div className="modal-content">
           <div className="text-edit-preview">
             <h4>プレビュー</h4>
 
@@ -1277,9 +1277,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           </div>
         </div>
 
-        <div className="text-edit-modal-footer">
-          <button onClick={onClose} className="cancel-button">キャンセル</button>
-          <button onClick={handleSave} className="save-button">保存</button>
+        <div className="modal-footer">
+          <button onClick={onClose} className="btn btn-secondary">キャンセル</button>
+          <button onClick={handleSave} className="btn btn-primary">保存</button>
         </div>
       </div>
     </div>

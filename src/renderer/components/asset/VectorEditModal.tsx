@@ -427,10 +427,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          <button className="btn-secondary" onClick={onClose}>
+          <button className="btn btn-secondary" onClick={onClose}>
             キャンセル
           </button>
-          <button className="btn-primary" onClick={handleSave}>
+          <button className="btn btn-primary" onClick={handleSave}>
             保存
           </button>
         </div>
