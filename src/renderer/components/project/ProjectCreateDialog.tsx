@@ -213,7 +213,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-content project-create-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container project-create-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>新規プロジェクト作成</h2>
           <button 
@@ -225,7 +225,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-content">
           <div className="form-section">
             {/* プロジェクト基本情報 */}
             <div className="form-field">
