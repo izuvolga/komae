@@ -1,5 +1,17 @@
 import React from 'react';
 import type { FontInfo } from '../../../types/entities';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Link,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import './FontLicenseModal.css';
 
 interface FontLicenseModalProps {
@@ -35,13 +47,13 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
 
         <div className="modal-content">
           <div className="font-info">
-            <h4>{font.name}</h4>
-            <p className="font-type">
-              {font.isGoogleFont ? 'Google Fonts' : 
+            <Typography variant="h6" component="h4">{font.name}</Typography>
+            <Typography variant="body2" className="font-type">
+              {font.isGoogleFont ? 'Google Fonts' :
                font.type === 'builtin' ? 'Built-in Font' : 'Custom Font'}
-            </p>
+            </Typography>
             {font.isGoogleFont && font.googleFontUrl && (
-              <p className="font-url">URL: <a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink(font.googleFontUrl!); }}>{font.googleFontUrl}</a></p>
+              <p className="font-url">URL: <Link href="#" onClick={(e) => { e.preventDefault(); handleExternalLink(font.googleFontUrl!); }}>{font.googleFontUrl}</Link></p>
             )}
             {!font.isGoogleFont && font.filename && (
               <p className="font-filename">File: {font.filename}</p>
@@ -57,18 +69,18 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
                 <p>For detailed license information, please visit:</p>
                 <ul>
                   <li>
-                    <a href="#" onClick={(e) => { 
-                      e.preventDefault(); 
+                    <Link href="#" onClick={(e) => {
+                      e.preventDefault();
                       const encodedFontName = encodeURIComponent(font.name);
-                      handleExternalLink(`https://fonts.google.com/specimen/${encodedFontName}/license`); 
+                      handleExternalLink(`https://fonts.google.com/specimen/${encodedFontName}/license`);
                     }}>
                       {font.name} License Page
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>
+                    <Link href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>
                       Google Fonts General Information
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -87,7 +99,7 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
         </div>
 
         <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-secondary">Close</button>
+          <Button onClick={onClose} variant="outlined">Close</Button>
         </div>
       </div>
     </div>
