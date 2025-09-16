@@ -1,4 +1,18 @@
 import React from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import './FontLicenseHelpModal.css';
 
 interface FontLicenseHelpModalProps {
@@ -10,18 +24,41 @@ export const FontLicenseHelpModal: React.FC<FontLicenseHelpModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="font-license-help-modal-overlay" onClick={onClose}>
-      <div className="font-license-help-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="help-content">
-          <h3>ライセンス情報について</h3>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1400, // FontAddModalより高く設定
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6" component="h2">
+          ライセンス情報について
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
           
-          <p>
-            フォントを使用する際には、ライセンス情報を正しく確認し、適切に管理することが重要です。
-            Komae では以下の方法でライセンス情報を管理します。
-          </p>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          フォントを使用する際には、ライセンス情報を正しく確認し、適切に管理することが重要です。
+          Komae では以下の方法でライセンス情報を管理します。
+        </Typography>
           
           <h4>ライセンスファイルの重要性</h4>
           <ul>
@@ -68,14 +105,14 @@ export const FontLicenseHelpModal: React.FC<FontLicenseHelpModalProps> = ({
             <li><strong>Creative Commons:</strong> 条件により異なる（CC0, CC BY, CC BY-SA など）</li>
             <li><strong>商用ライセンス:</strong> 購入したフォント、利用規約に従う</li>
           </ul>
-        </div>
-        
-        <div className="help-actions">
-          <button className="close-button" onClick={onClose}>
-            閉じる
-          </button>
-        </div>
-      </div>
-    </div>
+
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="contained">
+          閉じる
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };

@@ -1,4 +1,19 @@
 import React from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Link,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import './FontAddHelpModal.css';
 
 interface FontAddHelpModalProps {
@@ -10,7 +25,6 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  if (!isOpen) return null;
 
   const handleExternalLink = async (url: string) => {
     try {
@@ -21,46 +35,125 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
   };
 
   return (
-    <div className="font-add-help-modal-overlay" onClick={onClose}>
-      <div className="font-add-help-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="help-content">
-          <h3>Google Fonts の利用方法</h3>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1400, // FontAddModal(1300)より高く設定
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6" component="h2">
+          Google Fonts の利用方法
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent>
           
-          <p>
-            フォントのファイルを指定せず、<a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>Google Fonts</a> の提供するフォントを利用できます。
-            HTML ファイルでのエクスポート時には、Google Fonts のフォントを利用するための CSS の記述が自動的に追加されます。
-          </p>
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          フォントのファイルを指定せず、
+          <Link
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleExternalLink('https://fonts.google.com/');
+            }}
+          >
+            Google Fonts
+          </Link>
+          の提供するフォントを利用できます。
+          HTML ファイルでのエクスポート時には、Google Fonts のフォントを利用するための CSS の記述が自動的に追加されます。
+        </Typography>
           
-          <div className="warning-box">
-            <strong>注意:</strong> フォントの配布元がフォントの提供を停止した場合、フォントが表示されなくなる可能性がある点は注意してください。
-          </div>
+        <Box
+          sx={{
+            p: 2,
+            bgcolor: 'warning.light',
+            borderRadius: 1,
+            mb: 2,
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+            注意: フォントの配布元がフォントの提供を停止した場合、フォントが表示されなくなる可能性がある点は注意してください。
+          </Typography>
+        </Box>
           
-          <h4>利用手順</h4>
-          <ol>
-            <li>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleExternalLink('https://fonts.google.com/'); }}>Google Fonts</a> サイトでお好みのフォントを選択
-            </li>
-            <li>「Web」タブの <code>&lt;link&gt;</code> セクションを開く</li>
-            <li>以下のような記述から URL 部分をコピー</li>
-            <li>上記のテキストボックスに貼り付け</li>
-          </ol>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          利用手順
+        </Typography>
+        <List dense>
+          <ListItem>
+            <ListItemText
+              primary="1. Google Fontsサイトでお好みのフォントを選択"
+              secondary={
+                <Link
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleExternalLink('https://fonts.google.com/');
+                  }}
+                >
+                  https://fonts.google.com/
+                </Link>
+              }
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="2. 「Web」タブの <link> セクションを開く" />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="3. 以下のような記述から URL 部分をコピー" />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="4. 上記のテキストボックスに貼り付け" />
+          </ListItem>
+        </List>
           
-          <h4>コピー例</h4>
-          <p>以下の記述の場合、<code>https://fonts.googleapis.com/css?family=Example+Font</code> の部分をコピーしてください。</p>
-          
-          <div className="code-block">
-            <pre>{`<link rel="preconnect" href="https://fonts.googleapis.com">
+        <Typography variant="h6" sx={{ mb: 1, mt: 2 }}>
+          コピー例
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          以下の記述の場合、<code>https://fonts.googleapis.com/css?family=Example+Font</code> の部分をコピーしてください。
+        </Typography>
+
+        <Box
+          sx={{
+            bgcolor: 'grey.100',
+            p: 2,
+            borderRadius: 1,
+            fontFamily: 'monospace',
+            fontSize: '0.875rem',
+            overflow: 'auto',
+          }}
+        >
+          <Typography component="pre" sx={{ m: 0, whiteSpace: 'pre-wrap' }}>
+{`<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="`}<span className="highlight-url">https://fonts.googleapis.com/css?family=Example+Font</span>{`" rel="stylesheet">`}</pre>
-          </div>
-        </div>
-        
-        <div className="help-actions">
-          <button className="close-button" onClick={onClose}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+<link href="`}<Box component="span" sx={{ bgcolor: 'yellow', px: 0.5 }}>https://fonts.googleapis.com/css?family=Example+Font</Box>{`" rel="stylesheet">`}
+          </Typography>
+        </Box>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="contained">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
