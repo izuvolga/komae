@@ -1,4 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Grid,
+  Paper,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -253,22 +266,51 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   }, [isDragging, isResizing, dragStartPos, dragStartValues, currentPos, currentSize, resizeHandle]);
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container vector-edit-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>
-            {mode === 'asset' ? 'SVGアセット編集' : 'SVGインスタンス編集'}
-            {mode === 'instance' && page && ` - ${page.title}`}
-          </h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '1200px',
+          height: '80vh',
+          maxHeight: '800px',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        {mode === 'asset' ? 'SVGアセット編集' : 'SVGインスタンス編集'}
+        {mode === 'instance' && page && ` - ${page.title}`}
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="edit-panels">
-            {/* 左側：プレビュー */}
-            <div className="preview-panel">
-              <div className="canvas-preview">
-                <div className="canvas-frame" style={{
+      <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          {/* 左側：プレビュー - 固定幅 */}
+          <Box sx={{
+            width: 400,
+            minWidth: 400,
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRight: '1px solid #e9ecef',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div className="canvas-frame" style={{
                   position: 'relative',
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
@@ -327,114 +369,114 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     {generateResizeHandles(currentPos, currentSize, handleResizeMouseDown)}
                   </svg>
                 </div>
-              </div>
-            </div>
+          </Box>
 
-            {/* 右側：プロパティ編集 */}
-            <div className="properties-panel">
-              <h3>プロパティ</h3>
+          {/* 右側：プロパティ編集 - スクロール可能 */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              プロパティ
+            </Typography>
 
-              {/* 基本情報 */}
-              <div className="property-group">
-                <ReadOnlyInput
-                  label="アセット名"
-                  value={asset.name}
-                />
-              </div>
+                {/* 基本情報 */}
+                <Box sx={{ mb: 2 }}>
+                  <ReadOnlyInput
+                    label="アセット名"
+                    value={asset.name}
+                  />
+                </Box>
 
-              <div className="property-group">
-                <ReadOnlyInput
-                  label="ファイルパス"
-                  value={asset.original_file_path}
-                />
-              </div>
+                <Box sx={{ mb: 2 }}>
+                  <ReadOnlyInput
+                    label="ファイルパス"
+                    value={asset.original_file_path}
+                  />
+                </Box>
 
-              <div className="property-group">
-                <ReadOnlyInput
-                  label="元サイズ"
-                  value={`${asset.original_width} × ${asset.original_height}`}
-                />
-              </div>
+                <Box sx={{ mb: 2 }}>
+                  <ReadOnlyInput
+                    label="元サイズ"
+                    value={`${asset.original_width} × ${asset.original_height}`}
+                  />
+                </Box>
 
-              {/* 位置 */}
-              <div className="property-group">
-                <label>位置</label>
-                <div className="position-inputs">
-                  <div className="input-with-label">
-                    <label>X (px)</label>
-                    <NumericInput
-                      value={currentPos.x}
-                      onChange={(value) => handlePositionChange('x', value)}
-                      step={1}
-                    />
-                  </div>
-                  <div className="input-with-label">
-                    <label>Y (px)</label>
-                    <NumericInput
-                      value={currentPos.y}
-                      onChange={(value) => handlePositionChange('y', value)}
-                      step={1}
-                    />
-                  </div>
-                </div>
-              </div>
+                {/* 位置 */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>位置</Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption">X (px)</Typography>
+                      <NumericInput
+                        value={currentPos.x}
+                        onChange={(value) => handlePositionChange('x', value)}
+                        step={1}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption">Y (px)</Typography>
+                      <NumericInput
+                        value={currentPos.y}
+                        onChange={(value) => handlePositionChange('y', value)}
+                        step={1}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
 
-              {/* サイズ */}
-              <div className="property-group">
-                <label>サイズ</label>
-                <div className="size-inputs">
-                  <div className="input-with-label">
-                    <label>幅 (px)</label>
-                    <NumericInput
-                      value={currentSize.width}
-                      onChange={(value) => handleSizeChange('width', value)}
-                      min={1}
-                      step={1}
-                    />
-                  </div>
-                  <div className="input-with-label">
-                    <label>高さ (px)</label>
-                    <NumericInput
-                      value={currentSize.height}
-                      onChange={(value) => handleSizeChange('height', value)}
-                      min={1}
-                      step={1}
-                    />
-                  </div>
-                </div>
-              </div>
+                {/* サイズ */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>サイズ</Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption">幅 (px)</Typography>
+                      <NumericInput
+                        value={currentSize.width}
+                        onChange={(value) => handleSizeChange('width', value)}
+                        min={1}
+                        step={1}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption">高さ (px)</Typography>
+                      <NumericInput
+                        value={currentSize.height}
+                        onChange={(value) => handleSizeChange('height', value)}
+                        min={1}
+                        step={1}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
 
-              {/* 不透明度 */}
-              <div className="property-group">
-                <OpacityInput
-                  value={currentOpacity}
-                  onChange={handleOpacityChange}
-                  label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
-                />
-              </div>
+                {/* 不透明度 */}
+                <Box sx={{ mb: 2 }}>
+                  <OpacityInput
+                    value={currentOpacity}
+                    onChange={handleOpacityChange}
+                    label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
+                  />
+                </Box>
 
-              {/* Z-Index */}
-              <div className="property-group">
-                <label>Z-Index</label>
-                <ZIndexInput
-                  value={currentZIndex}
-                  onChange={handleZIndexChange}
-                  validation={zIndexValidation}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+                {/* Z-Index */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Z-Index</Typography>
+                  <ZIndexInput
+                    value={currentZIndex}
+                    onChange={handleZIndexChange}
+                    validation={zIndexValidation}
+                  />
+                </Box>
+          </Box>
+        </Box>
+      </DialogContent>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
-            キャンセル
-          </button>
-          <button className="btn btn-primary" onClick={handleSave}>
-            保存
-          </button>
-        </div>
-      </div>
-    </div>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          キャンセル
+        </Button>
+        <Button onClick={handleSave} variant="contained">
+          保存
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
