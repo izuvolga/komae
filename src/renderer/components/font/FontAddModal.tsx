@@ -1,4 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  TextField,
+  FormControl,
+  FormLabel,
+} from '@mui/material';
+import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import './FontAddModal.css';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
@@ -44,9 +61,6 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) {
-    return null;
-  }
 
   const handleFontFileSelect = async () => {
     try {
@@ -180,141 +194,160 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-container font-add-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Add Font</h2>
-          <button className="modal-close-btn" onClick={handleCancel}>×</button>
-        </div>
-        
-        <div className="modal-content">
+    <>
+      <Dialog
+        open={isOpen}
+        onClose={isLoading ? undefined : handleCancel}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '500px',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pr: 1,
+          }}
+        >
+          <Typography variant="h6" component="h2">
+            Add Font
+          </Typography>
+          <IconButton
+            onClick={handleCancel}
+            disabled={isLoading}
+            size="small"
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pb: 0 }}>
           {/* フォントタイプ選択 */}
-          <div className="form-section">
-            <label>フォントタイプ</label>
-            <div className="radio-group">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="fontType"
-                  value="embed"
-                  checked={fontType === 'embed'}
-                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
-                  disabled={isLoading}
-                />
-                埋め込み（ファイル）
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  name="fontType"
-                  value="google"
-                  checked={fontType === 'google'}
-                  onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
-                  disabled={isLoading}
-                />
-                Google Fonts
-              </label>
+          <FormControl component="fieldset" sx={{ mb: 3 }} disabled={isLoading}>
+            <FormLabel component="legend">フォントタイプ</FormLabel>
+            <RadioGroup
+              value={fontType}
+              onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
+              sx={{ mt: 1 }}
+            >
+              <FormControlLabel
+                value="embed"
+                control={<Radio />}
+                label="埋め込み（ファイル）"
+              />
+              <FormControlLabel
+                value="google"
+                control={<Radio />}
+                label="Google Fonts"
+              />
               {isAdminMode && (
-                <label className="radio-option">
-                  <input
-                    type="radio"
-                    name="fontType"
-                    value="builtin"
-                    checked={fontType === 'builtin'}
-                    onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
-                    disabled={isLoading}
-                  />
-                  ビルトイン（管理者）
-                </label>
+                <FormControlLabel
+                  value="builtin"
+                  control={<Radio />}
+                  label="ビルトイン（管理者）"
+                />
               )}
-            </div>
-          </div>
+            </RadioGroup>
+          </FormControl>
 
           {/* 埋め込みフォント用フィールド */}
           {fontType === 'embed' && (
             <>
-              <div className="form-section">
-                <label>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Font File
-                  <div className="file-input-row">
-                    <input
-                      type="text"
-                      value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
-                      placeholder="フォントファイルを選択..."
-                      readOnly
-                      className="file-path-input"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleFontFileSelect}
-                      className="file-select-button"
-                      disabled={isLoading}
-                    >
-                      📁
-                    </button>
-                  </div>
-                </label>
-              </div>
-
-              <div className="form-section">
-                <label>
-                  License File 
-                  <button 
-                    type="button" 
-                    onClick={showLicenseHelp}
-                    className="help-button"
-                    title="ライセンス情報について"
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    fullWidth
+                    value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
+                    placeholder="フォントファイルを選択..."
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                    size="small"
+                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleFontFileSelect}
+                    disabled={isLoading}
+                    sx={{ minWidth: 'auto', px: 2 }}
                   >
-                    ?
-                  </button>
-                  <div className="file-input-row">
-                    <input
-                      type="text"
-                      value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
-                      placeholder="ライセンスファイルを選択（オプション）..."
-                      readOnly
-                      className="file-path-input"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleLicenseFileSelect}
-                      className="file-select-button"
-                      disabled={isLoading}
-                    >
-                      📁
-                    </button>
-                  </div>
-                </label>
-              </div>
+                    📁
+                  </Button>
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle2">
+                    License File
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={showLicenseHelp}
+                    title="ライセンス情報について"
+                    sx={{ ml: 1 }}
+                  >
+                    <HelpIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    fullWidth
+                    value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
+                    placeholder="ライセンスファイルを選択（オプション）..."
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                    size="small"
+                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleLicenseFileSelect}
+                    disabled={isLoading}
+                    sx={{ minWidth: 'auto', px: 2 }}
+                  >
+                    📁
+                  </Button>
+                </Box>
+              </Box>
             </>
           )}
 
           {/* Google Fonts用フィールド */}
           {fontType === 'google' && (
-            <div className="form-section">
-              <label>
-                Google Fonts URL
-                <button 
-                  type="button" 
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle2">
+                  Google Fonts URL
+                </Typography>
+                <IconButton
+                  size="small"
                   onClick={() => setShowHelpModal(true)}
-                  className="help-button"
                   title="Google Fonts URLの取得方法"
+                  sx={{ ml: 1 }}
                 >
-                  ?
-                </button>
-                <input
-                  type="text"
-                  value={googleFontUrl}
-                  onChange={(e) => setGoogleFontUrl(e.target.value)}
-                  placeholder="https://fonts.googleapis.com/css?family=..."
-                  className="text-input"
-                  disabled={isLoading}
-                />
-              </label>
-              <div className="form-help">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <TextField
+                fullWidth
+                value={googleFontUrl}
+                onChange={(e) => setGoogleFontUrl(e.target.value)}
+                placeholder="https://fonts.googleapis.com/css?family=..."
+                disabled={isLoading}
+                size="small"
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                 Google Fonts のリンクタグから href の URL をコピーして貼り付けてください
-              </div>
-            </div>
+              </Typography>
+            </Box>
           )}
 
           {/* ビルトインフォント用フィールド */}
@@ -378,35 +411,35 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
               </div>
             </>
           )}
-        </div>
 
-        <div className="modal-footer">
-          <button
+        </DialogContent>
+
+        <DialogActions>
+          <Button
             onClick={handleCancel}
-            className="btn btn-secondary"
             disabled={isLoading}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleAdd}
-            className="btn btn-primary"
+            variant="contained"
             disabled={(fontType === 'embed' && !fontFile) || (fontType === 'google' && !googleFontUrl.trim()) || (fontType === 'builtin' && !fontFile) || isLoading}
           >
             {isLoading ? '追加中...' : '追加'}
-          </button>
-        </div>
-      </div>
-      
-      <FontAddHelpModal 
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <FontAddHelpModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
       />
-      
-      <FontLicenseHelpModal 
+
+      <FontLicenseHelpModal
         isOpen={showLicenseHelpModal}
         onClose={() => setShowLicenseHelpModal(false)}
       />
-    </div>
+    </>
   );
 };

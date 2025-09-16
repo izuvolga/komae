@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import * as crypto from 'crypto';
-import '../../styles/common-modals.css';
-import '../../styles/common-buttons.css';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import './CustomAssetManagementModal.css';
 
 interface CustomAssetInfo {
@@ -134,43 +143,77 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
     return new Date(dateString).toLocaleString();
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   const selectedAsset = customAssets.find(a => a.id === selectedAssetId);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container custom-asset-management-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Custom Asset Management</h2>
-          <button
-            className="modal-close-btn"
-            onClick={onClose}
-            disabled={isLoading}
+    <Dialog
+      open={isOpen}
+      onClose={isLoading ? undefined : onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: {
+          width: '90vw',
+          maxWidth: '1000px',
+          height: '80vh',
+          maxHeight: '800px',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        <Typography variant="h6" component="h2">
+          Custom Asset Management
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          disabled={isLoading}
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          p: 3,
+        }}
+      >
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              mb: 3,
+              flexShrink: 0,
+            }}
           >
-            ×
-          </button>
-        </div>
-
-        <div className="modal-content">
-          <div className="custom-asset-management-toolbar">
-            <button
-              className="btn btn-primary"
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleAddAsset}
               disabled={isLoading}
             >
               Add Custom Asset
-            </button>
-            <button
-              className="btn btn-danger"
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
               onClick={handleDeleteAsset}
               disabled={isLoading || !selectedAssetId}
             >
               Delete Selected
-            </button>
-          </div>
+            </Button>
+          </Box>
 
           <div className="custom-asset-management-main">
             <div className="custom-asset-list-section">
@@ -265,9 +308,8 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               )}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

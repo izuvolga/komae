@@ -1,5 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import type { FontInfo } from '../../../types/entities';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  TextField,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Chip,
+  Paper,
+} from '@mui/material';
+import { Close as CloseIcon, Add as AddIcon, Info as InfoIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { FontAddModal } from './FontAddModal';
 import { FontLicenseModal } from './FontLicenseModal';
 import './FontManagementModal.css';
