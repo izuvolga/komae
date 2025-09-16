@@ -4,36 +4,7 @@
   width: 800px; /* modal-containerの幅をオーバーライド */
 }
 
-.modal-header {
-  padding: 16px 20px; /* 共通CSSから padding をオーバーライド */
-  background-color: #f8f9fa; /* 背景色を独自に設定 */
-  border-bottom: 1px solid #e0e0e0; /* ボーダー色を独自に設定 */
-}
-
-.modal-header h2 {
-  font-size: 16px; /* 共通CSSからフォントサイズをオーバーライド */
-  color: #333; /* カラーを独自に設定 */
-}
-
-.close-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.close-button:hover {
-  background-color: #e0e0e0;
-}
+/* modal-header、modal-close-btnはcommon-modals.cssで定義済み */
 
 .modal-content {
   min-height: 0; /* 共通CSSに追加 */
@@ -43,6 +14,13 @@
   display: flex;
   min-height: 0;
   height: 500px;
+}
+
+.value-edit-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* 現在のValueEditModalでは使用されていない左右パネル構造のCSS
@@ -206,29 +184,68 @@
   color: #333;
 }
 
-/* アクションボタンのスタイリング - 共通ボタンCSSを拡張 */
-.modal-actions {
-  padding: 16px 20px; /* フッターパディングをオーバーライド */
-  background-color: #f8f9fa; /* 背景色を独自設定 */
-  border-top: 1px solid #e0e0e0;
+/* ValueEditModal固有のUI要素 */
+.current-result {
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #495057;
 }
 
-.action-button {
-  min-width: 80px;
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: #6c757d;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: help;
+  margin-left: 6px;
+  flex-shrink: 0;
 }
 
-.action-button.primary {
-  background-color: #007bff;
+.help-icon:hover {
+  background: #495057;
 }
 
-.action-button.primary:hover {
-  background-color: #0056b3;
+.input-error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1) !important;
 }
 
-.action-button.secondary {
-  background-color: #6c757d;
+.validation-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
 }
 
-.action-button.secondary:hover {
-  background-color: #545b62;
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
 }
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* modal-footer、btnクラスはcommon-modals.cssとcommon-buttons.cssで定義済み */

@@ -267,10 +267,10 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
 
   return (
     <div className="modal-overlay">
-      <div className="value-edit-modal">
+      <div className="modal-container value-edit-modal">
         <div className="modal-header">
           <h2>{getTitle()}</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="modal-close-btn" onClick={onClose}>
             ×
           </button>
         </div>
@@ -422,13 +422,13 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
           </div>
         </div>
 
-        <div className="modal-actions">
-          <button onClick={onClose} className="cancel-button">
+        <div className="modal-footer">
+          <button onClick={onClose} className="btn btn-secondary">
             キャンセル
           </button>
-          <button 
-            onClick={handleSave} 
-            className="save-button"
+          <button
+            onClick={handleSave}
+            className="btn btn-primary"
             disabled={mode === 'asset' && !nameValidation.isValid}
           >
             保存
