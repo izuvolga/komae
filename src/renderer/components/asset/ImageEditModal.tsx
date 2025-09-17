@@ -10,6 +10,8 @@ import {
   Box,
   Paper,
   TextField,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
@@ -657,15 +659,16 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   </Box>
                 </Box>
                 <Box sx={{ mt: 1 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={aspectRatioLocked}
-                      onChange={(e) => setAspectRatioLocked(e.target.checked)}
-                      style={{ marginRight: '8px' }}
-                    />
-                    <Typography variant="body2">縦横比を元画像にあわせる</Typography>
-                  </label>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={aspectRatioLocked}
+                        onChange={(e) => setAspectRatioLocked(e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label="縦横比を元画像にあわせる"
+                  />
                 </Box>
               </Box>
             )}
@@ -756,9 +759,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               {/* マスク編集切り替えボタン（Asset編集時のみ、マスク編集時は非表示） */}
             {mode === 'asset' && !maskEditMode && (
               <Box sx={{ mb: 3 }}>
-                <button
-                  type="button"
-                  className={`mask-toggle-btn ${maskEditMode ? 'active' : ''}`}
+                <Button
+                  variant="outlined"
                   onClick={() => {
                     if (!maskEditMode) {
                       // マスク編集モードに入る時、マスクが未定義の場合、キャンバスサイズの4点に設定
@@ -776,83 +778,97 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     }
                     setMaskEditMode(!maskEditMode);
                   }}
+                  startIcon={<span>✏️</span>}
                 >
-                  ✏️ Mask Edit Mode
-                </button>
-              </div>
-              )}
+                  Mask Edit Mode
+                </Button>
+              </Box>
+            )}
 
-              {/* マスク編集パラメータ */}
-              {maskEditMode && currentMask && (
-                <div className="mask-params">
-                  <span>Default Mask</span>
-                  {currentMask.map((point, index) => (
-                    <div key={index} className="mask-point-row">
-                      <span>P{index + 1}:</span>
-                      <label>x</label>
-                      <input
-                        type="text"
-                        value={tempInputValues[`mask_${index}_x`] ?? formatNumberForDisplay(point[0])}
-                        onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, true);
-                          setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
-                        }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetNumericValue(e.target.value, -9999, point[0]);
-                          const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                          newMask[index] = [validated, point[1]];
-                          updateMask(newMask);
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp[`mask_${index}_x`];
-                            return newTemp;
-                          });
-                        }}
-                        onKeyDown={handleKeyDown}
-                        className="mask-input"
-                      />
-                      <label>y</label>
-                      <input
-                        type="text"
-                        value={tempInputValues[`mask_${index}_y`] ?? formatNumberForDisplay(point[1])}
-                        onChange={(e) => {
-                          const sanitized = validateNumericInput(e.target.value, true);
-                          setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
-                        }}
-                        onBlur={(e) => {
-                          const validated = validateAndSetNumericValue(e.target.value, -9999, point[1]);
-                          const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                          newMask[index] = [point[0], validated];
-                          updateMask(newMask);
-                          setTempInputValues(prev => {
-                            const newTemp = { ...prev };
-                            delete newTemp[`mask_${index}_y`];
-                            return newTemp;
-                          });
-                        }}
-                        onKeyDown={handleKeyDown}
-                        className="mask-input"
-                      />
-                    </div>
-                  ))}
-                  
-                  {/* Exit Mask Editor ボタン */}
-                  <div className="mask-edit-toggle" style={{ marginTop: '16px' }}>
-                    <button
-                      type="button"
-                      className="back-button"
-                      onClick={() => {
-                        const effectiveMask = isCanvasSizeMask(currentMask) ? undefined : currentMask;
-                        updateMask(effectiveMask);
-                        setMaskEditMode(false)
-                      }}
-                    >
-                      ← Exit Mask Editor
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* マスク編集パラメータ - MUI化 */}
+            {maskEditMode && currentMask && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  Default Mask
+                </Typography>
+                {currentMask.map((point, index) => (
+                  <Box key={index} sx={{ mb: 2, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                      P{index + 1}:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption">X</Typography>
+                        <TextField
+                          type="text"
+                          value={tempInputValues[`mask_${index}_x`] ?? formatNumberForDisplay(point[0])}
+                          onChange={(e) => {
+                            const sanitized = validateNumericInput(e.target.value, true);
+                            setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
+                          }}
+                          onBlur={(e) => {
+                            const validated = validateAndSetNumericValue(e.target.value, -9999, point[0]);
+                            const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
+                            newMask[index] = [validated, point[1]];
+                            updateMask(newMask);
+                            setTempInputValues(prev => {
+                              const newTemp = { ...prev };
+                              delete newTemp[`mask_${index}_x`];
+                              return newTemp;
+                            });
+                          }}
+                          onKeyDown={handleKeyDown}
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption">Y</Typography>
+                        <TextField
+                          type="text"
+                          value={tempInputValues[`mask_${index}_y`] ?? formatNumberForDisplay(point[1])}
+                          onChange={(e) => {
+                            const sanitized = validateNumericInput(e.target.value, true);
+                            setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
+                          }}
+                          onBlur={(e) => {
+                            const validated = validateAndSetNumericValue(e.target.value, -9999, point[1]);
+                            const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
+                            newMask[index] = [point[0], validated];
+                            updateMask(newMask);
+                            setTempInputValues(prev => {
+                              const newTemp = { ...prev };
+                              delete newTemp[`mask_${index}_y`];
+                              return newTemp;
+                            });
+                          }}
+                          onKeyDown={handleKeyDown}
+                          fullWidth
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+                ))}
+
+                {/* Exit Mask Editor ボタン */}
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      const effectiveMask = isCanvasSizeMask(currentMask) ? undefined : currentMask;
+                      updateMask(effectiveMask);
+                      setMaskEditMode(false);
+                    }}
+                    startIcon={<span>←</span>}
+                  >
+                    Exit Mask Editor
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Box>
       </DialogContent>
