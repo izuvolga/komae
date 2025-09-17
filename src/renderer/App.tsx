@@ -5,7 +5,6 @@ import { useProjectStore } from './stores/projectStore';
 import type { FontInfo } from '../types/entities';
 import { setFontInfoCache } from '../utils/svgGeneratorCommon';
 import './App.css';
-import './styles/utilities.css'; /* ユーティリティを最初に */
 import './styles/common-forms.css';
 import './styles/common-buttons.css';
 
