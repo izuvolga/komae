@@ -35,10 +35,9 @@ import {
   validateDynamicVectorAssetData,
   validateDynamicVectorAssetInstanceData
 } from '../../../types/entities';
-import { 
-  generateResizeHandles, 
-  convertMouseDelta, 
-  constrainToCanvas, 
+import {
+  convertMouseDelta,
+  constrainToCanvas,
   EDIT_MODAL_SCALE,
   getCurrentPosition,
   getCurrentSize,
@@ -50,6 +49,7 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
+import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 
 export interface DynamicVectorEditModalProps {
   mode: 'asset' | 'instance';
@@ -683,20 +683,15 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     onMouseDown={handleImageMouseDown}
                   />
 
-                  {/* SVGベースのリサイズハンドル */}
-                  <svg
-                    style={{
-                      position: 'absolute',
-                      left: '0px',
-                      top: '0px',
-                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                      zIndex: 3,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {generateResizeHandles(currentPos, currentSize, handleResizeMouseDown)}
-                  </svg>
+                  {/* リサイズハンドル */}
+                  <ResizeHandleOverlay
+                    canvasWidth={project.canvas.width}
+                    canvasHeight={project.canvas.height}
+                    currentPos={currentPos}
+                    currentSize={currentSize}
+                    onResizeMouseDown={handleResizeMouseDown}
+                    zIndex={3}
+                  />
                 </div>
           </Box>
 

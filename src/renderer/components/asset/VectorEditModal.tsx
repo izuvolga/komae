@@ -19,10 +19,9 @@ import { OpacityInput } from '../common/OpacityInput';
 import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type { VectorAsset, VectorAssetInstance, Page } from '../../../types/entities';
 import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
-import { 
-  generateResizeHandles, 
-  convertMouseDelta, 
-  constrainToCanvas, 
+import {
+  convertMouseDelta,
+  constrainToCanvas,
   EDIT_MODAL_SCALE,
   getCurrentPosition,
   getCurrentSize,
@@ -34,6 +33,7 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
+import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -353,20 +353,15 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     onMouseDown={handlePreviewMouseDown}
                   />
 
-                  {/* SVGベースのリサイズハンドル */}
-                  <svg
-                    style={{
-                      position: 'absolute',
-                      left: '0px',
-                      top: '0px',
-                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                      zIndex: 3,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {generateResizeHandles(currentPos, currentSize, handleResizeMouseDown)}
-                  </svg>
+                  {/* リサイズハンドル */}
+                  <ResizeHandleOverlay
+                    canvasWidth={project.canvas.width}
+                    canvasHeight={project.canvas.height}
+                    currentPos={currentPos}
+                    currentSize={currentSize}
+                    onResizeMouseDown={handleResizeMouseDown}
+                    zIndex={3}
+                  />
                 </div>
           </Box>
 
