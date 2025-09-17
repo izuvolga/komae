@@ -1,32 +1,32 @@
 /* CSS Variables for theme support */
 :root {
-  /* Light mode colors */
-  --dialog-border-color: #d1d5db;
-  --dialog-bg-color: white;
-  --dialog-bg-secondary: #f9fafb;
-  --dialog-bg-hover: #f8fafc;
-  --dialog-text-primary: #374151;
-  --dialog-text-secondary: #6b7280;
-  --dialog-text-disabled: #9ca3af;
-  --dialog-active-bg: #dbeafe;
-  --dialog-active-border: #3b82f6;
-  --dialog-active-text: #1d4ed8;
-  --dialog-border-secondary: #e5e7eb;
+  /* Light mode colors - matching muiTheme.ts komaeTheme */
+  --dialog-border-color: #d1d5db;  /* grey.300 */
+  --dialog-bg-color: #ffffff;      /* background.paper */
+  --dialog-bg-secondary: #f9fafb;  /* grey.50 */
+  --dialog-bg-hover: #f3f4f6;      /* grey.100 */
+  --dialog-text-primary: #1f2937;  /* text.primary (grey.800) */
+  --dialog-text-secondary: #6b7280; /* text.secondary (grey.500) */
+  --dialog-text-disabled: #9ca3af;  /* text.disabled (grey.400) */
+  --dialog-active-bg: #dbeafe;     /* primary.50 equivalent */
+  --dialog-active-border: #3b82f6; /* primary.main */
+  --dialog-active-text: #2563eb;   /* primary.dark */
+  --dialog-border-secondary: #e5e7eb; /* divider (grey.200) */
 }
 
 [data-theme="dark"] {
-  /* Dark mode colors */
-  --dialog-border-color: #374151;
-  --dialog-bg-color: #1f2937;
-  --dialog-bg-secondary: #111827;
-  --dialog-bg-hover: #374151;
-  --dialog-text-primary: #f9fafb;
-  --dialog-text-secondary: #d1d5db;
-  --dialog-text-disabled: #6b7280;
-  --dialog-active-bg: #1e40af;
-  --dialog-active-border: #3b82f6;
-  --dialog-active-text: #93c5fd;
-  --dialog-border-secondary: #374151;
+  /* Dark mode colors - matching muiTheme.ts komaeDarkTheme */
+  --dialog-border-color: #374151; /* grey.700 */
+  --dialog-bg-color: #1f2937;     /* background.paper */
+  --dialog-bg-secondary: #111827; /* background.default */
+  --dialog-bg-hover: #374151;     /* grey.700 */
+  --dialog-text-primary: #f9fafb; /* text.primary (grey.50) */
+  --dialog-text-secondary: #d1d5db; /* text.secondary (grey.300) */
+  --dialog-text-disabled: #6b7280; /* text.disabled (grey.500) */
+  --dialog-active-bg: #1e40af;    /* primary.dark */
+  --dialog-active-border: #3b82f6; /* primary.main */
+  --dialog-active-text: #60a5fa;  /* primary.light */
+  --dialog-border-secondary: #374151; /* divider (grey.700) */
 }
 
 .language-selector-area {
