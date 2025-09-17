@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
 import './ProjectCreateDialog.css';
@@ -43,6 +44,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   onClose,
 }) => {
   const { setProject, addNotification } = useProjectStore();
+  const { mode } = useTheme();
   
   // フォーム状態
   const [title, setTitle] = useState('');
@@ -57,6 +59,11 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   const [currentLanguage, setCurrentLanguage] = useState(DEFAULT_CURRENT_LANGUAGE);
   const [selectedLanguageForAdd, setSelectedLanguageForAdd] = useState('');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+
+  // テーマ変更時にCSS変数を設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // 現在のキャンバス設定を取得
   const getCurrentCanvas = (): CanvasConfig => {
@@ -295,7 +302,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
           {/* 多言語設定 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', fontSize: '14px' }}>対応言語</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>対応言語</Typography>
 
             <div className="language-selector-area">
               <div className="language-dropdown-container">
@@ -384,7 +391,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
           {/* キャンバス設定 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', fontSize: '14px' }}>キャンバスサイズ</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>キャンバスサイズ</Typography>
             <RadioGroup
               value={selectedPreset}
               onChange={(e) => setSelectedPreset(e.target.value)}
@@ -445,8 +452,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
           {/* 現在の設定確認 */}
           <Box sx={{
-            background: '#f8f9fa',
-            border: '1px solid #e9ecef',
+            bgcolor: mode === 'dark' ? 'grey.900' : 'grey.50',
+            border: '1px solid',
+            borderColor: 'divider',
             borderRadius: '6px',
             padding: 2
           }}>
@@ -455,15 +463,15 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               mb: 1,
               fontSize: '14px',
               fontWeight: 600,
-              color: '#374151'
+              color: 'text.primary'
             }}>
               設定確認
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '14px', color: '#6b7280' }}>
+            <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
               キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
             </Typography>
             {title.trim() && (
-              <Typography variant="body2" sx={{ fontSize: '14px', color: '#6b7280', mt: 1 }}>
+              <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary', mt: 1 }}>
                 作成される構造:<br />
                 選択ディレクトリ/{title.trim()}/<br />
                 　└ {title.trim()}.komae
