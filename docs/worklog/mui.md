@@ -1,17 +1,9 @@
-既存CSSファイルのクリーンアップに入るまえに、
-CustomAssetSelectionModal の CustomAssetManagementModal への統合をしましょう。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
-- CustomAssetSelectionModal/CustomAssetManagementModal 両者の設計を確認
-- CustomAssetManagementModal に「アセットを作成」ボタンを追加
-- AssetLibrary から Dynamic SVG を作成する際に、CustomAssetManagementModal が開くようにする
-- CustomAssetManagementModal でのアセットが作成できるようにする
-- 動作確認
-- CustomAssetSelectionModal を廃止
 
 @src/renderer/App.css って必要なんですかね。
 
 複数の Asset 編集用のモーダルでリサイズハンドルを定義していますが、これも src/renderer/components/common/ 配下の部品にできませんかね。
 
-$ pt リサイズハンドル src/renderer/components/asset/
+$ rg リサイズハンドル src/renderer/components/asset/
 src/renderer/components/asset/VectorEditModal.tsx
 357:                  {/* SVGベースのリサイズハンドル */}
 
