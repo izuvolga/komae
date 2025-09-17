@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { NotificationDisplay } from './components/notification/NotificationDisplay';
 import { ThemeProvider } from '../theme/ThemeProvider';
@@ -15,6 +15,10 @@ const AppContent: React.FC = () => {
   const errors = useProjectStore((state) => state.app.errors);
   const clearErrors = useProjectStore((state) => state.clearErrors);
   const { toggleTheme } = useTheme();
+
+  // toggleTheme関数の最新の参照を保持
+  const toggleThemeRef = useRef(toggleTheme);
+  toggleThemeRef.current = toggleTheme;
 
   // アプリ起動時に全フォントを初期化
   useEffect(() => {
@@ -47,17 +51,20 @@ const AppContent: React.FC = () => {
   // メニューイベントのリスナーを設定
   useEffect(() => {
     const handleMenuToggleDarkMode = () => {
-      toggleTheme();
+      console.log('[App] Menu toggle dark mode triggered, calling current toggleTheme');
+      toggleThemeRef.current();
     };
 
+    console.log('[App] Registering IPC listener for menu:toggle-dark-mode');
     // IPCイベントリスナーを登録
     window.electronAPI?.ipc?.on('menu:toggle-dark-mode', handleMenuToggleDarkMode);
 
     // クリーンアップ
     return () => {
+      console.log('[App] Removing IPC listener for menu:toggle-dark-mode');
       window.electronAPI?.ipc?.removeListener('menu:toggle-dark-mode', handleMenuToggleDarkMode);
     };
-  }, [toggleTheme]);
+  }, []); // 依存配列を空にしてマウント時のみ実行
 
   // フォントをCSSに動的登録
   const registerFontsInCSS = (fonts: FontInfo[]) => {
