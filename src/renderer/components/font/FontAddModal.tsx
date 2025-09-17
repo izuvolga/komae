@@ -15,7 +15,7 @@ import {
   FormControl,
   FormLabel,
 } from '@mui/material';
-import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Help as HelpIcon, FolderOpen as FolderOpenIcon } from '@mui/icons-material';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
 
@@ -223,7 +223,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pb: 0 }}>
+        <DialogContent sx={{ p: 3, pt: 2 }}>
           {/* フォントタイプ選択 */}
           <FormControl component="fieldset" sx={{ mb: 3 }} disabled={isLoading}>
             <FormLabel component="legend">フォントタイプ</FormLabel>
@@ -275,7 +275,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                     disabled={isLoading}
                     sx={{ minWidth: 'auto', px: 2 }}
                   >
-                    📁
+                    <FolderOpenIcon />
                   </Button>
                 </Box>
               </Box>
@@ -310,7 +310,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                     disabled={isLoading}
                     sx={{ minWidth: 'auto', px: 2 }}
                   >
-                    📁
+                    <FolderOpenIcon />
                   </Button>
                 </Box>
               </Box>
@@ -350,62 +350,64 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           {/* ビルトインフォント用フィールド */}
           {fontType === 'builtin' && (
             <>
-              <div className="form-section">
-                <label>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Font File
-                  <div className="file-input-row">
-                    <TextField
-                      value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
-                      placeholder="フォントファイルを選択..."
-                      InputProps={{ readOnly: true }}
-                      size="small"
-                      fullWidth
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleFontFileSelect}
-                      className="file-select-button"
-                      disabled={isLoading}
-                    >
-                      📁
-                    </button>
-                  </div>
-                </label>
-              </div>
-
-              <div className="form-section">
-                <label>
-                  License File 
-                  <button 
-                    type="button" 
-                    onClick={showLicenseHelp}
-                    className="help-button"
-                    title="ライセンス情報について"
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
+                    placeholder="フォントファイルを選択..."
+                    InputProps={{ readOnly: true }}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleFontFileSelect}
+                    disabled={isLoading}
+                    sx={{ minWidth: 'auto', px: 2 }}
                   >
-                    ?
-                  </button>
-                  <div className="file-input-row">
-                    <TextField
-                      value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
-                      placeholder="ライセンスファイルを選択（オプション）..."
-                      InputProps={{ readOnly: true }}
-                      size="small"
-                      fullWidth
-                    />
-                    <button 
-                      type="button" 
-                      onClick={handleLicenseFileSelect}
-                      className="file-select-button"
-                      disabled={isLoading}
-                    >
-                      📁
-                    </button>
-                  </div>
-                </label>
-              </div>
-              <div className="form-help">
+                    <FolderOpenIcon />
+                  </Button>
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="subtitle2">
+                    License File
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={showLicenseHelp}
+                    title="ライセンス情報について"
+                    sx={{ ml: 1 }}
+                  >
+                    <HelpIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
+                    placeholder="ライセンスファイルを選択（オプション）..."
+                    InputProps={{ readOnly: true }}
+                    size="small"
+                    fullWidth
+                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleLicenseFileSelect}
+                    disabled={isLoading}
+                    sx={{ minWidth: 'auto', px: 2 }}
+                  >
+                    <FolderOpenIcon />
+                  </Button>
+                </Box>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontStyle: 'italic' }}>
                 ビルトインフォントとして public/fonts/ ディレクトリに追加されます（管理者モード）
-              </div>
+              </Typography>
             </>
           )}
 
