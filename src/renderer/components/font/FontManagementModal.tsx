@@ -237,14 +237,13 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         <div className="modal-content">
           {/* Sample Text入力 */}
           <div className="sample-text-section">
-            <label htmlFor="sample-text">Sample Text</label>
-            <input
-              id="sample-text"
-              type="text"
+            <TextField
+              label="Sample Text"
               value={sampleText}
               onChange={(e) => setSampleText(e.target.value)}
               placeholder="Enter sample text..."
-              className="sample-text-input"
+              fullWidth
+              size="small"
             />
           </div>
 

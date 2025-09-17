@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TextField } from '@mui/material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ExportFormat, ExportOptions } from '../../../types/entities';
 import './ExportDialog.css';
@@ -162,13 +163,13 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
 
           {/* ファイル名 */}
           <div className="form-group">
-            <label htmlFor="project-name">ファイル名</label>
-            <input
-              id="project-name"
-              type="text"
+            <TextField
+              label="ファイル名"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               placeholder="ファイル名を入力"
+              fullWidth
+              size="small"
             />
           </div>
 
@@ -176,12 +177,12 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
           <div className="form-group">
             <label htmlFor="output-path">出力先ディレクトリ</label>
             <div className="path-input-group">
-              <input
-                id="output-path"
-                type="text"
+              <TextField
                 value={outputPath}
                 onChange={(e) => setOutputPath(e.target.value)}
                 placeholder="出力先パスを入力"
+                size="small"
+                fullWidth
               />
               <button type="button" onClick={handleBrowseOutputPath}>
                 参照

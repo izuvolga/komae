@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import './ZIndexInput.css';
+import { TextField, IconButton, Box, Alert } from '@mui/material';
+import { KeyboardArrowUp, KeyboardArrowDown, Warning, Error } from '@mui/icons-material';
 
 export interface ZIndexValidationResult {
   isValid: boolean;
@@ -215,9 +216,9 @@ export const ZIndexInput: React.FC<ZIndexInputProps> = ({
     (!validation.isValid ? 'error' : validation.warning ? 'warning' : '') : '';
 
   return (
-    <div className={`zindex-input-container ${className}`}>
-      <div className={`zindex-input ${disabled ? 'disabled' : ''} ${validationClass}`}>
-        <input
+    <Box className={className}>
+      <Box sx={{ position: 'relative', display: 'inline-flex', width: '100%' }}>
+        <TextField
           type="text"
           value={displayValue}
           onChange={handleInputChange}
@@ -225,44 +226,72 @@ export const ZIndexInput: React.FC<ZIndexInputProps> = ({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          className="zindex-input-field"
           placeholder="0"
+          size="small"
+          fullWidth
+          error={validation && !validation.isValid}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              paddingRight: '48px'
+            }
+          }}
         />
-        <div className="zindex-input-buttons">
-          <button
-            type="button"
-            className="zindex-input-btn increment"
+        <Box sx={{
+          position: 'absolute',
+          right: 1,
+          top: 1,
+          bottom: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          width: 24
+        }}>
+          <IconButton
+            size="small"
             onMouseDown={handleIncrementMouseDown}
             onMouseUp={handleMouseUpOrLeave}
             onMouseLeave={handleMouseUpOrLeave}
             disabled={disabled}
             title="長押しで連続増加"
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              borderRadius: '0 3px 0 0',
+              fontSize: '10px',
+              padding: 0,
+              borderBottom: '1px solid #dee2e6'
+            }}
           >
-            ▲
-          </button>
-          <button
-            type="button"
-            className="zindex-input-btn decrement"
+            <KeyboardArrowUp fontSize="inherit" />
+          </IconButton>
+          <IconButton
+            size="small"
             onMouseDown={handleDecrementMouseDown}
             onMouseUp={handleMouseUpOrLeave}
             onMouseLeave={handleMouseUpOrLeave}
             disabled={disabled}
             title="長押しで連続減少"
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              borderRadius: '0 0 3px 0',
+              fontSize: '10px',
+              padding: 0
+            }}
           >
-            ▼
-          </button>
-        </div>
-      </div>
+            <KeyboardArrowDown fontSize="inherit" />
+          </IconButton>
+        </Box>
+      </Box>
       {/* バリデーション結果の表示 */}
       {validation && (validation.error || validation.warning) && (
-        <div className={`zindex-validation ${validationClass}`}>
-          {validation.error && <span className="error-icon">❌</span>}
-          {validation.warning && <span className="warning-icon">⚠️</span>}
-          <span className="validation-message">
-            {validation.error || validation.warning}
-          </span>
-        </div>
+        <Alert
+          severity={validation.error ? "error" : "warning"}
+          icon={validation.error ? <Error /> : <Warning />}
+          sx={{ mt: 1, fontSize: '0.875rem' }}
+        >
+          {validation.error || validation.warning}
+        </Alert>
       )}
-    </div>
+    </Box>
   );
 };

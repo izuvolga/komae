@@ -355,12 +355,12 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                 <label>
                   Font File
                   <div className="file-input-row">
-                    <input
-                      type="text"
+                    <TextField
                       value={fontFile ? fontFile.split('/').pop() || fontFile : ''}
                       placeholder="フォントファイルを選択..."
-                      readOnly
-                      className="file-path-input"
+                      InputProps={{ readOnly: true }}
+                      size="small"
+                      fullWidth
                     />
                     <button 
                       type="button" 
@@ -386,12 +386,12 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                     ?
                   </button>
                   <div className="file-input-row">
-                    <input
-                      type="text"
+                    <TextField
                       value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
                       placeholder="ライセンスファイルを選択（オプション）..."
-                      readOnly
-                      className="file-path-input"
+                      InputProps={{ readOnly: true }}
+                      size="small"
+                      fullWidth
                     />
                     <button 
                       type="button" 

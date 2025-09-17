@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TextField } from '@mui/material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
@@ -229,14 +230,15 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           <div className="form-section">
             {/* プロジェクト基本情報 */}
             <div className="form-field">
-              <label className="form-label required">プロジェクト名</label>
-              <input
-                type="text"
-                className="form-input"
+              <TextField
+                label="プロジェクト名"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="私の物語"
                 disabled={isCreating}
+                required
+                fullWidth
+                size="small"
               />
             </div>
 
@@ -376,27 +378,27 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               <div className="form-field">
                 <div className="custom-size-fields">
                   <div className="size-field">
-                    <label className="form-label">幅 (px)</label>
-                    <input
+                    <TextField
+                      label="幅 (px)"
                       type="number"
-                      className="form-input size-input"
                       value={customWidth}
                       onChange={(e) => setCustomWidth(Number(e.target.value) || 800)}
-                      min={100}
-                      max={4000}
+                      inputProps={{ min: 100, max: 4000 }}
                       disabled={isCreating}
+                      size="small"
+                      fullWidth
                     />
                   </div>
                   <div className="size-field">
-                    <label className="form-label">高さ (px)</label>
-                    <input
+                    <TextField
+                      label="高さ (px)"
                       type="number"
-                      className="form-input size-input"
                       value={customHeight}
                       onChange={(e) => setCustomHeight(Number(e.target.value) || 600)}
-                      min={100}
-                      max={4000}
+                      inputProps={{ min: 100, max: 4000 }}
                       disabled={isCreating}
+                      size="small"
+                      fullWidth
                     />
                   </div>
                 </div>

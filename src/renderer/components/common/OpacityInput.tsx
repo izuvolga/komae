@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import './OpacityInput.css';
+import { Box, Typography, Slider, TextField } from '@mui/material';
 
 interface OpacityInputProps {
   value: number;
@@ -42,32 +42,36 @@ export const OpacityInput: React.FC<OpacityInputProps> = ({
   const clampedValue = clampValue(value);
 
   return (
-    <div className={`opacity-input-container ${className}`}>
-      <div className="opacity-section">
-        <span>{label}</span>
-        <div className="opacity-controls">
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
+    <Box className={className} sx={{ width: '100%' }}>
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="body2" sx={{ mb: 1 }}>{label}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Slider
             value={clampedValue}
-            onChange={handleSliderChange}
+            onChange={(_, newValue) => onChange(newValue as number)}
+            min={0}
+            max={1}
+            step={0.01}
             disabled={disabled}
-            className="opacity-slider"
+            sx={{ flex: 1 }}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
           />
-          <input
+          <TextField
             type="number"
-            min="0"
-            max="1"
-            step="0.01"
             value={clampedValue}
             onChange={handleNumberChange}
             disabled={disabled}
-            className="opacity-number"
+            size="small"
+            inputProps={{
+              min: 0,
+              max: 1,
+              step: 0.01
+            }}
+            sx={{ width: 80 }}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
