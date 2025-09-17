@@ -895,24 +895,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
             {/* 色設定 */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
-              <div className="form-section">
-                <h4>色設定</h4>
-                <div className="form-group">
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  色設定
+                </Typography>
+                <Box sx={{ mb: 2 }}>
                   <ColorPicker
                     label="塗りの色"
                     value={getCurrentValue('fill_color')}
                     onChange={(color) => setCurrentValue({fill_color: color})}
                   />
-                </div>
-                <div className="form-group">
+                </Box>
+                <Box sx={{ mb: 2 }}>
                   <ColorPicker
                     label="縁取りの色"
                     value={getCurrentValue('stroke_color')}
                     onChange={(color) => setCurrentValue({stroke_color: color})}
                   />
-                </div>
-                <div className="form-group">
-                  <label>縁取り幅</label>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>縁取り幅</Typography>
                   <NumericInput
                     value={getCurrentValue('stroke_width')}
                     onChange={(value) => {
@@ -923,17 +925,19 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     decimals={0}
                     className="small"
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
 
             {/* 位置・透明度設定（アセット編集時のみ） */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
-              <div className="form-section">
-                <h4>位置・透明度設定</h4>
-                <div className="form-row form-row-double">
-                  <label>
-                    X座標
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  位置・透明度設定
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>X座標</Typography>
                     <NumericInput
                       value={getCurrentPosition().x}
                       onChange={(value) => setCurrentValue({pos_x: value})}
@@ -942,9 +946,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
-                  </label>
-                  <label>
-                    Y座標
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Y座標</Typography>
                     <NumericInput
                       value={getCurrentPosition().y}
                       onChange={(value) => setCurrentValue({pos_y: value})}
@@ -953,366 +957,421 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
-                  </label>
-                </div>
-                <div className="form-row">
+                  </Box>
+                </Box>
+                <Box sx={{ mb: 2 }}>
                   <OpacityInput
                     value={getCurrentValue('opacity')}
                     onChange={(value) => setCurrentValue({opacity: value})}
                     label="透明度"
                   />
-                </div>
+                </Box>
 
                 {/* z_index設定 */}
-                <div className="form-group">
-                  <label>Z-Index</label>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Z-Index</Typography>
                   <ZIndexInput
                     value={getCurrentValue('z_index')}
                     onChange={(value) => setCurrentValue({z_index: value})}
                     validation={zIndexValidation}
                   />
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
 
             {/* 現在言語の設定（インスタンス編集時のみ） */}
             {getCurrentPhase() === TextAssetInstancePhase.INSTANCE_LANG && (
-              <div className="form-section">
-                <h4>ページの内容</h4>
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  ページの内容
+                </Typography>
                 {/* テキスト設定 */}
-                <div className="form-group">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'nowrap' }}>
-                    <span style={{ margin: 0, fontWeight: '600', fontSize: '14px' }}>このページのテキスト</span>
-                    <div style={{ borderLeft: '1px solid #ddd', height: '16px', margin: '0 4px' }}></div>
-                    <label style={{ margin: 0, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px', fontSize: '14px', whiteSpace: 'nowrap' }}>
-                      <input
-                        type="checkbox"
-                        checked={!isInstanceTextOverrideEnabled()}
-                        style={{ margin: '0', flexShrink: 0 }}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            // チェックを入れたら該当言語の設定を削除（確認用テキストを使用）
-                            if (editingInstance?.multilingual_text) {
-                              const currentLang = getCurrentLanguage();
-                              const newMultilingualText = { ...editingInstance.multilingual_text };
-                              delete newMultilingualText[currentLang];
-                              setEditingInstance({
-                                ...editingInstance,
-                                multilingual_text: newMultilingualText
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'nowrap' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      このページのテキスト
+                    </Typography>
+                    <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!isInstanceTextOverrideEnabled()}
+                          size="small"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              // チェックを入れたら該当言語の設定を削除（確認用テキストを使用）
+                              if (editingInstance?.multilingual_text) {
+                                const currentLang = getCurrentLanguage();
+                                const newMultilingualText = { ...editingInstance.multilingual_text };
+                                delete newMultilingualText[currentLang];
+                                setEditingInstance({
+                                  ...editingInstance,
+                                  multilingual_text: newMultilingualText
+                                });
+                              }
+                            } else {
+                              // チェックを外したらこのページ専用のテキストを設定（初期値は空文字列）
+                              setCurrentValue({
+                                text: '' // 空文字列で初期化
                               });
                             }
-                          } else {
-                            // チェックを外したらこのページ専用のテキストを設定（初期値は空文字列）
-                            setCurrentValue({
-                              text: '' // 空文字列で初期化
-                            });
-                          }
-                        }}
-                      />
-                      <span>確認用テキストを利用</span>
-                    </label>
-                  </div>
-                  <textarea
+                          }}
+                        />
+                      }
+                      label="確認用テキストを利用"
+                      sx={{ margin: 0, fontSize: '14px', whiteSpace: 'nowrap' }}
+                    />
+                  </Box>
+                  <TextField
                     value={getEffectiveTextValue(editingAsset, editingInstance, getCurrentLanguage(), TextAssetInstancePhase.AUTO)}
                     onChange={(e) => setCurrentValue({text: e.target.value})}
+                    multiline
                     rows={3}
                     disabled={!isInstanceTextOverrideEnabled()}
-                    style={{
-                      backgroundColor: !isInstanceTextOverrideEnabled() ? '#f5f5f5' : 'white',
-                      color: !isInstanceTextOverrideEnabled() ? '#666' : 'black',
-                      cursor: !isInstanceTextOverrideEnabled() ? 'not-allowed' : 'text'
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      '& .MuiInputBase-input.Mui-disabled': {
+                        backgroundColor: '#f5f5f5',
+                        color: '#666',
+                        cursor: 'not-allowed'
+                      }
                     }}
                   />
-                  <div className="form-help">
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
                     {!isInstanceTextOverrideEnabled()
                       ? '確認用テキストが使用されます（チェックを外すとこのページ専用のテキストを設定できます）'
                       : 'このページ専用のテキストを設定します'
                     }
-                  </div>
-                </div>
+                  </Typography>
+                </Box>
                 {/* 文脈設定 */}
-                <div className="form-group">
-                  <label>
-                    文脈・用途
-                    <input
-                      type="text"
-                      value={getCurrentValue('context')}
-                      onChange={(value) => setCurrentValue({context: value})}
-                      placeholder="例: キャラクターAの叫び声、ナレーション等"
-                    />
-                    <div className="form-help">
-                      このページでの用途や文脈を記録しておけます（任意）
-                    </div>
-                  </label>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>このページのスタイルを上書き</h4>
-                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
-                    <input
-                      type="checkbox"
-                      checked={isLanguageOverrideEnabled()}
-                      onChange={(e) => {
-                        const currentLang = getCurrentLanguage();
-                        const currentOverrides = getCurrentValue('override_language_settings') || {};
+                <Box sx={{ mb: 3 }}>
+                  <TextField
+                    label="文脈・用途"
+                    value={getCurrentValue('context')}
+                    onChange={(e) => setCurrentValue({context: e.target.value})}
+                    placeholder="例: キャラクターAの叫び声、ナレーション等"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                  />
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+                    このページでの用途や文脈を記録しておけます（任意）
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, margin: 0 }}>
+                    このページのスタイルを上書き
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isLanguageOverrideEnabled()}
+                        size="small"
+                        onChange={(e) => {
+                          const currentLang = getCurrentLanguage();
+                          const currentOverrides = getCurrentValue('override_language_settings') || {};
 
-                        if (e.target.checked) {
-                          // チェックを入れたら空の設定を作成
-                          setCurrentValue({
-                            override_language_settings: {
-                              ...currentOverrides,
-                              [currentLang]: {}
-                            }
-                          });
-                        } else {
-                          // チェックを外したら該当言語の設定を削除
-                          const newOverrides = { ...currentOverrides };
-                          delete newOverrides[currentLang];
-                          setCurrentValue({
-                            override_language_settings: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
-                          });
-                        }
-                      }}
-                    />
-                    有効
-                  </label>
-                </div>
-                <div className="form-help">
+                          if (e.target.checked) {
+                            // チェックを入れたら空の設定を作成
+                            setCurrentValue({
+                              override_language_settings: {
+                                ...currentOverrides,
+                                [currentLang]: {}
+                              }
+                            });
+                          } else {
+                            // チェックを外したら該当言語の設定を削除
+                            const newOverrides = { ...currentOverrides };
+                            delete newOverrides[currentLang];
+                            setCurrentValue({
+                              override_language_settings: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                            });
+                          }
+                        }}
+                      />
+                    }
+                    label="有効"
+                    sx={{ margin: 0, fontSize: '14px' }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
                   現在の言語（{getCurrentLanguage() === 'ja' ? '日本語' :
                               getCurrentLanguage() === 'en' ? 'English' :
                               getCurrentLanguage() === 'zh' ? '中文' :
                               getCurrentLanguage() === 'ko' ? '한국어' :
                               getCurrentLanguage().toUpperCase()}）におけるこのページのスタイルを上書きします
-                </div>
+                </Typography>
 
                 {/* 言語設定項目のラッパー */}
-                <div className={`language-settings-container ${isLanguageOverrideEnabled() ? 'enabled' : 'disabled'}`}>
+                <Box
+                  sx={{
+                    opacity: isLanguageOverrideEnabled() ? 1 : 0.6,
+                    pointerEvents: isLanguageOverrideEnabled() ? 'auto' : 'none',
+                    '& .MuiTextField-root': {
+                      '& .MuiInputBase-input.Mui-disabled': {
+                        backgroundColor: '#f5f5f5',
+                        color: '#666'
+                      }
+                    }
+                  }}
+                >
                   {/* フォント設定 */}
-                  <div className="form-group">
-                  <label>
-                    フォント:
-                    <select
+                  <Box sx={{ mb: 2 }}>
+                    <TextField
+                      select
+                      label="フォント"
                       value={getCurrentValue('font')}
-                      onChange={(value) => setCurrentValue({font: value})}
+                      onChange={(e) => setCurrentValue({font: e.target.value})}
                       disabled={!isLanguageOverrideEnabled()}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
                     >
-                      <option value="">アセット設定を使用</option>
+                      <MenuItem value="">アセット設定を使用</MenuItem>
                       {availableFonts.map((font) => (
-                        <option key={font.id} value={font.id}>
+                        <MenuItem key={font.id} value={font.id}>
                           {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                        </option>
+                        </MenuItem>
                       ))}
-                    </select>
-                  </label>
-                </div>
+                    </TextField>
+                  </Box>
 
-                {/* フォントサイズ */}
-                <div className="form-group">
-                  <label>フォントサイズ</label>
-                  <NumericInput
-                    value={getCurrentValue('font_size')}
-                    onChange={(value) => setCurrentValue({font_size: value})}
-                    min={0.01}
-                    decimals={2}
-                    className="small"
-                    placeholder="アセット設定使用"
-                    disabled={!isLanguageOverrideEnabled()}
-                  />
-                </div>
-
-                {/* 位置設定 */}
-                <div className="form-row form-row-double">
-                  <label>
-                    X座標
+                  {/* フォントサイズ */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>フォントサイズ</Typography>
                     <NumericInput
-                      value={getCurrentValue('pos_x')}
-                      onChange={(value) => setCurrentValue({pos_x: value})}
-                      min={-9999}
-                      max={9999}
+                      value={getCurrentValue('font_size')}
+                      onChange={(value) => setCurrentValue({font_size: value})}
+                      min={0.01}
                       decimals={2}
                       className="small"
                       placeholder="アセット設定使用"
                       disabled={!isLanguageOverrideEnabled()}
                     />
-                  </label>
-                  <label>
-                    Y座標
-                    <NumericInput
-                      value={getCurrentValue('pos_y')}
-                      onChange={(value) => setCurrentValue({pos_y: value})}
-                      min={-9999}
-                      max={9999}
-                      decimals={2}
-                      className="small"
-                      placeholder="アセット設定使用"
+                  </Box>
+
+                  {/* 位置設定 */}
+                  <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>X座標</Typography>
+                      <NumericInput
+                        value={getCurrentValue('pos_x')}
+                        onChange={(value) => setCurrentValue({pos_x: value})}
+                        min={-9999}
+                        max={9999}
+                        decimals={2}
+                        className="small"
+                        placeholder="アセット設定使用"
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Y座標</Typography>
+                      <NumericInput
+                        value={getCurrentValue('pos_y')}
+                        onChange={(value) => setCurrentValue({pos_y: value})}
+                        min={-9999}
+                        max={9999}
+                        decimals={2}
+                        className="small"
+                        placeholder="アセット設定使用"
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* 縦書き設定 */}
+                  <Box sx={{ mb: 2 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={getCurrentValue('vertical')}
+                          onChange={(e) => setCurrentValue({vertical: e.target.checked})}
+                          disabled={!isLanguageOverrideEnabled()}
+                          size="small"
+                        />
+                      }
+                      label="縦書き"
+                    />
+                  </Box>
+
+                  {/* 不透明度設定 */}
+                  <Box sx={{ mb: 2 }}>
+                    <OpacityInput
+                      value={getCurrentValue('opacity')}
+                      onChange={(value) => setCurrentValue({opacity: value})}
+                      label="Opacity"
                       disabled={!isLanguageOverrideEnabled()}
                     />
-                  </label>
-                </div>
+                  </Box>
 
-                {/* 縦書き設定 */}
-                <div className="form-row">
-                  <label>
-                    縦書き
-                    <input
-                      type="checkbox"
-                      checked={getCurrentValue('vertical')}
-                      onChange={(e) => setCurrentValue({vertical: e.target.checked})}
+                  {/* z-index設定 */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Z-Index</Typography>
+                    <ZIndexInput
+                      value={getCurrentValue('z_index')}
+                      onChange={(value) => setCurrentValue({z_index: value})}
                       disabled={!isLanguageOverrideEnabled()}
                     />
-                  </label>
-                </div>
-
-                {/* 不透明度設定 */}
-                <div className="form-row">
-                  <OpacityInput
-                    value={getCurrentValue('opacity')}
-                    onChange={(value) => setCurrentValue({opacity: value})}
-                    label="Opacity"
-                    disabled={!isLanguageOverrideEnabled()}
-                  />
-                </div>
-
-                {/* z-index設定 */}
-                <div className="form-group">
-                  <label>Z-Index</label>
-                  <ZIndexInput
-                    value={getCurrentValue('z_index')}
-                    onChange={(value) => setCurrentValue({z_index: value})}
-                    disabled={!isLanguageOverrideEnabled()}
-                  />
-                </div>
-                </div>
-              </div>
+                  </Box>
+                </Box>
+              </Box>
             )}
 
             {/* 言語別設定（アセット編集時のみ） */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_LANG && (
-              <div className="form-section">
-                <div className="form-help">
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
                   特定の言語でのみ異なる設定にしたい場合に使用します
-                </div>
+                </Typography>
 
                 {/* 言語別の確認用テキスト */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>言語別の確認用テキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
-                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
-                    <input
-                      type="checkbox"
-                      checked={(() => {
-                        const overrideTexts = getCurrentValue('default_text_override') || {};
-                        return !!(activePreviewTab in overrideTexts); // React controlled inputエラー防止のため、!!演算子でboolean型を保証
-                      })()}
-                      onChange={(e) => {
-                        const currentLang = activePreviewTab;
-                        const currentOverrides = getCurrentValue('default_text_override') || {};
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, margin: 0 }}>
+                    言語別の確認用テキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={(() => {
+                          const overrideTexts = getCurrentValue('default_text_override') || {};
+                          return !!(activePreviewTab in overrideTexts); // React controlled inputエラー防止のため、!!演算子でboolean型を保証
+                        })()}
+                        size="small"
+                        onChange={(e) => {
+                          const currentLang = activePreviewTab;
+                          const currentOverrides = getCurrentValue('default_text_override') || {};
 
-                        if (e.target.checked) {
-                          // チェックを入れたら空文字列を設定
-                          const newValue = {
-                            default_text_override: {
-                              ...currentOverrides,
-                              [currentLang]: ''
-                            }
-                          };
-                          setCurrentValue(newValue);
-                        } else {
-                          // チェックを外したら該当言語の設定を削除
-                          const newOverrides = { ...currentOverrides };
-                          delete newOverrides[currentLang];
-                          const newValue = {
-                            default_text_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
-                          };
-                          setCurrentValue(newValue);
-                        }
-                      }}
-                    />
-                    有効
-                  </label>
-                </div>
+                          if (e.target.checked) {
+                            // チェックを入れたら空文字列を設定
+                            const newValue = {
+                              default_text_override: {
+                                ...currentOverrides,
+                                [currentLang]: ''
+                              }
+                            };
+                            setCurrentValue(newValue);
+                          } else {
+                            // チェックを外したら該当言語の設定を削除
+                            const newOverrides = { ...currentOverrides };
+                            delete newOverrides[currentLang];
+                            const newValue = {
+                              default_text_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                            };
+                            setCurrentValue(newValue);
+                          }
+                        }}
+                      />
+                    }
+                    label="有効"
+                    sx={{ margin: 0, fontSize: '14px' }}
+                  />
+                </Box>
 
                 {/* テキスト入力欄 */}
                 {activePreviewTab && activePreviewTab !== 'common' && (() => {
                   const overrideTexts = getCurrentValue('default_text_override') || {};
                   const isTextOverrideEnabled = activePreviewTab in overrideTexts;
                   return (
-                    <div className={`language-text-override-container ${isTextOverrideEnabled ? 'enabled' : 'disabled'}`}>
-                      <div className="form-group">
-                        <label>確認用テキスト</label>
-                        <textarea
-                          value={isTextOverrideEnabled ? (overrideTexts[activePreviewTab] || '') : ''}
-                          onChange={(e) => {
-                            if (isTextOverrideEnabled) {
-                              const currentOverrides = getCurrentValue('default_text_override') || {};
-                              setCurrentValue({
-                                default_text_override: {
-                                  ...currentOverrides,
-                                  [activePreviewTab]: e.target.value
-                                }
-                              });
-                            }
-                          }}
-                          disabled={!isTextOverrideEnabled}
-                          rows={3}
-                          placeholder={isTextOverrideEnabled ? '言語固有のデフォルトテキスト' : '全言語共通のデフォルトテキストを使用'}
-                        />
-                      </div>
-                    </div>
+                    <Box
+                      sx={{
+                        opacity: isTextOverrideEnabled ? 1 : 0.6,
+                        mb: 3
+                      }}
+                    >
+                      <TextField
+                        label="確認用テキスト"
+                        value={isTextOverrideEnabled ? (overrideTexts[activePreviewTab] || '') : ''}
+                        onChange={(e) => {
+                          if (isTextOverrideEnabled) {
+                            const currentOverrides = getCurrentValue('default_text_override') || {};
+                            setCurrentValue({
+                              default_text_override: {
+                                ...currentOverrides,
+                                [activePreviewTab]: e.target.value
+                              }
+                            });
+                          }
+                        }}
+                        disabled={!isTextOverrideEnabled}
+                        multiline
+                        rows={3}
+                        placeholder={isTextOverrideEnabled ? '言語固有のデフォルトテキスト' : '全言語共通のデフォルトテキストを使用'}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                      />
+                    </Box>
                   );
                 })()}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h4 style={{ margin: 0 }}>言語別のスタイル設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）</h4>
-                  <label style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
-                    <input
-                      type="checkbox"
-                      checked={isLanguageDefaultOverrideEnabled()}
-                      onChange={(e) => {
-                        const currentLang = activePreviewTab;
-                        const currentOverrides = getCurrentValue('default_language_override') || {};
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, margin: 0 }}>
+                    言語別のスタイル設定（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
+                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isLanguageDefaultOverrideEnabled()}
+                        size="small"
+                        onChange={(e) => {
+                          const currentLang = activePreviewTab;
+                          const currentOverrides = getCurrentValue('default_language_override') || {};
 
-                        if (e.target.checked) {
-                          // 空の設定を作成
-                          setCurrentValue({
-                            default_language_override: {
-                              ...currentOverrides,
-                              [currentLang]: {}
-                            }
-                          });
-                        } else {
-                          // 該当言語の設定を削除
-                          const newOverrides = { ...currentOverrides };
-                          delete newOverrides[currentLang];
-                          setCurrentValue({
-                            default_language_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
-                          });
-                        }
-                      }}
-                    />
-                    有効
-                  </label>
-                </div>
+                          if (e.target.checked) {
+                            // 空の設定を作成
+                            setCurrentValue({
+                              default_language_override: {
+                                ...currentOverrides,
+                                [currentLang]: {}
+                              }
+                            });
+                          } else {
+                            // 該当言語の設定を削除
+                            const newOverrides = { ...currentOverrides };
+                            delete newOverrides[currentLang];
+                            setCurrentValue({
+                              default_language_override: Object.keys(newOverrides).length > 0 ? newOverrides : undefined
+                            });
+                          }
+                        }}
+                      />
+                    }
+                    label="有効"
+                    sx={{ margin: 0, fontSize: '14px' }}
+                  />
+                </Box>
                 {activePreviewTab && activePreviewTab !== 'common' && (
-                  <div className={`language-default-settings-container ${isLanguageDefaultOverrideEnabled() ? 'enabled' : 'disabled'}`}>
-                    <div className="language-settings">
-                    <div className="form-row form-row-compact">
-                      <label>
-                        フォント
-                        <select
-                          value={getCurrentValue('font')}
-                          onChange={(e) => setCurrentValue({font: e.target.value})}
-                          disabled={!isLanguageDefaultOverrideEnabled()}
-                        >
-                          <option value="">{mode === 'asset' ? '共通設定のフォントを使用' : 'アセット設定を使用'}</option>
-                          {availableFonts.map((font) => (
-                            <option key={font.id} value={font.id}>
-                              {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                    <div className="form-group">
-                      <label>フォントサイズ</label>
+                  <Box
+                    sx={{
+                      opacity: isLanguageDefaultOverrideEnabled() ? 1 : 0.6,
+                      pointerEvents: isLanguageDefaultOverrideEnabled() ? 'auto' : 'none'
+                    }}
+                  >
+                    <Box sx={{ mb: 2 }}>
+                      <TextField
+                        select
+                        label="フォント"
+                        value={getCurrentValue('font')}
+                        onChange={(e) => setCurrentValue({font: e.target.value})}
+                        disabled={!isLanguageDefaultOverrideEnabled()}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                      >
+                        <MenuItem value="">{mode === 'asset' ? '共通設定のフォントを使用' : 'アセット設定を使用'}</MenuItem>
+                        {availableFonts.map((font) => (
+                          <MenuItem key={font.id} value={font.id}>
+                            {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>フォントサイズ</Typography>
                       <NumericInput
                         value={getCurrentValue('font_size')}
                         onChange={(value) => setCurrentValue({font_size: value})}
@@ -1322,10 +1381,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         placeholder={mode === 'asset' ? 'デフォルト使用' : 'アセット設定使用'}
                         disabled={!isLanguageDefaultOverrideEnabled()}
                       />
-                    </div>
-                    <div className="form-row form-row-double">
-                      <label>
-                        X座標
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>X座標</Typography>
                         <NumericInput
                           value={getCurrentValue('pos_x')}
                           onChange={(value) => setCurrentValue({pos_x: value})}
@@ -1336,9 +1395,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           placeholder="アセット設定使用"
                           disabled={!isLanguageDefaultOverrideEnabled()}
                         />
-                      </label>
-                      <label>
-                        Y座標
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Y座標</Typography>
                         <NumericInput
                           value={getCurrentValue('pos_y')}
                           onChange={(value) => setCurrentValue({pos_y: value})}
@@ -1349,22 +1408,24 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           placeholder="アセット設定使用"
                           disabled={!isLanguageDefaultOverrideEnabled()}
                         />
-                      </label>
-                    </div>
-                    <div className="form-row form-row-compact">
-                      <label>縦書き
-                        <input
-                          type="checkbox"
-                          checked={getCurrentValue('vertical')}
-                          onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
-                          disabled={!isLanguageDefaultOverrideEnabled()}
-                        />
-                      </label>
-                    </div>
-                    </div>
-                  </div>
+                      </Box>
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={getCurrentValue('vertical')}
+                            onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
+                            disabled={!isLanguageDefaultOverrideEnabled()}
+                            size="small"
+                          />
+                        }
+                        label="縦書き"
+                      />
+                    </Box>
+                  </Box>
                 )}
-              </div>
+              </Box>
             )}
           </Box>
         </Box>
