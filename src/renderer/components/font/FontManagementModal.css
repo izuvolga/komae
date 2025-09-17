@@ -1,3 +1,50 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors - matching muiTheme.ts komaeTheme */
+  --font-modal-label-color: #333333;        /* text.primary equivalent */
+  --font-modal-input-border-color: #e0e0e0; /* grey.300 equivalent */
+  --font-modal-input-focus-border-color: #007bff; /* primary.main equivalent */
+  --font-modal-input-focus-shadow-color: rgba(0, 123, 255, 0.1); /* primary with opacity */
+  --font-modal-list-bg-color: #fafafa;      /* grey.50 */
+  --font-modal-list-border-color: #e0e0e0;  /* grey.300 */
+  --font-modal-card-bg-color: #ffffff;      /* background.paper */
+  --font-modal-card-border-color: #e0e0e0;  /* grey.300 */
+  --font-modal-card-hover-border-color: #007bff; /* primary.main */
+  --font-modal-card-hover-shadow-color: rgba(0, 123, 255, 0.1); /* primary with opacity */
+  --font-modal-card-selected-bg-color: #f8f9ff; /* primary.50 equivalent */
+  --font-modal-card-selected-border-color: #007bff; /* primary.main */
+  --font-modal-card-selected-shadow-color: rgba(0, 123, 255, 0.1); /* primary with opacity */
+  --font-modal-text-color: #333333;         /* text.primary equivalent */
+  --font-modal-preview-color: #333333;      /* text.primary equivalent */
+  --font-modal-loading-color: #666666;      /* text.secondary equivalent */
+  --font-modal-scrollbar-track-color: #f1f1f1; /* grey.100 */
+  --font-modal-scrollbar-thumb-color: #c1c1c1; /* grey.400 */
+  --font-modal-scrollbar-thumb-hover-color: #a8a8a8; /* grey.500 */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors - matching muiTheme.ts komaeDarkTheme */
+  --font-modal-label-color: #f9fafb;        /* text.primary (grey.50) */
+  --font-modal-input-border-color: #374151; /* grey.700 */
+  --font-modal-input-focus-border-color: #3b82f6; /* primary.main */
+  --font-modal-input-focus-shadow-color: rgba(59, 130, 246, 0.2); /* primary with opacity */
+  --font-modal-list-bg-color: #111827;      /* background.default */
+  --font-modal-list-border-color: #374151;  /* grey.700 */
+  --font-modal-card-bg-color: #1f2937;      /* background.paper */
+  --font-modal-card-border-color: #374151;  /* grey.700 */
+  --font-modal-card-hover-border-color: #3b82f6; /* primary.main */
+  --font-modal-card-hover-shadow-color: rgba(59, 130, 246, 0.2); /* primary with opacity */
+  --font-modal-card-selected-bg-color: #1e40af; /* primary.dark */
+  --font-modal-card-selected-border-color: #3b82f6; /* primary.main */
+  --font-modal-card-selected-shadow-color: rgba(59, 130, 246, 0.2); /* primary with opacity */
+  --font-modal-text-color: #f9fafb;         /* text.primary (grey.50) */
+  --font-modal-preview-color: #f9fafb;      /* text.primary (grey.50) */
+  --font-modal-loading-color: #d1d5db;      /* text.secondary (grey.300) */
+  --font-modal-scrollbar-track-color: #374151; /* grey.700 */
+  --font-modal-scrollbar-thumb-color: #6b7280; /* grey.500 */
+  --font-modal-scrollbar-thumb-hover-color: #9ca3af; /* grey.400 */
+}
+
 /* FontManagementModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
 .sample-text-section {
@@ -8,23 +55,25 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 600;
-  color: #333;
+  color: var(--font-modal-label-color);
   font-size: 14px;
 }
 
 .sample-text-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--font-modal-input-border-color);
   border-radius: 6px;
   font-size: 16px;
+  color: var(--font-modal-text-color);
+  background-color: var(--font-modal-card-bg-color);
   transition: border-color 0.2s;
 }
 
 .sample-text-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  border-color: var(--font-modal-input-focus-border-color);
+  box-shadow: 0 0 0 3px var(--font-modal-input-focus-shadow-color);
 }
 
 .fonts-list-section {
@@ -37,15 +86,15 @@
 .fonts-list {
   flex: 1;
   overflow-y: auto;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--font-modal-list-border-color);
   border-radius: 6px;
   padding: 12px;
-  background: #fafafa;
+  background: var(--font-modal-list-bg-color);
 }
 
 .font-card {
-  background: white;
-  border: 2px solid #e0e0e0;
+  background: var(--font-modal-card-bg-color);
+  border: 2px solid var(--font-modal-card-border-color);
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 12px;
@@ -54,14 +103,14 @@
 }
 
 .font-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  border-color: var(--font-modal-card-hover-border-color);
+  box-shadow: 0 2px 8px var(--font-modal-card-hover-shadow-color);
 }
 
 .font-card.selected {
-  border-color: #007bff;
-  background-color: #f8f9ff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+  border-color: var(--font-modal-card-selected-border-color);
+  background-color: var(--font-modal-card-selected-bg-color);
+  box-shadow: 0 0 0 2px var(--font-modal-card-selected-shadow-color);
 }
 
 .font-card:last-child {
@@ -83,7 +132,7 @@
 
 .font-name {
   font-weight: 600;
-  color: #333;
+  color: var(--font-modal-text-color);
 }
 
 .builtin-badge {
@@ -125,7 +174,7 @@
 }
 
 .font-preview {
-  color: #333;
+  color: var(--font-modal-preview-color);
   word-wrap: break-word;
   min-height: 24px;
   display: flex;
@@ -138,7 +187,7 @@
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: #666;
+  color: var(--font-modal-loading-color);
   font-style: italic;
 }
 
@@ -155,15 +204,15 @@
 }
 
 .fonts-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--font-modal-scrollbar-track-color);
   border-radius: 4px;
 }
 
 .fonts-list::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--font-modal-scrollbar-thumb-color);
   border-radius: 4px;
 }
 
 .fonts-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--font-modal-scrollbar-thumb-hover-color);
 }

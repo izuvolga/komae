@@ -11,6 +11,7 @@ import {
   Box,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 
 interface CustomAssetInfo {
   id: string;
@@ -41,10 +42,16 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
   mode = 'management',
   onCreateAsset,
 }) => {
+  const { mode: themeMode } = useTheme();
   const [customAssets, setCustomAssets] = useState<CustomAssetInfo[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewCode, setPreviewCode] = useState<string>('');
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   // CustomAsset一覧を読み込み
   useEffect(() => {

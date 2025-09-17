@@ -14,6 +14,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 import './FontAddHelpModal.css';
 
 interface FontAddHelpModalProps {
@@ -25,6 +26,12 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { mode } = useTheme();
+
+  // data-theme属性の設定
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   const handleExternalLink = async (url: string) => {
     try {

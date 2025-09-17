@@ -1,3 +1,30 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors - matching muiTheme.ts komaeTheme */
+  --bulk-edit-bg-color: #fafafa;         /* grey.50 */
+  --bulk-edit-editor-bg-color: #ffffff;  /* background.paper */
+  --bulk-edit-editor-focus-bg-color: #ffffff; /* background.paper */
+  --bulk-edit-text-color: #2d3748;      /* text.primary equivalent */
+  --bulk-edit-placeholder-color: #9ca3af; /* text.disabled */
+  --bulk-edit-border-color: rgba(59, 130, 246, 0.1); /* primary with opacity */
+  --bulk-edit-scrollbar-track-color: #f1f1f1; /* grey.100 */
+  --bulk-edit-scrollbar-thumb-color: #c1c1c1; /* grey.400 */
+  --bulk-edit-scrollbar-thumb-hover-color: #a8a8a8; /* grey.500 */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors - matching muiTheme.ts komaeDarkTheme */
+  --bulk-edit-bg-color: #111827;         /* background.default */
+  --bulk-edit-editor-bg-color: #1f2937;  /* background.paper */
+  --bulk-edit-editor-focus-bg-color: #374151; /* grey.700 */
+  --bulk-edit-text-color: #f9fafb;       /* text.primary (grey.50) */
+  --bulk-edit-placeholder-color: #6b7280; /* text.disabled (grey.500) */
+  --bulk-edit-border-color: rgba(59, 130, 246, 0.2); /* primary with opacity */
+  --bulk-edit-scrollbar-track-color: #374151; /* grey.700 */
+  --bulk-edit-scrollbar-thumb-color: #6b7280; /* grey.500 */
+  --bulk-edit-scrollbar-thumb-hover-color: #9ca3af; /* grey.400 */
+}
+
 /* BulkEditModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
 .bulk-edit-modal {
@@ -39,8 +66,8 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 1.5;
-  background: #fafafa;
-  color: #2d3748;
+  background: var(--bulk-edit-bg-color);
+  color: var(--bulk-edit-text-color);
   resize: none;
   outline: none;
   white-space: pre;
@@ -51,12 +78,12 @@
 }
 
 .yaml-editor:focus {
-  background: #ffffff;
-  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.1);
+  background: var(--bulk-edit-editor-focus-bg-color);
+  box-shadow: inset 0 0 0 2px var(--bulk-edit-border-color);
 }
 
 .yaml-editor::placeholder {
-  color: #9ca3af;
+  color: var(--bulk-edit-placeholder-color);
   font-style: italic;
 }
 
@@ -67,20 +94,20 @@
 }
 
 .yaml-editor::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--bulk-edit-scrollbar-track-color);
 }
 
 .yaml-editor::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--bulk-edit-scrollbar-thumb-color);
   border-radius: 6px;
 }
 
 .yaml-editor::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--bulk-edit-scrollbar-thumb-hover-color);
 }
 
 .yaml-editor::-webkit-scrollbar-corner {
-  background: #f1f1f1;
+  background: var(--bulk-edit-scrollbar-track-color);
 }
 
 

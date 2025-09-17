@@ -16,6 +16,7 @@ import {
   FormLabel,
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon, FolderOpen as FolderOpenIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
 
@@ -34,6 +35,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   onAddGoogleFont,
   onAddBuiltinFont,
 }) => {
+  const { mode } = useTheme();
   const [fontType, setFontType] = useState<'embed' | 'google' | 'builtin'>('embed');
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [fontFile, setFontFile] = useState<string>('');
@@ -42,6 +44,11 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showLicenseHelpModal, setShowLicenseHelpModal] = useState(false);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // 管理者モードかどうかを確認
   useEffect(() => {

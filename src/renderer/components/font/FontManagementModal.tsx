@@ -18,6 +18,7 @@ import {
   Paper,
 } from '@mui/material';
 import { Close as CloseIcon, Add as AddIcon, Info as InfoIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 import { FontAddModal } from './FontAddModal';
 import { FontLicenseModal } from './FontLicenseModal';
 import './FontManagementModal.css';
@@ -31,6 +32,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { mode } = useTheme();
   const [sampleText, setSampleText] = useState('HELLO WORLD');
   const [fonts, setFonts] = useState<FontInfo[]>([]);
   const [selectedFont, setSelectedFont] = useState<string | null>(null);
@@ -39,6 +41,11 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [licenseFont, setLicenseFont] = useState<FontInfo | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // フォント一覧を読み込みと管理者モード確認
   useEffect(() => {

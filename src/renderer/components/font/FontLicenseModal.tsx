@@ -12,6 +12,7 @@ import {
   Link,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 
 interface FontLicenseModalProps {
   isOpen: boolean;
@@ -24,6 +25,13 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
   onClose,
   font,
 }) => {
+  const { mode } = useTheme();
+
+  // data-theme属性の設定
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
+
   const handleExternalLink = async (url: string) => {
     try {
       await window.electronAPI.system.openExternal(url);

@@ -1,9 +1,30 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors */
+  --license-warning-bg-color: #fff3cd;     /* warning.light */
+  --license-warning-border-color: #ffeaa7; /* warning.border */
+  --license-warning-text-color: #856404;   /* warning.dark */
+  --license-info-bg-color: #d1ecf1;        /* info.light */
+  --license-info-border-color: #bee5eb;    /* info.border */
+  --license-info-text-color: #0c5460;      /* info.dark */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors */
+  --license-warning-bg-color: #3a2e00;     /* dark warning background */
+  --license-warning-border-color: #664d03; /* dark warning border */
+  --license-warning-text-color: #ffdf0e;   /* dark warning text */
+  --license-info-bg-color: #0c2e32;        /* dark info background */
+  --license-info-border-color: #155e66;    /* dark info border */
+  --license-info-text-color: #67e8f9;      /* dark info text */
+}
+
 /* Font License Help Modal Styles */
 
 /* 警告ボックス */
 .warning-box {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background: var(--license-warning-bg-color);
+  border: 1px solid var(--license-warning-border-color);
   border-radius: 8px;
   padding: 16px;
   margin: 20px 0;
@@ -11,14 +32,14 @@
 
 .warning-box h4 {
   margin: 0 0 12px 0;
-  color: #856404;
+  color: var(--license-warning-text-color);
   font-size: 15px;
   font-weight: 600;
 }
 
 .warning-box ul {
   margin: 8px 0 0 0;
-  color: #856404;
+  color: var(--license-warning-text-color);
 }
 
 .warning-box li {
@@ -27,8 +48,8 @@
 
 /* 情報ボックス */
 .info-box {
-  background: #d1ecf1;
-  border: 1px solid #bee5eb;
+  background: var(--license-info-bg-color);
+  border: 1px solid var(--license-info-border-color);
   border-radius: 8px;
   padding: 16px;
   margin: 20px 0;
@@ -36,12 +57,12 @@
 
 .info-box h4 {
   margin: 0 0 12px 0;
-  color: #0c5460;
+  color: var(--license-info-text-color);
   font-size: 15px;
   font-weight: 600;
 }
 
 .info-box p {
   margin: 8px 0;
-  color: #0c5460;
+  color: var(--license-info-text-color);
 }

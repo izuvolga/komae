@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon, AutoAwesome as AIIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextAssetYAML, parseTextAssetYAML } from '../../../utils/yamlConverter';
 import { generateAIPrompt } from '../../../utils/aiPrompt';
 import './BulkEditModal.css';
@@ -27,6 +28,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
   const getSupportedLanguages = useProjectStore((state) => state.getSupportedLanguages);
@@ -37,6 +39,11 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
   const [originalContent, setOriginalContent] = useState('');
   const [isModified, setIsModified] = useState(false);
   const [showWhatIsThis, setShowWhatIsThis] = useState(false);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // YAMLコンテンツを生成
   useEffect(() => {

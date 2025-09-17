@@ -1,11 +1,26 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors - warning colors */
+  --help-warning-bg-color: #fff3cd;     /* warning.light */
+  --help-warning-border-color: #ffeaa7; /* warning.border */
+  --help-warning-text-color: #b8860b;   /* warning.dark */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors - warning colors adapted for dark theme */
+  --help-warning-bg-color: #3a2e00;     /* dark warning background */
+  --help-warning-border-color: #664d03; /* dark warning border */
+  --help-warning-text-color: #ffdf0e;   /* dark warning text */
+}
+
 .warning-box {
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background-color: var(--help-warning-bg-color);
+  border: 1px solid var(--help-warning-border-color);
   border-radius: 4px;
   padding: 12px;
   margin: 16px 0;
 }
 
 .warning-box strong {
-  color: #b8860b;
+  color: var(--help-warning-text-color);
 }

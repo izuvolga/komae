@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import type { ExportFormat, ExportOptions } from '../../../types/entities';
 
 interface ExportDialogProps {
@@ -27,6 +28,7 @@ interface ExportDialogProps {
 }
 
 export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onExport }) => {
+  const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   
@@ -41,6 +43,11 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
   const [expectedOutput, setExpectedOutput] = useState('');
 
   // ExportDirectoryManagerはMainプロセスで実行するため、こちらでは直接使用しない
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // プロジェクトが変更されたときの初期化
   useEffect(() => {

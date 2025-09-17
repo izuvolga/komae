@@ -13,6 +13,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 import './FontLicenseHelpModal.css';
 
 interface FontLicenseHelpModalProps {
@@ -24,6 +25,13 @@ export const FontLicenseHelpModal: React.FC<FontLicenseHelpModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { mode } = useTheme();
+
+  // data-theme属性の設定
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
+
   return (
     <Dialog
       open={isOpen}
