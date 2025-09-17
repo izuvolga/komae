@@ -1,15 +1,52 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors - matching muiTheme.ts komaeTheme */
+  --preview-bg-color: #ffffff;         /* background.paper */
+  --preview-header-bg-color: #f9fafb;  /* grey.50 */
+  --preview-header-border-color: #e5e7eb; /* divider (grey.200) */
+  --preview-text-primary-color: #1f2937; /* text.primary (grey.800) */
+  --preview-text-secondary-color: #6b7280; /* text.secondary (grey.500) */
+  --preview-canvas-bg-color: #f5f5f5;  /* light grey for checkerboard */
+  --preview-canvas-border-color: #d1d5db; /* grey.300 */
+  --preview-slider-bg-color: #e5e7eb;  /* grey.200 */
+  --preview-slider-thumb-color: #3b82f6; /* primary.main */
+  --preview-btn-bg-color: #ffffff;     /* background.paper */
+  --preview-btn-border-color: #d1d5db; /* grey.300 */
+  --preview-btn-hover-bg-color: #f3f4f6; /* grey.100 */
+  --preview-btn-active-bg-color: #6b7280; /* grey.500 */
+  --preview-btn-active-text-color: #ffffff; /* white */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors - matching muiTheme.ts komaeDarkTheme */
+  --preview-bg-color: #1f2937;         /* background.paper */
+  --preview-header-bg-color: #111827;  /* background.default */
+  --preview-header-border-color: #374151; /* divider (grey.700) */
+  --preview-text-primary-color: #f9fafb; /* text.primary (grey.50) */
+  --preview-text-secondary-color: #d1d5db; /* text.secondary (grey.300) */
+  --preview-canvas-bg-color: #111827;  /* background.default */
+  --preview-canvas-border-color: #374151; /* grey.700 */
+  --preview-slider-bg-color: #374151;  /* grey.700 */
+  --preview-slider-thumb-color: #3b82f6; /* primary.main */
+  --preview-btn-bg-color: #1f2937;     /* background.paper */
+  --preview-btn-border-color: #374151; /* grey.700 */
+  --preview-btn-hover-bg-color: #374151; /* grey.700 */
+  --preview-btn-active-bg-color: #6b7280; /* grey.500 */
+  --preview-btn-active-text-color: #ffffff; /* white */
+}
+
 /* プレビューエリア */
 .preview-area {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: white;
+  background-color: var(--preview-bg-color);
 }
 
 .preview-header {
   padding: 12px 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f8f9fa;
+  border-bottom: 1px solid var(--preview-header-border-color);
+  background-color: var(--preview-header-bg-color);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -50,7 +87,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--preview-text-primary-color);
 }
 
 /* キャンバスフィットコントロール（統合後） */
@@ -66,7 +103,7 @@
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  color: #666;
+  color: var(--preview-text-secondary-color);
 }
 
 .canvas-fit-toggle {
@@ -87,7 +124,7 @@
 }
 
 .zoom-control label {
-  color: #666;
+  color: var(--preview-text-secondary-color);
   white-space: nowrap;
 }
 
@@ -101,7 +138,7 @@
 .zoom-slider {
   width: 80px;
   height: 4px;
-  background: #ddd;
+  background: var(--preview-slider-bg-color);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -112,12 +149,12 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #007bff;
+  background: var(--preview-slider-thumb-color);
   cursor: pointer;
 }
 
 .zoom-value {
-  color: #333;
+  color: var(--preview-text-primary-color);
   font-weight: 500;
   min-width: 35px;
   text-align: right;
@@ -132,8 +169,9 @@
 
 .mode-btn {
   padding: 4px 8px;
-  border: 1px solid #ddd;
-  background-color: white;
+  border: 1px solid var(--preview-btn-border-color);
+  background-color: var(--preview-btn-bg-color);
+  color: var(--preview-text-primary-color);
   border-radius: 3px;
   cursor: pointer;
   transition: all 0.2s;
@@ -141,13 +179,13 @@
 }
 
 .mode-btn:hover:not(:disabled) {
-  background-color: #f0f0f0;
+  background-color: var(--preview-btn-hover-bg-color);
 }
 
 .mode-btn.active {
-  background-color: #6c757d;
-  color: white;
-  border-color: #6c757d;
+  background-color: var(--preview-btn-active-bg-color);
+  color: var(--preview-btn-active-text-color);
+  border-color: var(--preview-btn-active-bg-color);
 }
 
 .mode-btn:disabled {
@@ -158,7 +196,7 @@
 /* ページ情報 */
 .page-info {
   font-size: 11px;
-  color: #666;
+  color: var(--preview-text-secondary-color);
   white-space: nowrap;
   text-align: right;
   width: 100%;
@@ -176,7 +214,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--preview-text-secondary-color);
   font-size: 14px;
 }
 
@@ -186,20 +224,20 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #f5f5f5;
-  background-image: 
-    linear-gradient(45deg, #eee 25%, transparent 25%), 
-    linear-gradient(-45deg, #eee 25%, transparent 25%), 
-    linear-gradient(45deg, transparent 75%, #eee 75%), 
-    linear-gradient(-45deg, transparent 75%, #eee 75%);
+  background-color: var(--preview-canvas-bg-color);
+  background-image:
+    linear-gradient(45deg, var(--preview-canvas-border-color) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--preview-canvas-border-color) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--preview-canvas-border-color) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--preview-canvas-border-color) 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   overflow: auto;
 }
 
 .preview-canvas {
-  background-color: white;
-  border: 1px solid #ccc;
+  background-color: var(--preview-bg-color);
+  border: 1px solid var(--preview-canvas-border-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   flex-shrink: 0;
@@ -220,7 +258,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: white;
+  background-color: var(--preview-bg-color);
 }
 
 /* アセットインスタンス */
@@ -241,7 +279,7 @@
   align-items: center;
   justify-content: center;
   padding: 8px;
-  background-color: rgba(245, 245, 245, 0.9);
+  background-color: var(--preview-canvas-bg-color);
   border-radius: 4px;
   min-width: 60px;
   min-height: 40px;
@@ -268,7 +306,7 @@
 
 .asset-name {
   font-size: 9px;
-  color: #666;
+  color: var(--preview-text-secondary-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,8 +316,8 @@
 /* SVGベースのページプレビュー */
 .page-preview {
   position: relative;
-  background-color: white;
-  border: 1px solid #ccc;
+  background-color: var(--preview-bg-color);
+  border: 1px solid var(--preview-canvas-border-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
@@ -300,8 +338,8 @@
 }
 
 .page-preview.loading {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: var(--preview-canvas-bg-color);
+  color: var(--preview-text-secondary-color);
 }
 
 .page-preview.error {

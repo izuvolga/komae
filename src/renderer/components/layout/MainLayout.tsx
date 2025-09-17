@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
@@ -10,11 +10,13 @@ import { BulkEditModal } from '../text/BulkEditModal';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
+import { useTheme } from '../../../theme/ThemeContext';
 import { getLanguageDisplayName } from '../../../constants/languages';
 import type { ExportOptions } from '../../../types/entities';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
+  const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
@@ -50,6 +52,11 @@ export const MainLayout: React.FC = () => {
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+
+  // テーマ変更時にCSS変数を設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // アセットライブラリのリサイズ開始
   const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {

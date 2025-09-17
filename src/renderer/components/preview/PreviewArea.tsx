@@ -1,10 +1,12 @@
 import React, { useRef, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { PanelCollapseRightIcon, FitToViewIcon } from '../icons/PanelIcons';
 import { PagePreview } from './PagePreview';
 import './PreviewArea.css';
 
 export const PreviewArea: React.FC = () => {
+  const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
