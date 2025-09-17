@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import './NumericInput.css';
+import { TextField, IconButton, Box } from '@mui/material';
+import { KeyboardArrowUp, KeyboardArrowDown } from '@mui/icons-material';
 
 interface NumericInputProps {
   value: number;
@@ -217,8 +218,8 @@ export const NumericInput: React.FC<NumericInputProps> = ({
   }, [clearTimers]);
 
   return (
-    <div className={`numeric-input ${className} ${disabled ? 'disabled' : ''}`}>
-      <input
+    <Box sx={{ position: 'relative', display: 'inline-flex', width: '100%' }} className={className}>
+      <TextField
         type="text"
         value={displayValue}
         onChange={handleInputChange}
@@ -227,32 +228,59 @@ export const NumericInput: React.FC<NumericInputProps> = ({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder={placeholder}
-        className="numeric-input-field"
+        size="small"
+        fullWidth
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            paddingRight: '48px'
+          }
+        }}
       />
-      <div className="numeric-input-buttons">
-        <button
-          type="button"
-          className="numeric-input-btn increment"
+      <Box sx={{
+        position: 'absolute',
+        right: 1,
+        top: 1,
+        bottom: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        width: 24
+      }}>
+        <IconButton
+          size="small"
           onMouseDown={handleIncrementMouseDown}
           onMouseUp={handleMouseUpOrLeave}
           onMouseLeave={handleMouseUpOrLeave}
           disabled={disabled || (max !== undefined && value >= max)}
           title="長押しで連続増加"
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            borderRadius: '0 3px 0 0',
+            fontSize: '10px',
+            padding: 0,
+            borderBottom: '1px solid #dee2e6'
+          }}
         >
-          ▲
-        </button>
-        <button
-          type="button"
-          className="numeric-input-btn decrement"
+          <KeyboardArrowUp fontSize="inherit" />
+        </IconButton>
+        <IconButton
+          size="small"
           onMouseDown={handleDecrementMouseDown}
           onMouseUp={handleMouseUpOrLeave}
           onMouseLeave={handleMouseUpOrLeave}
           disabled={disabled || (min !== undefined && value <= min)}
           title="長押しで連続減少"
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            borderRadius: '0 0 3px 0',
+            fontSize: '10px',
+            padding: 0
+          }}
         >
-          ▼
-        </button>
-      </div>
-    </div>
+          <KeyboardArrowDown fontSize="inherit" />
+        </IconButton>
+      </Box>
+    </Box>
   );
 };
