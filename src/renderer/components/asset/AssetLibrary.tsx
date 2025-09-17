@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Box, Typography, IconButton, Menu, MenuItem, Button, useTheme } from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
@@ -19,6 +21,7 @@ interface ElectronFile extends File {
 }
 
 export const AssetLibrary: React.FC = () => {
+  const theme = useTheme();
   const assets = useProjectStore((state) => state.project?.assets || {});
   const selectedAssets = useProjectStore((state) => state.ui.selectedAssets);
   const selectAssets = useProjectStore((state) => state.selectAssets);
@@ -38,9 +41,11 @@ export const AssetLibrary: React.FC = () => {
     y: number;
     asset: Asset;
   } | null>(null);
+  const [contextMenuAnchor, setContextMenuAnchor] = useState<null | HTMLElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [showCustomAssetManagementModal, setShowCustomAssetManagementModal] = useState(false);
+  const [createMenuAnchor, setCreateMenuAnchor] = useState<null | HTMLElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const createMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
@@ -54,7 +59,7 @@ export const AssetLibrary: React.FC = () => {
         setContextMenu(null);
       }
       if (createMenuRef.current && !createMenuRef.current.contains(event.target as Node)) {
-        setShowCreateMenu(false);
+        handleCreateMenuClose();
       }
     };
 
@@ -91,7 +96,7 @@ export const AssetLibrary: React.FC = () => {
 
   const handleAssetRightClick = (event: React.MouseEvent, asset: Asset) => {
     event.preventDefault();
-    
+
     logger.logUserInteraction('asset_right_click', 'AssetLibrary', {
       assetId: asset.id,
       assetType: asset.type,
@@ -100,6 +105,7 @@ export const AssetLibrary: React.FC = () => {
       mouseY: event.clientY,
     });
 
+    setContextMenuAnchor(event.currentTarget as HTMLElement);
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
@@ -143,6 +149,8 @@ export const AssetLibrary: React.FC = () => {
       }
     }
     setContextMenu(null);
+    setContextMenuAnchor(null);
+    setContextMenuAnchor(null);
   };
 
   const handleAssetDoubleClick = (asset: Asset) => {
@@ -250,8 +258,14 @@ export const AssetLibrary: React.FC = () => {
     setEditingValueAsset(null);
   };
 
-  const handleCreateMenuClick = () => {
-    setShowCreateMenu(!showCreateMenu);
+  const handleCreateMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setCreateMenuAnchor(event.currentTarget);
+    setShowCreateMenu(true);
+  };
+
+  const handleCreateMenuClose = () => {
+    setCreateMenuAnchor(null);
+    setShowCreateMenu(false);
   };
 
   const handleCreateTextAsset = async () => {
@@ -308,7 +322,7 @@ export const AssetLibrary: React.FC = () => {
       currentAssetCount: assetList.length,
     });
     
-    setShowCreateMenu(false);
+    handleCreateMenuClose();
     setShowCustomAssetManagementModal(true);
   };
 
@@ -359,7 +373,7 @@ export const AssetLibrary: React.FC = () => {
   };
 
   const handleImportImageAsset = async () => {
-    setShowCreateMenu(false); // メニューを閉じる
+    handleCreateMenuClose(); // メニューを閉じる
     const tracker = new UIPerformanceTracker('asset_import_dialog');
     
     try {
@@ -418,7 +432,7 @@ export const AssetLibrary: React.FC = () => {
   };
 
   const handleImportVectorAsset = async () => {
-    setShowCreateMenu(false); // メニューを閉じる
+    handleCreateMenuClose(); // メニューを閉じる
     const tracker = new UIPerformanceTracker('asset_import_dialog');
     
     try {
@@ -636,70 +650,165 @@ export const AssetLibrary: React.FC = () => {
   };
 
   return (
-    <div 
-      className={`asset-library ${isDragOver ? 'drag-over' : ''}`}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        bgcolor: 'background.paper',
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        position: 'relative',
+        ...(isDragOver && {
+          bgcolor: 'action.hover',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            border: '2px dashed',
+            borderColor: 'primary.main',
+            bgcolor: 'rgba(0, 0, 0, 0.05)',
+            zIndex: 1,
+          }
+        })
+      }}
       onDragOver={handleFileDragOver}
       onDragLeave={handleFileDragLeave}
       onDrop={handleFileDrop}
     >
-      <div className="asset-library-header">
-        <div className="header-left">
-          <button 
-            className="panel-toggle-btn asset-close-btn"
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        p: 2,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.paper'
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton
             onClick={toggleAssetLibrary}
+            size="small"
             title="アセットライブラリを閉じる"
+            sx={{ color: 'text.secondary' }}
           >
             <PanelCollapseLeftIcon />
-          </button>
-          <h3>アセット</h3>
-        </div>
-        <div className="asset-actions">
-          <div className="create-asset-dropdown" ref={createMenuRef}>
-            <button className="btn-icon" onClick={handleCreateMenuClick} title="アセットを作成">
-              +
-            </button>
-            {showCreateMenu && (
-              <div className="create-menu">
-                <button className="create-menu-item" onClick={handleImportImageAsset}>
-                  🖼️ 画像
-                </button>
-                <button className="create-menu-item" onClick={handleImportVectorAsset}>
-                  📐 SVG
-                </button>
-                <button className="create-menu-item" onClick={handleCreateDynamicVectorAsset}>
-                  ⚡ Dynamic SVG
-                </button>
-                <button className="create-menu-item" onClick={handleCreateTextAsset}>
-                  🔤 テキスト
-                </button>
-                <button className="create-menu-item" onClick={handleCreateValueAsset}>
-                  🔢 値アセット
-                </button>
-              </div>
-            )}
-          </div>
-          <button 
-            className="btn-icon" 
+          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            アセット
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton
+            onClick={handleCreateMenuClick}
+            size="small"
+            title="アセットを作成"
+            sx={{
+              bgcolor: 'action.hover',
+              '&:hover': {
+                bgcolor: 'action.selected'
+              }
+            }}
+          >
+            <AddIcon />
+          </IconButton>
+          <Menu
+            anchorEl={createMenuAnchor}
+            open={showCreateMenu}
+            onClose={handleCreateMenuClose}
+            PaperProps={{
+              sx: {
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider'
+              }
+            }}
+          >
+            <MenuItem onClick={handleImportImageAsset}>
+              🖼️ 画像
+            </MenuItem>
+            <MenuItem onClick={handleImportVectorAsset}>
+              📐 SVG
+            </MenuItem>
+            <MenuItem onClick={handleCreateDynamicVectorAsset}>
+              ⚡ Dynamic SVG
+            </MenuItem>
+            <MenuItem onClick={handleCreateTextAsset}>
+              🔤 テキスト
+            </MenuItem>
+            <MenuItem onClick={handleCreateValueAsset}>
+              🔢 値アセット
+            </MenuItem>
+          </Menu>
+          <IconButton
             onClick={handleDeleteClick}
             disabled={selectedAssets.length === 0}
+            size="small"
             title="選択したアセットを削除"
+            sx={{
+              color: selectedAssets.length === 0 ? 'text.disabled' : 'error.main',
+              '&:hover': {
+                bgcolor: selectedAssets.length === 0 ? 'transparent' : 'error.light'
+              }
+            }}
           >
-            ×
-          </button>
-        </div>
-      </div>
+            <DeleteIcon />
+          </IconButton>
+        </Box>
+      </Box>
 
-      <div className="asset-list scrollbar-large">
+      <Box sx={{
+        flex: 1,
+        overflowY: 'auto',
+        p: 1,
+        '&::-webkit-scrollbar': {
+          width: '8px'
+        },
+        '&::-webkit-scrollbar-track': {
+          bgcolor: 'transparent'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          bgcolor: 'action.hover',
+          borderRadius: '4px',
+          '&:hover': {
+            bgcolor: 'action.selected'
+          }
+        }
+      }}>
         {assetList.length === 0 ? (
-          <div className="empty-state">
-            <p>アセットがありません</p>
-            <button className="btn-small" onClick={handleImportImageAsset}>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '60%',
+            textAlign: 'center',
+            gap: 2
+          }}>
+            <Typography variant="body2" color="text.secondary">
+              アセットがありません
+            </Typography>
+            <Button
+              onClick={handleImportImageAsset}
+              variant="contained"
+              size="small"
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  bgcolor: 'primary.dark'
+                }
+              }}
+            >
               画像アセットをインポート
-            </button>
-            <p style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
+            </Button>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
               または画像ファイルをここにドラッグ&ドロップ
-            </p>
-          </div>
+            </Typography>
+          </Box>
         ) : (
           assetList.map((asset) => (
             <AssetItem
@@ -715,36 +824,36 @@ export const AssetLibrary: React.FC = () => {
             />
           ))
         )}
-      </div>
+      </Box>
 
       {/* コンテキストメニュー */}
-      {contextMenu && (
-        <div
-          ref={contextMenuRef}
-          className="context-menu"
-          style={{
-            position: 'fixed',
-            left: contextMenu.x,
-            top: contextMenu.y,
-            zIndex: 1000,
-          }}
+      <Menu
+        anchorEl={contextMenuAnchor}
+        open={!!contextMenu}
+        onClose={() => {
+          setContextMenu(null);
+          setContextMenuAnchor(null);
+        }}
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider'
+          }
+        }}
+      >
+        {contextMenu && (contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset' || contextMenu.asset.type === 'DynamicVectorAsset' || contextMenu.asset.type === 'ValueAsset') && (
+          <MenuItem onClick={handleContextMenuEdit}>
+            編集
+          </MenuItem>
+        )}
+        <MenuItem
+          onClick={handleContextMenuDelete}
+          sx={{ color: 'error.main' }}
         >
-          {(contextMenu.asset.type === 'ImageAsset' || contextMenu.asset.type === 'TextAsset' || contextMenu.asset.type === 'VectorAsset' || contextMenu.asset.type === 'DynamicVectorAsset' || contextMenu.asset.type === 'ValueAsset') && (
-            <button
-              className="context-menu-item"
-              onClick={handleContextMenuEdit}
-            >
-              編集
-            </button>
-          )}
-          <button
-            className="context-menu-item context-menu-delete"
-            onClick={handleContextMenuDelete}
-          >
-            削除
-          </button>
-        </div>
-      )}
+          削除
+        </MenuItem>
+      </Menu>
 
       {/* ImageAsset編集モーダル */}
       {editingImageAsset && (
@@ -808,7 +917,7 @@ export const AssetLibrary: React.FC = () => {
         mode="selection"
         onCreateAsset={handleCustomAssetSelect}
       />
-    </div>
+    </Box>
   );
 };
 
@@ -833,6 +942,8 @@ const AssetItem: React.FC<AssetItemProps> = ({
   onDragStart,
   onDragEnd,
 }) => {
+  const theme = useTheme();
+
   const renderThumbnail = () => {
     switch (asset.type) {
       case 'ImageAsset':
@@ -840,11 +951,56 @@ const AssetItem: React.FC<AssetItemProps> = ({
       case 'DynamicVectorAsset':
         return <AssetThumbnail asset={asset} maxWidth={48} maxHeight={48} />;
       case 'TextAsset':
-        return <div className="text-placeholder">T</div>;
+        return (
+          <Box sx={{
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'action.hover',
+            color: 'text.primary',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            borderRadius: '4px'
+          }}>
+            T
+          </Box>
+        );
       case 'ValueAsset':
-        return <div className="text-placeholder">V</div>;
+        return (
+          <Box sx={{
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'action.hover',
+            color: 'text.primary',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            borderRadius: '4px'
+          }}>
+            V
+          </Box>
+        );
       default:
-        return <div className="text-placeholder">?</div>;
+        return (
+          <Box sx={{
+            width: 48,
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'action.hover',
+            color: 'text.primary',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            borderRadius: '4px'
+          }}>
+            ?
+          </Box>
+        );
     }
   };
 
@@ -867,31 +1023,84 @@ const AssetItem: React.FC<AssetItemProps> = ({
   };
 
   return (
-    <div
-      className={`asset-item ${isSelected ? 'selected' : ''} ${isDragged ? 'dragged' : ''}`}
+    <Box
       draggable
-      onClick={(e) => onClick(asset.id, e.ctrlKey || e.metaKey)}
+      onClick={(e: React.MouseEvent) => onClick(asset.id, e.ctrlKey || e.metaKey)}
       onDoubleClick={() => onDoubleClick(asset)}
       onContextMenu={(e) => onRightClick(e, asset)}
       onDragStart={() => onDragStart(asset.id)}
       onDragEnd={onDragEnd}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        p: 1.5,
+        borderRadius: '8px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        transition: 'all 0.2s ease',
+        border: '1px solid',
+        borderColor: 'transparent',
+        mb: 1,
+        bgcolor: isSelected ? 'action.selected' : 'transparent',
+        opacity: isDragged ? 0.5 : 1,
+        transform: isDragged ? 'scale(0.95)' : 'scale(1)',
+        '&:hover': {
+          bgcolor: isSelected ? 'action.selected' : 'action.hover',
+          borderColor: 'primary.light'
+        },
+        ...(isSelected && {
+          bgcolor: 'primary.light',
+          borderColor: 'primary.main',
+          '&:hover': {
+            bgcolor: 'primary.light'
+          }
+        })
+      }}
     >
-      <div className="asset-thumbnail">
+      <Box sx={{ minWidth: 48, height: 48 }}>
         {renderThumbnail()}
-      </div>
-      <div className="asset-info">
-        <div className="asset-name" title={asset.name}>
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 500,
+            color: 'text.primary',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+          title={asset.name}
+        >
           {asset.name}
-        </div>
-        <div className="asset-type">
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            display: 'block'
+          }}
+        >
           {getAssetTypeLabel()}
-        </div>
+        </Typography>
         {asset.type === 'ImageAsset' && (
-          <div className="asset-path" title={asset.original_file_path}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.disabled',
+              display: 'block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontSize: '0.7rem'
+            }}
+            title={asset.original_file_path}
+          >
             {asset.original_file_path}
-          </div>
+          </Typography>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };

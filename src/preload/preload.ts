@@ -213,6 +213,16 @@ const electronAPI = {
       return () => ipcRenderer.removeListener('menu:custom-assets', handler);
     },
   },
+
+  // Direct IPC access for menu events
+  ipc: {
+    on: (channel: string, func: (...args: any[]) => void) => {
+      ipcRenderer.on(channel, func);
+    },
+    removeListener: (channel: string, func: (...args: any[]) => void) => {
+      ipcRenderer.removeListener(channel, func);
+    },
+  },
 };
 
 // Context Bridge経由でAPIを公開

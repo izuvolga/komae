@@ -1,7 +1,7 @@
 import React from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { komaeTheme } from './muiTheme';
+import { ThemeContextProvider, useTheme } from './ThemeContext';
 
 // Roboto フォントのインポート
 import '@fontsource/roboto/300.css';
@@ -14,15 +14,31 @@ interface ThemeProviderProps {
 }
 
 /**
- * MUIテーマプロバイダーコンポーネント
- * アプリケーション全体にMUIテーマを適用する
+ * 内部のMUIテーマプロバイダーコンポーネント
+ * ThemeContextから動的テーマを受け取ってMUIに適用
  */
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+const InnerThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  const { theme } = useTheme();
+
   return (
-    <MuiThemeProvider theme={komaeTheme}>
+    <MuiThemeProvider theme={theme}>
       {/* CssBaseline: ブラウザのデフォルトCSSをリセットし、一貫したベーススタイルを提供 */}
       <CssBaseline />
       {children}
     </MuiThemeProvider>
+  );
+};
+
+/**
+ * メインのテーマプロバイダーコンポーネント
+ * アプリケーション全体にテーマコンテキストとMUIテーマを適用する
+ */
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  return (
+    <ThemeContextProvider>
+      <InnerThemeProvider>
+        {children}
+      </InnerThemeProvider>
+    </ThemeContextProvider>
   );
 };

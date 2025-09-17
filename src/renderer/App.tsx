@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { NotificationDisplay } from './components/notification/NotificationDisplay';
+import { ThemeProvider } from '../theme/ThemeProvider';
+import { useTheme } from '../theme/ThemeContext';
 import { useProjectStore } from './stores/projectStore';
 import type { FontInfo } from '../types/entities';
 import { setFontInfoCache } from '../utils/svgGeneratorCommon';
@@ -8,10 +10,11 @@ import './App.css';
 import './styles/common-forms.css';
 import './styles/common-buttons.css';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const isLoading = useProjectStore((state) => state.app.isLoading);
   const errors = useProjectStore((state) => state.app.errors);
   const clearErrors = useProjectStore((state) => state.clearErrors);
+  const { toggleTheme } = useTheme();
 
   // アプリ起動時に全フォントを初期化
   useEffect(() => {
@@ -40,6 +43,21 @@ const App: React.FC = () => {
 
     initializeFonts();
   }, []);
+
+  // メニューイベントのリスナーを設定
+  useEffect(() => {
+    const handleMenuToggleDarkMode = () => {
+      toggleTheme();
+    };
+
+    // IPCイベントリスナーを登録
+    window.electronAPI?.ipc?.on('menu:toggle-dark-mode', handleMenuToggleDarkMode);
+
+    // クリーンアップ
+    return () => {
+      window.electronAPI?.ipc?.removeListener('menu:toggle-dark-mode', handleMenuToggleDarkMode);
+    };
+  }, [toggleTheme]);
 
   // フォントをCSSに動的登録
   const registerFontsInCSS = (fonts: FontInfo[]) => {
@@ -128,13 +146,13 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {errors.length > 0 && (
         <div className="error-banner">
           {errors.map((error, index) => (
             <div key={index} className="error-message">
               <span>{error.message}</span>
-              <button 
+              <button
                 className="error-close"
                 onClick={clearErrors}
                 title="エラーを閉じる"
@@ -145,10 +163,18 @@ const App: React.FC = () => {
           ))}
         </div>
       )}
-      
+
       <MainLayout />
       <NotificationDisplay />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 

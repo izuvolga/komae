@@ -166,6 +166,14 @@ class KomaeApp {
           { role: 'forceReload' },
           { role: 'toggleDevTools' },
           { type: 'separator' },
+          {
+            label: 'Toggle Dark Mode',
+            accelerator: 'CmdOrCtrl+Shift+D',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:toggle-dark-mode');
+            },
+          },
+          { type: 'separator' },
           { role: 'resetZoom' },
           { role: 'zoomIn' },
           { role: 'zoomOut' },
