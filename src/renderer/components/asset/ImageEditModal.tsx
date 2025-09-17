@@ -1,4 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Paper,
+  TextField,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
@@ -369,19 +382,50 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const modalTitle = mode === 'instance' ? `ImageAssetInstance 編集: ${asset.name}` : `ImageAsset 編集: ${asset.name}`;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container image-asset-edit-modal">
-        <div className="modal-header">
-          <h2>{modalTitle}</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '1200px',
+          height: '80vh',
+          maxHeight: '800px',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        {modalTitle}
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="edit-layout">
-            {/* 左側: プレビューエリア */}
-            <div className="preview-section">
-              <div className="image-preview-container">
-                <div className="canvas-frame" style={{ 
+      <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          {/* 左側: プレビューエリア - 固定幅 */}
+          <Box sx={{
+            width: 400,
+            minWidth: 400,
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRight: '1px solid #e9ecef',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div className="canvas-frame" style={{
                   position: 'relative', 
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`, 
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
@@ -541,43 +585,44 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     </svg>
                   )}
                 </div>
-              </div>
-            </div>
+          </Box>
 
-            {/* 右側: パラメータ編集エリア */}
-            <div className="params-section">
-              {/* Asset Name（上方に配置、マスク編集時は非表示） */}
-              {mode === 'asset' && !maskEditMode && (
-                <div className="param-group">
-                  <div className="name-section">
-                    <span>Asset Name</span>
-                    <input
-                      type="text"
-                      value={editedAsset.name}
-                      onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
-                      onKeyDown={handleKeyDown}
-                      className="name-input"
-                    />
-                  </div>
-                </div>
-              )}
+          {/* 右側: パラメータ編集エリア - スクロール可能 */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+            {/* Asset Name（上方に配置、マスク編集時は非表示） */}
+            {mode === 'asset' && !maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <TextField
+                  label="Asset Name"
+                  value={editedAsset.name}
+                  onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
+                  onKeyDown={handleKeyDown}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
+            )}
               
-              {/* 元画像情報（Asset編集時のみ、マスク編集時は非表示） */}
-              {mode === 'asset' && !maskEditMode && (
-                <div className="original-info">
-                  <ReadOnlyInput
-                    label="Original Width/Height"
-                    value={`${asset.original_width} × ${asset.original_height}`}
-                  />
-                </div>
-              )}
+            {/* 元画像情報（Asset編集時のみ、マスク編集時は非表示） */}
+            {mode === 'asset' && !maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <ReadOnlyInput
+                  label="Original Width/Height"
+                  value={`${asset.original_width} × ${asset.original_height}`}
+                />
+              </Box>
+            )}
 
-              {/* デフォルトサイズ（マスク編集時は非表示） */}
-              {!maskEditMode && (
-              <div className="param-group">
-                <div className="size-display">
-                  <span>{mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}</span>
-                  <div className="size-inputs">
+            {/* デフォルトサイズ（マスク編集時は非表示） */}
+            {!maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  {mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption">幅</Typography>
                     <NumericInput
                       value={currentSize.width}
                       onChange={(value) => {
@@ -592,6 +637,9 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption">高さ</Typography>
                     <NumericInput
                       value={currentSize.height}
                       onChange={(value) => {
@@ -606,27 +654,31 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
-                  </div>
-                </div>
-                <div className="aspect-ratio-lock">
-                  <label>
+                  </Box>
+                </Box>
+                <Box sx={{ mt: 1 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={aspectRatioLocked}
                       onChange={(e) => setAspectRatioLocked(e.target.checked)}
+                      style={{ marginRight: '8px' }}
                     />
-                    縦横比を元画像にあわせる
+                    <Typography variant="body2">縦横比を元画像にあわせる</Typography>
                   </label>
-                </div>
-              </div>
-              )}
+                </Box>
+              </Box>
+            )}
 
-              {/* 位置（マスク編集時は非表示） */}
-              {!maskEditMode && (
-              <div className="param-group">
-                <div className="size-display">
-                  <span>{mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}</span>
-                  <div className="size-inputs">
+            {/* 位置（マスク編集時は非表示） */}
+            {!maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  {mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption">X (px)</Typography>
                     <NumericInput
                       value={currentPos.x}
                       onChange={(value) => {
@@ -637,6 +689,9 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption">Y (px)</Typography>
                     <NumericInput
                       value={currentPos.y}
                       onChange={(value) => {
@@ -647,57 +702,60 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       decimals={2}
                       className="small"
                     />
-                  </div>
-                </div>
-              </div>
-              )}
+                  </Box>
+                </Box>
+              </Box>
+            )}
 
-              {/* 透明度（マスク編集時は非表示） */}
-              {!maskEditMode && (
-              <div className="param-group">
+            {/* 透明度（マスク編集時は非表示） */}
+            {!maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
                 <OpacityInput
                   value={currentOpacity}
                   onChange={updateOpacity}
                   label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
                 />
-              </div>
-              )}
+              </Box>
+            )}
 
-              {/* Z-Index（マスク編集時は非表示） */}
-              {!maskEditMode && (
-                <div className="param-group">
-                  <div className="z-index-section">
-                    <span>{mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}</span>
-                    <div className="z-index-controls">
-                      <ZIndexInput
-                        value={currentZIndex}
-                        onChange={updateZIndex}
-                        validation={zIndexValidation}
-                        className="image-zindex-input"
-                      />
-                      <span className={`z-index-info ${
-                        !zIndexValidation.isValid ? 'error' : 
-                        zIndexValidation.warning ? 'warning' : ''
-                      }`}>
-                        {!zIndexValidation.isValid && zIndexValidation.error ? 
-                          zIndexValidation.error :
-                          zIndexValidation.warning ? 
-                          zIndexValidation.warning :
-                          mode === 'instance' && editedInstance?.override_z_index !== undefined 
-                            ? `(overriding default: ${asset.default_z_index})`
-                            : mode === 'instance' 
-                            ? `(using default: ${asset.default_z_index})`
-                            : '(layer order: lower = background)'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            {/* Z-Index（マスク編集時は非表示） */}
+            {!maskEditMode && (
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                  {mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}
+                </Typography>
+                <ZIndexInput
+                  value={currentZIndex}
+                  onChange={updateZIndex}
+                  validation={zIndexValidation}
+                  className="image-zindex-input"
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    mt: 1,
+                    color: !zIndexValidation.isValid ? 'error.main' :
+                           zIndexValidation.warning ? 'warning.main' : 'text.secondary'
+                  }}
+                >
+                  {!zIndexValidation.isValid && zIndexValidation.error ?
+                    zIndexValidation.error :
+                    zIndexValidation.warning ?
+                    zIndexValidation.warning :
+                    mode === 'instance' && editedInstance?.override_z_index !== undefined
+                      ? `(overriding default: ${asset.default_z_index})`
+                      : mode === 'instance'
+                      ? `(using default: ${asset.default_z_index})`
+                      : '(layer order: lower = background)'
+                  }
+                </Typography>
+              </Box>
+            )}
 
               {/* マスク編集切り替えボタン（Asset編集時のみ、マスク編集時は非表示） */}
-              {mode === 'asset' && !maskEditMode && (
-              <div className="mask-edit-toggle">
+            {mode === 'asset' && !maskEditMode && (
+              <Box sx={{ mb: 3 }}>
                 <button
                   type="button"
                   className={`mask-toggle-btn ${maskEditMode ? 'active' : ''}`}
@@ -795,18 +853,18 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </Box>
+        </Box>
+      </DialogContent>
 
-        <div className="modal-footer">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
-            キャンセル
-          </button>
-          <button type="button" onClick={handleSubmit} className="btn btn-primary">
-            保存
-          </button>
-        </div>
-      </div>
-    </div>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          キャンセル
+        </Button>
+        <Button onClick={handleSubmit} variant="contained">
+          保存
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
