@@ -7,7 +7,6 @@ import { setFontInfoCache } from '../utils/svgGeneratorCommon';
 import './App.css';
 import './styles/utilities.css'; /* ユーティリティを最初に */
 import './styles/common-forms.css';
-import './styles/common-modals.css';
 import './styles/common-buttons.css';
 
 const App: React.FC = () => {

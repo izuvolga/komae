@@ -1,6 +1,5 @@
 /* BulkEditModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
-/* modal-overlay、modal-container、modal-header、modal-close-btn、modal-footerはcommon-modals.cssで定義済み */
 .bulk-edit-modal {
   width: 90vw;
   max-width: 1200px;

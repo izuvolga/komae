@@ -1,7 +1,5 @@
 /* FontManagementModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
-/* modal-overlay、modal-container、modal-header、modal-close-btnはcommon-modals.cssで定義済み */
-
 .font-management-modal {
   width: 90%;
   max-width: 800px;
