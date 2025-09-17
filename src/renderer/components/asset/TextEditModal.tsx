@@ -830,7 +830,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <TextField
                     select
                     label="フォント"
-                    value={getCurrentValue('font')}
+                    value={getCurrentValue('font') && availableFonts.find(f => f.id === getCurrentValue('font')) ? getCurrentValue('font') : ''}
                     onChange={(e) => setCurrentValue({ font: e.target.value })}
                     fullWidth
                     variant="outlined"
@@ -840,19 +840,21 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     {fontsLoading ? (
                       <MenuItem value="">フォント読み込み中...</MenuItem>
                     ) : (
-                      <>
-                        {availableFonts.map((font) => (
+                      [
+                        ...availableFonts.map((font) => (
                           <MenuItem key={font.id} value={font.id}>
                             {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
                           </MenuItem>
-                        ))}
-                        {/* 現在のフォントが一覧にない場合の対応 */}
-                        {getCurrentValue('font') && !availableFonts.find(f => f.id === getCurrentValue('font')) && (
-                          <MenuItem value={getCurrentValue('font')}>
+                        )),
+                        /* 現在のフォントが一覧にない場合の対応（system-uiなど無効な値は除外） */
+                        getCurrentValue('font') &&
+                        getCurrentValue('font') !== 'system-ui' &&
+                        !availableFonts.find(f => f.id === getCurrentValue('font')) && (
+                          <MenuItem key={getCurrentValue('font')} value={getCurrentValue('font')}>
                             {getCurrentValue('font')} (未定義)
                           </MenuItem>
-                        )}
-                      </>
+                        )
+                      ].filter(Boolean)
                     )}
                   </TextField>
                 </Box>
@@ -1122,7 +1124,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <TextField
                       select
                       label="フォント"
-                      value={getCurrentValue('font')}
+                      value={getCurrentValue('font') && availableFonts.find(f => f.id === getCurrentValue('font')) ? getCurrentValue('font') : ''}
                       onChange={(e) => setCurrentValue({font: e.target.value})}
                       disabled={!isLanguageOverrideEnabled()}
                       fullWidth
@@ -1354,7 +1356,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <TextField
                         select
                         label="フォント"
-                        value={getCurrentValue('font')}
+                        value={getCurrentValue('font') && availableFonts.find(f => f.id === getCurrentValue('font')) ? getCurrentValue('font') : ''}
                         onChange={(e) => setCurrentValue({font: e.target.value})}
                         disabled={!isLanguageDefaultOverrideEnabled()}
                         fullWidth
