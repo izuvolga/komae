@@ -51,20 +51,17 @@ const AppContent: React.FC = () => {
   // メニューイベントのリスナーを設定
   useEffect(() => {
     const handleMenuToggleDarkMode = () => {
-      console.log('[App] Menu toggle dark mode triggered, calling current toggleTheme');
       toggleThemeRef.current();
     };
 
-    console.log('[App] Registering IPC listener for menu:toggle-dark-mode');
     // IPCイベントリスナーを登録
     window.electronAPI?.ipc?.on('menu:toggle-dark-mode', handleMenuToggleDarkMode);
 
     // クリーンアップ
     return () => {
-      console.log('[App] Removing IPC listener for menu:toggle-dark-mode');
       window.electronAPI?.ipc?.removeListener('menu:toggle-dark-mode', handleMenuToggleDarkMode);
     };
-  }, []); // 依存配列を空にしてマウント時のみ実行
+  }, []);
 
   // フォントをCSSに動的登録
   const registerFontsInCSS = (fonts: FontInfo[]) => {

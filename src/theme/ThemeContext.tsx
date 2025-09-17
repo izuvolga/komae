@@ -54,12 +54,7 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
 
   // テーマ切り替え関数
   const toggleTheme = () => {
-    console.log('[ThemeContext] toggleTheme called, current mode:', mode);
-    setMode(prevMode => {
-      const newMode = prevMode === 'light' ? 'dark' : 'light';
-      console.log('[ThemeContext] switching from', prevMode, 'to', newMode);
-      return newMode;
-    });
+    setMode(prevMode => prevMode === 'light' ? 'dark' : 'light');
   };
 
   // テーマ設定関数
@@ -69,7 +64,6 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
 
   // テーマモードが変更されたときにローカルストレージに保存
   useEffect(() => {
-    console.log('[ThemeContext] mode changed to:', mode, 'saving to localStorage');
     localStorage.setItem(THEME_STORAGE_KEY, mode);
   }, [mode]);
 

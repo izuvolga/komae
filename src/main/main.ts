@@ -170,7 +170,6 @@ class KomaeApp {
             label: 'Toggle Dark Mode',
             accelerator: 'CmdOrCtrl+Shift+D',
             click: () => {
-              console.log('[Main] Toggle Dark Mode menu clicked, sending IPC event');
               this.mainWindow?.webContents.send('menu:toggle-dark-mode');
             },
           },
