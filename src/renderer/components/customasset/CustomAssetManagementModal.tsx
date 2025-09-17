@@ -239,99 +239,152 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
             )}
           </Box>
 
-          <div className="custom-asset-management-main">
-            <div className="custom-asset-list-section">
-              <h3>Custom Assets ({customAssets.length})</h3>
+          <Box sx={{ display: 'flex', height: '100%', gap: 2 }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>Custom Assets ({customAssets.length})</Typography>
               {isLoading ? (
-                <div className="custom-asset-loading">Loading...</div>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
+                  <Typography variant="body2" color="text.secondary">Loading...</Typography>
+                </Box>
               ) : customAssets.length === 0 ? (
-                <div className="custom-asset-empty">
-                  No custom assets found. Click "Add Custom Asset" to import your first asset.
-                </div>
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  p: 4,
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  fontStyle: 'italic'
+                }}>
+                  <Typography variant="body2">
+                    No custom assets found. Click "Add Custom Asset" to import your first asset.
+                  </Typography>
+                </Box>
               ) : (
-                <div className="custom-asset-list">
+                <Box sx={{ flex: 1, overflowY: 'auto' }}>
                   {customAssets.map((asset) => (
-                    <div
+                    <Box
                       key={asset.id}
-                      className={`custom-asset-item ${selectedAssetId === asset.id ? 'selected' : ''}`}
                       onClick={() => handleAssetSelect(asset.id)}
+                      sx={{
+                        p: 2,
+                        border: '1px solid',
+                        borderColor: selectedAssetId === asset.id ? 'primary.main' : 'grey.300',
+                        borderRadius: 1,
+                        mb: 1,
+                        cursor: 'pointer',
+                        bgcolor: selectedAssetId === asset.id ? 'primary.50' : 'background.paper',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          bgcolor: 'grey.50'
+                        }
+                      }}
                     >
-                      <div className="custom-asset-item-header">
-                        <span className="custom-asset-name">{asset.name}</span>
-                        <span className="custom-asset-version">v{asset.version}</span>
-                      </div>
-                      <div className="custom-asset-author">by {asset.author}</div>
-                      <div className="custom-asset-description">{asset.description}</div>
-                      <div className="custom-asset-parameters">
-                        {asset.parameters.length > 0 ? (
-                          <span>{asset.parameters.length} parameters</span>
-                        ) : (
-                          <span>No parameters</span>
-                        )}
-                      </div>
-                      <div className="custom-asset-added-at">Added: {formatDate(asset.addedAt)}</div>
-                    </div>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{asset.name}</Typography>
+                        <Typography variant="caption" sx={{ bgcolor: 'grey.100', px: 1, py: 0.5, borderRadius: 1 }}>v{asset.version}</Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>by {asset.author}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary', mb: 1 }}>{asset.description}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {asset.parameters.length > 0 ?
+                            `${asset.parameters.length} parameters` :
+                            'No parameters'
+                          }
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>Added: {formatDate(asset.addedAt)}</Typography>
+                      </Box>
+                    </Box>
                   ))}
-                </div>
+                </Box>
               )}
-            </div>
+            </Box>
 
-            <div className="custom-asset-detail-section">
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               {selectedAsset ? (
                 <>
-                  <h3>Asset Details</h3>
-                  <div className="custom-asset-detail">
-                    <div className="custom-asset-detail-field">
-                      <label>Name:</label>
-                      <span>{selectedAsset.name}</span>
-                    </div>
-                    <div className="custom-asset-detail-field">
-                      <label>Type:</label>
-                      <span>{selectedAsset.type}</span>
-                    </div>
-                    <div className="custom-asset-detail-field">
-                      <label>Version:</label>
-                      <span>{selectedAsset.version}</span>
-                    </div>
-                    <div className="custom-asset-detail-field">
-                      <label>Author:</label>
-                      <span>{selectedAsset.author}</span>
-                    </div>
-                    <div className="custom-asset-detail-field">
-                      <label>Description:</label>
-                      <span>{selectedAsset.description}</span>
-                    </div>
+                  <Typography variant="h6" sx={{ mb: 2 }}>Asset Details</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Name:</Typography>
+                      <Typography variant="body2">{selectedAsset.name}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Type:</Typography>
+                      <Typography variant="body2">{selectedAsset.type}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Version:</Typography>
+                      <Typography variant="body2">{selectedAsset.version}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Author:</Typography>
+                      <Typography variant="body2">{selectedAsset.author}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Description:</Typography>
+                      <Typography variant="body2">{selectedAsset.description}</Typography>
+                    </Box>
 
                     {selectedAsset.parameters.length > 0 && (
-                      <div className="custom-asset-detail-field">
-                        <label>Parameters:</label>
-                        <div className="custom-asset-parameters-list">
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Parameters:</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                           {selectedAsset.parameters.map((param, index) => (
-                            <div key={index} className="custom-asset-parameter">
-                              <span className="parameter-name">{param.name}</span>
-                              <span className="parameter-type">({param.type})</span>
-                              <span className="parameter-default">= {String(param.defaultValue)}</span>
-                            </div>
+                            <Box key={index} sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              p: 1,
+                              bgcolor: 'grey.50',
+                              borderRadius: 1
+                            }}>
+                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{param.name}</Typography>
+                              <Typography variant="body2" sx={{ color: 'text.secondary' }}>({param.type})</Typography>
+                              <Typography variant="body2" sx={{ color: 'primary.main' }}>= {String(param.defaultValue)}</Typography>
+                            </Box>
                           ))}
-                        </div>
-                      </div>
+                        </Box>
+                      </Box>
                     )}
 
-                    <div className="custom-asset-detail-field">
-                      <label>Code Preview:</label>
-                      <pre className="custom-asset-code-preview">
-                        <code>{previewCode}</code>
-                      </pre>
-                    </div>
-                  </div>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Code Preview:</Typography>
+                      <Box sx={{
+                        bgcolor: 'grey.100',
+                        border: '1px solid',
+                        borderColor: 'grey.300',
+                        borderRadius: 1,
+                        p: 2,
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        overflow: 'auto',
+                        maxHeight: '300px'
+                      }}>
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                          <code>{previewCode}</code>
+                        </pre>
+                      </Box>
+                    </Box>
+                  </Box>
                 </>
               ) : (
-                <div className="custom-asset-detail-empty">
-                  Select a custom asset to view details
-                </div>
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  color: 'text.secondary',
+                  fontStyle: 'italic'
+                }}>
+                  <Typography variant="body2">
+                    Select a custom asset to view details
+                  </Typography>
+                </Box>
               )}
-            </div>
-          </div>
+            </Box>
+          </Box>
       </DialogContent>
     </Dialog>
   );
