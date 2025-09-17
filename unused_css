@@ -9,54 +9,10 @@ btn-outline
 btn-outline-secondary
 btn-success
 btn.loading
-== ./src/renderer/components/asset/AssetThumbnail.css ==
-asset-thumbnail.vector-asset
-== ./src/renderer/components/asset/AssetParameterEditor.css ==
-asset-parameter-editor
-parameter-count
-parameter-default
-parameter-empty-state
-parameter-header
-parameter-info
-parameter-input
-parameter-item
-parameter-label
-parameter-list
-parameter-number-input
-parameter-number-input[type=number]
-parameter-reset-button
-parameter-string-input
-parameter-type
 == ./src/renderer/components/asset/AssetLibrary.css ==
 asset-item.dragged
 asset-item.selected
 asset-library.drag-over
-== ./src/renderer/components/spreadsheet/ColumnContextMenu.css ==
-asset-cell.highlighted
-asset-header.highlighted
-== ./src/renderer/components/spreadsheet/RowContextMenu.css ==
-asset-cell.highlighted
-asset-cell.unused.highlighted
-asset-cell.used.highlighted
-page-number-delete-cell.highlighted
-preview-cell.highlighted
-spreadsheet-row.highlighted
-== ./src/renderer/components/spreadsheet/PageThumbnail.css ==
-error-content
-error-icon
-error-text
-page-thumbnail.selected
-page-thumbnail.small
-== ./src/renderer/components/spreadsheet/ColumnDragOverlay.css ==
-asset-header.dragging
-== ./src/renderer/components/spreadsheet/EnhancedSpreadsheet.css ==
-asset-cell.unused
-asset-cell.used
-asset-count
-delete-page-btn
-preview-mini-canvas
-toggle-button.active
-toggle-button.inactive
 == ./src/renderer/components/notification/NotificationDisplay.css ==
 notification-error
 notification-info
@@ -85,16 +41,6 @@ preview-image-placeholder
 preview-text-placeholder
 toggle-label
 toggle-text
-== ./src/renderer/components/text/BulkEditModal.css ==
-ai-prompt-btn
-bulk-edit-modal
-footer-actions
-footer-info
-header-actions
-help-btn
-help-content
-help-section
-modified-indicator
 == ./src/renderer/components/font/FontAddHelpModal.css ==
 code-block
 font-add-help-modal

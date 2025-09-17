@@ -32,28 +32,7 @@
   margin-right: 8px;
 }
 
-.language-help-btn {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.language-help-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.language-dropdown-menu {
+..language-dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -122,24 +101,6 @@
 
 .lang-code-text:hover {
   background: rgba(59, 130, 246, 0.1);
-}
-
-.lang-code-remove {
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  margin-left: 4px;
-  padding: 0 2px;
-  border-radius: 2px;
-  transition: all 0.2s;
-}
-
-.lang-code-remove:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
 }
 
 .language-info {

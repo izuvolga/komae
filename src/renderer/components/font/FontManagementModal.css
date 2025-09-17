@@ -1,13 +1,5 @@
 /* FontManagementModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
-.font-management-modal {
-  width: 90%;
-  max-width: 800px;
-  height: 90%;
-  max-height: 700px;
-}
-
-
 .sample-text-section {
   margin-bottom: 24px;
 }
@@ -156,8 +148,6 @@
   margin-top: 24px;
   gap: 16px;
 }
-
-/* btnクラスはcommon-buttons.cssで定義済み */
 
 /* スクロールバーのスタイリング */
 .fonts-list::-webkit-scrollbar {
