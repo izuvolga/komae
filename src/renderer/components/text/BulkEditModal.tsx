@@ -1,4 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Chip,
+  Collapse,
+  Alert,
+} from '@mui/material';
+import { Close as CloseIcon, Help as HelpIcon, AutoAwesome as AIIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextAssetYAML, parseTextAssetYAML } from '../../../utils/yamlConverter';
 import { generateAIPrompt } from '../../../utils/aiPrompt';
@@ -119,94 +133,145 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-content bulk-edit-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>TextAsset Bulk Edit</h2>
-          <div className="header-actions">
-            <button 
-              className="help-btn"
-              onClick={() => setShowWhatIsThis(!showWhatIsThis)}
-              title="この機能について"
-            >
-              What is this [?]
-            </button>
-            <button 
-              className="ai-prompt-btn"
-              onClick={handleCopyAIPrompt}
-              title="AI編集用プロンプトをクリップボードにコピー"
-            >
-              Copy AI Prompt ✨
-            </button>
-          </div>
-          <button 
-            className="modal-close-btn" 
-            onClick={handleCancel}
+    <Dialog
+      open={isOpen}
+      onClose={handleCancel}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '1200px',
+          height: '80vh',
+          maxHeight: '900px',
+          display: 'flex',
+          flexDirection: 'column',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="h6" component="h2">TextAsset Bulk Edit</Typography>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            size="small"
+            startIcon={<HelpIcon />}
+            onClick={() => setShowWhatIsThis(!showWhatIsThis)}
+            sx={{
+              fontSize: '12px',
+              color: 'text.secondary',
+              '&:hover': { bgcolor: 'action.hover' }
+            }}
           >
-            ×
-          </button>
-        </div>
+            What is this?
+          </Button>
+          <Button
+            size="small"
+            startIcon={<AIIcon />}
+            onClick={handleCopyAIPrompt}
+            sx={{
+              fontSize: '12px',
+              background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontWeight: 500,
+              '&:hover': {
+                background: 'linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%)',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+              }
+            }}
+          >
+            Copy AI Prompt
+          </Button>
+          <IconButton onClick={handleCancel} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
 
-        {showWhatIsThis && (
-          <div className="help-section">
-            <div className="help-content">
-              <h3>TextAsset Bulk Edit とは？</h3>
-              <p>
-                この機能は、プロジェクト内のすべてのテキストアセットインスタンスを
-                YAML形式で一括編集するためのツールです。
-              </p>
-              <ul>
-                <li><strong>YAML編集</strong>: すべてのテキストを構造化されたYAML形式で編集</li>
-                <li><strong>多言語対応</strong>: 複数言語のテキストを同時に管理</li>
-                <li><strong>AI支援</strong>: 生成AIを使った一括翻訳・編集をサポート</li>
-                <li><strong>ページ構造</strong>: ページごとにテキストが整理されて表示</li>
-              </ul>
-              <p>
-                特に翻訳作業や大量のテキスト編集において、スプレッドシート形式よりも
-                効率的な編集が可能です。
-              </p>
-            </div>
-          </div>
-        )}
+      <Collapse in={showWhatIsThis}>
+        <Box sx={{
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          p: 3
+        }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            TextAsset Bulk Edit とは？
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
+            この機能は、プロジェクト内のすべてのテキストアセットインスタンスを
+            YAML形式で一括編集するためのツールです。
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+            <li><strong>YAML編集</strong>: すべてのテキストを構造化されたYAML形式で編集</li>
+            <li><strong>多言語対応</strong>: 複数言語のテキストを同時に管理</li>
+            <li><strong>AI支援</strong>: 生成AIを使った一括翻訳・編集をサポート</li>
+            <li><strong>ページ構造</strong>: ページごとにテキストが整理されて表示</li>
+          </Box>
+          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+            特に翻訳作業や大量のテキスト編集において、スプレッドシート形式よりも
+            効率的な編集が可能です。
+          </Typography>
+        </Box>
+      </Collapse>
 
-        <div className="modal-body">
-          <div className="yaml-editor-container">
-            <textarea
-              className="yaml-editor"
-              value={yamlContent}
-              onChange={(e) => setYamlContent(e.target.value)}
-              placeholder="YAML形式のテキストデータが表示されます..."
-              spellCheck={false}
+      <DialogContent sx={{ p: 0, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box className="yaml-editor-container" sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <textarea
+            className="yaml-editor"
+            value={yamlContent}
+            onChange={(e) => setYamlContent(e.target.value)}
+            placeholder="YAML形式のテキストデータが表示されます..."
+            spellCheck={false}
+            style={{ flex: 1 }}
+          />
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{
+        p: 3,
+        pt: 2,
+        justifyContent: 'space-between',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {isModified && (
+            <Chip
+              size="small"
+              label="変更あり"
+              sx={{
+                bgcolor: 'warning.light',
+                color: 'warning.contrastText',
+                fontWeight: 500,
+              }}
             />
-          </div>
-        </div>
-
-        <div className="modal-footer">
-          <div className="footer-info">
-            {isModified && (
-              <span className="modified-indicator">● 変更あり</span>
-            )}
-          </div>
-          <div className="footer-actions">
-            <button 
-              className="btn btn-secondary" 
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
-            <button 
-              className="btn btn-primary" 
-              onClick={handleImport}
-              disabled={!isModified}
-            >
-              Import
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button variant="outlined" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleImport}
+            disabled={!isModified}
+          >
+            Import
+          </Button>
+        </Box>
+      </DialogActions>
+    </Dialog>
   );
 };

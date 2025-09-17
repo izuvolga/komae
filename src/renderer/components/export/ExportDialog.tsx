@@ -139,169 +139,184 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-container export-dialog">
-        <div className="modal-header">
-          <Typography variant="h6" component="h2">プロジェクトのエクスポート</Typography>
-          <IconButton onClick={onClose} size="small" sx={{ ml: 'auto' }}>
-            <CloseIcon />
-          </IconButton>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '700px',
+          maxHeight: '90vh',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        プロジェクトのエクスポート
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          {/* エクスポート形式選択 */}
-          <div className="form-group">
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>エクスポート形式</Typography>
-            <RadioGroup
-              value={format}
-              onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            >
-              <FormControlLabel
-                value="html"
-                control={<Radio size="small" />}
-                label={
-                  <Box>
-                    <Typography variant="body2">HTML（単一ファイル）</Typography>
-                    <Typography variant="caption" color="text.secondary">ウェブブラウザで表示可能な単一HTMLファイル</Typography>
-                  </Box>
-                }
-                sx={{ mb: 1 }}
-              />
-              <FormControlLabel
-                value="png"
-                control={<Radio size="small" />}
-                label={
-                  <Box>
-                    <Typography variant="body2">PNG（画像ファイル）</Typography>
-                    <Typography variant="caption" color="text.secondary">各ページが個別のPNG画像として出力</Typography>
-                  </Box>
-                }
-              />
-            </RadioGroup>
-          </div>
-
-          {/* ファイル名 */}
-          <div className="form-group">
-            <TextField
-              label="ファイル名"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="ファイル名を入力"
-              fullWidth
-              size="small"
-            />
-          </div>
-
-          {/* 出力先パス */}
-          <div className="form-group">
-            <label htmlFor="output-path">出力先ディレクトリ</label>
-            <div className="path-input-group">
-              <TextField
-                value={outputPath}
-                onChange={(e) => setOutputPath(e.target.value)}
-                placeholder="出力先パスを入力"
-                size="small"
-                fullWidth
-              />
-              <Button
-                variant="outlined"
-                onClick={handleBrowseOutputPath}
-                sx={{ ml: 1, minWidth: 60 }}
-              >
-                参照
-              </Button>
-            </div>
-          </div>
-
-          {/* 品質設定（PNG形式の場合） */}
-          {format === 'png' && (
-            <div className="form-group">
-              <Typography variant="body2" sx={{ mb: 1 }}>画質（{quality}%）</Typography>
-              <Slider
-                value={quality}
-                onChange={(_, value) => setQuality(value as number)}
-                min={1}
-                max={100}
-                valueLabelDisplay="auto"
-                sx={{ ml: 1, mr: 1 }}
-              />
-            </div>
-          )}
-
-          {/* 上書き設定 */}
-          <div className="form-group">
+      <DialogContent sx={{ p: 3 }}>
+        {/* エクスポート形式選択 */}
+        <div className="form-group">
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>エクスポート形式</Typography>
+          <RadioGroup
+            value={format}
+            onChange={(e) => setFormat(e.target.value as ExportFormat)}
+          >
             <FormControlLabel
-              control={
-                <Checkbox
-                  checked={overwriteExisting}
-                  onChange={(e) => setOverwriteExisting(e.target.checked)}
-                  size="small"
-                />
+              value="html"
+              control={<Radio size="small" />}
+              label={
+                <Box>
+                  <Typography variant="body2">HTML（単一ファイル）</Typography>
+                  <Typography variant="caption" color="text.secondary">ウェブブラウザで表示可能な単一HTMLファイル</Typography>
+                </Box>
               }
-              label="既存のファイルを上書きする"
+              sx={{ mb: 1 }}
+            />
+            <FormControlLabel
+              value="png"
+              control={<Radio size="small" />}
+              label={
+                <Box>
+                  <Typography variant="body2">PNG（画像ファイル）</Typography>
+                  <Typography variant="caption" color="text.secondary">各ページが個別のPNG画像として出力</Typography>
+                </Box>
+              }
+            />
+          </RadioGroup>
+        </div>
+
+        {/* ファイル名 */}
+        <div className="form-group">
+          <TextField
+            label="ファイル名"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="ファイル名を入力"
+            fullWidth
+            size="small"
+          />
+        </div>
+
+        {/* 出力先パス */}
+        <div className="form-group">
+          <label htmlFor="output-path">出力先ディレクトリ</label>
+          <div className="path-input-group">
+            <TextField
+              value={outputPath}
+              onChange={(e) => setOutputPath(e.target.value)}
+              placeholder="出力先パスを入力"
+              size="small"
+              fullWidth
+            />
+            <Button
+              variant="outlined"
+              onClick={handleBrowseOutputPath}
+              sx={{ ml: 1, minWidth: 60 }}
+            >
+              参照
+            </Button>
+          </div>
+        </div>
+
+        {/* 品質設定（PNG形式の場合） */}
+        {format === 'png' && (
+          <div className="form-group">
+            <Typography variant="body2" sx={{ mb: 1 }}>画質（{quality}%）</Typography>
+            <Slider
+              value={quality}
+              onChange={(_, value) => setQuality(value as number)}
+              min={1}
+              max={100}
+              valueLabelDisplay="auto"
+              sx={{ ml: 1, mr: 1 }}
             />
           </div>
+        )}
 
-          {/* 出力プレビュー */}
-          <div className="form-group">
-            <label>出力先プレビュー</label>
-            <div className="output-preview">
-              {isValidating ? (
-                <span className="validating">検証中...</span>
-              ) : (
-                <code>{expectedOutput}</code>
-              )}
+        {/* 上書き設定 */}
+        <div className="form-group">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={overwriteExisting}
+                onChange={(e) => setOverwriteExisting(e.target.checked)}
+                size="small"
+              />
+            }
+            label="既存のファイルを上書きする"
+          />
+        </div>
+
+        {/* 出力プレビュー */}
+        <div className="form-group">
+          <label>出力先プレビュー</label>
+          <div className="output-preview">
+            {isValidating ? (
+              <span className="validating">検証中...</span>
+            ) : (
+              <code>{expectedOutput}</code>
+            )}
+          </div>
+        </div>
+
+        {/* バリデーションエラー */}
+        {validationErrors.length > 0 && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            <Typography variant="subtitle2">エラー</Typography>
+            <Box component="ul" sx={{ pl: 2, mb: 0 }}>
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </Box>
+          </Alert>
+        )}
+
+        {/* プロジェクト情報 */}
+        {project && (
+          <div className="project-info">
+            <h4>プロジェクト情報</h4>
+            <div className="info-grid">
+              <span>ページ数:</span>
+              <span>{project.pages.length}</span>
+              <span>アセット数:</span>
+              <span>{Object.keys(project.assets).length}</span>
+              <span>キャンバスサイズ:</span>
+              <span>{project.canvas.width} × {project.canvas.height}px</span>
             </div>
           </div>
+        )}
+      </DialogContent>
 
-          {/* バリデーションエラー */}
-          {validationErrors.length > 0 && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">エラー</Typography>
-              <Box component="ul" sx={{ pl: 2, mb: 0 }}>
-                {validationErrors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </Box>
-            </Alert>
-          )}
-
-          {/* プロジェクト情報 */}
-          {project && (
-            <div className="project-info">
-              <h4>プロジェクト情報</h4>
-              <div className="info-grid">
-                <span>ページ数:</span>
-                <span>{project.pages.length}</span>
-                <span>アセット数:</span>
-                <span>{Object.keys(project.assets).length}</span>
-                <span>キャンバスサイズ:</span>
-                <span>{project.canvas.width} × {project.canvas.height}px</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <Button
-            variant="outlined"
-            onClick={onClose}
-            sx={{ mr: 2 }}
-          >
-            キャンセル
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleExport}
-            disabled={!project || validationErrors.length > 0 || isValidating}
-          >
-            エクスポート
-          </Button>
-        </div>
-      </div>
-    </div>
+      <DialogActions sx={{ p: 3, pt: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={onClose}
+        >
+          キャンセル
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleExport}
+          disabled={!project || validationErrors.length > 0 || isValidating}
+        >
+          エクスポート
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };

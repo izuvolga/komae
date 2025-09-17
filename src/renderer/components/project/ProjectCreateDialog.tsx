@@ -227,240 +227,254 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   const isCustomSelected = parseInt(selectedPreset) === CANVAS_PRESETS.length - 1;
   const currentCanvas = getCurrentCanvas();
 
-  if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay" onClick={handleCancel}>
-      <div className="modal-container project-create-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <Typography variant="h6" component="h2">新規プロジェクト作成</Typography>
-          <IconButton
-            onClick={handleCancel}
-            disabled={isCreating}
-            size="small"
-            sx={{ ml: 'auto' }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={handleCancel}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90vw',
+          maxWidth: '600px',
+          maxHeight: '90vh',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        新規プロジェクト作成
+        <IconButton
+          onClick={handleCancel}
+          disabled={isCreating}
+          size="small"
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
-          <div className="form-section">
-            {/* プロジェクト基本情報 */}
-            <div className="form-field">
-              <TextField
-                label="プロジェクト名"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="私の物語"
-                disabled={isCreating}
-                required
-                fullWidth
-                size="small"
-              />
-            </div>
+      <DialogContent sx={{ p: 3 }}>
+        <div className="form-section">
+          {/* プロジェクト基本情報 */}
+          <div className="form-field">
+            <TextField
+              label="プロジェクト名"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="私の物語"
+              disabled={isCreating}
+              required
+              fullWidth
+              size="small"
+            />
+          </div>
 
-            <div className="form-field">
-              <TextField
-                label="説明 (オプション)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="キャラクターの日常を描いた作品..."
-                multiline
-                rows={3}
-                disabled={isCreating}
-                fullWidth
-                size="small"
-              />
-            </div>
+          <div className="form-field">
+            <TextField
+              label="説明 (オプション)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="キャラクターの日常を描いた作品..."
+              multiline
+              rows={3}
+              disabled={isCreating}
+              fullWidth
+              size="small"
+            />
+          </div>
 
-            <div className="form-divider"></div>
+          <div className="form-divider"></div>
 
-            {/* 多言語設定 */}
-            <div className="form-field">
-              <label className="form-label">対応言語</label>
-              
-              <div className="language-selector-area">
-                <div className="language-dropdown-container">
-                  <div 
-                    className="language-dropdown-trigger"
-                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+          {/* 多言語設定 */}
+          <div className="form-field">
+            <label className="form-label">対応言語</label>
+
+            <div className="language-selector-area">
+              <div className="language-dropdown-container">
+                <div
+                  className="language-dropdown-trigger"
+                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                >
+                  <span>{selectedLanguageForAdd || '言語を追加'}</span>
+                  <span className="dropdown-arrow">▼</span>
+                  <IconButton
+                    size="small"
+                    title="多言語対応機能について"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addNotification({
+                        type: 'info',
+                        title: '多言語対応機能',
+                        message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
+                        autoClose: true,
+                        duration: 5000,
+                      });
+                    }}
                   >
-                    <span>{selectedLanguageForAdd || '言語を追加'}</span>
-                    <span className="dropdown-arrow">▼</span>
-                    <IconButton
-                      size="small"
-                      title="多言語対応機能について"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addNotification({
-                          type: 'info',
-                          title: '多言語対応機能',
-                          message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
-                          autoClose: true,
-                          duration: 5000,
-                        });
-                      }}
-                    >
-                      <HelpIcon fontSize="small" />
-                    </IconButton>
-                  </div>
-                  
-                  {showLanguageDropdown && (
-                    <div className="language-dropdown-menu">
-                      {getAvailableLanguagesForAdd().map(lang => (
-                        <div
-                          key={lang.code}
-                          className="language-dropdown-item"
-                          onClick={() => {
-                            setSelectedLanguageForAdd(lang.code);
-                            handleAddLanguage();
-                          }}
-                        >
-                          {getLanguageDisplayName(lang.code)}
-                        </div>
-                      ))}
-                      {getAvailableLanguagesForAdd().length === 0 && (
-                        <div className="language-dropdown-item disabled">
-                          追加可能な言語がありません
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    <HelpIcon fontSize="small" />
+                  </IconButton>
                 </div>
-              </div>
-              
-              {/* Lang Code Box */}
-              <div className="lang-code-box">
-                {supportedLanguages.map(langCode => (
-                  <div 
-                    key={langCode} 
-                    className={`lang-code-tag ${currentLanguage === langCode ? 'active' : ''}`}
-                    title={getLanguageDisplayName(langCode)}
-                  >
-                    <span 
-                      className="lang-code-text"
-                      onClick={() => setCurrentLanguage(langCode)}
-                    >
-                      {langCode.toUpperCase()}
-                    </span>
-                    {supportedLanguages.length > 1 && (
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveLanguage(langCode)}
-                        title={`${langCode.toUpperCase()}を削除`}
-                        sx={{ ml: 0.5, p: 0.25 }}
+
+                {showLanguageDropdown && (
+                  <div className="language-dropdown-menu">
+                    {getAvailableLanguagesForAdd().map(lang => (
+                      <div
+                        key={lang.code}
+                        className="language-dropdown-item"
+                        onClick={() => {
+                          setSelectedLanguageForAdd(lang.code);
+                          handleAddLanguage();
+                        }}
                       >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
+                        {getLanguageDisplayName(lang.code)}
+                      </div>
+                    ))}
+                    {getAvailableLanguagesForAdd().length === 0 && (
+                      <div className="language-dropdown-item disabled">
+                        追加可能な言語がありません
+                      </div>
                     )}
                   </div>
-                ))}
-              </div>
-              
-              <div className="language-info">
-                <small>現在の言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong></small>
+                )}
               </div>
             </div>
 
-            <div className="form-divider"></div>
-
-            {/* キャンバス設定 */}
-            <div className="form-field">
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>キャンバスサイズ</Typography>
-              <RadioGroup
-                value={selectedPreset}
-                onChange={(e) => setSelectedPreset(e.target.value)}
-              >
-                {CANVAS_PRESETS.map((preset, index) => (
-                  <FormControlLabel
-                    key={index}
-                    value={index.toString()}
-                    control={<Radio size="small" disabled={isCreating} />}
-                    label={
-                      <Box>
-                        <Typography variant="body2" component="span">{preset.name}</Typography>
-                        {index < CANVAS_PRESETS.length - 1 && (
-                          <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
-                            {preset.width} × {preset.height}
-                          </Typography>
-                        )}
-                      </Box>
-                    }
-                    sx={{ mb: 0.5 }}
-                    disabled={isCreating}
-                  />
-                ))}
-              </RadioGroup>
+            {/* Lang Code Box */}
+            <div className="lang-code-box">
+              {supportedLanguages.map(langCode => (
+                <div
+                  key={langCode}
+                  className={`lang-code-tag ${currentLanguage === langCode ? 'active' : ''}`}
+                  title={getLanguageDisplayName(langCode)}
+                >
+                  <span
+                    className="lang-code-text"
+                    onClick={() => setCurrentLanguage(langCode)}
+                  >
+                    {langCode.toUpperCase()}
+                  </span>
+                  {supportedLanguages.length > 1 && (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveLanguage(langCode)}
+                      title={`${langCode.toUpperCase()}を削除`}
+                      sx={{ ml: 0.5, p: 0.25 }}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </div>
+              ))}
             </div>
 
-            {/* カスタムサイズ設定 */}
-            {isCustomSelected && (
-              <div className="form-field">
-                <div className="custom-size-fields">
-                  <div className="size-field">
-                    <TextField
-                      label="幅 (px)"
-                      type="number"
-                      value={customWidth}
-                      onChange={(e) => setCustomWidth(Number(e.target.value) || 800)}
-                      inputProps={{ min: 100, max: 4000 }}
-                      disabled={isCreating}
-                      size="small"
-                      fullWidth
-                    />
-                  </div>
-                  <div className="size-field">
-                    <TextField
-                      label="高さ (px)"
-                      type="number"
-                      value={customHeight}
-                      onChange={(e) => setCustomHeight(Number(e.target.value) || 600)}
-                      inputProps={{ min: 100, max: 4000 }}
-                      disabled={isCreating}
-                      size="small"
-                      fullWidth
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 現在の設定確認 */}
-            <div className="settings-preview">
-              <strong>設定確認</strong>
-              <div className="settings-info">
-                キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
-              </div>
-              {title.trim() && (
-                <div className="settings-info" style={{ marginTop: '8px' }}>
-                  作成される構造:<br />
-                  選択ディレクトリ/{title.trim()}/<br />
-                  　└ {title.trim()}.komae
-                </div>
-              )}
+            <div className="language-info">
+              <small>現在の言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong></small>
             </div>
           </div>
-        </div>
 
-        <div className="modal-footer">
-          <Button
-            variant="outlined"
-            onClick={handleCancel}
-            disabled={isCreating}
-            sx={{ mr: 2 }}
-          >
-            キャンセル
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleCreate}
-            disabled={isCreating}
-          >
-            {isCreating ? '作成中...' : '作成'}
-          </Button>
+          <div className="form-divider"></div>
+
+          {/* キャンバス設定 */}
+          <div className="form-field">
+            <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>キャンバスサイズ</Typography>
+            <RadioGroup
+              value={selectedPreset}
+              onChange={(e) => setSelectedPreset(e.target.value)}
+            >
+              {CANVAS_PRESETS.map((preset, index) => (
+                <FormControlLabel
+                  key={index}
+                  value={index.toString()}
+                  control={<Radio size="small" disabled={isCreating} />}
+                  label={
+                    <Box>
+                      <Typography variant="body2" component="span">{preset.name}</Typography>
+                      {index < CANVAS_PRESETS.length - 1 && (
+                        <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
+                          {preset.width} × {preset.height}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
+                  sx={{ mb: 0.5 }}
+                  disabled={isCreating}
+                />
+              ))}
+            </RadioGroup>
+          </div>
+
+          {/* カスタムサイズ設定 */}
+          {isCustomSelected && (
+            <div className="form-field">
+              <div className="custom-size-fields">
+                <div className="size-field">
+                  <TextField
+                    label="幅 (px)"
+                    type="number"
+                    value={customWidth}
+                    onChange={(e) => setCustomWidth(Number(e.target.value) || 800)}
+                    inputProps={{ min: 100, max: 4000 }}
+                    disabled={isCreating}
+                    size="small"
+                    fullWidth
+                  />
+                </div>
+                <div className="size-field">
+                  <TextField
+                    label="高さ (px)"
+                    type="number"
+                    value={customHeight}
+                    onChange={(e) => setCustomHeight(Number(e.target.value) || 600)}
+                    inputProps={{ min: 100, max: 4000 }}
+                    disabled={isCreating}
+                    size="small"
+                    fullWidth
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 現在の設定確認 */}
+          <div className="settings-preview">
+            <strong>設定確認</strong>
+            <div className="settings-info">
+              キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
+            </div>
+            {title.trim() && (
+              <div className="settings-info" style={{ marginTop: '8px' }}>
+                作成される構造:<br />
+                選択ディレクトリ/{title.trim()}/<br />
+                　└ {title.trim()}.komae
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+
+      <DialogActions sx={{ p: 3, pt: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={handleCancel}
+          disabled={isCreating}
+        >
+          キャンセル
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleCreate}
+          disabled={isCreating}
+        >
+          {isCreating ? '作成中...' : '作成'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };

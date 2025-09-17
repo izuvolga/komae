@@ -220,21 +220,39 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     setShowLicenseModal(true);
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container font-management-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Font Management</h2>
-          <button className="modal-close-btn" onClick={onClose}>
-            ×
-          </button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '90%',
+          maxWidth: '800px',
+          height: '90%',
+          maxHeight: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        Font Management
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <div className="modal-content">
+      <DialogContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Sample Text入力 */}
           <div className="sample-text-section">
             <TextField
@@ -305,9 +323,11 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           </div>
 
           {/* 操作ボタン */}
-          <div className="font-management-actions">
-            <button
-              className="btn btn-danger"
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, gap: 2 }}>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
               onClick={handleDeleteFont}
               disabled={!selectedFont || isLoading || (
                 // システムフォントは削除不可
@@ -324,32 +344,32 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
               }
             >
               Delete Font
-            </button>
-            <button
-              className="btn btn-primary"
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
               onClick={() => setShowAddModal(true)}
               disabled={isLoading}
             >
               Add Font
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Box>
+      </DialogContent>
 
-        {/* サブモーダル */}
-        <FontAddModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          onAdd={handleAddFont}
-          onAddGoogleFont={handleAddGoogleFont}
-          onAddBuiltinFont={handleAddBuiltinFont}
-        />
-        
-        <FontLicenseModal
-          isOpen={showLicenseModal}
-          onClose={() => setShowLicenseModal(false)}
-          font={licenseFont}
-        />
-      </div>
-    </div>
+      {/* サブモーダル */}
+      <FontAddModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddFont}
+        onAddGoogleFont={handleAddGoogleFont}
+        onAddBuiltinFont={handleAddBuiltinFont}
+      />
+
+      <FontLicenseModal
+        isOpen={showLicenseModal}
+        onClose={() => setShowLicenseModal(false)}
+        font={licenseFont}
+      />
+    </Dialog>
   );
 };
