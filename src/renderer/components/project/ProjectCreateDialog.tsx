@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import { TextField } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  IconButton,
+  Box,
+  Typography,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Chip,
+  Menu,
+  MenuItem,
+  Divider
+} from '@mui/material';
+import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
@@ -216,14 +234,15 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-container project-create-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>新規プロジェクト作成</h2>
-          <button 
-            className="modal-close-btn" 
+          <Typography variant="h6" component="h2">新規プロジェクト作成</Typography>
+          <IconButton
             onClick={handleCancel}
             disabled={isCreating}
+            size="small"
+            sx={{ ml: 'auto' }}
           >
-            ×
-          </button>
+            <CloseIcon />
+          </IconButton>
         </div>
 
         <div className="modal-content">
@@ -243,14 +262,16 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             </div>
 
             <div className="form-field">
-              <label className="form-label">説明 (オプション)</label>
-              <textarea
-                className="form-textarea"
+              <TextField
+                label="説明 (オプション)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="キャラクターの日常を描いた作品..."
+                multiline
                 rows={3}
                 disabled={isCreating}
+                fullWidth
+                size="small"
               />
             </div>
 
@@ -268,9 +289,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                   >
                     <span>{selectedLanguageForAdd || '言語を追加'}</span>
                     <span className="dropdown-arrow">▼</span>
-                    <button 
-                      type="button"
-                      className="language-help-btn"
+                    <IconButton
+                      size="small"
                       title="多言語対応機能について"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -283,8 +303,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                         });
                       }}
                     >
-                      ?
-                    </button>
+                      <HelpIcon fontSize="small" />
+                    </IconButton>
                   </div>
                   
                   {showLanguageDropdown && (
@@ -326,14 +346,14 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                       {langCode.toUpperCase()}
                     </span>
                     {supportedLanguages.length > 1 && (
-                      <button
-                        type="button"
-                        className="lang-code-remove"
+                      <IconButton
+                        size="small"
                         onClick={() => handleRemoveLanguage(langCode)}
                         title={`${langCode.toUpperCase()}を削除`}
+                        sx={{ ml: 0.5, p: 0.25 }}
                       >
-                        ×
-                      </button>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
                     )}
                   </div>
                 ))}
@@ -348,29 +368,31 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
             {/* キャンバス設定 */}
             <div className="form-field">
-              <label className="form-label">キャンバスサイズ</label>
-              <div className="canvas-presets">
+              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>キャンバスサイズ</Typography>
+              <RadioGroup
+                value={selectedPreset}
+                onChange={(e) => setSelectedPreset(e.target.value)}
+              >
                 {CANVAS_PRESETS.map((preset, index) => (
-                  <label key={index} className="preset-option">
-                    <input
-                      type="radio"
-                      name="canvasPreset"
-                      value={index.toString()}
-                      checked={selectedPreset === index.toString()}
-                      onChange={(e) => setSelectedPreset(e.target.value)}
-                      disabled={isCreating}
-                    />
-                    <span className="preset-label">
-                      <span className="preset-name">{preset.name}</span>
-                      {index < CANVAS_PRESETS.length - 1 && (
-                        <span className="preset-size">
-                          {preset.width} × {preset.height}
-                        </span>
-                      )}
-                    </span>
-                  </label>
+                  <FormControlLabel
+                    key={index}
+                    value={index.toString()}
+                    control={<Radio size="small" disabled={isCreating} />}
+                    label={
+                      <Box>
+                        <Typography variant="body2" component="span">{preset.name}</Typography>
+                        {index < CANVAS_PRESETS.length - 1 && (
+                          <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
+                            {preset.width} × {preset.height}
+                          </Typography>
+                        )}
+                      </Box>
+                    }
+                    sx={{ mb: 0.5 }}
+                    disabled={isCreating}
+                  />
                 ))}
-              </div>
+              </RadioGroup>
             </div>
 
             {/* カスタムサイズ設定 */}
@@ -423,20 +445,21 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         </div>
 
         <div className="modal-footer">
-          <button 
-            className="btn btn-secondary" 
+          <Button
+            variant="outlined"
             onClick={handleCancel}
             disabled={isCreating}
+            sx={{ mr: 2 }}
           >
             キャンセル
-          </button>
-          <button 
-            className="btn btn-primary" 
+          </Button>
+          <Button
+            variant="contained"
             onClick={handleCreate}
             disabled={isCreating}
           >
             {isCreating ? '作成中...' : '作成'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

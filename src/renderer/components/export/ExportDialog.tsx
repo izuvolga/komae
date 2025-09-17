@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { TextField } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  IconButton,
+  Typography,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  Checkbox,
+  Slider,
+  Box,
+  Alert
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ExportFormat, ExportOptions } from '../../../types/entities';
 import './ExportDialog.css';
@@ -129,36 +146,42 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
     <div className="modal-overlay">
       <div className="modal-container export-dialog">
         <div className="modal-header">
-          <h2>プロジェクトのエクスポート</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
+          <Typography variant="h6" component="h2">プロジェクトのエクスポート</Typography>
+          <IconButton onClick={onClose} size="small" sx={{ ml: 'auto' }}>
+            <CloseIcon />
+          </IconButton>
         </div>
 
         <div className="modal-content">
           {/* エクスポート形式選択 */}
           <div className="form-group">
-            <label>エクスポート形式</label>
-            <div className="format-options">
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  value="html"
-                  checked={format === 'html'}
-                  onChange={(e) => setFormat(e.target.value as ExportFormat)}
-                />
-                <span>HTML（単一ファイル）</span>
-                <small>ウェブブラウザで表示可能な単一HTMLファイル</small>
-              </label>
-              <label className="radio-option">
-                <input
-                  type="radio"
-                  value="png"
-                  checked={format === 'png'}
-                  onChange={(e) => setFormat(e.target.value as ExportFormat)}
-                />
-                <span>PNG（画像ファイル）</span>
-                <small>各ページが個別のPNG画像として出力</small>
-              </label>
-            </div>
+            <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>エクスポート形式</Typography>
+            <RadioGroup
+              value={format}
+              onChange={(e) => setFormat(e.target.value as ExportFormat)}
+            >
+              <FormControlLabel
+                value="html"
+                control={<Radio size="small" />}
+                label={
+                  <Box>
+                    <Typography variant="body2">HTML（単一ファイル）</Typography>
+                    <Typography variant="caption" color="text.secondary">ウェブブラウザで表示可能な単一HTMLファイル</Typography>
+                  </Box>
+                }
+                sx={{ mb: 1 }}
+              />
+              <FormControlLabel
+                value="png"
+                control={<Radio size="small" />}
+                label={
+                  <Box>
+                    <Typography variant="body2">PNG（画像ファイル）</Typography>
+                    <Typography variant="caption" color="text.secondary">各ページが個別のPNG画像として出力</Typography>
+                  </Box>
+                }
+              />
+            </RadioGroup>
           </div>
 
           {/* ファイル名 */}
@@ -184,37 +207,43 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
                 size="small"
                 fullWidth
               />
-              <button type="button" onClick={handleBrowseOutputPath}>
+              <Button
+                variant="outlined"
+                onClick={handleBrowseOutputPath}
+                sx={{ ml: 1, minWidth: 60 }}
+              >
                 参照
-              </button>
+              </Button>
             </div>
           </div>
 
           {/* 品質設定（PNG形式の場合） */}
           {format === 'png' && (
             <div className="form-group">
-              <label htmlFor="quality">画質（{quality}%）</label>
-              <input
-                id="quality"
-                type="range"
-                min="1"
-                max="100"
+              <Typography variant="body2" sx={{ mb: 1 }}>画質（{quality}%）</Typography>
+              <Slider
                 value={quality}
-                onChange={(e) => setQuality(parseInt(e.target.value))}
+                onChange={(_, value) => setQuality(value as number)}
+                min={1}
+                max={100}
+                valueLabelDisplay="auto"
+                sx={{ ml: 1, mr: 1 }}
               />
             </div>
           )}
 
           {/* 上書き設定 */}
           <div className="form-group">
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={overwriteExisting}
-                onChange={(e) => setOverwriteExisting(e.target.checked)}
-              />
-              <span>既存のファイルを上書きする</span>
-            </label>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={overwriteExisting}
+                  onChange={(e) => setOverwriteExisting(e.target.checked)}
+                  size="small"
+                />
+              }
+              label="既存のファイルを上書きする"
+            />
           </div>
 
           {/* 出力プレビュー */}
@@ -231,14 +260,14 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
 
           {/* バリデーションエラー */}
           {validationErrors.length > 0 && (
-            <div className="validation-errors">
-              <h4>エラー</h4>
-              <ul>
+            <Alert severity="error" sx={{ mt: 2 }}>
+              <Typography variant="subtitle2">エラー</Typography>
+              <Box component="ul" sx={{ pl: 2, mb: 0 }}>
                 {validationErrors.map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
-              </ul>
-            </div>
+              </Box>
+            </Alert>
           )}
 
           {/* プロジェクト情報 */}
@@ -258,17 +287,20 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
         </div>
 
         <div className="modal-footer">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            sx={{ mr: 2 }}
+          >
             キャンセル
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="contained"
             onClick={handleExport}
             disabled={!project || validationErrors.length > 0 || isValidating}
-            className="btn btn-primary"
           >
             エクスポート
-          </button>
+          </Button>
         </div>
       </div>
     </div>
