@@ -32,11 +32,15 @@ interface CustomAssetInfo {
 interface CustomAssetManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'management' | 'selection';
+  onCreateAsset?: (customAsset: CustomAssetInfo) => void;
 }
 
 const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
   isOpen,
   onClose,
+  mode = 'management',
+  onCreateAsset,
 }) => {
   const [customAssets, setCustomAssets] = useState<CustomAssetInfo[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -139,6 +143,15 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
     handlePreviewCode(assetId);
   };
 
+  const handleCreateDynamicSVG = () => {
+    if (selectedAssetId && onCreateAsset) {
+      const selectedAsset = customAssets.find(a => a.id === selectedAssetId);
+      if (selectedAsset) {
+        onCreateAsset(selectedAsset);
+      }
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -170,7 +183,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
           pr: 1,
         }}
       >
-        Custom Asset Management
+        {mode === 'management' ? 'Custom Asset Management' : 'CustomAssetを選択'}
         <IconButton
           onClick={onClose}
           disabled={isLoading}
@@ -192,25 +205,39 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               display: 'flex',
               gap: 2,
               mb: 3,
+              pt: 3,
               flexShrink: 0,
             }}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddAsset}
-              disabled={isLoading}
-            >
-              Add Custom Asset
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleDeleteAsset}
-              disabled={isLoading || !selectedAssetId}
-            >
-              Delete Selected
-            </Button>
+            {mode === 'management' ? (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddAsset}
+                  disabled={isLoading}
+                >
+                  Add Custom Asset
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleDeleteAsset}
+                  disabled={isLoading || !selectedAssetId}
+                >
+                  Delete Selected
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCreateDynamicSVG}
+                disabled={isLoading || !selectedAssetId}
+              >
+                このCustomAssetでDynamic SVGを作成
+              </Button>
+            )}
           </Box>
 
           <div className="custom-asset-management-main">

@@ -8,7 +8,7 @@ import { TextEditModal } from './TextEditModal';
 import { VectorEditModal } from './VectorEditModal';
 import { DynamicVectorEditModal } from './DynamicVectorEditModal';
 import { ValueEditModal } from './ValueEditModal';
-import CustomAssetSelectionModal from './CustomAssetSelectionModal';
+import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ValueAsset } from '../../../types/entities';
 import { createValueAsset, createDynamicVectorAsset } from '../../../types/entities';
 import './AssetLibrary.css';
@@ -40,7 +40,7 @@ export const AssetLibrary: React.FC = () => {
   } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
-  const [showCustomAssetSelectionModal, setShowCustomAssetSelectionModal] = useState(false);
+  const [showCustomAssetManagementModal, setShowCustomAssetManagementModal] = useState(false);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const createMenuRef = useRef<HTMLDivElement>(null);
   const logger = getRendererLogger();
@@ -309,11 +309,11 @@ export const AssetLibrary: React.FC = () => {
     });
     
     setShowCreateMenu(false);
-    setShowCustomAssetSelectionModal(true);
+    setShowCustomAssetManagementModal(true);
   };
 
-  const handleCustomAssetSelectionModalClose = () => {
-    setShowCustomAssetSelectionModal(false);
+  const handleCustomAssetManagementModalClose = () => {
+    setShowCustomAssetManagementModal(false);
   };
 
   const handleCustomAssetSelect = async (customAssetInfo: any) => {
@@ -345,7 +345,7 @@ export const AssetLibrary: React.FC = () => {
         customAssetId: customAssetInfo.id,
       });
       
-      setShowCustomAssetSelectionModal(false);
+      setShowCustomAssetManagementModal(false);
       
       // 作成後すぐに編集モードで開く
       setEditingDynamicVectorAsset(result);
@@ -802,10 +802,11 @@ export const AssetLibrary: React.FC = () => {
       )}
 
       {/* CustomAsset選択モーダル */}
-      <CustomAssetSelectionModal
-        isOpen={showCustomAssetSelectionModal}
-        onClose={handleCustomAssetSelectionModalClose}
-        onSelect={handleCustomAssetSelect}
+      <CustomAssetManagementModal
+        isOpen={showCustomAssetManagementModal}
+        onClose={handleCustomAssetManagementModalClose}
+        mode="selection"
+        onCreateAsset={handleCustomAssetSelect}
       />
     </div>
   );
