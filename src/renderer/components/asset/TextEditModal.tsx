@@ -642,6 +642,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       onClose={onClose}
       maxWidth="xl"
       fullWidth
+      scroll="paper"
       sx={{
         zIndex: 1300,
         '& .MuiDialog-paper': {
@@ -649,6 +650,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           maxWidth: '1400px',
           height: '90vh',
           maxHeight: '900px',
+          overflow: 'hidden',
         }
       }}
     >
