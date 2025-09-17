@@ -11,7 +11,6 @@ import {
   Box,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import './CustomAssetManagementModal.css';
 
 interface CustomAssetInfo {
   id: string;

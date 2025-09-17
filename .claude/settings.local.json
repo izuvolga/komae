@@ -19,7 +19,8 @@
       "Bash(npm test:*)",
       "mcp__serena__list_dir",
       "mcp__serena__think_about_collected_information",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "mcp__serena__list_memories"
     ],
     "deny": []
   }

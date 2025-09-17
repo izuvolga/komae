@@ -16,7 +16,6 @@ import {
   FormLabel,
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
-import './FontAddModal.css';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
 

@@ -12,7 +12,6 @@ import {
   Link,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import './FontLicenseModal.css';
 
 interface FontLicenseModalProps {
   isOpen: boolean;

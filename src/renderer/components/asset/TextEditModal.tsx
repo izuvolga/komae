@@ -35,7 +35,6 @@ import {
   isLanguageSettingsField,
   isTextAssetEditableField,
 } from '../../../types/entities';
-import './TextEditModal.css';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';

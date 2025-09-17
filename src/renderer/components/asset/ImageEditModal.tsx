@@ -39,7 +39,6 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import './ImageEditModal.css';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';

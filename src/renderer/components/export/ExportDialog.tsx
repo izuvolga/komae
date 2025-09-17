@@ -19,7 +19,6 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ExportFormat, ExportOptions } from '../../../types/entities';
-import './ExportDialog.css';
 
 interface ExportDialogProps {
   isOpen: boolean;

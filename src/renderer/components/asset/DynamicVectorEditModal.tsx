@@ -50,7 +50,6 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import './DynamicVectorEditModal.css';
 
 export interface DynamicVectorEditModalProps {
   mode: 'asset' | 'instance';

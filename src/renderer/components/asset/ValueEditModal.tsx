@@ -25,7 +25,6 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
-import './ValueEditModal.css';
 
 type EditMode = 'asset' | 'instance';
 

@@ -34,7 +34,6 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import './VectorEditModal.css';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
