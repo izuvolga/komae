@@ -1,4 +1,23 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  TextField,
+  MenuItem,
+  FormControlLabel,
+  Checkbox,
+  Tabs,
+  Tab,
+  Chip,
+  Divider,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
@@ -616,54 +635,104 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // モーダル外側クリックでの閉じる処理を削除
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal-container text-edit-modal">
-        <div className="modal-header">
-          <h2>{mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集'}</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
-        </div>
+  const modalTitle = mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集';
 
-        <div className="modal-content">
-          <div className="text-edit-preview">
-            <h4>プレビュー</h4>
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="xl"
+      fullWidth
+      sx={{
+        zIndex: 1300,
+        '& .MuiDialog-paper': {
+          width: '95vw',
+          maxWidth: '1400px',
+          height: '90vh',
+          maxHeight: '900px',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pr: 1,
+        }}
+      >
+        {modalTitle}
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          {/* 左側: プレビューエリア - 固定幅 */}
+          <Box sx={{
+            width: 450,
+            minWidth: 450,
+            p: 2,
+            backgroundColor: '#f8f9fa',
+            borderRight: '1px solid #e9ecef',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              プレビュー
+            </Typography>
 
             {/* プレビュータブ（アセット編集時のみ表示） */}
             {mode === 'asset' && project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
-              <div className="preview-tabs">
-                {getPreviewTabs().map(tab => (
-                  <button
-                    key={tab.id}
-                    className={`preview-tab ${activePreviewTab === tab.id ? 'active' : ''}`}
-                    onClick={() => handlePreviewTabClick(tab.id)}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+              <Box sx={{ mb: 2 }}>
+                <Tabs
+                  value={activePreviewTab}
+                  onChange={(e, newValue) => handlePreviewTabClick(newValue)}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  sx={{ minHeight: 'auto' }}
+                >
+                  {getPreviewTabs().map(tab => (
+                    <Tab
+                      key={tab.id}
+                      label={tab.label}
+                      value={tab.id}
+                      sx={{ minHeight: 'auto', py: 1, fontSize: '0.875rem' }}
+                    />
+                  ))}
+                </Tabs>
+              </Box>
             )}
 
             {/* インスタンス編集時の言語表示 */}
             {getCurrentPhase() === TextAssetInstancePhase.INSTANCE_LANG && (
-              <div className="current-language-indicator">
-                編集中の言語: {getCurrentLanguage() === 'ja' ? '日本語' :
-                              getCurrentLanguage() === 'en' ? 'English' :
-                              getCurrentLanguage() === 'zh' ? '中文' :
-                              getCurrentLanguage() === 'ko' ? '한국어' :
-                              getCurrentLanguage().toUpperCase()}
-              </div>
+              <Box sx={{ mb: 2 }}>
+                <Chip
+                  label={`編集中の言語: ${getCurrentLanguage() === 'ja' ? '日本語' :
+                                      getCurrentLanguage() === 'en' ? 'English' :
+                                      getCurrentLanguage() === 'zh' ? '中文' :
+                                      getCurrentLanguage() === 'ko' ? '한국어' :
+                                      getCurrentLanguage().toUpperCase()}`}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                />
+              </Box>
             )}
 
-            <div className="text-preview-container" style={{
-              width: previewDimensions.width,
-              height: previewDimensions.height,
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flex: 1
             }}>
-              <div className={`canvas-frame ${isDragging ? 'dragging' : ''}`} style={{
+              <Box sx={{
                 position: 'relative',
                 width: previewDimensions.width,
                 height: previewDimensions.height,
                 border: '2px solid #007bff',
-                borderRadius: '4px',
+                borderRadius: 1,
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                 backgroundColor: '#f8f9fa'
@@ -698,107 +767,130 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   onMouseDown={handleTextMouseDown}
                   title="ドラッグしてテキスト位置を変更"
                 />
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Box>
 
-          <div className="text-edit-form">
+          {/* 右側: フォーム編集エリア - スクロール可能 */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
             {/* 基本情報 */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
-              <div className="form-section">
-                <h4>基本設定</h4>
-                <div className="form-group">
-                  <label>名前</label>
-                  <input
-                    type="text"
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  基本設定
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    label="名前"
                     value={getCurrentValue('name')}
                     onChange={(e) => setCurrentValue({name: e.target.value})}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
                   />
-                </div>
-              <div className="form-group">
-                <label>確認用テキスト</label>
-                <textarea
-                  value={getCurrentValue('text')}
-                  onChange={(e) => setCurrentValue({text: e.target.value})}
-                  rows={3}
-                />
-                <div className="form-help">
-                  テキストの内容は各ページで個別に設定できます。
-                </div>
-              </div>
-                <div className="form-group">
-                  <label>文脈・用途</label>
-                  <input
-                    type="text"
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    label="確認用テキスト"
+                    value={getCurrentValue('text')}
+                    onChange={(e) => setCurrentValue({text: e.target.value})}
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                  />
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+                    テキストの内容は各ページで個別に設定できます。
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    label="文脈・用途"
                     value={getCurrentValue('context')}
                     onChange={(e) => setCurrentValue({context: e.target.value})}
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
+                    fullWidth
+                    variant="outlined"
+                    size="small"
                   />
-                  <div className="form-help">
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
                     このテキストの用途や文脈をメモし、生成AIでの翻訳に役立てます。
-                  </div>
-                </div>
-              </div>
+                  </Typography>
+                </Box>
+              </Box>
             )}
 
             {/* フォント設定 */}
             {getCurrentPhase() === TextAssetInstancePhase.ASSET_COMMON && (
-              <div className="form-section">
-                <h4>フォント設定</h4>
-                <div className="form-group">
-                  <label>フォント</label>
-                  {fontsLoading ? (
-                    <select disabled>
-                      <option>フォント読み込み中...</option>
-                    </select>
-                  ) : (
-                    <select
-                      value={getCurrentValue('font')}
-                      onChange={(e) => setCurrentValue({ font: e.target.value })}
-                    >
-                      {availableFonts.map((font) => (
-                        <option key={font.id} value={font.id}>
-                          {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
-                        </option>
-                      ))}
-                      {/* 現在のフォントが一覧にない場合の対応 */}
-                      {getCurrentValue('font') && !availableFonts.find(f => f.id === getCurrentValue('font')) && (
-                        <option value={getCurrentValue('font')}>
-                          {getCurrentValue('font')} (未定義)
-                        </option>
-                      )}
-                    </select>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>フォントサイズ</label>
-                  <NumericInput
-                    value={getCurrentValue('font_size')}
-                    onChange={(value) => setCurrentValue({ font_size: value })}
-                    min={0.01}
-                    decimals={2}
-                    className="small"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>行間</label>
-                  <NumericInput
-                    value={getCurrentValue('leading')}
-                    onChange={(value) => setCurrentValue({ leading: value })}
-                    decimals={2}
-                    className="small"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>縦書き
-                    <input
-                      type="checkbox"
-                      checked={getCurrentValue('vertical')}
-                      onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
+              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  フォント設定
+                </Typography>
+                <Box sx={{ mb: 2 }}>
+                  <TextField
+                    select
+                    label="フォント"
+                    value={getCurrentValue('font')}
+                    onChange={(e) => setCurrentValue({ font: e.target.value })}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    disabled={fontsLoading}
+                  >
+                    {fontsLoading ? (
+                      <MenuItem value="">フォント読み込み中...</MenuItem>
+                    ) : (
+                      <>
+                        {availableFonts.map((font) => (
+                          <MenuItem key={font.id} value={font.id}>
+                            {font.name} {font.type === 'custom' ? '(カスタム)' : ''}
+                          </MenuItem>
+                        ))}
+                        {/* 現在のフォントが一覧にない場合の対応 */}
+                        {getCurrentValue('font') && !availableFonts.find(f => f.id === getCurrentValue('font')) && (
+                          <MenuItem value={getCurrentValue('font')}>
+                            {getCurrentValue('font')} (未定義)
+                          </MenuItem>
+                        )}
+                      </>
+                    )}
+                  </TextField>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>フォントサイズ</Typography>
+                    <NumericInput
+                      value={getCurrentValue('font_size')}
+                      onChange={(value) => setCurrentValue({ font_size: value })}
+                      min={0.01}
+                      decimals={2}
+                      className="small"
                     />
-                  </label>
-                </div>
-              </div>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>行間</Typography>
+                    <NumericInput
+                      value={getCurrentValue('leading')}
+                      onChange={(value) => setCurrentValue({ leading: value })}
+                      decimals={2}
+                      className="small"
+                    />
+                  </Box>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={getCurrentValue('vertical')}
+                        onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
+                        size="small"
+                      />
+                    }
+                    label="縦書き"
+                  />
+                </Box>
+              </Box>
             )}
 
             {/* 色設定 */}
@@ -1274,14 +1366,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 )}
               </div>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
+      </DialogContent>
 
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-secondary">キャンセル</button>
-          <button onClick={handleSave} className="btn btn-primary">保存</button>
-        </div>
-      </div>
-    </div>
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          キャンセル
+        </Button>
+        <Button onClick={handleSave} variant="contained">
+          保存
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
