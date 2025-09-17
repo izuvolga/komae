@@ -1,0 +1,52 @@
+== src/renderer/components/asset/AssetThumbnail.tsx ==
+image-asset
+value-asset
+value-asset-placeholder
+== src/renderer/components/asset/DynamicVectorEditModal.tsx ==
+dve-canvas-frame
+dve-empty-icon
+dve-empty-message
+dve-empty-preview
+dve-error-display
+dve-error-icon
+dve-error-message
+dve-execution-indicator
+dve-spinner
+== src/renderer/components/asset/TextEditModal.tsx ==
+svg-drag-area
+svg-preview
+== src/renderer/components/asset/VectorEditModal.tsx ==
+canvas-frame
+== src/renderer/components/asset/ImageEditModal.tsx ==
+canvas-frame
+image-zindex-input
+== src/renderer/components/spreadsheet/EnhancedSpreadsheet.tsx ==
+dynamic-vector-content
+dynamic-vector-preview-small
+== src/renderer/components/customasset/CustomAssetManagementModal.tsx ==
+custom-asset-added-at
+custom-asset-author
+custom-asset-code-preview
+custom-asset-description
+custom-asset-detail
+custom-asset-detail-empty
+custom-asset-detail-field
+custom-asset-detail-section
+custom-asset-empty
+custom-asset-item-header
+custom-asset-list
+custom-asset-list-section
+custom-asset-loading
+custom-asset-management-main
+custom-asset-name
+custom-asset-parameter
+custom-asset-parameters
+custom-asset-parameters-list
+custom-asset-version
+parameter-name
+== src/renderer/components/export/ExportDialog.tsx ==
+info-grid
+output-preview
+path-input-group
+project-info
+validating
