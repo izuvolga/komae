@@ -57,8 +57,3 @@ src/renderer/components/preview/PagePreview.tsx:          border: '1px solid #ff
 src/renderer/components/preview/PagePreview.tsx:          color: '#cc0000',
 
 
-
-
-未使用の CSS クラスを洗い出すコマンド
-$ for f in $(find src/ -type f -iname '*.tsx') ;do res="$(./undefined_css.sh "$f")"; [[ -n "$res" ]] && echo "== $f == \n$res" ;done
-
