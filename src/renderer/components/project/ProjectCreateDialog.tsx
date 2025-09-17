@@ -262,9 +262,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ p: 3 }}>
-        <div className="form-section">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {/* プロジェクト基本情報 */}
-          <div className="form-field">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <TextField
               label="プロジェクト名"
               value={title}
@@ -275,9 +275,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               fullWidth
               size="small"
             />
-          </div>
+          </Box>
 
-          <div className="form-field">
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <TextField
               label="説明 (オプション)"
               value={description}
@@ -289,13 +289,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               fullWidth
               size="small"
             />
-          </div>
+          </Box>
 
-          <div className="form-divider"></div>
+          <Divider sx={{ my: 1.5 }} />
 
           {/* 多言語設定 */}
-          <div className="form-field">
-            <label className="form-label">対応言語</label>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', fontSize: '14px' }}>対応言語</Typography>
 
             <div className="language-selector-area">
               <div className="language-dropdown-container">
@@ -378,13 +378,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <div className="language-info">
               <small>現在の言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong></small>
             </div>
-          </div>
+          </Box>
 
-          <div className="form-divider"></div>
+          <Divider sx={{ my: 1.5 }} />
 
           {/* キャンバス設定 */}
-          <div className="form-field">
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>キャンバスサイズ</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', fontSize: '14px' }}>キャンバスサイズ</Typography>
             <RadioGroup
               value={selectedPreset}
               onChange={(e) => setSelectedPreset(e.target.value)}
@@ -409,13 +409,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                 />
               ))}
             </RadioGroup>
-          </div>
+          </Box>
 
           {/* カスタムサイズ設定 */}
           {isCustomSelected && (
-            <div className="form-field">
-              <div className="custom-size-fields">
-                <div className="size-field">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="幅 (px)"
                     type="number"
@@ -426,8 +426,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                     size="small"
                     fullWidth
                   />
-                </div>
-                <div className="size-field">
+                </Box>
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <TextField
                     label="高さ (px)"
                     type="number"
@@ -438,26 +438,39 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                     size="small"
                     fullWidth
                   />
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Box>
+            </Box>
           )}
 
           {/* 現在の設定確認 */}
-          <div className="settings-preview">
-            <strong>設定確認</strong>
-            <div className="settings-info">
+          <Box sx={{
+            background: '#f8f9fa',
+            border: '1px solid #e9ecef',
+            borderRadius: '6px',
+            padding: 2
+          }}>
+            <Typography variant="body2" sx={{
+              display: 'block',
+              mb: 1,
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#374151'
+            }}>
+              設定確認
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '14px', color: '#6b7280' }}>
               キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
-            </div>
+            </Typography>
             {title.trim() && (
-              <div className="settings-info" style={{ marginTop: '8px' }}>
+              <Typography variant="body2" sx={{ fontSize: '14px', color: '#6b7280', mt: 1 }}>
                 作成される構造:<br />
                 選択ディレクトリ/{title.trim()}/<br />
                 　└ {title.trim()}.komae
-              </div>
+              </Typography>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 2 }}>
