@@ -1,14 +1,82 @@
-次に ImageEditModalを移行してください。
-次に TextEditModalを移行してください。
+既存CSSファイルのクリーンアップに入るまえに、
+CustomAssetSelectionModal の CustomAssetManagementModal への統合をしましょう。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
+- CustomAssetSelectionModal/CustomAssetManagementModal 両者の設計を確認
+- CustomAssetManagementModal に「アセットを作成」ボタンを追加
+- AssetLibrary から Dynamic SVG を作成する際に、CustomAssetManagementModal が開くようにする
+- CustomAssetManagementModal でのアセットが作成できるようにする
+- 動作確認
+- CustomAssetSelectionModal を廃止
 
-複数のモーダルでリサイズハンドルを定義していますが、これも src/renderer/components/common/ 配下の部品にできませんかね。
+@src/renderer/App.css って必要なんですかね。
+
+複数の Asset 編集用のモーダルでリサイズハンドルを定義していますが、これも src/renderer/components/common/ 配下の部品にできませんかね。
 
 $ pt リサイズハンドル src/renderer/components/asset/
-src/renderer/components/asset//VectorEditModal.tsx
+src/renderer/components/asset/VectorEditModal.tsx
 357:                  {/* SVGベースのリサイズハンドル */}
 
-src/renderer/components/asset//DynamicVectorEditModal.tsx
+src/renderer/components/asset/DynamicVectorEditModal.tsx
 687:                  {/* SVGベースのリサイズハンドル */}
 
-src/renderer/components/asset//ImageEditModal.tsx
+src/renderer/components/asset/ImageEditModal.tsx
 527:                  {/* SVGベースのリサイズハンドル */}
+
+
+
+$ grep -E '#[0-9A-Fa-f]{6}' -R src/ | grep tsx
+src/renderer/utils/editModalUtils.tsx:          stroke="#007acc"
+src/renderer/utils/editModalUtils.tsx:          fill="#007acc"
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            backgroundColor: '#f8f9fa',
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            borderRight: '1px solid #e9ecef',
+src/renderer/components/asset/DynamicVectorEditModal.tsx:                  border: '2px solid #007bff',
+src/renderer/components/asset/DynamicVectorEditModal.tsx:                  backgroundColor: '#f8f9fa'
+src/renderer/components/asset/DynamicVectorEditModal.tsx:                      border: '1px dashed #007acc',
+src/renderer/components/asset/DynamicVectorEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/DynamicVectorEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/DynamicVectorEditModal.tsx:            <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:        stroke="${isDragging ? '#007bff' : 'rgba(0, 123, 255, 0.3)'}"
+src/renderer/components/asset/TextEditModal.tsx:            backgroundColor: '#f8f9fa',
+src/renderer/components/asset/TextEditModal.tsx:            borderRight: '1px solid #e9ecef',
+src/renderer/components/asset/TextEditModal.tsx:                border: '2px solid #007bff',
+src/renderer/components/asset/TextEditModal.tsx:                backgroundColor: '#f8f9fa'
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/TextEditModal.tsx:                        backgroundColor: '#f5f5f5',
+src/renderer/components/asset/TextEditModal.tsx:                        backgroundColor: '#f5f5f5',
+src/renderer/components/asset/TextEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/VectorEditModal.tsx:            backgroundColor: '#f8f9fa',
+src/renderer/components/asset/VectorEditModal.tsx:            borderRight: '1px solid #e9ecef',
+src/renderer/components/asset/VectorEditModal.tsx:                  border: '2px solid #007bff',
+src/renderer/components/asset/VectorEditModal.tsx:                  backgroundColor: '#f8f9fa'
+src/renderer/components/asset/VectorEditModal.tsx:                      border: '1px dashed #007acc',
+src/renderer/components/asset/ImageEditModal.tsx:            backgroundColor: '#f8f9fa',
+src/renderer/components/asset/ImageEditModal.tsx:            borderRight: '1px solid #e9ecef',
+src/renderer/components/asset/ImageEditModal.tsx:                  border: '2px solid #007bff',
+src/renderer/components/asset/ImageEditModal.tsx:                  backgroundColor: '#f8f9fa'
+src/renderer/components/asset/ImageEditModal.tsx:                      border: '1px dashed #007acc',
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e9ecef' }}>
+src/renderer/components/asset/ImageEditModal.tsx:                  <Box key={index} sx={{ mb: 2, p: 2, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+src/renderer/components/layout/MainLayout.tsx:          stroke_color: '#000000',
+src/renderer/components/layout/MainLayout.tsx:          fill_color: textIndex % 2 === 0 ? '#FFFFFF' : '#FFE4E1',
+src/renderer/components/common/NumericInput.tsx:            borderBottom: '1px solid #dee2e6'
+src/renderer/components/common/ZIndexInput.tsx:              borderBottom: '1px solid #dee2e6'
+src/renderer/components/common/ColorPicker.tsx:          style={{ backgroundColor: disabled ? '#f5f5f5' : value }}
+src/renderer/components/preview/PagePreview.tsx:          backgroundColor: '#f5f5f5',
+src/renderer/components/preview/PagePreview.tsx:          backgroundColor: '#ffe6e6',
+src/renderer/components/preview/PagePreview.tsx:          border: '1px solid #ff6666',
+src/renderer/components/preview/PagePreview.tsx:          color: '#cc0000',
+
+
+
