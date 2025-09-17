@@ -21,6 +21,7 @@ import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
+import './ProjectCreateDialog.css';
 
 interface ProjectCreateDialogProps {
   isOpen: boolean;
