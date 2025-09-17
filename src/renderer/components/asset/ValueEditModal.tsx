@@ -25,6 +25,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type EditMode = 'asset' | 'instance';
 
@@ -49,6 +50,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   onSaveAsset,
   onSaveInstance,
 }) => {
+  const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
   
@@ -98,6 +100,11 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
     
     return { isValid: true, errorMessage: '' };
   }, []);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   // プロップスが変更されたときにローカル状態を更新
   useEffect(() => {

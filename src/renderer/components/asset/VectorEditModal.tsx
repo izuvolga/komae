@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -60,6 +61,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   onSaveAsset,
   onSaveInstance,
 }) => {
+  const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
 
   // 編集中のデータ（モードに応じて切り替え）
@@ -77,6 +79,11 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     setEditedAsset(asset);

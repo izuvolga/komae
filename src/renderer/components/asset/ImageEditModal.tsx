@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -65,6 +66,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   onSaveAsset,
   onSaveInstance,
 }) => {
+  const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   
@@ -95,6 +97,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const [maskDragPointIndex, setMaskDragPointIndex] = useState<number | null>(null);
   const [maskDragStartPos, setMaskDragStartPos] = useState({ x: 0, y: 0 });
   const [maskDragStartValues, setMaskDragStartValues] = useState<[[number, number], [number, number], [number, number], [number, number]]>([[0, 0], [0, 0], [0, 0], [0, 0]]);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     setEditedAsset(asset);

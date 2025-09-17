@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -60,6 +61,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   onSaveAsset,
   onSaveInstance,
 }) => {
+  const { mode: themeMode } = useTheme();
   const [editingAsset, setEditingAsset] = useState<TextAsset>(asset);
   const [editingInstance, setEditingInstance] = useState<TextAssetInstance | null>(
     assetInstance || null
@@ -82,6 +84,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     if (isOpen) {

@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -77,6 +78,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   onSaveAsset,
   onSaveInstance,
 }) => {
+  const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
 
   // 編集中のデータ
@@ -117,6 +119,11 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   // CustomAssetを取得するuseEffect
   useEffect(() => {
