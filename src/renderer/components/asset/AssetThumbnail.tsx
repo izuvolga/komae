@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
 import type { Asset, ImageAsset, VectorAsset, DynamicVectorAsset } from '../../../types/entities';
@@ -138,15 +139,34 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   // ValueAssetの場合も専用の表示
   if (asset.type === 'ValueAsset') {
     return (
-      <div 
-        className="asset-thumbnail value-asset"
-        style={{ width: maxWidth, height: maxHeight }}
+      <Box
+        className="asset-thumbnail"
+        sx={{
+          width: maxWidth,
+          height: maxHeight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'grey.100',
+          border: '1px solid',
+          borderColor: 'grey.300',
+          borderRadius: 1,
+          overflow: 'hidden'
+        }}
       >
-        <div className="value-asset-placeholder">
-          <span>VAL</span>
-          <small>{asset.name}</small>
-        </div>
-      </div>
+        <Box sx={{
+          textAlign: 'center',
+          p: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 0.5
+        }}>
+          <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.primary' }}>VAL</Typography>
+          <Typography variant="caption" sx={{ fontSize: '10px', color: 'text.secondary' }}>{asset.name}</Typography>
+        </Box>
+      </Box>
     );
   }
 
@@ -210,9 +230,20 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   // ImageAssetの表示
   if (customProtocolUrl && asset.type === 'ImageAsset') {
     return (
-      <div 
-        className="asset-thumbnail image-asset"
-        style={{ width: maxWidth, height: maxHeight }}
+      <Box
+        className="asset-thumbnail"
+        sx={{
+          width: maxWidth,
+          height: maxHeight,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'grey.50',
+          border: '1px solid',
+          borderColor: 'grey.300',
+          borderRadius: 1,
+          overflow: 'hidden'
+        }}
       >
         <img
           src={customProtocolUrl}
@@ -223,7 +254,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           }}
           onError={() => setHasError(true)}
         />
-      </div>
+      </Box>
     );
   }
 

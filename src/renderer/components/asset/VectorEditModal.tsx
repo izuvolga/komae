@@ -309,15 +309,16 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <div className="canvas-frame" style={{
+            <Box sx={{
                   position: 'relative',
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  border: '2px solid #007bff',
-                  borderRadius: '4px',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1,
                   overflow: 'hidden',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#f8f9fa'
+                  boxShadow: 2,
+                  backgroundColor: 'grey.50'
                 }}>
                   {/* SVG描画結果 */}
                   <svg
@@ -362,7 +363,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     onResizeMouseDown={handleResizeMouseDown}
                     zIndex={3}
                   />
-                </div>
+                </Box>
           </Box>
 
           {/* 右側：プロパティ編集 - スクロール可能 */}

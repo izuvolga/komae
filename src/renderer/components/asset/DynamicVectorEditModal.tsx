@@ -489,7 +489,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    const canvasRect = document.querySelector('.dve-canvas-frame')?.getBoundingClientRect();
+    const canvasRect = document.querySelector('[data-dve-canvas-frame]')?.getBoundingClientRect();
     if (!canvasRect) return;
     
     setIsDragging(true);
@@ -619,15 +619,18 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <div className="dve-canvas-frame" style={{
+            <Box
+              data-dve-canvas-frame
+              sx={{
                   position: 'relative',
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  border: '2px solid #007bff',
-                  borderRadius: '4px',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1,
                   overflow: 'hidden',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#f8f9fa'
+                  boxShadow: 2,
+                  backgroundColor: 'grey.50'
                 }}>
                   {/* SVG描画結果: wrapDynamicVectorSVG と同様 */}
                   {svgResult.svg ? (
@@ -647,23 +650,65 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                         editedAsset.original_height)}` }}
                       />
                   ) : svgResult.error ? (
-                    <div className="dve-error-display">
-                      <div className="dve-error-icon">⚠️</div>
-                      <div className="dve-error-message">{svgResult.error}</div>
-                    </div>
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: 'error.main',
+                      textAlign: 'center',
+                      p: 2
+                    }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>⚠️</Typography>
+                      <Typography variant="body2">{svgResult.error}</Typography>
+                    </Box>
                   ) : (
-                    <div className="dve-empty-preview">
-                      <div className="dve-empty-icon">📝</div>
-                      <div className="dve-empty-message">スクリプトを入力してください</div>
-                    </div>
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: 'text.secondary',
+                      textAlign: 'center',
+                      p: 2
+                    }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>📝</Typography>
+                      <Typography variant="body2">スクリプトを入力してください</Typography>
+                    </Box>
                   )}
 
                   {/* 実行中インジケーター */}
                   {isExecuting && (
-                    <div className="dve-execution-indicator">
-                      <div className="dve-spinner"></div>
-                      <span>実行中...</span>
-                    </div>
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                      p: 1,
+                      borderRadius: 1,
+                      boxShadow: 2
+                    }}>
+                      <Box sx={{
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        border: '2px solid',
+                        borderColor: 'primary.main',
+                        borderTopColor: 'transparent',
+                        animation: 'spin 1s linear infinite',
+                        '@keyframes spin': {
+                          '0%': { transform: 'rotate(0deg)' },
+                          '100%': { transform: 'rotate(360deg)' }
+                        }
+                      }} />
+                      <Typography variant="body2">実行中...</Typography>
+                    </Box>
                   )}
 
                   {/* インタラクション用の透明な要素（ドラッグエリア） */}
@@ -692,7 +737,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                     onResizeMouseDown={handleResizeMouseDown}
                     zIndex={3}
                   />
-                </div>
+                </Box>
           </Box>
 
           {/* 右側: 設定パネル - スクロール可能 */}

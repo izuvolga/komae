@@ -274,7 +274,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     e.preventDefault();
     e.stopPropagation();
     
-    const canvasRect = document.querySelector('.canvas-frame')?.getBoundingClientRect();
+    const canvasRect = document.querySelector('[data-canvas-frame]')?.getBoundingClientRect();
     if (!canvasRect) return;
     
     setIsDragging(true);
@@ -426,15 +426,18 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <div className="canvas-frame" style={{
-                  position: 'relative', 
-                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`, 
+            <Box
+              data-canvas-frame
+              sx={{
+                  position: 'relative',
+                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  border: '2px solid #007bff',
-                  borderRadius: '4px',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1,
                   overflow: 'hidden',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  backgroundColor: '#f8f9fa'
+                  boxShadow: 2,
+                  backgroundColor: 'grey.50'
                 }}>
                   <img
                     src={imagePath}
@@ -579,7 +582,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     zIndex={4}
                     visible={!maskEditMode}
                   />
-                </div>
+                </Box>
           </Box>
 
           {/* 右側: パラメータ編集エリア - スクロール可能 */}
@@ -720,12 +723,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
                   {mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}
                 </Typography>
-                <ZIndexInput
-                  value={currentZIndex}
-                  onChange={updateZIndex}
-                  validation={zIndexValidation}
-                  className="image-zindex-input"
-                />
+                <Box sx={{ '& .MuiTextField-root': { mb: 1 } }}>
+                  <ZIndexInput
+                    value={currentZIndex}
+                    onChange={updateZIndex}
+                    validation={zIndexValidation}
+                  />
+                </Box>
                 <Typography
                   variant="caption"
                   sx={{

@@ -739,10 +739,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 backgroundColor: '#f8f9fa'
               }}>
                 {/* SVGプレビュー */}
-                <div
-                  className="svg-preview"
+                <Box
                   dangerouslySetInnerHTML={{ __html: previewSVG }}
-                  style={{
+                  sx={{
                     width: '100%',
                     height: '100%',
                     position: 'absolute',
@@ -753,10 +752,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 />
 
                 {/* SVG形式のドラッグ可能領域 */}
-                <div
-                  className="svg-drag-area"
+                <Box
                   dangerouslySetInnerHTML={{ __html: textDragAreaSVG }}
-                  style={{
+                  sx={{
                     width: '100%',
                     height: '100%',
                     position: 'absolute',

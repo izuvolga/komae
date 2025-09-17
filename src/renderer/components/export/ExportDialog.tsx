@@ -215,7 +215,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
         {/* 出力先パス */}
         <div className="form-group">
           <label htmlFor="output-path">出力先ディレクトリ</label>
-          <div className="path-input-group">
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <TextField
               value={outputPath}
               onChange={(e) => setOutputPath(e.target.value)}
@@ -226,11 +226,11 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
             <Button
               variant="outlined"
               onClick={handleBrowseOutputPath}
-              sx={{ ml: 1, minWidth: 60 }}
+              sx={{ minWidth: 60 }}
             >
               参照
             </Button>
-          </div>
+          </Box>
         </div>
 
         {/* 品質設定（PNG形式の場合） */}
@@ -265,13 +265,24 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
         {/* 出力プレビュー */}
         <div className="form-group">
           <label>出力先プレビュー</label>
-          <div className="output-preview">
+          <Box sx={{
+            p: 2,
+            bgcolor: 'grey.50',
+            border: '1px solid',
+            borderColor: 'grey.300',
+            borderRadius: 1,
+            fontFamily: 'monospace',
+            fontSize: '14px',
+            minHeight: '40px',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
             {isValidating ? (
-              <span className="validating">検証中...</span>
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>検証中...</Typography>
             ) : (
-              <code>{expectedOutput}</code>
+              <Typography component="code" variant="body2" sx={{ fontFamily: 'monospace' }}>{expectedOutput}</Typography>
             )}
-          </div>
+          </Box>
         </div>
 
         {/* バリデーションエラー */}
@@ -288,17 +299,29 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, onE
 
         {/* プロジェクト情報 */}
         {project && (
-          <div className="project-info">
-            <h4>プロジェクト情報</h4>
-            <div className="info-grid">
-              <span>ページ数:</span>
-              <span>{project.pages.length}</span>
-              <span>アセット数:</span>
-              <span>{Object.keys(project.assets).length}</span>
-              <span>キャンバスサイズ:</span>
-              <span>{project.canvas.width} × {project.canvas.height}px</span>
-            </div>
-          </div>
+          <Box sx={{
+            p: 2,
+            bgcolor: 'grey.50',
+            border: '1px solid',
+            borderColor: 'grey.300',
+            borderRadius: 1,
+            mt: 2
+          }}>
+            <Typography variant="h6" sx={{ mb: 2, fontSize: '16px' }}>プロジェクト情報</Typography>
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr',
+              gap: 1,
+              alignItems: 'center'
+            }}>
+              <Typography variant="body2">ページ数:</Typography>
+              <Typography variant="body2">{project.pages.length}</Typography>
+              <Typography variant="body2">アセット数:</Typography>
+              <Typography variant="body2">{Object.keys(project.assets).length}</Typography>
+              <Typography variant="body2">キャンバスサイズ:</Typography>
+              <Typography variant="body2">{project.canvas.width} × {project.canvas.height}px</Typography>
+            </Box>
+          </Box>
         )}
       </DialogContent>
 
