@@ -1,7 +1,7 @@
 /* ドラッグ中の影（シャドウ） */
 .column-drag-shadow {
   background-color: rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(0, 123, 255, 0.6);
+  border: 2px solid var(--spreadsheet-highlight-hover-bg-color);
   border-radius: 4px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   cursor: grabbing;
@@ -17,14 +17,14 @@
   font-weight: 600;
   font-size: 12px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  background-color: rgba(248, 249, 250, 0.2);
+  background-color: var(--spreadsheet-highlight-hover-bg-color);
   border-radius: 2px;
 }
 
 /* 挿入位置インディケーター（太線） */
 .column-insert-indicator {
-  background-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+  background-color: var(--spreadsheet-link-color);
+  box-shadow: 0 0 8px var(--spreadsheet-highlight-hover-bg-color);
   animation: pulse 1s infinite alternate;
 }
 
@@ -47,7 +47,7 @@
 
 /* ドラッグ可能な列にホバー効果を追加 */
 .asset-header:hover {
-  background-color: #e9f4ff;
+  background-color: var(--spreadsheet-highlight-bg-color);
   cursor: grab;
   transition: background-color 0.2s;
 }

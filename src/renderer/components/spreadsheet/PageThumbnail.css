@@ -3,9 +3,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ddd;
+  border: 1px solid var(--spreadsheet-border-color);
   border-radius: 4px;
-  background: white;
+  background: var(--spreadsheet-bg-color);
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
@@ -13,8 +13,8 @@
 }
 
 .page-thumbnail:hover {
-  border-color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+  border-color: var(--spreadsheet-link-color);
+  box-shadow: 0 2px 8px var(--spreadsheet-highlight-hover-bg-color);
   transform: translateY(-1px);
 }
 
@@ -24,7 +24,7 @@
 
 /* ローディング状態 */
 .page-thumbnail.loading {
-  background: #f8f9fa;
+  background: var(--spreadsheet-header-bg-color);
 }
 
 .loading-spinner {
@@ -38,8 +38,8 @@
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #e0e0e0;
-  border-top: 2px solid #007bff;
+  border: 2px solid var(--spreadsheet-border-color);
+  border-top: 2px solid var(--spreadsheet-link-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -51,8 +51,8 @@
 
 /* エラー状態 */
 .page-thumbnail.error {
-  background: #fff5f5;
-  border-color: #fed7d7;
+  background: var(--spreadsheet-error-bg-color);
+  border-color: var(--spreadsheet-error-bg-color);
 }
 
 .error-content {
@@ -62,7 +62,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: #e53e3e;
+  color: var(--spreadsheet-error-color);
 }
 
 .error-icon {
@@ -87,9 +87,9 @@
 
 /* 選択状態 */
 .page-thumbnail.selected {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
-  background: #f8f9ff;
+  border-color: var(--spreadsheet-link-color);
+  box-shadow: 0 0 0 2px var(--spreadsheet-highlight-hover-bg-color);
+  background: var(--spreadsheet-highlight-bg-color);
 }
 
 /* 小さいサイズ用の調整 */

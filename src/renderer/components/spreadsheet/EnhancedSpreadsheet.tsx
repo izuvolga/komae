@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useProjectStore } from '../../stores/projectStore';
+import { useTheme } from '../../../theme/ThemeContext';
 import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
@@ -24,6 +25,7 @@ import './RowContextMenu.css';
 import './CellContextMenu.css';
 
 export const EnhancedSpreadsheet: React.FC = () => {
+  const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const cursor = useProjectStore((state) => state.ui.cursor);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
@@ -189,6 +191,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 非表示でないアセット・ページのフィルタリング
   const visibleAssets = assets.filter(asset => !hiddenColumns.includes(asset.id));
   const visiblePages = pages.filter(page => !hiddenRows.includes(page.id));
+
+  // data-theme属性の設定
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
 
   // 中央パネルの最大幅を計算
   useEffect(() => {

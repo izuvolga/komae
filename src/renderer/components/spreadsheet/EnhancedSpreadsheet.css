@@ -1,9 +1,64 @@
+/* CSS Variables for theme support */
+:root {
+  /* Light mode colors - matching muiTheme.ts komaeTheme */
+  --spreadsheet-bg-color: #ffffff;              /* background.paper */
+  --spreadsheet-header-bg-color: #f8f9fa;       /* grey.50 */
+  --spreadsheet-header-alt-bg-color: #e9ecef;   /* grey.100 */
+  --spreadsheet-cell-bg-color: #ffffff;         /* background.paper */
+  --spreadsheet-cell-hover-bg-color: #f8f9fa;   /* grey.50 */
+  --spreadsheet-cell-used-bg-color: #e8f5e8;    /* success.light */
+  --spreadsheet-cell-manage-bg-color: rgba(0, 0, 0, 0.02); /* subtle overlay */
+  --spreadsheet-border-color: #e0e0e0;          /* grey.300 */
+  --spreadsheet-border-dark-color: #dee2e6;     /* grey.200 */
+  --spreadsheet-text-primary-color: #333333;    /* text.primary equivalent */
+  --spreadsheet-text-secondary-color: #666666;  /* text.secondary equivalent */
+  --spreadsheet-text-dark-color: #212529;       /* text.primary dark */
+  --spreadsheet-link-color: #007bff;            /* primary.main */
+  --spreadsheet-link-hover-color: #0056b3;      /* primary.dark */
+  --spreadsheet-success-color: #4caf50;         /* success.main */
+  --spreadsheet-error-color: #dc3545;           /* error.main */
+  --spreadsheet-error-bg-color: #f8d7da;        /* error.light */
+  --spreadsheet-warning-bg-color: #fff3cd;      /* warning.light */
+  --spreadsheet-warning-hover-bg-color: #ffeeba;/* warning.main */
+  --spreadsheet-highlight-bg-color: #e3f2fd;    /* primary.light */
+  --spreadsheet-highlight-hover-bg-color: rgba(0, 123, 255, 0.1); /* primary with opacity */
+  --spreadsheet-highlight-active-bg-color: rgba(0, 123, 255, 0.2); /* primary with opacity */
+  --spreadsheet-preview-bg-color: #f5f5f5;      /* grey.100 equivalent */
+}
+
+[data-theme="dark"] {
+  /* Dark mode colors - matching muiTheme.ts komaeDarkTheme */
+  --spreadsheet-bg-color: #1f2937;              /* background.paper */
+  --spreadsheet-header-bg-color: #111827;       /* background.default */
+  --spreadsheet-header-alt-bg-color: #374151;   /* grey.700 */
+  --spreadsheet-cell-bg-color: #1f2937;         /* background.paper */
+  --spreadsheet-cell-hover-bg-color: #374151;   /* grey.700 */
+  --spreadsheet-cell-used-bg-color: #1e3a32;    /* success.dark */
+  --spreadsheet-cell-manage-bg-color: rgba(255, 255, 255, 0.02); /* subtle overlay */
+  --spreadsheet-border-color: #374151;          /* grey.700 */
+  --spreadsheet-border-dark-color: #4b5563;     /* grey.600 */
+  --spreadsheet-text-primary-color: #f9fafb;    /* text.primary (grey.50) */
+  --spreadsheet-text-secondary-color: #d1d5db;  /* text.secondary (grey.300) */
+  --spreadsheet-text-dark-color: #f9fafb;       /* text.primary */
+  --spreadsheet-link-color: #3b82f6;            /* primary.main */
+  --spreadsheet-link-hover-color: #2563eb;      /* primary.dark */
+  --spreadsheet-success-color: #10b981;         /* success.main */
+  --spreadsheet-error-color: #ef4444;           /* error.main */
+  --spreadsheet-error-bg-color: #7f1d1d;        /* error.dark */
+  --spreadsheet-warning-bg-color: #78350f;      /* warning.dark */
+  --spreadsheet-warning-hover-bg-color: #92400e;/* warning.main */
+  --spreadsheet-highlight-bg-color: #1e40af;    /* primary.dark */
+  --spreadsheet-highlight-hover-bg-color: rgba(59, 130, 246, 0.2); /* primary with opacity */
+  --spreadsheet-highlight-active-bg-color: rgba(59, 130, 246, 0.3); /* primary with opacity */
+  --spreadsheet-preview-bg-color: #374151;      /* grey.700 */
+}
+
 /* 新しいスプレッドシート */
 .enhanced-spreadsheet {
   height: 100%;
   max-height: 100%;
   overflow: auto;
-  background-color: white;
+  background-color: var(--spreadsheet-bg-color);
   user-select: none; /* パン中のテキスト選択を防ぐ */
 }
 
@@ -24,17 +79,18 @@
   display: flex;
   position: sticky;
   top: 0;
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
+  background-color: var(--spreadsheet-header-bg-color);
+  border-bottom: 2px solid var(--spreadsheet-border-dark-color);
   z-index: 8; /* center-panel内でのみ高く、左パネルより低く設定 */
   flex-shrink: 0;
 }
 
 .header-cell {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-header-bg-color);
   font-weight: 600;
-  border-right: 1px solid #dee2e6;
+  border-right: 1px solid var(--spreadsheet-border-dark-color);
   font-size: 12px;
+  color: var(--spreadsheet-text-primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,19 +99,19 @@
 }
 
 .page-number-delete-header {
-  background-color: #e9ecef;
+  background-color: var(--spreadsheet-header-alt-bg-color);
   width: 70px;
   min-width: 70px;
 }
 
 .preview-column-header {
-  background-color: #e9ecef;
+  background-color: var(--spreadsheet-header-alt-bg-color);
   width: 120px;
   min-width: 120px;
 }
 
 .asset-header {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-header-bg-color);
   width: 100px;
   min-width: 100px;
 }
@@ -80,7 +136,7 @@
 
 .asset-type {
   font-size: 9px;
-  color: #666;
+  color: var(--spreadsheet-text-secondary-color);
   font-weight: normal;
 }
 
@@ -94,20 +150,21 @@
 .spreadsheet-row {
   display: flex;
   flex-shrink: 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--spreadsheet-border-color);
 }
 
 .spreadsheet-row:hover {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-cell-hover-bg-color);
 }
 
 /* セル */
 .cell {
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid var(--spreadsheet-border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
+  color: var(--spreadsheet-text-primary-color);
   min-height: 50px;
   box-sizing: border-box;
   padding: 4px;
@@ -115,7 +172,7 @@
 
 /* ページ番号＋削除ボタンセル */
 .page-number-delete-cell {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-header-bg-color);
   width: 70px;
   min-width: 70px;
   padding: 2px;
@@ -133,7 +190,7 @@
 
 .page-number {
   font-weight: 600;
-  color: #666;
+  color: var(--spreadsheet-text-secondary-color);
   font-size: 12px;
 }
 
@@ -145,36 +202,36 @@
 }
 
 .page-number.clickable:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background-color: var(--spreadsheet-highlight-hover-bg-color);
+  color: var(--spreadsheet-link-color);
 }
 
 .page-title-edit-input {
-  background: white;
-  border: 1px solid #007bff;
+  background: var(--spreadsheet-bg-color);
+  border: 1px solid var(--spreadsheet-link-color);
   border-radius: 3px;
   padding: 2px 4px;
   font-size: 12px;
   font-weight: 500;
-  color: #333;
+  color: var(--spreadsheet-text-primary-color);
   min-width: 60px;
   max-width: 120px;
   text-align: center;
   outline: none;
-  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 3px var(--spreadsheet-highlight-hover-bg-color);
 }
 
 .page-title-edit-input:focus {
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-  border-color: #0056b3;
+  box-shadow: 0 0 5px var(--spreadsheet-highlight-active-bg-color);
+  border-color: var(--spreadsheet-link-hover-color);
 }
 
 .delete-page-btn {
   width: 18px;
   height: 18px;
-  border: 1px solid #dc3545;
-  background-color: white;
-  color: #dc3545;
+  border: 1px solid var(--spreadsheet-error-color);
+  background-color: var(--spreadsheet-bg-color);
+  color: var(--spreadsheet-error-color);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -187,8 +244,8 @@
 }
 
 .delete-page-btn:hover:not(:disabled) {
-  background-color: #dc3545;
-  color: white;
+  background-color: var(--spreadsheet-error-color);
+  color: var(--spreadsheet-bg-color);
 }
 
 .delete-page-btn:disabled {
@@ -198,7 +255,7 @@
 
 /* プレビューセル */
 .preview-cell {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-header-bg-color);
   cursor: pointer;
   padding: 4px;
   width: 120px;
@@ -206,7 +263,7 @@
 }
 
 .preview-cell:hover {
-  background-color: #e9ecef;
+  background-color: var(--spreadsheet-header-alt-bg-color);
 }
 
 .page-preview {
@@ -220,8 +277,8 @@
 .preview-mini-canvas {
   width: 80px;
   height: 36px;
-  border: 1px solid #ccc;
-  background-color: white;
+  border: 1px solid var(--spreadsheet-border-color);
+  background-color: var(--spreadsheet-bg-color);
   border-radius: 2px;
   display: flex;
   align-items: center;
@@ -235,7 +292,7 @@
 
 .page-title {
   font-size: 9px;
-  color: #333;
+  color: var(--spreadsheet-text-primary-color);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -245,7 +302,7 @@
 
 .asset-count {
   font-size: 8px;
-  color: #666;
+  color: var(--spreadsheet-text-secondary-color);
 }
 
 /* アセットセル */
@@ -262,15 +319,15 @@
 }
 
 .asset-cell:hover {
-  background-color: #e3f2fd;
+  background-color: var(--spreadsheet-highlight-bg-color);
 }
 
 .asset-cell.used {
-  background-color: #e8f5e8;
+  background-color: var(--spreadsheet-cell-used-bg-color);
 }
 
 .asset-cell.unused {
-  background-color: #fff;
+  background-color: var(--spreadsheet-cell-bg-color);
 }
 
 /* cell-manage: 左側のチェックボックス＋編集ボタン */
@@ -282,14 +339,14 @@
   width: 30px;
   min-width: 30px;
   padding: 2px;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--spreadsheet-cell-manage-bg-color);
   gap: 2px;
 }
 
 /* セル分割線 */
 .cell-divider {
   width: 1px;
-  background-color: #dee2e6;
+  background-color: var(--spreadsheet-border-dark-color);
   margin: 2px 0;
   flex-shrink: 0;
 }
@@ -307,7 +364,7 @@
 /* トグルボタン */
 .toggle-button {
   background: none;
-  border: 1px solid #ddd;
+  border: 1px solid var(--spreadsheet-border-color);
   border-radius: 3px;
   font-size: 10px;
   cursor: pointer;
@@ -322,15 +379,15 @@
 }
 
 .toggle-button.active {
-  background-color: #e8f5e8;
-  border-color: #4caf50;
-  color: #4caf50;
+  background-color: var(--spreadsheet-cell-used-bg-color);
+  border-color: var(--spreadsheet-success-color);
+  color: var(--spreadsheet-success-color);
 }
 
 .toggle-button.inactive {
-  background-color: #fff;
-  border-color: #ddd;
-  color: #999;
+  background-color: var(--spreadsheet-cell-bg-color);
+  border-color: var(--spreadsheet-border-color);
+  color: var(--spreadsheet-text-secondary-color);
 }
 
 .toggle-button:hover {
@@ -339,13 +396,13 @@
 
 /* 編集ボタン */
 .edit-button {
-  background: rgba(0, 123, 255, 0.1);
-  border: 1px solid rgba(0, 123, 255, 0.3);
+  background: var(--spreadsheet-highlight-hover-bg-color);
+  border: 1px solid var(--spreadsheet-highlight-active-bg-color);
   border-radius: 3px;
   font-size: 8px;
   cursor: pointer;
   padding: 1px 2px;
-  color: #007bff;
+  color: var(--spreadsheet-link-color);
   transition: all 0.2s;
   min-width: 14px;
   height: 14px;
@@ -356,14 +413,14 @@
 }
 
 .edit-button:hover {
-  background-color: rgba(0, 123, 255, 0.2);
-  border-color: rgba(0, 123, 255, 0.5);
+  background-color: var(--spreadsheet-highlight-active-bg-color);
+  border-color: var(--spreadsheet-link-hover-color);
 }
 
 /* テキストコンテンツ */
 .text-content {
   font-size: 10px;
-  color: #333;
+  color: var(--spreadsheet-text-primary-color);
   text-align: center;
   line-height: 1.2;
   max-width: 100%;
@@ -387,9 +444,9 @@
   width: 24px;
   height: 24px;
   object-fit: cover;
-  border: 1px solid #ccc;
+  border: 1px solid var(--spreadsheet-border-color);
   border-radius: 2px;
-  background-color: #f5f5f5;
+  background-color: var(--spreadsheet-preview-bg-color);
 }
 
 /* Override表示の三角形 */
@@ -422,7 +479,7 @@
 /* 新規ページ追加行 */
 .add-page-row {
   border-bottom: none;
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-header-bg-color);
   display: flex;
 }
 
@@ -435,9 +492,9 @@
 .add-page-btn {
   width: 100%;
   padding: 12px;
-  border: 2px dashed #007bff;
-  background-color: white;
-  color: #007bff;
+  border: 2px dashed var(--spreadsheet-link-color);
+  background-color: var(--spreadsheet-bg-color);
+  color: var(--spreadsheet-link-color);
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -445,8 +502,8 @@
 }
 
 .add-page-btn:hover {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--spreadsheet-link-color);
+  color: var(--spreadsheet-bg-color);
   border-style: solid;
 }
 
@@ -460,7 +517,7 @@
   width: 100%;
   min-height: 60px;
   padding: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--spreadsheet-border-color);
   border-radius: 3px;
   font-size: 12px;
   font-family: inherit;
@@ -470,14 +527,14 @@
 
 .inline-edit-textarea:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--spreadsheet-link-color);
+  box-shadow: 0 0 0 2px var(--spreadsheet-highlight-hover-bg-color);
 }
 
 .inline-edit-input {
   width: 100%;
   padding: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--spreadsheet-border-color);
   border-radius: 3px;
   font-size: 12px;
   font-family: 'Courier New', monospace;
@@ -487,8 +544,8 @@
 
 .inline-edit-input:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: var(--spreadsheet-link-color);
+  box-shadow: 0 0 0 2px var(--spreadsheet-highlight-hover-bg-color);
 }
 
 
@@ -500,7 +557,7 @@
 }
 
 .text-content:hover {
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-cell-hover-bg-color);
 }
 
 /* 画像コンテンツ */
@@ -554,7 +611,7 @@
 
 .value-display {
   font-size: 11px;
-  color: #333;
+  color: var(--spreadsheet-text-primary-color);
   font-weight: 500;
   text-align: center;
   word-break: break-all;
@@ -563,19 +620,19 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   font-family: 'Courier New', monospace;
-  background-color: #f8f9fa;
+  background-color: var(--spreadsheet-cell-hover-bg-color);
   padding: 2px 4px;
   border-radius: 2px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--spreadsheet-border-color);
   max-width: 100%;
 }
 
 /* インライン列復元ボタン（ヘッダー内） */
 .inline-restore-column-btn {
-  background: #ffc107;
-  border: 1px solid #fd7e14;
+  background: var(--spreadsheet-warning-bg-color);
+  border: 1px solid var(--spreadsheet-warning-hover-bg-color);
   border-radius: 2px;
-  color: #212529;
+  color: var(--spreadsheet-text-dark-color);
   cursor: pointer;
   font-size: 8px;
   padding: 1px 3px;
@@ -602,7 +659,7 @@
 }
 
 .inline-restore-column-btn:hover {
-  background: #e0a800;
+  background: var(--spreadsheet-warning-hover-bg-color);
   transform: scale(1.05);
 }
 
@@ -612,16 +669,16 @@
 
 /* 末尾列復元用のセル */
 .end-columns-restore {
-  background-color: #fff3cd;
+  background-color: var(--spreadsheet-warning-bg-color);
   width: 80px;
   min-width: 80px;
 }
 
 .end-columns-restore .restore-column-btn {
-  background: #ffc107;
-  border: 1px solid #fd7e14;
+  background: var(--spreadsheet-warning-bg-color);
+  border: 1px solid var(--spreadsheet-warning-hover-bg-color);
   border-radius: 3px;
-  color: #212529;
+  color: var(--spreadsheet-text-dark-color);
   cursor: pointer;
   font-size: 10px;
   padding: 4px 8px;
@@ -635,7 +692,7 @@
 }
 
 .end-columns-restore .restore-column-btn:hover {
-  background: #e0a800;
+  background: var(--spreadsheet-warning-hover-bg-color);
   transform: scale(1.05);
 }
 
@@ -645,10 +702,10 @@
 
 /* インライン行復元ボタン（行内） */
 .inline-restore-row-btn {
-  background: #ffc107;
-  border: 1px solid #fd7e14;
+  background: var(--spreadsheet-warning-bg-color);
+  border: 1px solid var(--spreadsheet-warning-hover-bg-color);
   border-radius: 2px;
-  color: #212529;
+  color: var(--spreadsheet-text-dark-color);
   cursor: pointer;
   font-size: 8px;
   padding: 1px 3px;
@@ -676,7 +733,7 @@
 }
 
 .inline-restore-row-btn:hover {
-  background: #e0a800;
+  background: var(--spreadsheet-warning-hover-bg-color);
 }
 
 .inline-restore-row-btn.up:hover {
@@ -697,8 +754,8 @@
 
 /* 末尾行復元用の行 */
 .end-rows-restore {
-  background-color: #fff3cd;
-  border-bottom: 1px solid #dee2e6;
+  background-color: var(--spreadsheet-warning-bg-color);
+  border-bottom: 1px solid var(--spreadsheet-border-dark-color);
   min-height: 30px;
 }
 
@@ -706,17 +763,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid #dee2e6;
+  border-right: 1px solid var(--spreadsheet-border-dark-color);
   padding: 4px;
   width: 70px;
   min-width: 70px;
 }
 
 .end-rows-restore .restore-row-btn {
-  background: #ffc107;
-  border: 1px solid #fd7e14;
+  background: var(--spreadsheet-warning-bg-color);
+  border: 1px solid var(--spreadsheet-warning-hover-bg-color);
   border-radius: 3px;
-  color: #212529;
+  color: var(--spreadsheet-text-dark-color);
   cursor: pointer;
   font-size: 10px;
   padding: 4px 8px;
@@ -730,7 +787,7 @@
 }
 
 .end-rows-restore .restore-row-btn:hover {
-  background: #e0a800;
+  background: var(--spreadsheet-warning-hover-bg-color);
   transform: scale(1.05);
 }
 
@@ -741,13 +798,13 @@
 /* メニューアイテムのスタイル強化 */
 .hide-column,
 .hide-row {
-  background-color: #fff3cd;
-  border-left: 3px solid #ffc107;
+  background-color: var(--spreadsheet-warning-bg-color);
+  border-left: 3px solid var(--spreadsheet-warning-hover-bg-color);
 }
 
 .hide-column:hover,
 .hide-row:hover {
-  background-color: #ffeeba;
+  background-color: var(--spreadsheet-warning-hover-bg-color);
 }
 
 /* インライン復元ボタンがある場合のレイアウト調整 */
