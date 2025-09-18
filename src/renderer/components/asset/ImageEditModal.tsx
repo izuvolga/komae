@@ -17,6 +17,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { BaseEditModalProps, EditMode } from '../../../types/common';
+import { useEditModalSubmit } from '../../hooks/useEditModalSubmit';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -60,12 +61,24 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
-  
+
   // 編集中のデータ（モードに応じて切り替え）
   const [editedAsset, setEditedAsset] = useState<ImageAsset>(asset);
   const [editedInstance, setEditedInstance] = useState<ImageAssetInstance | null>(
     assetInstance || null
   );
+
+  // Submit処理フック
+  const { handleSubmit } = useEditModalSubmit({
+    mode,
+    editedAsset,
+    editedInstance,
+    onSaveAsset,
+    onSaveInstance,
+    onClose,
+    validateAsset: validateImageAssetData,
+    validateInstance: validateImageAssetInstanceData
+  });
 
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
@@ -228,32 +241,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (mode === 'instance' && editedInstance) {
-      // ImageAssetInstanceの全体バリデーション
-      const validation = validateImageAssetInstanceData(editedInstance);
-      if (!validation.isValid) {
-        alert(validation.errors.join('\n'));
-        return;
-      }
-      if (onSaveInstance) {
-        onSaveInstance(editedInstance);
-      }
-    } else if (mode === 'asset') {
-      // ImageAssetの全体バリデーション
-      const validation = validateImageAssetData(editedAsset);
-      if (!validation.isValid) {
-        alert(validation.errors.join('\n'));
-        return;
-      }
-      if (onSaveAsset) {
-        onSaveAsset(editedAsset);
-      }
-    }
-    onClose();
-  };
 
   // 数値入力バリデーション関数、数値バリデーション、表示フォーマット関数は共通ユーティリティを使用
 

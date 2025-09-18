@@ -21,6 +21,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
+import { updateLanguageSettings } from '../../../utils/languageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -421,32 +422,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 複数の言語オーバーライド設定を同時に更新する関数
   const handleLanguageOverrideChanges = (language: string, settings: Partial<LanguageSettings>) => {
     if (mode !== 'asset') return;
-    const currentOverrides = editingAsset.default_language_override || {};
-    const languageSettings = currentOverrides[language] || {};
-    const updatedLanguageSettings = { ...languageSettings };
 
-    // 複数の設定を同時に更新
-    Object.entries(settings).forEach(([key, value]) => {
-      const settingKey = key as keyof LanguageSettings;
-      if (value === undefined || value === '' || value === null) {
-        delete updatedLanguageSettings[settingKey];
-      } else {
-        (updatedLanguageSettings as any)[settingKey] = value;
-      }
-    });
-
-    // 更新されたアセットデータを作成
-    const updatedOverrides = { ...currentOverrides };
-
-    if (Object.keys(updatedLanguageSettings).length > 0) {
-      updatedOverrides[language] = updatedLanguageSettings;
-    } else {
-      delete updatedOverrides[language];
-    }
+    const updatedOverrides = updateLanguageSettings<LanguageSettings>(
+      editingAsset.default_language_override,
+      language,
+      settings
+    );
 
     const updatedAsset = {
       ...editingAsset,
-      default_language_override: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
+      default_language_override: updatedOverrides
     };
 
     setEditingAsset(updatedAsset);
@@ -455,32 +440,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // 複数のインスタンス言語設定を同時に更新する関数
   const handleInstanceLanguageSettingChanges = (language: string, settings: Partial<LanguageSettings>) => {
     if (mode !== 'instance' || !editingInstance) return;
-    const currentOverrides = editingInstance.override_language_settings || {};
-    const languageSettings = currentOverrides[language] || {};
-    const updatedLanguageSettings = { ...languageSettings };
 
-    // 複数の設定を同時に更新
-    Object.entries(settings).forEach(([key, value]) => {
-      const settingKey = key as keyof LanguageSettings;
-      if (value === undefined || value === '' || value === null) {
-        delete updatedLanguageSettings[settingKey];
-      } else {
-        (updatedLanguageSettings as any)[settingKey] = value;
-      }
-    });
-
-    // 更新されたインスタンスデータを作成
-    const updatedOverrides = { ...currentOverrides };
-
-    if (Object.keys(updatedLanguageSettings).length > 0) {
-      updatedOverrides[language] = updatedLanguageSettings;
-    } else {
-      delete updatedOverrides[language];
-    }
+    const updatedOverrides = updateLanguageSettings<LanguageSettings>(
+      editingInstance.override_language_settings,
+      language,
+      settings
+    );
 
     const updatedInstance = {
       ...editingInstance,
-      override_language_settings: Object.keys(updatedOverrides).length > 0 ? updatedOverrides : undefined
+      override_language_settings: updatedOverrides
     };
 
     setEditingInstance(updatedInstance);

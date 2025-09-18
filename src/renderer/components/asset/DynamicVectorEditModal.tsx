@@ -20,6 +20,7 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
+import { useEditModalSubmit } from '../../hooks/useEditModalSubmit';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -96,6 +97,23 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   
   // ValueAsset参照の状態管理
   const [parameterBindings, setParameterBindings] = useState<Record<string, string>>({});
+
+  // Submit処理フック（アセット準備処理付き）
+  const { handleSubmit } = useEditModalSubmit({
+    mode,
+    editedAsset,
+    editedInstance,
+    onSaveAsset,
+    onSaveInstance,
+    onClose,
+    validateAsset: validateDynamicVectorAssetData,
+    validateInstance: validateDynamicVectorAssetInstanceData,
+    prepareAssetForSave: (asset) => ({
+      ...asset,
+      parameters: { ...parameterValues },
+      parameter_variable_bindings: Object.keys(parameterBindings).length > 0 ? parameterBindings : undefined,
+    })
+  });
   
   // CustomAssetの状態管理
   const [customAsset, setCustomAsset] = useState<any>(null);
@@ -460,36 +478,6 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (mode === 'instance' && editedInstance) {
-      const validation = validateDynamicVectorAssetInstanceData(editedInstance);
-      if (!validation.isValid) {
-        alert(validation.errors.join('\n'));
-        return;
-      }
-      if (onSaveInstance) {
-        onSaveInstance(editedInstance);
-      }
-    } else if (mode === 'asset') {
-      const updatedAsset = {
-        ...editedAsset,
-        parameters: { ...parameterValues },
-        parameter_variable_bindings: Object.keys(parameterBindings).length > 0 ? parameterBindings : undefined,
-      };
-
-      const validation = validateDynamicVectorAssetData(updatedAsset);
-      if (!validation.isValid) {
-        alert(validation.errors.join('\n'));
-        return;
-      }
-      if (onSaveAsset) {
-        onSaveAsset(updatedAsset);
-      }
-    }
-    onClose();
-  };
 
   // マウス操作のハンドラー
   const handleImageMouseDown = (e: React.MouseEvent) => {
