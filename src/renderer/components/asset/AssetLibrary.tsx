@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem, Button, useTheme } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon, Translate as TranslateIcon, ShowChart as ShowChartIcon} from '@mui/icons-material';
+
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
@@ -964,7 +965,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
             fontWeight: 'bold',
             borderRadius: '4px'
           }}>
-            T
+            <TranslateIcon fontSize="inherit" />
           </Box>
         );
       case 'ValueAsset':
@@ -981,7 +982,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
             fontWeight: 'bold',
             borderRadius: '4px'
           }}>
-            V
+            <ShowChartIcon fontSize="inherit" />
           </Box>
         );
       default:
