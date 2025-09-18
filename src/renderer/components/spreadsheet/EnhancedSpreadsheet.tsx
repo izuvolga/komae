@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Visibility, VisibilityOff, EditNote } from '@mui/icons-material';
+import { Visibility, VisibilityOff, ModeEdit } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useAssetInstanceReset } from '../../hooks/useAssetInstanceReset';
@@ -1611,7 +1611,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           }}
                           title={`${asset.name}のインスタンスを編集`}
                         >
-                          <EditNote fontSize="inherit" />
+                          <ModeEdit fontSize="inherit" />
                         </button>
                       )}
                     </div>
