@@ -563,17 +563,28 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         phase = TextAssetInstancePhase.AUTO;
       }
 
-      return generateTextPreviewSVG(
+      const canvasWidth = canvasConfig?.width || 800;
+      const canvasHeight = canvasConfig?.height || 600;
+      const svg = generateTextPreviewSVG(
         previewAsset,
         mode === 'instance' ? editingInstance : undefined,
         previewLanguage,
         {
-          width: canvasConfig?.width || 800,
-          height: canvasConfig?.height || 600,
+          width: canvasWidth,
+          height: canvasHeight,
           backgroundColor: 'transparent',
         },
         phase,
       );
+      return `<svg
+        width="100%"
+        height="100%"
+        viewBox="0 0 ${canvasWidth} ${canvasHeight}"
+        xmlns="http://www.w3.org/2000/svg"
+        style="position: absolute; top: 0; left: 0; pointer-events: none;"
+      >
+      ${svg}
+      </svg>`;
     } catch (error) {
       console.error('Failed to generate preview SVG:', error);
       return '<svg><text>プレビューエラー</text></svg>';
