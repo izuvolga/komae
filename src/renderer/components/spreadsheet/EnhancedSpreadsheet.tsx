@@ -37,6 +37,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const updatePage = useProjectStore((state) => state.updatePage);
   const setCurrentPage = useProjectStore((state) => state.setCurrentPage);
   const toggleAssetInstance = useProjectStore((state) => state.toggleAssetInstance);
+  const showAllAssetsInPage = useProjectStore((state) => state.showAllAssetsInPage);
   const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
   const showAssetLibrary = useProjectStore((state) => state.ui.showAssetLibrary);
   const showPreview = useProjectStore((state) => state.ui.showPreview);
@@ -1104,18 +1105,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
   // 行の操作ハンドラー
   const handleShowAllInRow = () => {
     if (!rowContextMenu.page) return;
-
-    assets.forEach(asset => {
-      const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
-        (inst: any) => inst.asset_id === asset.id
-      );
-
-      if (!existingInstance) {
-        // インスタンスが存在しない場合は作成
-        toggleAssetInstance(rowContextMenu.page!.id, asset.id);
-      }
-    });
-  };
+    
+    showAllAssetsInPage(rowContextMenu.page.id);
+  };;
 
   const handleHideAllInRow = () => {
     if (!rowContextMenu.page) return;

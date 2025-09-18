@@ -57,6 +57,7 @@ interface ProjectStore {
   updateAssetInstance: (pageId: string, instanceId: string, updates: Partial<AssetInstance>) => void;
   deleteAssetInstance: (pageId: string, instanceId: string) => void;
   toggleAssetInstance: (pageId: string, assetId: string) => void;
+  showAllAssetsInPage: (pageId: string) => void;
 
   // UI Actions
   selectAssets: (assetIds: string[]) => void;
@@ -567,6 +568,56 @@ export const useProjectStore = create<ProjectStore>()(
           }
 
           state.app.isDirty = true;
+        }),
+
+        showAllAssetsInPage: (pageId) => set((state) => {
+          if (!state.project) return;
+          const page = findPageById(state.project.pages, pageId);
+          if (!page) return;
+
+          const assetsToShow = Object.values(state.project.assets).filter(asset => {
+            // 既存のインスタンスがない場合のみ作成
+            const existingInstance = Object.values(page.asset_instances).find(
+              instance => instance.asset_id === asset.id
+            );
+            return !existingInstance;
+          });
+
+          // 一括でインスタンスを作成
+          assetsToShow.forEach(asset => {
+            const instanceId = `instance-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            let newInstance: AssetInstance = {
+              id: instanceId,
+              asset_id: asset.id,
+            };
+
+            // TextAssetInstanceの場合はmultilingual_textを初期化
+            if (asset.type === 'TextAsset') {
+              const supportedLanguages = state.project!.metadata.supportedLanguages || ['ja'];
+              const multilingual_text: Record<string, string> = {};
+              supportedLanguages.forEach(langCode => {
+                multilingual_text[langCode] = '';
+              });
+              (newInstance as TextAssetInstance).multilingual_text = multilingual_text;
+            }
+
+            // 以前に保存された編集内容があるかチェック
+            if (state.hiddenInstanceData[pageId]?.[asset.id]) {
+              const savedInstance = state.hiddenInstanceData[pageId][asset.id];
+              newInstance = {
+                ...savedInstance,
+                id: instanceId, // 新しいIDを使用
+              };
+              // 復元済みなので保存データは削除
+              delete state.hiddenInstanceData[pageId][asset.id];
+            }
+
+            page.asset_instances[instanceId] = newInstance;
+          });
+
+          if (assetsToShow.length > 0) {
+            state.app.isDirty = true;
+          }
         }),
 
         // UI Actions

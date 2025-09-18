@@ -19,8 +19,8 @@
 - [x]: CustomAssetSelectionModal のMUIへの移行は中断します。CustomAssetManagementModal も非常に似た UI を持っているので、そちらと統合してしまえるように思えます。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
 - [x]: EnhancedSpreadSheet のヘッダ部分の右クリックのメニューから、アセットの編集・削除ができるようにしてください
 - [x]: EnhancedSpreadSheet の TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text における現在アクティブになっている言語の値（getCurrentLanguage関数の実装を参照）を undefined にする機能を追加してください。
-- [ ]: EnhancedSpreadSheet の 「新しいページを追加」を押下したときに、デフォルトではアセットを全て表示状態にしてください。現在は全て非表示状態になってしまっている。
-- [ ]: EnhancedSpreadSheet の 行のコンテキストメニューで「全て表示」がうまく動作しません。全て
+- [x]: EnhancedSpreadSheet の 「新しいページを追加」を押下したときに、デフォルトではアセットを全て表示状態にしてください。現在は全て非表示状態になってしまっている。
+- [x]: EnhancedSpreadSheet の 行のコンテキストメニューで「全て表示」がうまく動作しません。その行のうち、1, 2 つがランダムに表示状態になります。何度も「全て表示」を押下していると、最終的に全て表示状態になるようです。「全て隠す」は正常に動作しています。
 - [ ]: EnhancedSpreadSheet のセルそれぞれに画像を表示するのはやめて、デザインを刷新する
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
