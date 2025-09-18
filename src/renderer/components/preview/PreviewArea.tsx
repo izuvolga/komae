@@ -9,6 +9,7 @@ export const PreviewArea: React.FC = () => {
   const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const currentPage = useProjectStore((state) => state.ui.currentPage);
+  const cursor = useProjectStore((state) => state.ui.cursor);
   const zoomLevel = useProjectStore((state) => state.ui.zoomLevel);
   const canvasFit = useProjectStore((state) => state.ui.canvasFit);
   const setZoomLevel = useProjectStore((state) => state.setZoomLevel);
@@ -163,8 +164,10 @@ export const PreviewArea: React.FC = () => {
   }, [canvasWidth, canvasHeight, zoomLevel]);
 
   const pages = project.pages;
-  const currentPageData = currentPage 
-    ? pages.find(page => page.id === currentPage) 
+  // カーソルがある行（ページ）のプレビューを表示。カーソルがない場合は現在のページ、それもない場合は最初のページ
+  const targetPageId = cursor.visible && cursor.pageId ? cursor.pageId : currentPage;
+  const currentPageData = targetPageId
+    ? pages.find(page => page.id === targetPageId)
     : pages[0];
 
   if (!currentPageData) {
