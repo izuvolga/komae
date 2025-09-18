@@ -18,7 +18,7 @@
 - [x]: TextEditModal の Z-Index が正常に動作していない？
 - [x]: CustomAssetSelectionModal のMUIへの移行は中断します。CustomAssetManagementModal も非常に似た UI を持っているので、そちらと統合してしまえるように思えます。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
 - [x]: EnhancedSpreadSheet のヘッダ部分の右クリックのメニューから、アセットの編集・削除ができるようにしてください
-- [ ]: EnhancedSpreadSheet の TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text における現在アクティブになっている言語の値を undefined にする機能を追加してください
+- [x]: EnhancedSpreadSheet の TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text における現在アクティブになっている言語の値（getCurrentLanguage関数の実装を参照）を undefined にする機能を追加してください。
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正

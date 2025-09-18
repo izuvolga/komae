@@ -14,6 +14,7 @@ interface ColumnContextMenuProps {
   onResetAll: () => void;
   onEditAsset: () => void;
   onDeleteAsset: () => void;
+  onSetAllToConfirmationText?: () => void;
 }
 
 export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
@@ -28,6 +29,7 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
   onResetAll,
   onEditAsset,
   onDeleteAsset,
+  onSetAllToConfirmationText,
 }) => {
   if (!isVisible) return null;
 
@@ -70,6 +72,20 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
           >
             アセットを削除
           </button>
+
+          {/* TextAsset専用のメニュー項目 */}
+          {asset.type === 'TextAsset' && onSetAllToConfirmationText && (
+            <>
+              <div className="menu-separator" />
+
+              <button
+                className="menu-item set-confirmation-text"
+                onClick={() => handleMenuClick(onSetAllToConfirmationText)}
+              >
+                すべて確認用テキストにする
+              </button>
+            </>
+          )}
 
           <div className="menu-separator" />
 

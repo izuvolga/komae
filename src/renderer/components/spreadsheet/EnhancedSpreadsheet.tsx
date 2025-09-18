@@ -1018,6 +1018,40 @@ export const EnhancedSpreadsheet: React.FC = () => {
     }
   };
 
+  // TextAsset専用: すべて確認用テキストにするハンドラー
+  const handleSetAllToConfirmationText = () => {
+    if (!contextMenu.asset || contextMenu.asset.type !== 'TextAsset') return;
+
+    const confirmed = confirm(`「${contextMenu.asset.name}」列のすべてのインスタンスを確認用テキストにしますか？`);
+    if (confirmed) {
+      const currentLang = getCurrentLanguage();
+
+      // 全ページのこのアセットのインスタンスを更新
+      Object.values(project.pages).forEach(page => {
+        Object.values(page.asset_instances).forEach(instance => {
+          // アセットIDが一致し、かつアセットがTextAssetの場合のみ処理
+          if (instance.asset_id === contextMenu.asset.id) {
+            const textInstance = instance as TextAssetInstance;
+
+            // TextAssetInstanceには必ずmultilingual_textが存在するので、それで判定
+            if ('multilingual_text' in textInstance) {
+              // 現在の言語のキーを削除（undefinedの代わり）
+              const updatedMultilingualText = { ...textInstance.multilingual_text };
+              delete updatedMultilingualText[currentLang];
+
+              const updatedInstance = {
+                ...textInstance,
+                multilingual_text: updatedMultilingualText
+              };
+
+              updateAssetInstance(page.id, instance.id, updatedInstance);
+            }
+          }
+        });
+      });
+    }
+  };
+
   // 行の右クリックメニュー関連のハンドラー
   const handleRowContextMenu = (e: React.MouseEvent, page: Page, pageIndex: number) => {
     e.preventDefault();
@@ -1839,6 +1873,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           onResetAll={handleResetAllInColumn}
           onEditAsset={handleEditAsset}
           onDeleteAsset={handleDeleteAsset}
+          onSetAllToConfirmationText={handleSetAllToConfirmationText}
         />
       )}
 
