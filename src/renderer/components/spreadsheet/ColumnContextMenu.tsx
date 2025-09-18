@@ -12,6 +12,8 @@ interface ColumnContextMenuProps {
   onShowAll: () => void;
   onHideAll: () => void;
   onResetAll: () => void;
+  onEditAsset: () => void;
+  onDeleteAsset: () => void;
 }
 
 export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
@@ -24,6 +26,8 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
   onShowAll,
   onHideAll,
   onResetAll,
+  onEditAsset,
+  onDeleteAsset,
 }) => {
   if (!isVisible) return null;
 
@@ -53,33 +57,49 @@ export const ColumnContextMenu: React.FC<ColumnContextMenuProps> = ({
         </div>
         
         <div className="column-context-menu-items">
-          <button 
+          <button
+            className="menu-item edit-asset"
+            onClick={() => handleMenuClick(onEditAsset)}
+          >
+            アセットを編集
+          </button>
+
+          <button
+            className="menu-item delete-asset"
+            onClick={() => handleMenuClick(onDeleteAsset)}
+          >
+            アセットを削除
+          </button>
+
+          <div className="menu-separator" />
+
+          <button
             className="menu-item hide-column"
             onClick={() => handleMenuClick(onHideColumn)}
             disabled={visibleColumnsCount <= 1}
           >
             列を非表示
           </button>
-          
+
           <div className="menu-separator" />
-          
-          <button 
+
+          <button
             className="menu-item"
             onClick={() => handleMenuClick(onShowAll)}
           >
             全て表示
           </button>
-          
-          <button 
+
+          <button
             className="menu-item"
             onClick={() => handleMenuClick(onHideAll)}
           >
             全て隠す
           </button>
-          
+
           <div className="menu-separator" />
-          
-          <button 
+
+          <button
             className="menu-item reset"
             onClick={() => handleMenuClick(onResetAll)}
           >

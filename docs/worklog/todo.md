@@ -16,14 +16,11 @@
 - [x]: EditModal で、共通処理があるものは共通化する
 - [x]: ValueAssetEditModal のプレビュー画面が不要なので削除
 - [x]: TextEditModal の Z-Index が正常に動作していない？
-- [ ]: CustomAssetSelectionModal のMUIへの移行は中断します。CustomAssetManagementModal も非常に似た UI を持っているので、そちらと統合してしまえるように思えます。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
-- [ ]: スプレッドシートのヘッダ部分から、アセットの編集・削除ができるようにする（そもそも左パネル必要なのか？という...）
-- [ ]: スプレッドシートの TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text のその言語の値を undefined にする
+- [x]: CustomAssetSelectionModal のMUIへの移行は中断します。CustomAssetManagementModal も非常に似た UI を持っているので、そちらと統合してしまえるように思えます。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
+- [x]: EnhancedSpreadSheet のヘッダ部分の右クリックのメニューから、アセットの編集・削除ができるようにしてください
+- [ ]: EnhancedSpreadSheet の TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text における現在アクティブになっている言語の値を undefined にする機能を追加してください
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
-- [ ]: EnhancedSpreadSheet のセルに SVG のサムネを表示する
-  - @src/renderer/components/asset/DynamicVectorEditModal.tsx
-  - @src/renderer/components/asset/VectorEditModal.tsx
 - [ ]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
 - [ ]: Library -> Custom Assets にサムネを表示する
 - [ ]: EnhancedSpreadSheet を横方向に中途半端な位置にスクロールしたままにすると、列の入れ替えのときに半透明な四角が違和感のある位置に出る
