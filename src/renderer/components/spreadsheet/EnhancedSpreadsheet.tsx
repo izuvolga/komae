@@ -1591,20 +1591,23 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       }
                     }}
                   >
-                    {/* 左側：cell-manage（チェックボックス＋編集ボタン縦並び） */}
+                    {/* 左側：cell-manage（上下分割領域） */}
                     <div className="cell-manage">
-                      <button
-                        className={`toggle-button ${isUsed ? 'active' : 'inactive'}`}
+                      {/* 上半分：Visibility領域 */}
+                      <div
+                        className={`icon-area visibility-area ${isUsed ? 'active' : 'inactive'}`}
                         onClick={(e) => {
                           handleToggleClick(page.id, asset.id, e);
                         }}
                         title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
                       >
                         {isUsed ? <Visibility fontSize="inherit" /> : <VisibilityOff fontSize="inherit" />}
-                      </button>
+                      </div>
+
+                      {/* 下半分：Edit領域 */}
                       {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'DynamicVectorAsset' || asset.type === 'ValueAsset') && (
-                        <button
-                          className="edit-button"
+                        <div
+                          className="icon-area edit-area"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditClick(page.id, asset.id);
@@ -1612,7 +1615,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           title={`${asset.name}のインスタンスを編集`}
                         >
                           <ModeEdit fontSize="inherit" />
-                        </button>
+                        </div>
                       )}
                     </div>
 
