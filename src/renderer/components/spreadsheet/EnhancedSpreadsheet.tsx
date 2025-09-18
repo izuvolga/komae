@@ -300,10 +300,39 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
+    const pageId = `page-${Date.now()}`;
+
+    // 全アセットのデフォルトインスタンスを作成
+    const asset_instances: Record<string, AssetInstance> = {};
+
+    Object.values(project.assets).forEach(asset => {
+      const instanceId = `instance-${Date.now()}-${asset.id}`;
+      let newInstance: AssetInstance = {
+        id: instanceId,
+        asset_id: asset.id,
+      };
+
+      // TextAssetInstanceの場合はmultilingual_textを初期化
+      // TODO: ここに初期化処理あるの少し気持ち悪い & 途中で project の対応言語変わったら大丈夫？
+      if (asset.type === 'TextAsset') {
+        const supportedLanguages = project.metadata.supportedLanguages || ['ja'];
+        const multilingual_text: Record<string, string> = {};
+
+        // 各対応言語に対して空文字列で初期化
+        supportedLanguages.forEach(langCode => {
+          multilingual_text[langCode] = '';
+        });
+
+        (newInstance as TextAssetInstance).multilingual_text = multilingual_text;
+      }
+
+      asset_instances[instanceId] = newInstance;
+    });
+
     const newPage = {
-      id: `page-${Date.now()}`,
+      id: pageId,
       title: '',
-      asset_instances: {},
+      asset_instances,
     };
     addPage(newPage);
   };
