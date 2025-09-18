@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Visibility, VisibilityOff, EditNote } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { PageThumbnail } from './PageThumbnail';
@@ -1488,7 +1489,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         }}
                         title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
                       >
-                        {isUsed ? '✓' : '×'}
+                        {isUsed ? <Visibility fontSize="inherit" /> : <VisibilityOff fontSize="inherit" />}
                       </button>
                       {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'DynamicVectorAsset' || asset.type === 'ValueAsset') && (
                         <button
@@ -1499,7 +1500,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           }}
                           title={`${asset.name}のインスタンスを編集`}
                         >
-                          ✏️
+                          <EditNote fontSize="inherit" />
                         </button>
                       )}
                     </div>
