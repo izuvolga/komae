@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem, Button, useTheme } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon, Translate as TranslateIcon, ShowChart as ShowChartIcon} from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon, Translate as TranslateIcon, ShowChart as ShowChartIcon, Image as ImageIcon, AutoFixHigh as AutoFixHighIcon, Bolt as BoltIcon, TextFields as TextFieldsIcon, Functions as FunctionsIcon} from '@mui/icons-material';
 
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
@@ -729,19 +729,19 @@ export const AssetLibrary: React.FC = () => {
             }}
           >
             <MenuItem onClick={handleImportImageAsset}>
-              🖼️ 画像
+              <ImageIcon sx={{ mr: 1 }} /> 画像
             </MenuItem>
             <MenuItem onClick={handleImportVectorAsset}>
-              📐 SVG
+              <AutoFixHighIcon sx={{ mr: 1 }} /> SVG
             </MenuItem>
             <MenuItem onClick={handleCreateDynamicVectorAsset}>
-              ⚡ Dynamic SVG
+              <BoltIcon sx={{ mr: 1 }} /> Dynamic SVG
             </MenuItem>
             <MenuItem onClick={handleCreateTextAsset}>
-              🔤 テキスト
+              <TextFieldsIcon sx={{ mr: 1 }} /> テキスト
             </MenuItem>
             <MenuItem onClick={handleCreateValueAsset}>
-              🔢 値アセット
+              <FunctionsIcon sx={{ mr: 1 }} /> 値アセット
             </MenuItem>
           </Menu>
           <IconButton
