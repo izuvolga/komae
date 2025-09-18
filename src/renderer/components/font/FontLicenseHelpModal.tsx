@@ -14,12 +14,10 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
+import type { BaseModalProps } from '../../../types/common';
 import './FontLicenseHelpModal.css';
 
-interface FontLicenseHelpModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+interface FontLicenseHelpModalProps extends BaseModalProps {}
 
 export const FontLicenseHelpModal: React.FC<FontLicenseHelpModalProps> = ({
   isOpen,

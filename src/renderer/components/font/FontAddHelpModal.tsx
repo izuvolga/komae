@@ -15,12 +15,10 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
+import type { BaseModalProps } from '../../../types/common';
 import './FontAddHelpModal.css';
 
-interface FontAddHelpModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+interface FontAddHelpModalProps extends BaseModalProps {}
 
 export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
   isOpen,

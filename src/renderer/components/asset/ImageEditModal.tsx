@@ -16,6 +16,7 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
+import type { BaseEditModalProps, EditMode } from '../../../types/common';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -41,19 +42,9 @@ import {
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 
-// 編集モードの種類
-type EditMode = 'asset' | 'instance';
-
 // 統合されたプロパティ
-interface ImageEditModalProps {
-  mode: EditMode;
-  asset: ImageAsset;
-  assetInstance?: ImageAssetInstance;
+interface ImageEditModalProps extends BaseEditModalProps<ImageAsset, ImageAssetInstance> {
   page?: Page;
-  isOpen: boolean;
-  onClose: () => void;
-  onSaveAsset?: (updatedAsset: ImageAsset) => void;
-  onSaveInstance?: (updatedInstance: ImageAssetInstance) => void;
 }
 
 export const ImageEditModal: React.FC<ImageEditModalProps> = ({

@@ -19,14 +19,12 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon, Add as AddIcon, Info as InfoIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
+import type { BaseModalProps } from '../../../types/common';
 import { FontAddModal } from './FontAddModal';
 import { FontLicenseModal } from './FontLicenseModal';
 import './FontManagementModal.css';
 
-interface FontManagementModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+interface FontManagementModalProps extends BaseModalProps {}
 
 export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   isOpen,

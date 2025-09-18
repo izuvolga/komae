@@ -1,6 +1,8 @@
 // エンティティの型定義
 // docs/design/000-entity.mdに基づく
 
+import { validateAssetInstanceOverrides } from '../utils/validation/assetValidation';
+
 export interface ProjectMetadata {
   komae_version: string;
   project_version: string;
@@ -1237,27 +1239,7 @@ export function validateVectorAssetInstanceData(instance: VectorAssetInstance): 
   isValid: boolean;
   errors: string[];
 } {
-  const errors: string[] = [];
-
-  // オーバーライド不透明度のバリデーション
-  const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
-  if (!opacityValidation.isValid && opacityValidation.error) {
-    errors.push(opacityValidation.error);
-  }
-
-  // オーバーライドサイズのバリデーション
-  if (instance.override_width !== undefined && instance.override_width <= 0) {
-    errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
-  }
-
-  if (instance.override_height !== undefined && instance.override_height <= 0) {
-    errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
+  return validateAssetInstanceOverrides(instance);
 }
 
 /**
@@ -1320,27 +1302,7 @@ export function validateDynamicVectorAssetInstanceData(instance: DynamicVectorAs
   isValid: boolean;
   errors: string[];
 } {
-  const errors: string[] = [];
-
-  // オーバーライド不透明度のバリデーション
-  const opacityValidation = validateOpacity(instance.override_opacity, '不透明度 (オーバーライド)');
-  if (!opacityValidation.isValid && opacityValidation.error) {
-    errors.push(opacityValidation.error);
-  }
-
-  // オーバーライドサイズのバリデーション
-  if (instance.override_width !== undefined && instance.override_width <= 0) {
-    errors.push(`オーバーライド幅は0より大きい値を入力してください。現在の値: ${instance.override_width}`);
-  }
-
-  if (instance.override_height !== undefined && instance.override_height <= 0) {
-    errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
+  return validateAssetInstanceOverrides(instance);
 }
 
 /**

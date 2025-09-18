@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Visibility, VisibilityOff, EditNote } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
+import { useAssetInstanceReset } from '../../hooks/useAssetInstanceReset';
 import { PageThumbnail } from './PageThumbnail';
 import { ImageEditModal } from '../asset/ImageEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
@@ -49,6 +50,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
   const showRow = useProjectStore((state) => state.showRow);
   const reorderAssets = useProjectStore((state) => state.reorderAssets);
 
+  // カスタムフック
+  const { resetAllInColumn, resetAllInRow } = useAssetInstanceReset();
 
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -924,22 +927,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleResetAllInColumn = () => {
     if (!contextMenu.asset) return;
-
-    pages.forEach(page => {
-      const existingInstance = Object.values(page.asset_instances).find(
-        (inst: any) => inst.asset_id === contextMenu.asset.id
-      );
-
-      if (existingInstance) {
-        // entities.tsのヘルパー関数を使用してoverride値をリセット
-        const resetUpdates = resetAssetInstanceOverrides(
-          existingInstance as AssetInstance,
-          contextMenu.asset.type
-        );
-
-        updateAssetInstance(page.id, existingInstance.id, resetUpdates);
-      }
-    });
+    resetAllInColumn(contextMenu.asset);
   };
 
   const handleHideColumn = () => {
@@ -1000,22 +988,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleResetAllInRow = () => {
     if (!rowContextMenu.page) return;
-
-    assets.forEach(asset => {
-      const existingInstance = Object.values(rowContextMenu.page!.asset_instances).find(
-        (inst: any) => inst.asset_id === asset.id
-      );
-
-      if (existingInstance) {
-        // entities.tsのヘルパー関数を使用してoverride値をリセット
-        const resetUpdates = resetAssetInstanceOverrides(
-          existingInstance as AssetInstance,
-          asset.type
-        );
-
-        updateAssetInstance(rowContextMenu.page!.id, existingInstance.id, resetUpdates);
-      }
-    });
+    resetAllInRow(rowContextMenu.page);
   };
 
   const handleInsertPageAbove = () => {

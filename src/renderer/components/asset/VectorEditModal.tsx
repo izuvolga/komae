@@ -14,6 +14,7 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
+import type { BaseEditModalProps, EditMode } from '../../../types/common';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -36,19 +37,9 @@ import {
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 
-// 編集モードの種類
-type EditMode = 'asset' | 'instance';
-
 // 統合されたプロパティ
-interface VectorEditModalProps {
-  mode: EditMode;
-  asset: VectorAsset;
-  assetInstance?: VectorAssetInstance;
+interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
   page?: Page;
-  isOpen: boolean;
-  onClose: () => void;
-  onSaveAsset?: (updatedAsset: VectorAsset) => void;
-  onSaveInstance?: (updatedInstance: VectorAssetInstance) => void;
 }
 
 export const VectorEditModal: React.FC<VectorEditModalProps> = ({
