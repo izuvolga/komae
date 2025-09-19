@@ -266,7 +266,7 @@ export function isLanguageSettingsField(field: string): field is keyof LanguageS
 export type AssetInstance = ImageAssetInstance | TextAssetInstance | VectorAssetInstance | DynamicVectorAssetInstance | ValueAssetInstance;
 
 // AssetInstanceのoverride値チェック用ヘルパー関数
-export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type']): boolean {
+export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: Asset['type'], asset?: Asset): boolean {
   if (!instance) return false;
 
   if (assetType === 'TextAsset') {
@@ -305,7 +305,20 @@ export function hasAssetInstanceOverrides(instance: AssetInstance, assetType: As
     );
   } else if (assetType === 'ValueAsset') {
     const valueInstance = instance as ValueAssetInstance;
-    return !!(valueInstance.override_value !== undefined);
+    const valueAsset = asset as ValueAsset;
+    
+    // override_valueが設定されていない場合は編集なし
+    if (valueInstance.override_value === undefined) {
+      return false;
+    }
+    
+    // アセット情報がない場合は、override_valueの存在のみで判定（後方互換性）
+    if (!valueAsset) {
+      return true;
+    }
+    
+    // initial_valueと比較して、実際に値が変更されている場合のみtrueを返す
+    return valueInstance.override_value !== valueAsset.initial_value;
   }
 
   return false;

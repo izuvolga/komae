@@ -1582,7 +1582,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                 return (
                   <div
                     key={`${page.id}-${asset.id}`}
-                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''} ${cellContextMenu.isVisible && cellContextMenu.assetInstance?.id === instance?.id && cellContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
+                    className={`cell asset-cell ${isUsed ? 'used' : 'unused'} ${isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type, asset) ? 'has-overrides' : ''} ${contextMenu.isVisible && contextMenu.asset?.id === asset.id ? 'highlighted' : ''} ${rowContextMenu.isVisible && rowContextMenu.page?.id === page.id ? 'highlighted' : ''} ${cellContextMenu.isVisible && cellContextMenu.assetInstance?.id === instance?.id && cellContextMenu.page?.id === page.id ? 'highlighted' : ''}`}
                     data-page-id={page.id}
                     data-asset-id={asset.id}
                     onClick={() => handleCellClick(page.id, asset.id)}
@@ -1641,7 +1641,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     <div className="cell-divider"></div>
 
                     {/* Override表示の三角形 */}
-                    {isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type) && (
+                    {isUsed && hasAssetInstanceOverrides(instance as AssetInstance, asset.type, asset) && (
                       <div className="override-indicator"></div>
                     )}
 
