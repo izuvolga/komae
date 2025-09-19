@@ -221,6 +221,12 @@ export const komaeDarkTheme = createTheme({
       disabled: '#6b7280',
     },
     divider: '#374151',
+    action: { // AssetLibrary の + ボタンの色調整用
+      hover: '#4b5563', // ダークモードでのホバー色（より明るいグレー）
+      selected: '#6b7280', // 選択時の色
+      disabled: '#374151', // 無効時の色
+      disabledBackground: '#1f2937', // 無効時の背景色
+    },
   },
   components: {
     ...komaeTheme.components,
@@ -294,6 +300,30 @@ export const komaeDarkTheme = createTheme({
           color: '#6b7280', // 未選択時の色
           '&.Mui-checked': {
             color: '#3b82f6', // 選択時の色
+          },
+        },
+      },
+    },
+    MuiMenu: { // + ボタンのメニュー用スタイル調整
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#1f2937', // ダークモードでのメニュー背景色
+          border: '1px solid #374151', // ボーダー色
+        },
+      },
+    },
+    MuiMenuItem: { // + ボタンのメニュー用スタイル調整
+      styleOverrides: {
+        root: {
+          color: '#f9fafb', // ダークモードでのメニューアイテムテキスト色
+          '&:hover': {
+            backgroundColor: '#374151', // ホバー時の背景色
+          },
+          '&.Mui-selected': {
+            backgroundColor: '#4b5563', // 選択時の背景色
+            '&:hover': {
+              backgroundColor: '#6b7280', // 選択時のホバー背景色
+            },
           },
         },
       },
