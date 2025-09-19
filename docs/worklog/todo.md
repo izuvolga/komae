@@ -64,8 +64,8 @@
   - [x]: CustomAssetManagementModal.tsx のカスタムアセットの項目ですが、ダークモードだとカスタムアセットのバージョン番号が見えないです。バージョンを囲む領域が明るい色にもかかわらず、明るい文字が使われています。また、ダークモードだとカスタムアセットの項目自体を囲む四角形がマウスでホバーしたときに明るくなりすぎます。
   - [x]: CustomAssetManagementModal.tsx の Parameters: の下にあるパラメータ名の箇所が見にくいです。明るい背景に、明るい文字が使われています。
 - [x]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできないです。Custom Assets と Asset Details の２つの領域に左右で分かれていると思いますが、いずれもスクロールができないです。独立してスクルロールできるようにしてください。
+- [x]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
 - [ ]: Font Management 画面の上の方が見切れている
-- [ ]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
 
 ## CustomAssetManagementModal
 CustomAssetManagementModal なんですが、右側の領域から、以下の 4 項目を消してください。
