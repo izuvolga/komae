@@ -12,22 +12,8 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
-
-interface CustomAssetInfo {
-  id: string;
-  name: string;
-  type: string;
-  version: string;
-  author: string;
-  description: string;
-  parameters: Array<{
-    name: string;
-    type: 'number' | 'string';
-    defaultValue: number | string;
-  }>;
-  filePath: string;
-  addedAt: string;
-}
+import { CustomAssetInfo } from '../../../main/services/CustomAssetManager';
+import { Warning } from '@mui/icons-material';
 
 interface CustomAssetManagementModalProps {
   isOpen: boolean;
@@ -47,6 +33,9 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewCode, setPreviewCode] = useState<string>('');
+  const [svgPreview, setSvgPreview] = useState<string | null>(null);
+  const [svgError, setSvgError] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
   // data-theme属性の設定
   useEffect(() => {
@@ -147,6 +136,11 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
   const handleAssetSelect = (assetId: string) => {
     setSelectedAssetId(assetId);
     handlePreviewCode(assetId);
+
+    const asset = customAssets.find(a => a.id === assetId);
+    if (asset) {
+      generatePreview(asset);
+    }
   };
 
   const handleCreateDynamicSVG = () => {
@@ -160,6 +154,38 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const generatePreview = async (asset: CustomAssetInfo) => {
+    try {
+      setIsGeneratingPreview(true);
+      setSvgError(null);
+      setSvgPreview(null);
+
+      // デフォルトパラメータを準備
+      const defaultParams: Record<string, any> = {};
+      asset.parameters.forEach(param => {
+        defaultParams[param.name] = param.defaultValue;
+      });
+
+      // 既存のCustomAssetManager APIを使用してSVGを生成
+      const svgContent = await window.electronAPI.customAsset.generateSVG(
+        asset.id,
+        defaultParams
+      );
+
+      if (svgContent && typeof svgContent === 'string') {
+        // Wrap in <svg>
+        const svg = `<svg width="100%" height="100%" viewBox="0 0 ${asset.width} ${asset.height}" xmlns="http://www.w3.org/2000/svg">${svgContent}</svg>`;
+        setSvgPreview(svg);
+      } else {
+        setSvgError('CustomAssetからSVGコンテンツを生成できませんでした');
+      }
+    } catch (error) {
+      setSvgError(error instanceof Error ? error.message : 'プレビューの生成でエラーが発生しました');
+    } finally {
+      setIsGeneratingPreview(false);
+    }
   };
 
   const selectedAsset = customAssets.find(a => a.id === selectedAssetId);
@@ -308,6 +334,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                             'No parameters'
                           }
                         </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{asset.width}x{asset.height}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>Added: {formatDate(asset.addedAt)}</Typography>
                       </Box>
                     </Box>
@@ -321,25 +348,57 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                 <>
                   <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>Asset Details</Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto', pr: 1 }}>
+
+                    {/* Preview Section */}
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Name:</Typography>
-                      <Typography variant="body2">{selectedAsset.name}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Type:</Typography>
-                      <Typography variant="body2">{selectedAsset.type}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Version:</Typography>
-                      <Typography variant="body2">{selectedAsset.version}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Author:</Typography>
-                      <Typography variant="body2">{selectedAsset.author}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Description:</Typography>
-                      <Typography variant="body2">{selectedAsset.description}</Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Preview:</Typography>
+                      <Box sx={{
+                        bgcolor: 'action.hover',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        p: 2,
+                        minHeight: '200px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {isGeneratingPreview ? (
+                          <Typography variant="body2" color="text.secondary">Generating preview...</Typography>
+                        ) : svgError ? (
+                          <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 1,
+                            color: 'error.main'
+                          }}>
+                            <Typography variant="h4"><Warning /></Typography>
+                            <Typography variant="body2" textAlign="center">{svgError}</Typography>
+                          </Box>
+                        ) : svgPreview ? (
+                          <Box sx={{
+                            width: '100%',
+                            height: '200px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <div
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              dangerouslySetInnerHTML={{ __html: svgPreview }}
+                            />
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">No preview available</Typography>
+                        )}
+                      </Box>
                     </Box>
 
                     {selectedAsset.parameters.length > 0 && (
@@ -353,9 +412,11 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                               gap: 1,
                               p: 1,
                               bgcolor: 'action.hover',
-                              borderRadius: 1
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider'
                             }}>
-                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{param.name}</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>{param.name}</Typography>
                               <Typography variant="body2" sx={{ color: 'text.secondary' }}>({param.type})</Typography>
                               <Typography variant="body2" sx={{ color: 'primary.main' }}>= {String(param.defaultValue)}</Typography>
                             </Box>
