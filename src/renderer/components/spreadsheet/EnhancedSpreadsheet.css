@@ -565,7 +565,7 @@
   border-style: solid;
   border-width: 0 12px 12px 0;
   border-color: transparent #007bff transparent transparent;
-  z-index: 10;
+  z-index: 7; /* spreadsheet-header よりも低い */
   pointer-events: none;
 }
 
