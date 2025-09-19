@@ -211,6 +211,12 @@ export const komaeDarkTheme = createTheme({
   palette: {
     ...komaeTheme.palette,
     mode: 'dark',
+    primary: {
+      main: '#60a5fa', // ダークモードでより明るい青色（blue-400相当）
+      light: '#93c5fd', // さらに明るい青色（blue-300相当）
+      dark: '#3b82f6', // 元の青色
+      contrastText: '#ffffff',
+    },
     background: {
       default: '#111827',
       paper: '#111827',
@@ -355,18 +361,18 @@ export const komaeDarkTheme = createTheme({
     MuiSlider: {
       styleOverrides: {
         root: {
-          color: '#3b82f6', // ダークモードでのスライダーメイン色
+          color: '#60a5fa', // ダークモードでのスライダーメイン色（明るい青）
         },
         rail: {
           backgroundColor: '#4b5563', // ダークモードでのレール色
         },
         track: {
-          backgroundColor: '#3b82f6', // ダークモードでのトラック色
+          backgroundColor: '#60a5fa', // ダークモードでのトラック色（明るい青）
         },
         thumb: {
-          backgroundColor: '#3b82f6', // ダークモードでのつまみ色
+          backgroundColor: '#60a5fa', // ダークモードでのつまみ色（明るい青）
           '&:hover': {
-            boxShadow: '0 0 0 8px rgba(59, 130, 246, 0.16)',
+            boxShadow: '0 0 0 8px rgba(96, 165, 250, 0.16)', // 明るい青に対応
           },
         },
         valueLabel: {

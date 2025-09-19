@@ -53,8 +53,8 @@
   - [x]: DynamicVectorEditModal の「Opacity」も暗くてみにくいですね。
   - [x]: DynamicVectorEditModal の @parameters の見出し以下にあるパラメータ名、型（楕円形で囲まれているが、その楕円）が見にくいいです。また、"Original Width / Height" もみづらいです。いずれも文字が暗いです。
   - [x]: ImageEditModal の「縦横比を元画像にあわせる」
-  - [ ]: ImageEditModal の「Mask Edit Mode」も見づらい
-  - [ ]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
+  - [x]: ImageEditModal の「Mask Edit Mode」も青色ですが、ダークモードだと若干見づらいので少し明るくしてください。
+  - [x]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
   - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身も見れないし、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる
   - [ ]: TextEditModal の「文脈・用途」の箇所。
   - [ ]: VectorEditModal/DynamicVectorEditModal/TextEditModal/ImageEditModal の左側のプレビュー領域のキャンバスの外側はダークモードでは黒色でよいのでは
