@@ -67,6 +67,24 @@
 - [ ]: Font Management 画面の上の方が見切れている
 - [ ]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
 
+## CustomAssetManagementModal
+CustomAssetManagementModal なんですが、右側の領域から、以下の 4 項目を消してください。
+- Type
+- Version
+- Author
+- Description
+
+なぜなら、すでに左側のCustom Assets 配下に表示されているためです。
+その代わり、右側には
+- Preview (新項目)
+- Parameters
+- Code Preview
+
+の項目を追加してください。
+Preview は、デフォルトのパラメータで DynamicVectorAsset のプレビューをしてください。
+プレビュー画面は、既存の DynamicVectorEditModal のようにしてください。ただし、キャンバスサイズは、
+もし CustomAsset の @height と @width が既存で存在すればそれを尊重して利用し、なければ 300 x 300 の正方形内部に描画してください。
+
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
   - ./docs/design/html-export.md の "HTML Viwer" の見出し参照
