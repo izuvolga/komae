@@ -867,7 +867,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   // ValueAssetインライン編集のハンドラー
   const handleStartValueInlineEdit = (assetInstance: ValueAssetInstance, asset: ValueAsset, page: Page) => {
-    console.log("[handleStartValueInlineEdit] Page for inline edit:", page);
     // 数式型の場合は生の値を取得、それ以外は評価後の値を取得
     const currentValue = asset.value_type === 'formula'
       ? getRawValueAssetValue(asset, page)
@@ -1184,7 +1183,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   // ドラッグ&ドロップ関連のuseCallbackで最適化された関数
   const handleColumnDragMove = useCallback((e: MouseEvent) => {
-    console.log('Column drag move', e.clientX);
 
     const mouseX = e.clientX;
     const assetLibraryOffset = showAssetLibrary ? assetLibraryWidth : 0;
@@ -1192,8 +1190,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     setColumnDragState(prev => {
       if (!prev.isDragging) return prev;
-
-      console.log('[EnhancedSpreadsheet] handleColumnDragMove with prev.draggedAssetIndex:', prev.draggedAssetIndex);
 
       const calculator = createColumnDragCalculator(
         prev.originalRect,
@@ -1213,8 +1209,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
   }, [showAssetLibrary, assetLibraryWidth, visibleAssets.length]);
 
   const handleColumnDragEnd = useCallback((e: MouseEvent) => {
-    console.log('Column drag end');
-
     setColumnDragState(prev => {
       if (!prev.isDragging) return prev;
 
@@ -1255,15 +1249,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
         }
         
         newAllAssetIds.splice(actualInsertIndexInAll, 0, draggedAssetIdInAll);
-        
-        console.log(`[handleColumnDragEnd] 全アセット順序変更:`, {
-          draggedAssetId: draggedAssetIdInAll,
-          draggedIndexInAll,
-          insertIndexInAll,
-          actualInsertIndexInAll,
-          visibleDraggedIndex: draggedAssetIndex,
-          visibleInsertIndex: insertIndex
-        });
         
         reorderAssets(newAllAssetIds);
       }
