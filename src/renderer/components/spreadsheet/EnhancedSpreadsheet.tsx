@@ -322,7 +322,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
       if (asset.type === 'TextAsset') {
         const supportedLanguages = project.metadata.supportedLanguages || ['ja'];
         const multilingual_text: Record<string, string> = {};
-
         // 各対応言語に対して空文字列で初期化
         supportedLanguages.forEach(langCode => {
           multilingual_text[langCode] = '';

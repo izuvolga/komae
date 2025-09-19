@@ -193,7 +193,33 @@ export const useProjectStore = create<ProjectStore>()(
         // Asset Actions
         addAsset: (asset) => set((state) => {
           if (!state.project) return;
+
+          // アセットを追加
           state.project.assets[asset.id] = asset;
+
+          // 既存の全ページに新しいアセットのインスタンスを作成
+          state.project.pages.forEach(page => {
+            const instanceId = `instance-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            let newInstance: AssetInstance = {
+              id: instanceId,
+              asset_id: asset.id,
+            };
+
+            // TODO: EnhancedSpreadsheet にも同様の処理があるため、共通化を検討
+            // TextAssetの場合は multilingual_text を初期化
+            if (asset.type === 'TextAsset') {
+              const supportedLanguages = state.project!.metadata.supportedLanguages || ['ja'];
+              const multilingual_text: Record<string, string> = {};
+              // 各対応言語に対して空文字列で初期化
+              supportedLanguages.forEach(langCode => {
+                multilingual_text[langCode] = '';
+              });
+              (newInstance as TextAssetInstance).multilingual_text = multilingual_text;
+            }
+
+            page.asset_instances[instanceId] = newInstance;
+          });
+
           state.app.isDirty = true;
         }),
 
