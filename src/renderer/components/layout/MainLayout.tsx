@@ -1,4 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import {
+  Button,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  Tooltip,
+} from '@mui/material';
+import {
+  Edit,
+  Notifications,
+  KeyboardArrowDown,
+} from '@mui/icons-material';
+import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
@@ -7,7 +21,6 @@ import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
 import { FontManagementModal } from '../font/FontManagementModal';
 import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import { BulkEditModal } from '../text/BulkEditModal';
-import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { useTheme } from '../../../theme/ThemeContext';
@@ -51,7 +64,6 @@ export const MainLayout: React.FC = () => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   // テーマ変更時にCSS変数を設定
   useEffect(() => {
@@ -220,20 +232,6 @@ export const MainLayout: React.FC = () => {
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // 言語ドロップダウンの外側クリック処理
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('.language-selector-container')) {
-        setShowLanguageDropdown(false);
-      }
-    };
-
-    if (showLanguageDropdown) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [showLanguageDropdown]);
 
   // 旧式のプロジェクト作成（ウェルカム画面のボタン用）
   const handleCreateProjectLegacy = async () => {
@@ -487,107 +485,110 @@ export const MainLayout: React.FC = () => {
             <div className="toolbar-section left-section">
               {/* Asset非表示時：プロジェクト名の左にボタン */}
               {!showAssetLibrary && (
-                <button 
-                  className="panel-toggle-btn asset-open-btn"
-                  onClick={toggleAssetLibrary}
-                  title="アセットライブラリを開く"
-                >
-                  <PanelExpandLeftIcon />
-                </button>
+                <Tooltip title="アセットライブラリを開く">
+                  <IconButton
+                    className="panel-toggle-btn asset-open-btn"
+                    onClick={toggleAssetLibrary}
+                    size="small"
+                  >
+                    <PanelExpandLeftIcon />
+                  </IconButton>
+                </Tooltip>
               )}
               
               {/* プロジェクト編集ボタン */}
-              <button 
-                className="project-edit-btn"
-                onClick={() => {
-                  addNotification({
-                    type: 'info',
-                    title: 'プロジェクト設定',
-                    message: 'プロジェクト設定機能は現在開発中です',
-                    autoClose: true,
-                    duration: 3000,
-                  });
-                }}
-                title="プロジェクト設定を編集"
-              >
-                Project
-              </button>
+              <Tooltip title="プロジェクト設定を編集">
+                <Button
+                  className="project-edit-btn"
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Edit />}
+                  onClick={() => {
+                    addNotification({
+                      type: 'info',
+                      title: 'プロジェクト設定',
+                      message: 'プロジェクト設定機能は現在開発中です',
+                      autoClose: true,
+                      duration: 3000,
+                    });
+                  }}
+                  sx={{ fontSize: '0.75rem' }}
+                >
+                  Project
+                </Button>
+              </Tooltip>
               
               {/* 言語切り替えドロップダウン */}
               <div className="language-selector-container">
-                <div className="language-selector">
-                  <span className="language-display">
-                    {getLanguageDisplayName(getCurrentLanguage())}
-                  </span>
-                  <button
-                    className="language-dropdown-btn"
-                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                    title="表示言語を切り替え"
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <Select
+                    value={getCurrentLanguage()}
+                    onChange={(event) => {
+                      const newLanguage = event.target.value as string;
+                      setCurrentLanguage(newLanguage);
+                      addNotification({
+                        type: 'info',
+                        title: '言語切り替え',
+                        message: `表示言語を${getLanguageDisplayName(newLanguage)}に変更しました`,
+                        autoClose: true,
+                        duration: 2000,
+                      });
+                    }}
+                    IconComponent={KeyboardArrowDown}
+                    sx={{
+                      fontSize: '0.75rem',
+                      height: 28,
+                      '& .MuiSelect-select': {
+                        py: 0.5,
+                        px: 1
+                      }
+                    }}
                   >
-                    <span className="dropdown-arrow">▼</span>
-                  </button>
-                </div>
-                
-                {showLanguageDropdown && (
-                  <div className="language-dropdown">
                     {getSupportedLanguages().map(langCode => (
-                      <div
-                        key={langCode}
-                        className={`language-dropdown-item ${
-                          langCode === getCurrentLanguage() ? 'active' : ''
-                        }`}
-                        onClick={() => {
-                          setCurrentLanguage(langCode);
-                          setShowLanguageDropdown(false);
-                          addNotification({
-                            type: 'info',
-                            title: '言語切り替え',
-                            message: `表示言語を${getLanguageDisplayName(langCode)}に変更しました`,
-                            autoClose: true,
-                            duration: 2000,
-                          });
-                        }}
-                      >
+                      <MenuItem key={langCode} value={langCode} sx={{ fontSize: '0.813rem' }}>
                         {getLanguageDisplayName(langCode)}
-                      </div>
+                      </MenuItem>
                     ))}
-                  </div>
-                )}
+                  </Select>
+                </FormControl>
               </div>
               
               {/* TextAsset Bulk Edit ボタン */}
-              <button 
-                className="bulk-edit-btn"
-                onClick={() => setShowBulkEditModal(true)}
-                title="テキストアセット一括編集"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M2 2h12v2H9v10H7V4H2V2z"/>
-                </svg>
-              </button>
+              <Tooltip title="テキストアセット一括編集">
+                <IconButton
+                  className="bulk-edit-btn"
+                  onClick={() => setShowBulkEditModal(true)}
+                  size="small"
+                >
+                  <Edit />
+                </IconButton>
+              </Tooltip>
               
             </div>
             
             <div className="toolbar-section right-section">
               {/* テスト用通知ボタン（開発中のみ） */}
-              <button 
-                className="btn-secondary"
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Notifications />}
                 onClick={handleTestNotification}
-                title="テスト通知を表示"
-                style={{ marginRight: '8px', fontSize: '12px', padding: '4px 8px', display: 'none' }} // 開発中のみ表示
+                sx={{ display: 'none', fontSize: '0.75rem' }} // Hidden in production
               >
-                📢 通知テスト
-              </button>
-              
+                通知テスト
+              </Button>
+
               {/* Preview非表示時：プロジェクト名の右にボタン */}
               {!showPreview && (
-                <button 
-                  className="panel-toggle-btn preview-open-btn"
-                  onClick={togglePreview}
-                  title="プレビューウィンドウを開く"
-                >
-                  <PanelExpandRightIcon />
-                </button>
+                <Tooltip title="プレビューウィンドウを開く">
+                  <IconButton
+                    className="panel-toggle-btn preview-open-btn"
+                    onClick={togglePreview}
+                    size="small"
+                  >
+                    <PanelExpandRightIcon />
+                  </IconButton>
+                </Tooltip>
               )}
             </div>
           </div>
