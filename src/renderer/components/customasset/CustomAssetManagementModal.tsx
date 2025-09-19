@@ -369,7 +369,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                       <Box sx={{
                         bgcolor: 'action.hover',
                         border: '1px solid',
-                        borderColor: 'grey.300',
+                        borderColor: 'divider',
                         borderRadius: 1,
                         p: 2,
                         fontFamily: 'monospace',
