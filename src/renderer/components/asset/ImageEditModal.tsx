@@ -648,7 +648,18 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     control={
                       <Checkbox
                         checked={aspectRatioLocked}
-                        onChange={(e) => setAspectRatioLocked(e.target.checked)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          setAspectRatioLocked(isChecked);
+
+                          if (isChecked) {
+                            // チェックされた時、元画像のアスペクト比に戻す
+                            const originalAspectRatio = asset.original_width / asset.original_height;
+                            const currentWidth = currentSize.width;
+                            const newHeight = currentWidth / originalAspectRatio;
+                            updateSize(currentWidth, newHeight);
+                          }
+                        }}
                         size="small"
                       />
                     }
