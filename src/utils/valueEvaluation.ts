@@ -85,10 +85,12 @@ export function getValueAssetValue(valueAsset: ValueAsset, page: Page): any {
   const instance = Object.values(page.asset_instances).find(
     inst => inst.asset_id === valueAsset.id
   ) as ValueAssetInstance | undefined;
+  
   // インスタンスでオーバーライドされている場合はそちらを使用
   if (instance && instance.override_value !== undefined) {
     return instance.override_value;
   }
+  
   return valueAsset.initial_value;
 }
 
@@ -243,28 +245,55 @@ export function getEffectiveValueAssetValue(
     return '#ERROR';
   }
 
-  let rawValue: any = getValueAssetValue(valueAsset, page);
+  // まず現在ページでのValueAssetInstanceを確認
+  const currentInstance = Object.values(page.asset_instances).find(
+    inst => inst.asset_id === valueAsset.id
+  ) as ValueAssetInstance | undefined;
+
+  // 現在ページにoverride_valueがある場合は、それを最優先
+  if (currentInstance && currentInstance.override_value !== undefined) {
+    let rawValue = currentInstance.override_value;
+
+    // 数式の場合は評価
+    if (valueAsset.value_type === 'formula') {
+      const result = evaluateFormula(rawValue, project, page, pageIndex);
+      return result.value;
+    }
+
+    // 数値型の場合は数値に変換
+    if (valueAsset.value_type === 'number') {
+      const numValue = parseFloat(rawValue);
+      return isNaN(numValue) ? 0 : numValue;
+    }
+
+    // 文字列型の場合はそのまま返す
+    return String(rawValue);
+  }
+
+  // 現在ページにoverride_valueがない場合のみ継承を検討
+  let rawValue: any = valueAsset.initial_value;
+
+  /**
+   * TODO: ページ数に対してO(n^2)のループになっており、パフォーマンスに影響があるため、改善する
+   * 新規ページで前のページの値を継承する場合、それよりも前のページを順番にチェック
+   * - ValueAssetInstance の値があればそれを使用
+   * - 0 ページまでチェックして、なければ ValueAsset の初期値を使用
+   */
   if (valueAsset.new_page_behavior === 'inherit') {
-    /**
-     * TODO: ページ数に対してO(n^2)のループになっており、パフォーマンスに影響があるため、改善する
-     * 新規ページで前のページの値を継承する場合、それよりも前のページを順番にチェック
-     * - ValueAssetInstance の値があればそれを使用
-     * - 0 ページまでチェックして、なければ ValueAsset の初期値を使用
-     */
     let currentPageIndex = pageIndex - 1;
     while (currentPageIndex >= 0) {
       const previousPage = project.pages[currentPageIndex];
       if (previousPage) {
         for (const instance of Object.values(previousPage.asset_instances)) {
           if (instance.asset_id !== valueAsset.id) continue;
-          // ValueAssetInstance にキャストできるか確認
           if (!(instance as ValueAssetInstance)) continue;
-          // ValueAssetInstance のオーバーライド値を使用
           if ((instance as ValueAssetInstance).override_value !== undefined) {
             rawValue = (instance as ValueAssetInstance).override_value;
             break;
           }
         }
+        // 前のページで値が見つかったらループ終了
+        if (rawValue !== valueAsset.initial_value) break;
       }
       currentPageIndex--;
     }
