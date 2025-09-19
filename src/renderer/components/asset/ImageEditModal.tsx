@@ -795,54 +795,32 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="caption">X</Typography>
-                        <TextField
-                          type="text"
-                          value={tempInputValues[`mask_${index}_x`] ?? formatNumberForDisplay(point[0])}
-                          onChange={(e) => {
-                            const sanitized = validateNumericInput(e.target.value, true);
-                            setTempInputValues(prev => ({ ...prev, [`mask_${index}_x`]: sanitized }));
-                          }}
-                          onBlur={(e) => {
-                            const validated = validateAndSetNumericValue(e.target.value, -9999, point[0]);
+                        <NumericInput
+                          value={point[0]}
+                          onChange={(value) => {
                             const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                            newMask[index] = [validated, point[1]];
+                            newMask[index] = [value, point[1]];
                             updateMask(newMask);
-                            setTempInputValues(prev => {
-                              const newTemp = { ...prev };
-                              delete newTemp[`mask_${index}_x`];
-                              return newTemp;
-                            });
                           }}
-                          onKeyDown={handleKeyDown}
-                          fullWidth
-                          size="small"
-                          variant="outlined"
+                          min={-9999}
+                          max={9999}
+                          decimals={2}
+                          className="small"
                         />
                       </Box>
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="caption">Y</Typography>
-                        <TextField
-                          type="text"
-                          value={tempInputValues[`mask_${index}_y`] ?? formatNumberForDisplay(point[1])}
-                          onChange={(e) => {
-                            const sanitized = validateNumericInput(e.target.value, true);
-                            setTempInputValues(prev => ({ ...prev, [`mask_${index}_y`]: sanitized }));
-                          }}
-                          onBlur={(e) => {
-                            const validated = validateAndSetNumericValue(e.target.value, -9999, point[1]);
+                        <NumericInput
+                          value={point[1]}
+                          onChange={(value) => {
                             const newMask = [...currentMask] as [[number, number], [number, number], [number, number], [number, number]];
-                            newMask[index] = [point[0], validated];
+                            newMask[index] = [point[0], value];
                             updateMask(newMask);
-                            setTempInputValues(prev => {
-                              const newTemp = { ...prev };
-                              delete newTemp[`mask_${index}_y`];
-                              return newTemp;
-                            });
                           }}
-                          onKeyDown={handleKeyDown}
-                          fullWidth
-                          size="small"
-                          variant="outlined"
+                          min={-9999}
+                          max={9999}
+                          decimals={2}
+                          className="small"
                         />
                       </Box>
                     </Box>
