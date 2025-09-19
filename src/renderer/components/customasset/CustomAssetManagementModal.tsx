@@ -352,7 +352,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                               alignItems: 'center',
                               gap: 1,
                               p: 1,
-                              bgcolor: 'grey.50',
+                              bgcolor: 'action.hover',
                               borderRadius: 1
                             }}>
                               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{param.name}</Typography>
