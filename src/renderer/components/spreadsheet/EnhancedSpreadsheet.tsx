@@ -854,7 +854,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
       pageId: null,
       text: '',
     });
-    console.log("[handleSaveInlineEdit] Saved text:", inlineEditState.text);
   };
 
   const handleCancelInlineEdit = () => {
@@ -1676,7 +1675,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
                                 // Enter単体: 保存してインライン編集終了
                                 e.preventDefault();
                                 e.stopPropagation();
-                                console.log('Enter key pressed, saving inline edit');
                                 // 即座に編集状態を終了してから保存
                                 const currentText = (e.target as HTMLTextAreaElement).value;
                                 setInlineEditState({

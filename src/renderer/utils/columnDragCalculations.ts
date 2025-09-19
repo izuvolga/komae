@@ -12,28 +12,53 @@ export interface ColumnDragCalculationConfig {
 
 export class ColumnDragCalculator {
   private readonly columnWidth: number;
-  private readonly baseX: number;
+  private readonly fallbackBaseX: number;
   private readonly maxIndex: number;
   private readonly draggedAssetIndex: number | null;
+  private readonly assetLibraryOffset: number;
 
-  // 定数（将来的にはDOMから動的取得したい）
+  // 定数（フォールバック用）
   private readonly FIRST_COLUMN_WIDTH = 70;   // ページ番号列
   private readonly SECOND_COLUMN_WIDTH = 120; // プレビュー列
 
   constructor(config: ColumnDragCalculationConfig) {
     this.columnWidth = config.originalRect.width;
-    this.baseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
+    this.assetLibraryOffset = config.assetLibraryOffset;
+    this.fallbackBaseX = this.FIRST_COLUMN_WIDTH + this.SECOND_COLUMN_WIDTH + config.assetLibraryOffset;
     this.maxIndex = Math.max(0, config.visibleAssetsCount); // 末尾の位置も許可
     this.draggedAssetIndex = config.draggedAssetIndex ?? null;
+  }
+
+  /**
+   * 実際のDOM要素から基準X座標を取得
+   */
+  private getBaseXFromDOM(): number {
+    const firstAssetHeader = document.querySelector('.asset-header');
+    if (firstAssetHeader) {
+      return firstAssetHeader.getBoundingClientRect().left;
+    }
+    console.warn('[ColumnDragCalculator] Could not find .asset-header, using fallback baseX');
+    return this.fallbackBaseX;
   }
 
   /**
    * マウスX座標から挿入インデックスを計算
    */
   mouseXToInsertIndex(mouseX: number): number {
-    const relativeX = mouseX - this.baseX;
-    const rawIndex = Math.round(relativeX / this.columnWidth);
-    const clampedIndex = Math.max(0, Math.min(this.maxIndex, rawIndex));
+    const baseX = this.getBaseXFromDOM();
+    const relativeX = mouseX - baseX;
+
+    // より精密な境界判定
+    const columnIndex = Math.floor(relativeX / this.columnWidth);
+    const columnRemainder = relativeX % this.columnWidth;
+
+    // 列の中央より右側なら次の位置に挿入
+    const insertIndex = columnRemainder > this.columnWidth / 2
+      ? columnIndex + 1
+      : columnIndex;
+
+    const clampedIndex = Math.max(0, Math.min(this.maxIndex, insertIndex));
+
     return clampedIndex;
   }
 
@@ -41,17 +66,18 @@ export class ColumnDragCalculator {
    * 挿入インデックスからピクセル位置を計算
    */
   insertIndexToPixelLeft(insertIndex: number): number {
+    const baseX = this.getBaseXFromDOM();
     let pixelLeft: number;
 
     if (insertIndex === 0) {
       // 最初のアセット列の前
-      pixelLeft = this.baseX;
+      pixelLeft = baseX;
     } else if (insertIndex >= this.maxIndex) {
       // 最後のアセット列の後（末尾の位置）
-      pixelLeft = this.baseX + this.maxIndex * this.columnWidth;
+      pixelLeft = baseX + this.maxIndex * this.columnWidth;
     } else {
       // 中間の位置
-      pixelLeft = this.baseX + insertIndex * this.columnWidth;
+      pixelLeft = baseX + insertIndex * this.columnWidth;
     }
 
     return pixelLeft;
@@ -86,10 +112,12 @@ export class ColumnDragCalculator {
   getDebugInfo() {
     return {
       columnWidth: this.columnWidth,
-      baseX: this.baseX,
+      fallbackBaseX: this.fallbackBaseX,
+      actualBaseX: this.getBaseXFromDOM(),
       maxIndex: this.maxIndex,
       firstColumnWidth: this.FIRST_COLUMN_WIDTH,
-      secondColumnWidth: this.SECOND_COLUMN_WIDTH
+      secondColumnWidth: this.SECOND_COLUMN_WIDTH,
+      assetLibraryOffset: this.assetLibraryOffset
     };
   }
 }

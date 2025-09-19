@@ -83,13 +83,15 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
   // 挿入位置の計算（新しいユーティリティクラスを使用）
   const getInsertIndicatorLeft = () => {
     const calculator = createColumnDragCalculator(originalRect, assetLibraryOffset, visibleAssetsCount, draggedAssetIndex);
-    
+
     if (!calculator) {
       console.warn('[ColumnDragOverlay] Failed to create calculator - originalRect is null');
       return 0;
     }
-    
-    return calculator.insertIndexToPixelLeft(insertIndex);
+
+    const pixelLeft = calculator.insertIndexToPixelLeft(insertIndex);
+
+    return pixelLeft;
   };
 
   // 位置変更があるかどうかを判定
