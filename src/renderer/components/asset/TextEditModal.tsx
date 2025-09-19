@@ -16,8 +16,9 @@ import {
   Tab,
   Chip,
   Divider,
+  Tooltip,
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
@@ -778,7 +779,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 </Box>
                 <Box sx={{ mb: 2 }}>
                   <TextField
-                    label="確認用テキスト"
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        確認用テキスト
+                        <Tooltip title="テキストの内容は各ページで個別に設定できます。">
+                          <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                        </Tooltip>
+                      </Box>
+                    }
                     value={getCurrentValue('text')}
                     onChange={(e) => setCurrentValue({text: e.target.value})}
                     multiline
@@ -787,13 +795,17 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     variant="outlined"
                     size="small"
                   />
-                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                    テキストの内容は各ページで個別に設定できます。
-                  </Typography>
                 </Box>
                 <Box sx={{ mb: 2 }}>
                   <TextField
-                    label="文脈・用途"
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        文脈・用途
+                        <Tooltip title="このテキストの用途や文脈をメモし、生成AIでの翻訳に役立てます。">
+                          <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                        </Tooltip>
+                      </Box>
+                    }
                     value={getCurrentValue('context')}
                     onChange={(e) => setCurrentValue({context: e.target.value})}
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
@@ -801,9 +813,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     variant="outlined"
                     size="small"
                   />
-                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                    このテキストの用途や文脈をメモし、生成AIでの翻訳に役立てます。
-                  </Typography>
                 </Box>
               </Box>
             )}
