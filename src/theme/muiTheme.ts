@@ -213,7 +213,7 @@ export const komaeDarkTheme = createTheme({
     mode: 'dark',
     background: {
       default: '#111827',
-      paper: '#1f2937',
+      paper: '#111827',
     },
     text: {
       primary: '#f9fafb',
@@ -221,5 +221,82 @@ export const komaeDarkTheme = createTheme({
       disabled: '#6b7280',
     },
     divider: '#374151',
+  },
+  components: {
+    ...komaeTheme.components,
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputLabel-root': {
+            color: '#d1d5db', // ダークモードでのラベル色
+            '&.Mui-focused': {
+              color: '#60a5fa', // フォーカス時のラベル色
+            },
+            '&.Mui-disabled': {
+              color: '#6b7280', // 無効時のラベル色
+            },
+          },
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '6px',
+            color: '#f9fafb', // 入力テキストの色
+            '& fieldset': {
+              borderColor: '#4b5563', // ダークモードでのボーダー色
+            },
+            '&:hover fieldset': {
+              borderColor: '#6b7280', // ホバー時のボーダー色
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#3b82f6',
+              borderWidth: '2px',
+            },
+          },
+          '& .MuiInputBase-input': {
+            color: '#f9fafb', // 入力値の色
+            '&::placeholder': {
+              color: '#9ca3af', // プレースホルダーの色
+              opacity: 1,
+            },
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '4px',
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            backgroundColor: '#374151', // ダークモードでのホバー色
+          },
+        },
+      },
+    },
+    MuiFormLabel: {
+      styleOverrides: {
+        root: {
+          color: '#d1d5db', // ダークモードでのラベル色
+          '&.Mui-focused': {
+            color: '#60a5fa', // フォーカス時の色
+          },
+        },
+      },
+    },
+    MuiFormControlLabel: {
+      styleOverrides: {
+        label: {
+          color: '#d1d5db', // ダークモードでのラベル色
+        },
+      },
+    },
+    MuiRadio: {
+      styleOverrides: {
+        root: {
+          color: '#6b7280', // 未選択時の色
+          '&.Mui-checked': {
+            color: '#3b82f6', // 選択時の色
+          },
+        },
+      },
+    },
   },
 });
