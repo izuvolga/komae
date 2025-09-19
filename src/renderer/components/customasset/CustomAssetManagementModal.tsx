@@ -276,20 +276,28 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                       sx={{
                         p: 2,
                         border: '1px solid',
-                        borderColor: selectedAssetId === asset.id ? 'primary.main' : 'grey.300',
+                        borderColor: selectedAssetId === asset.id ? 'primary.main' : 'divider',
                         borderRadius: 1,
                         mb: 1,
                         cursor: 'pointer',
-                        bgcolor: selectedAssetId === asset.id ? 'primary.50' : 'background.paper',
+                        bgcolor: selectedAssetId === asset.id ? 'action.selected' : 'background.paper',
                         '&:hover': {
                           borderColor: 'primary.main',
-                          bgcolor: 'grey.50'
+                          bgcolor: 'action.hover'
                         }
                       }}
                     >
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{asset.name}</Typography>
-                        <Typography variant="caption" sx={{ bgcolor: 'grey.100', px: 1, py: 0.5, borderRadius: 1 }}>v{asset.version}</Typography>
+                        <Typography variant="caption" sx={{
+                          bgcolor: 'action.hover',
+                          color: 'text.primary',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}>v{asset.version}</Typography>
                       </Box>
                       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>by {asset.author}</Typography>
                       <Typography variant="body2" sx={{ color: 'text.primary', mb: 1 }}>{asset.description}</Typography>
