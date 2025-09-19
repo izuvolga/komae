@@ -60,8 +60,8 @@
   - [x]: TextEditModal の「縁取りの色」「塗りの色」の文言が暗くて見にくいです
   - [x]: ValueAsset のヘルプマークの色が統一されていない？
   - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
-  - [ ]: CustomAssetManagementModal.tsx のバージョンが見えない。Asset Details の文言も見にくい。
-  - [ ]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」は、TextField ヘルプマークから参照できるように
+  - [x]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」は、TextField ヘルプマークから参照できるようにできますか。
+  - [x]: CustomAssetManagementModal.tsx のカスタムアセットの項目ですが、ダークモードだとカスタムアセットのバージョン番号が見えないです。バージョンを囲む領域が明るい色にもかかわらず、明るい文字が使われています。また、ダークモードだとカスタムアセットの項目自体を囲む四角形がマウスでホバーしたときに明るくなりすぎます。
 - [ ]: Font Management 画面の上の方が見切れている
 - [ ]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできない
 - [ ]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
@@ -74,6 +74,7 @@
 
 ## 大きめの改善
 - [x]: CSS をリファクタリングする
+- [ ]: プロジェクト作成時に、キャンバスの色を指定できるようにする
 - [ ]: ImageAsset で参照されている画像に同じものを指定可能にする
 - [ ]: アセット同士のグループ化機能
 - [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
