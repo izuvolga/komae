@@ -45,13 +45,14 @@
 
 ## デザイン
 - ダークモードでデザインが見えなくなっている
-  - [ ]: 全般的に、MUI の TextField のラベルの色が見えません。文字の色が暗いのに、ダークモードで背景が暗いため。全 EditModal です。どこで設定されていますか？
-  - [ ]: Asset Library のアセット追加の + ボタン自体、明るめの灰色が良いと思う
-  - [ ]: Asset Library の + ボタンのプルダウンが一切見えない。文字と背景色が同じ？
-  - [ ]: ValueEditModal の「アセット名」「値の型」「初期値」「新規ページでの動作」「初期値にリセット」「前のページの値を継承」文言全般
-  - [ ]: VectorEditModal の「アセット名」「ファイルパス」「元サイズ」、@src/renderer/components/common/NumericInput.tsx の上下の矢印、「Default Opacity」もだいぶ見にくい
-  - [ ]: DynamicVectorEditModal の「Name」「ValuAesset参照」のプルダウンボックス。「Opacity」も見づらい。
-  - [ ]: ImageEditModal の「縦横比を元画像にあわせる」
+  - [x]: 全般的に、MUI の TextField のラベルの色が見えません。文字の色が暗いのに、ダークモードで背景が暗いため。全 EditModal です。どこで設定されていますか？ => src/theme/muiTheme.ts で設定されている
+  - [x]: ValueEditModal の「値の型」「新規ページでの動作」「初期値にリセット」「前のページの値を継承」の文言も見にくい状態です。文字が暗いです。
+  - [x]: Asset Library のアセット追加の + ボタン自体、明るめの灰色が良いと思うのですが、色は変更可能ですか。
+  - [x]: Asset Library の + ボタン押下後のプルダウンが一切見えないです。文字と背景色どちらも暗い状況です。
+  - [x]: VectorEditModal の「アセット名」「ファイルパス」「元サイズ」、@src/renderer/components/common/NumericInput.tsx の上下の矢印、「Default Opacity」もだいぶ見にくい
+  - [x]: DynamicVectorEditModal の「Opacity」も暗くてみにくいですね。
+  - [x]: DynamicVectorEditModal の @parameters の見出し以下にあるパラメータ名、型（楕円形で囲まれているが、その楕円）が見にくいいです。また、"Original Width / Height" もみづらいです。いずれも文字が暗いです。
+  - [x]: ImageEditModal の「縦横比を元画像にあわせる」
   - [ ]: ImageEditModal の「Mask Edit Mode」も見づらい
   - [ ]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
   - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身も見れないし、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる

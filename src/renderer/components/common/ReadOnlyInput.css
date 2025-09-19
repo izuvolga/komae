@@ -24,13 +24,24 @@
   word-break: break-all;
 }
 
+/* ダークモード対応 */
+[data-theme="dark"] .readonly-input-label {
+  color: #d1d5db; /* ダークモードでのラベル色 */
+}
+
+[data-theme="dark"] .readonly-input-display {
+  background-color: #374151; /* ダークモードでの背景色 */
+  border-color: #4b5563; /* ダークモードでのボーダー色 */
+  color: #f9fafb; /* ダークモードでのテキスト色 */
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .readonly-input-display {
     font-size: 13px;
     padding: 6px 10px;
   }
-  
+
   .readonly-input-label {
     font-size: 12px;
   }

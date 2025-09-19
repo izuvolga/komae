@@ -328,5 +328,52 @@ export const komaeDarkTheme = createTheme({
         },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#374151', // ダークモードでのChip背景色
+          color: '#d1d5db', // ダークモードでのChipテキスト色
+          border: '1px solid #4b5563', // ダークモードでのChipボーダー色
+          '&.MuiChip-outlined': {
+            backgroundColor: 'transparent',
+            borderColor: '#4b5563',
+            color: '#d1d5db',
+          },
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          color: 'inherit', // 親から色を継承（text.primaryまたはtext.secondaryが適用される）
+        },
+        body2: {
+          color: '#d1d5db', // body2（よく使われるラベル用）の色を明示的に設定
+        },
+      },
+    },
+    MuiSlider: {
+      styleOverrides: {
+        root: {
+          color: '#3b82f6', // ダークモードでのスライダーメイン色
+        },
+        rail: {
+          backgroundColor: '#4b5563', // ダークモードでのレール色
+        },
+        track: {
+          backgroundColor: '#3b82f6', // ダークモードでのトラック色
+        },
+        thumb: {
+          backgroundColor: '#3b82f6', // ダークモードでのつまみ色
+          '&:hover': {
+            boxShadow: '0 0 0 8px rgba(59, 130, 246, 0.16)',
+          },
+        },
+        valueLabel: {
+          backgroundColor: '#1f2937', // ダークモードでの値ラベル背景色
+          color: '#f9fafb', // ダークモードでの値ラベルテキスト色
+        },
+      },
+    },
   },
 });
