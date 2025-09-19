@@ -662,8 +662,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             width: 450,
             minWidth: 450,
             p: 2,
-            backgroundColor: '#f8f9fa',
-            borderRight: '1px solid #e9ecef',
+            backgroundColor: 'action.hover',
+            borderRight: '1px solid',
+            borderRightColor: 'divider',
             display: 'flex',
             flexDirection: 'column'
           }}>
