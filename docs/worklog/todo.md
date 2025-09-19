@@ -25,10 +25,43 @@
 - [x]: UI 変更。更新があったセルは ModeEdit -> BorderColor にして色も変更する。
 - [x]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
 - [x]: EnhancedSpreadSheet の位置の入れ替えロジックがおかしい
+- [x]: Library -> Custom Assets にサムネを表示する
+- [ ]: アセット ID、UUID は長過ぎます。データが冗長ですし、デバッグがしにくいです。ローカルなので衝突しないでしょう。
+  - "123abcde" みたいな七桁くらいで良いと思います。命名規則は以下で。
+  - ImageAsset -> img-123abcde
+  - ValueAsset -> val-123abcde
+  - TextAsset -> txt-123abcde
+  - VectorAsset -> vec-123abcde
+  - DynamicVectorAsset -> dvg-123abcde
+  - Instance になったら先頭に ins-(unix時刻)- をつける
+
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
-- [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
-- [ ]: Library -> Custom Assets にサムネを表示する
+- [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: EnhancedSpreadSheet を横方向に中途半端な位置にスクロールしたままにすると、列の入れ替えのときに半透明な四角が違和感のある位置に出る
+- [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
+- [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
+- [ ]: ImageEditModal の「縦横比を元画像にあわせる」が機能していない。単に現在のアスペクト比をキープするだけになっている。
+- [ ]: CustomAssetManagementModal.tsx に Dynamic SVG のプレビューも表示したほうが良いと思う。Asset Details の↓あたりに
+
+## デザイン
+- ダークモードでデザインが見えなくなっている
+  - [ ]: 全般的に、MUI の TextField のラベルの色が見えません。文字の色が暗いのに、ダークモードで背景が暗いため。全 EditModal です。どこで設定されていますか？
+  - [ ]: Asset Library のアセット追加の + ボタン自体、明るめの灰色が良いと思う
+  - [ ]: Asset Library の + ボタンのプルダウンが一切見えない。文字と背景色が同じ？
+  - [ ]: ValueEditModal の「アセット名」「値の型」「初期値」「新規ページでの動作」「初期値にリセット」「前のページの値を継承」文言全般
+  - [ ]: VectorEditModal の「アセット名」「ファイルパス」「元サイズ」、@src/renderer/components/common/NumericInput.tsx の上下の矢印、「Default Opacity」もだいぶ見にくい
+  - [ ]: DynamicVectorEditModal の「Name」「ValuAesset参照」のプルダウンボックス。「Opacity」も見づらい。
+  - [ ]: ImageEditModal の「縦横比を元画像にあわせる」
+  - [ ]: ImageEditModal の「Mask Edit Mode」も見づらい
+  - [ ]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
+  - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身も見れないし、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる
+  - [ ]: TextEditModal の「文脈・用途」の箇所。
+  - [ ]: VectorEditModal/DynamicVectorEditModal/TextEditModal/ImageEditModal の左側のプレビュー領域のキャンバスの外側はダークモードでは黒色でよいのでは
+  - [ ]: CustomAssetManagementModal.tsx のバージョンが見えない。Asset Details の文言も見にくい。
+  - [ ]: ValueAsset のヘルプマークの色が統一されていない？
+  - [ ]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」はヘルプマークから参照できるように
+- [ ]: Font Management 画面の上の方が見切れている
+- [ ]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできない
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
@@ -38,6 +71,8 @@
 
 ## 大きめの改善
 - [x]: CSS をリファクタリングする
+- [ ]: ImageAsset で参照されている画像に同じものを指定可能にする
+- [ ]: アセット同士のグループ化機能
 - [ ]: TextAssetInstance 内部の文章で、文章内部で`%{value}`のように記述することで、ValueAssetの値を参照できる。`%p` は現在のページ数、`%P` は総ページ数を参照するために利用できる。 (asset-specification.md 参照)
 - [ ]: ImageAsset にモザイクの概念をいれる 参考: https://irodori-design-web.com/blog/blog-3434/
 - [ ]: 右パネルの Preview Window を別ウィンドウとして分離して表示できるようにする
