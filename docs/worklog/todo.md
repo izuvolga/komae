@@ -24,7 +24,7 @@
 - [x]: 現在、Preview のセルにカーソルが乗ったときに限り、right-panel の Preview Window の内容が変化しますが、どのセルであっても、カーソルが乗ると「そのカーソルが存在するページ（行）」の内容が Preview Window に表示されるようにしてください。例えば、1行目のセルにカーソルが乗っているときは、Preview Window には常に1ページ目の内容が表示されるようにする、ということです。
 - [x]: UI 変更。更新があったセルは ModeEdit -> BorderColor にして色も変更する。
 - [x]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
-- [ ]: EnhancedSpreadSheet の位置の入れ替えロジックがおかしい
+- [x]: EnhancedSpreadSheet の位置の入れ替えロジックがおかしい
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: Library -> Custom Assets にサムネを表示する
