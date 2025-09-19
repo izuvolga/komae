@@ -62,8 +62,9 @@
   - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
   - [x]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」は、TextField ヘルプマークから参照できるようにできますか。
   - [x]: CustomAssetManagementModal.tsx のカスタムアセットの項目ですが、ダークモードだとカスタムアセットのバージョン番号が見えないです。バージョンを囲む領域が明るい色にもかかわらず、明るい文字が使われています。また、ダークモードだとカスタムアセットの項目自体を囲む四角形がマウスでホバーしたときに明るくなりすぎます。
+  - [x]: CustomAssetManagementModal.tsx の Parameters: の下にあるパラメータ名の箇所が見にくいです。明るい背景に、明るい文字が使われています。
+- [ ]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできないです。Custom Assets と Asset Details の２つの領域に左右で分かれていると思いますが、いずれもスクロールができないです。独立してスクルロールできるようにしてください。
 - [ ]: Font Management 画面の上の方が見切れている
-- [ ]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできない
 - [ ]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
 
 ## HTML ファイル関連
