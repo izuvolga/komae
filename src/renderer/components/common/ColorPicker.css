@@ -118,3 +118,32 @@
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
+
+/* ダークモード対応 */
+[data-theme="dark"] .color-picker-label {
+  color: #d1d5db; /* ダークモードでのラベル色 */
+}
+
+[data-theme="dark"] .color-display {
+  border-color: #4b5563; /* ダークモードでのボーダー色 */
+}
+
+[data-theme="dark"] .hex-display {
+  background-color: #374151; /* ダークモードでの背景色 */
+  border-color: #4b5563; /* ダークモードでのボーダー色 */
+  color: #f9fafb; /* ダークモードでのテキスト色 */
+}
+
+[data-theme="dark"] .hex-display.disabled {
+  background-color: #1f2937; /* ダークモードでの無効時背景色 */
+  color: #6b7280; /* ダークモードでの無効時テキスト色 */
+}
+
+[data-theme="dark"] .color-picker-controls:hover:not(:has(.disabled)) .color-display:not(.disabled) {
+  border-color: #60a5fa; /* ダークモードでのホバー時ボーダー色 */
+}
+
+[data-theme="dark"] .color-picker-controls:hover:not(:has(.disabled)) .hex-display:not(.disabled) {
+  border-color: #60a5fa; /* ダークモードでのホバー時ボーダー色 */
+  background-color: #4b5563; /* ダークモードでのホバー時背景色 */
+}
