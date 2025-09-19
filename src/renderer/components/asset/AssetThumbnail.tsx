@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
-import type { Asset, ImageAsset, VectorAsset, DynamicVectorAsset } from '../../../types/entities';
+import type { Asset, AssetInstance, ImageAsset, VectorAsset, DynamicVectorAsset, DynamicVectorAssetInstance } from '../../../types/entities';
 import './AssetThumbnail.css';
 
 interface AssetThumbnailProps {
   asset: Asset;
+  instance?: AssetInstance; // インスタンス固有の設定でサムネイル生成
   maxWidth?: number;
   maxHeight?: number;
 }
 
 export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   asset,
+  instance,
   maxWidth = 120,
   maxHeight = 80,
 }) => {
@@ -53,14 +55,21 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
         } else if (asset.type === 'DynamicVectorAsset') {
           // DynamicVectorAssetの場合は初期値でSVGを生成
           const dynamicAsset = asset as DynamicVectorAsset;
-          
-          // 初期パラメータを構築（DynamicVectorAsset.parametersをそのまま使用）
-          const initialParameters: Record<string, any> = { ...dynamicAsset.parameters };
+
+          // パラメータを構築（将来的にインスタンス固有パラメータがあればそれを使用）
+          let parameters: Record<string, any> = { ...dynamicAsset.parameters };
+
+          // インスタンスが提供されている場合の処理（将来拡張用）
+          if (instance && instance.asset_id === asset.id) {
+            // 現在のDynamicVectorAssetInstanceには parameter override がないため、
+            // アセットの基本パラメータを使用
+            // 将来的に override_parameters が追加されたらここで適用
+          }
           
           // IPCでSVG生成
           const generatedSVG = await window.electronAPI.customAsset.generateSVG(
             dynamicAsset.custom_asset_id,
-            initialParameters
+            parameters
           );
           
           if (generatedSVG && isMounted) {
@@ -90,7 +99,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [asset, currentProjectPath]);
+  }, [asset, instance, currentProjectPath]);
 
   // サムネイルサイズを計算
   let thumbnailSize = { width: maxWidth, height: maxHeight };

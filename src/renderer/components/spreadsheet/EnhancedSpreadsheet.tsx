@@ -1726,6 +1726,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         <div className="dynamic-vector-content">
                           <AssetThumbnail
                             asset={asset}
+                            instance={instance || undefined}
                             maxWidth={80}
                             maxHeight={50}
                           />
