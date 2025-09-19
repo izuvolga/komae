@@ -485,15 +485,13 @@ export const MainLayout: React.FC = () => {
             <div className="toolbar-section left-section">
               {/* Asset非表示時：プロジェクト名の左にボタン */}
               {!showAssetLibrary && (
-                <Tooltip title="アセットライブラリを開く">
-                  <IconButton
-                    className="panel-toggle-btn asset-open-btn"
-                    onClick={toggleAssetLibrary}
-                    size="small"
-                  >
-                    <PanelExpandLeftIcon />
-                  </IconButton>
-                </Tooltip>
+                <button
+                  className="panel-toggle-btn asset-open-btn"
+                  onClick={toggleAssetLibrary}
+                  title="アセットライブラリを開く"
+                >
+                  <PanelExpandLeftIcon />
+                </button>
               )}
               
               {/* プロジェクト編集ボタン */}
@@ -559,6 +557,17 @@ export const MainLayout: React.FC = () => {
                   className="bulk-edit-btn"
                   onClick={() => setShowBulkEditModal(true)}
                   size="small"
+                  sx={{
+                    transition: 'all 0.1s ease',
+                    '&:hover': {
+                      transition: 'all 0.1s ease'
+                    },
+                    '& .MuiTouchRipple-root': {
+                      '& .MuiTouchRipple-child': {
+                        animationDuration: '10ms'
+                      }
+                    }
+                  }}
                 >
                   <Edit />
                 </IconButton>
@@ -580,15 +589,13 @@ export const MainLayout: React.FC = () => {
 
               {/* Preview非表示時：プロジェクト名の右にボタン */}
               {!showPreview && (
-                <Tooltip title="プレビューウィンドウを開く">
-                  <IconButton
-                    className="panel-toggle-btn preview-open-btn"
-                    onClick={togglePreview}
-                    size="small"
-                  >
-                    <PanelExpandRightIcon />
-                  </IconButton>
-                </Tooltip>
+                <button
+                  className="panel-toggle-btn preview-open-btn"
+                  onClick={togglePreview}
+                  title="プレビューウィンドウを開く"
+                >
+                  <PanelExpandRightIcon />
+                </button>
               )}
             </div>
           </div>
