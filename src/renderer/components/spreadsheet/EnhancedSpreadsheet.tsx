@@ -1591,23 +1591,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       }
                     }}
                   >
-                    {/* 左側：cell-manage（上下分割領域） */}
-                    <div className="cell-manage">
-                      {/* 上半分：Visibility領域 */}
-                      <div
-                        className={`icon-area visibility-area ${isUsed ? 'active' : 'inactive'}`}
-                        onClick={(e) => {
-                          handleToggleClick(page.id, asset.id, e);
-                        }}
-                        title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
-                      >
-                        {isUsed ? <Visibility fontSize="inherit" /> : <VisibilityOff fontSize="inherit" />}
-                      </div>
-
-                      {/* 下半分：Edit領域 */}
-                      {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'DynamicVectorAsset' || asset.type === 'ValueAsset') && (
+                    {/* 左側：cell-manage */}
+                    {asset.type === 'ValueAsset' ? (
+                      /* ValueAsset：左側全体がEdit領域 */
+                      <div className="cell-manage value-asset">
                         <div
-                          className="icon-area edit-area"
+                          className="icon-area value-edit-area"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditClick(page.id, asset.id);
@@ -1616,8 +1605,36 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         >
                           <ModeEdit fontSize="inherit" />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      /* その他のアセット：上下分割領域 */
+                      <div className="cell-manage">
+                        {/* 上半分：Visibility領域 */}
+                        <div
+                          className={`icon-area visibility-area ${isUsed ? 'active' : 'inactive'}`}
+                          onClick={(e) => {
+                            handleToggleClick(page.id, asset.id, e);
+                          }}
+                          title={`${asset.name}の表示を${isUsed ? 'OFF' : 'ON'}にする`}
+                        >
+                          {isUsed ? <Visibility fontSize="inherit" /> : <VisibilityOff fontSize="inherit" />}
+                        </div>
+
+                        {/* 下半分：Edit領域 */}
+                        {(asset.type === 'ImageAsset' || asset.type === 'TextAsset' || asset.type === 'VectorAsset' || asset.type === 'DynamicVectorAsset') && (
+                          <div
+                            className="icon-area edit-area"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(page.id, asset.id);
+                            }}
+                            title={`${asset.name}のインスタンスを編集`}
+                          >
+                            <ModeEdit fontSize="inherit" />
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* セル分割線 */}
                     <div className="cell-divider"></div>
