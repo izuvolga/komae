@@ -55,8 +55,9 @@
   - [x]: ImageEditModal の「縦横比を元画像にあわせる」
   - [x]: ImageEditModal の「Mask Edit Mode」も青色ですが、ダークモードだと若干見づらいので少し明るくしてください。
   - [x]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
-  - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身が見れず、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる状態です。改善をしてください
-  - [ ]: VectorEditModal/DynamicVectorEditModal/TextEditModal/ImageEditModal の左側のプレビュー領域があるのですが、キャンバスは白色で良いとしても、キャンバスの外側はダークモードでは黒色でよいのでは
+  - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身が見れず、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる状態です。改善をしてください
+  - [ ]: VectorEditModal/DynamicVectorEditModal/TextEditModal の左側のプレビュー領域があるのですが、キャンバスは白色で良いとしても、キャンバスの外側は同様に action.hover の色にしてください。
+  - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
   - [ ]: CustomAssetManagementModal.tsx のバージョンが見えない。Asset Details の文言も見にくい。
   - [ ]: ValueAsset のヘルプマークの色が統一されていない？
   - [ ]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」はヘルプマークから参照できるように
