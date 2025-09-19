@@ -23,6 +23,7 @@ import {
   FormLabel,
   Alert,
   Tooltip,
+  Checkbox,
 } from '@mui/material';
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
@@ -73,6 +74,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
     initial_value: '',
     new_page_behavior: 'reset' as 'reset' | 'inherit',
     override_value: '',
+    useOverride: false, // チェックボックスの状態
   });
 
   // プレビュー値
@@ -122,21 +124,24 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
         initial_value: String(asset.initial_value),
         new_page_behavior: asset.new_page_behavior,
         override_value: '',
+        useOverride: false,
       });
-      
+
       // 名前のバリデーションを実行
       setNameValidation(validateVariableName(asset.name));
     } else {
-      const currentValue = assetInstance?.override_value !== undefined 
-        ? assetInstance.override_value 
+      const hasOverride = assetInstance?.override_value !== undefined;
+      const currentValue = hasOverride
+        ? assetInstance.override_value
         : asset.initial_value;
-      
+
       setTempInputValues({
         name: asset.name,
         value_type: asset.value_type,
         initial_value: String(asset.initial_value),
         new_page_behavior: asset.new_page_behavior,
         override_value: String(currentValue),
+        useOverride: hasOverride,
       });
     }
   }, [asset, assetInstance, mode, validateVariableName]);
@@ -192,8 +197,8 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
         }
       } else {
         // Instance編集モード：オーバーライド値を使用
-        valueToEvaluate = tempInputValues.override_value !== '' 
-          ? tempInputValues.override_value 
+        valueToEvaluate = tempInputValues.useOverride && tempInputValues.override_value !== ''
+          ? tempInputValues.override_value
           : currentAsset.initial_value;
 
         if (currentAsset.value_type === 'formula') {
@@ -251,8 +256,8 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
       // Instance保存
       const updatedInstance: ValueAssetInstance = {
         ...editingInstance,
-        override_value: tempInputValues.override_value !== '' 
-          ? (asset.value_type === 'number' 
+        override_value: tempInputValues.useOverride && tempInputValues.override_value !== ''
+          ? (asset.value_type === 'number'
               ? parseFloat(tempInputValues.override_value) || 0
               : tempInputValues.override_value)
           : undefined,
@@ -437,30 +442,51 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
                 value={asset.value_type === 'string' ? '文字列' : asset.value_type === 'number' ? '数値' : '数式'}
               />
 
-              <TextField
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    オーバーライド値
-                    {asset.value_type === 'formula' && (
-                      <Tooltip title={getHelpText('formula')}>
-                        <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
-                      </Tooltip>
-                    )}
-                  </Box>
-                }
-                value={tempInputValues.override_value}
-                onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
-                placeholder={
-                  asset.value_type === 'formula'
-                    ? "このページ用の数式を入力（空白の場合はアセットの初期値を使用）"
-                    : "このページ用の値（空白の場合はアセットの初期値を使用）"
-                }
-                fullWidth
-                variant="outlined"
-                multiline={asset.value_type === 'formula'}
-                rows={asset.value_type === 'formula' ? 3 : 1}
-                type={asset.value_type === 'number' ? 'number' : 'text'}
-              />
+              <Box>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={tempInputValues.useOverride}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setTempInputValues(prev => ({
+                          ...prev,
+                          useOverride: checked,
+                          override_value: checked ? prev.override_value : String(asset.initial_value)
+                        }));
+                      }}
+                    />
+                  }
+                  label="このページで値をオーバーライドする"
+                />
+
+                <TextField
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      オーバーライド値
+                      {asset.value_type === 'formula' && (
+                        <Tooltip title={getHelpText('formula')}>
+                          <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
+                        </Tooltip>
+                      )}
+                    </Box>
+                  }
+                  value={tempInputValues.override_value}
+                  onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
+                  placeholder={
+                    asset.value_type === 'formula'
+                      ? "このページ用の数式を入力"
+                      : "このページ用の値を入力"
+                  }
+                  fullWidth
+                  variant="outlined"
+                  multiline={asset.value_type === 'formula'}
+                  rows={asset.value_type === 'formula' ? 3 : 1}
+                  type={asset.value_type === 'number' ? 'number' : 'text'}
+                  disabled={!tempInputValues.useOverride}
+                  sx={{ mt: 1 }}
+                />
+              </Box>
             </>
           )}
         </Box>
