@@ -13,7 +13,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Crop as CropIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { BaseEditModalProps, EditMode } from '../../../types/common';
@@ -767,7 +767,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     }
                     setMaskEditMode(!maskEditMode);
                   }}
-                  startIcon={<span>✏️</span>}
+                  startIcon={<CropIcon />}
                 >
                   Mask Edit Mode
                 </Button>
