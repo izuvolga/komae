@@ -1290,8 +1290,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
     if (e.button !== 0) {
       return;
     }
-    console.log('Column drag start', assetId, assetIndex);
-
     e.preventDefault();
 
     const headerElement = (e.currentTarget as HTMLElement).closest('.asset-header') as HTMLElement;
@@ -1303,7 +1301,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
       isDragging: true,
       draggedAssetId: assetId,
       draggedAssetIndex: assetIndex,
-      currentMouseX: e.clientX,
+      currentMouseX: rect.left + rect.width / 2, // 列の中央位置に初期化
       originalRect: rect,
       insertIndex: assetIndex,
     });

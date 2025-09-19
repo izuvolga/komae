@@ -52,8 +52,6 @@ export const ColumnDragOverlay: React.FC<ColumnDragOverlayProps> = React.memo(({
     const headerHeight = originalRect.height; // ヘッダー自体の高さ
     const totalDataHeight = pageCount * cellHeight;
 
-    console.log(`計算中: ページ数=${pageCount}, アセットセル高さ=${cellHeight}, ヘッダー高さ=${headerHeight}, 合計高さ=${headerHeight + totalDataHeight}`);
-
     return headerHeight + totalDataHeight;
   };
 
