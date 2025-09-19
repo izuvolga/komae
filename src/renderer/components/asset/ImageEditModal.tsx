@@ -404,7 +404,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
             width: 400,
             minWidth: 400,
             p: 2,
-            backgroundColor: 'background.paper',
+            backgroundColor: 'action.hover', // より明るいグレー
             borderRight: '1px solid',
             borderRightColor: 'divider',
             display: 'flex',
