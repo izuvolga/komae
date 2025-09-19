@@ -161,6 +161,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
     text: '',
   });
 
+  // IME変換状態管理
+  const [isComposing, setIsComposing] = useState(false);
+
   // ValueAsset用インライン編集用のstate
   const [valueInlineEditState, setValueInlineEditState] = useState<{
     isEditing: boolean;
@@ -513,7 +516,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
         if (newPageIndex !== currentPageIndex) {
           const newPage = visiblePages[newPageIndex];
           if (newPage) {
-            console.log(`Moving cursor to preview cell in page ${newPageIndex}`);
             setCursor(newPage.id, 'preview');
             // プレビューセルに移動した時にプレビューを更新
             setCurrentPage(newPage.id);
@@ -630,13 +632,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
           return;
       }
 
-      console.log(`Current cursor: page ${currentPageIndex}, asset ${currentAssetIndex}`);
       // 新しいカーソル位置を設定
       if (newPageIndex !== currentPageIndex || newAssetIndex !== currentAssetIndex) {
         const newPage = visiblePages[newPageIndex];
         const newAsset = visibleAssets[newAssetIndex];
         if (newPage && newAsset) {
-          console.log(`Moving cursor to page ${newPageIndex}, asset ${newAssetIndex}`);
           setCursor(newPage.id, newAsset.id);
 
           // カーソル移動後に自動スクロールを実行（少し遅延を入れてDOM更新を待つ）
@@ -847,12 +847,14 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     updateAssetInstance(inlineEditState.pageId, inlineEditState.assetInstanceId, updatedInstance);
 
+    // 編集状態を即座にリセット
     setInlineEditState({
       isEditing: false,
       assetInstanceId: null,
       pageId: null,
       text: '',
     });
+    console.log("[handleSaveInlineEdit] Saved text:", inlineEditState.text);
   };
 
   const handleCancelInlineEdit = () => {
@@ -1658,13 +1660,53 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           onBlur={() => {
                             handleSaveInlineEdit();
                           }}
+                          onCompositionStart={() => setIsComposing(true)}
+                          onCompositionEnd={() => setIsComposing(false)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' && e.ctrlKey) {
-                              e.preventDefault();
-                              handleSaveInlineEdit();
+                            if (e.key === 'Enter') {
+                              // IME変換中の場合は無視（変換確定のEnterを許可）
+                              if (isComposing || (e as any).isComposing) {
+                                return;
+                              }
+
+                              if (e.shiftKey || e.metaKey || e.altKey || e.ctrlKey) {
+                                // Shift/CMD/Option/Alt + Enter: 改行を挿入（デフォルト動作を許可）
+                                return;
+                              } else {
+                                // Enter単体: 保存してインライン編集終了
+                                e.preventDefault();
+                                e.stopPropagation();
+                                console.log('Enter key pressed, saving inline edit');
+                                // 即座に編集状態を終了してから保存
+                                const currentText = (e.target as HTMLTextAreaElement).value;
+                                setInlineEditState({
+                                  isEditing: false,
+                                  assetInstanceId: null,
+                                  pageId: null,
+                                  text: '',
+                                });
+                                // 保存処理を非同期で実行（保存時のEnterキーイベントが、更に onChange イベントをトリガーするのを防ぐため）
+                                setTimeout(() => {
+                                  if (inlineEditState.assetInstanceId && inlineEditState.pageId) {
+                                    const assetInstance = Object.values(project.pages).find(p => p.id === inlineEditState.pageId)
+                                      ?.asset_instances[inlineEditState.assetInstanceId] as TextAssetInstance;
+                                    if (assetInstance) {
+                                      const currentLang = getCurrentLanguage();
+                                      const updatedInstance = {
+                                        ...assetInstance,
+                                        multilingual_text: {
+                                          ...assetInstance.multilingual_text,
+                                          [currentLang]: currentText
+                                        }
+                                      };
+                                      updateAssetInstance(inlineEditState.pageId, inlineEditState.assetInstanceId, updatedInstance);
+                                    }
+                                  }
+                                }, 0);
+                              }
                             } else if (e.key === 'Escape') {
                               e.preventDefault();
-                              handleCancelInlineEdit();
+                              handleCancelInlineEdit(); // エスケープキーで変更を破棄
                             }
                           }}
                           autoFocus
