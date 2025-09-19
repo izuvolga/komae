@@ -367,8 +367,10 @@
   width: 100%;
   height: 100%;
   min-height: 46px;
+  /*max-height: 46px;*/
   border: none;
   outline: none;
+  box-shadow: none;
   background: var(--spreadsheet-cell-bg-color);
   color: var(--spreadsheet-text-primary-color);
   font-family: inherit;
@@ -376,6 +378,14 @@
   padding: 4px;
   resize: none;
   margin: 0;
+  overflow: auto;
+}
+
+/* フォーカス時の青い枠線を削除 */
+.cell-content-textarea:focus {
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 /* text-display: 通常時のテキスト表示 */
@@ -384,6 +394,11 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 /* アイコン領域（上下分割エリア） */
