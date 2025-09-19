@@ -1628,51 +1628,51 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     )}
 
                     {/* 右側：cell-content（コンテンツ表示） */}
-                    <div className="cell-content">
-                      {isUsed && asset.type === 'TextAsset' && instance && (
+                    {isUsed && asset.type === 'TextAsset' && instance && (
+                      inlineEditState.isEditing &&
+                      inlineEditState.assetInstanceId === instance.id &&
+                      inlineEditState.pageId === page.id ? (
+                        /* インライン編集時：cell-content全体がテキストエリア */
+                        <textarea
+                          className="cell-content-textarea"
+                          value={inlineEditState.text}
+                          onChange={(e) => setInlineEditState(prev => ({ ...prev, text: e.target.value }))}
+                          onBlur={() => {
+                            handleSaveInlineEdit();
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && e.ctrlKey) {
+                              e.preventDefault();
+                              handleSaveInlineEdit();
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault();
+                              handleCancelInlineEdit();
+                            }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        /* 通常時：テキスト表示 */
                         <div
-                          className="text-content"
+                          className="cell-content text-display"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!inlineEditState.isEditing) {
                               handleStartInlineEdit(instance as TextAssetInstance, page);
                             }
                           }}
-                          style={{ cursor: inlineEditState.isEditing ? 'default' : 'pointer' }}
+                          style={{ cursor: 'pointer' }}
                         >
-                          {inlineEditState.isEditing &&
-                           inlineEditState.assetInstanceId === instance.id &&
-                           inlineEditState.pageId === page.id ? (
-                            <div className="inline-edit-container">
-                              <textarea
-                                className="inline-edit-textarea"
-                                value={inlineEditState.text}
-                                onChange={(e) => setInlineEditState(prev => ({ ...prev, text: e.target.value }))}
-                                onBlur={() => {
-                                  handleSaveInlineEdit();
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && e.ctrlKey) {
-                                    e.preventDefault();
-                                    handleSaveInlineEdit();
-                                  } else if (e.key === 'Escape') {
-                                    e.preventDefault();
-                                    handleCancelInlineEdit();
-                                  }
-                                }}
-                                autoFocus
-                                rows={3}
-                              />
-                            </div>
-                          ) : (
-                            getEffectiveTextValue(
-                              asset as TextAsset,
-                              instance as TextAssetInstance,
-                              getCurrentLanguage()
-                            )
+                          {getEffectiveTextValue(
+                            asset as TextAsset,
+                            instance as TextAssetInstance,
+                            getCurrentLanguage()
                           )}
                         </div>
-                      )}
+                      )
+                    ) || (
+                      /* TextAsset以外 */
+                      <div className="cell-content">
                       {isUsed && asset.type === 'ImageAsset' && (
                         <div className="image-content">
                           <img
@@ -1762,7 +1762,8 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           )}
                         </div>
                       )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
