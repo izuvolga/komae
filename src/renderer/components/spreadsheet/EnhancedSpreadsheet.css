@@ -337,7 +337,7 @@
   align-items: center;
   justify-content: center;
   width: 30px;
-  min-width: 30px;
+  height: 74px;
   padding: 2px;
   background-color: var(--spreadsheet-cell-manage-bg-color);
   gap: 2px;
@@ -364,7 +364,8 @@
   align-items: center;
   justify-content: center;
   padding: 4px;
-  min-height: 46px;
+  width: 68px;
+  height: 74px;
 }
 
 /* cell-content-textarea: インライン編集時の全体テキストエリア */
@@ -683,6 +684,15 @@
 
 /* SVGコンテンツ */
 .vector-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  height: 100%;
+}
+
+/* ダイナミックベクターコンテンツ */
+.dynamic-vector-content {
   display: flex;
   align-items: center;
   justify-content: center;

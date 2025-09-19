@@ -18,6 +18,7 @@ import { CellContextMenu } from './CellContextMenu';
 import { CursorOverlay } from './CursorOverlay';
 import { ColumnDragOverlay } from './ColumnDragOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
+import { AssetThumbnail } from '../asset/AssetThumbnail';
 import { scrollCursorIntoView } from '../../utils/scrollUtils';
 import { createColumnDragCalculator } from '../../utils/columnDragCalculations';
 import './EnhancedSpreadsheet.css';
@@ -1723,9 +1724,11 @@ export const EnhancedSpreadsheet: React.FC = () => {
                       )}
                       {isUsed && asset.type === 'DynamicVectorAsset' && (
                         <div className="dynamic-vector-content">
-                          <div className="dynamic-vector-preview-small">
-                            Dynamic SVG
-                          </div>
+                          <AssetThumbnail
+                            asset={asset}
+                            maxWidth={80}
+                            maxHeight={50}
+                          />
                         </div>
                       )}
                       {isUsed && asset.type === 'ValueAsset' && instance && (
