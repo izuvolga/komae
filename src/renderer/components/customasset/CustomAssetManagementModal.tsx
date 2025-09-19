@@ -247,8 +247,8 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
           </Box>
 
           <Box sx={{ display: 'flex', height: '100%', gap: 2 }}>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>Custom Assets ({customAssets.length})</Typography>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>Custom Assets ({customAssets.length})</Typography>
               {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
                   <Typography variant="body2" color="text.secondary">Loading...</Typography>
@@ -268,7 +268,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                   </Typography>
                 </Box>
               ) : (
-                <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
                   {customAssets.map((asset) => (
                     <Box
                       key={asset.id}
@@ -316,11 +316,11 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               )}
             </Box>
 
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {selectedAsset ? (
                 <>
-                  <Typography variant="h6" sx={{ mb: 2 }}>Asset Details</Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>Asset Details</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, overflowY: 'auto', pr: 1 }}>
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5 }}>Name:</Typography>
                       <Typography variant="body2">{selectedAsset.name}</Typography>
@@ -367,7 +367,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>Code Preview:</Typography>
                       <Box sx={{
-                        bgcolor: 'grey.100',
+                        bgcolor: 'action.hover',
                         border: '1px solid',
                         borderColor: 'grey.300',
                         borderRadius: 1,
