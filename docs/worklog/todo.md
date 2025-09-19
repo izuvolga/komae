@@ -58,10 +58,10 @@
   - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身が見れず、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる状態です。改善をしてください
   - [x]: VectorEditModal/DynamicVectorEditModal/TextEditModal の左側のプレビュー領域があるのですが、キャンバスは白色で良いとしても、キャンバスの外側は同様に action.hover の色にしてください。
   - [x]: TextEditModal の「縁取りの色」「塗りの色」の文言が暗くて見にくいです
-  - [ ]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
+  - [x]: ValueAsset のヘルプマークの色が統一されていない？
+  - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
   - [ ]: CustomAssetManagementModal.tsx のバージョンが見えない。Asset Details の文言も見にくい。
-  - [ ]: ValueAsset のヘルプマークの色が統一されていない？
-  - [ ]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」はヘルプマークから参照できるように
+  - [ ]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」は、TextField ヘルプマークから参照できるように
 - [ ]: Font Management 画面の上の方が見切れている
 - [ ]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできない
 - [ ]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
