@@ -1,7 +1,7 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
-- [ ]: アセット IDにUUID を使うのは長過ぎます。データが冗長ですし、デバッグがしにくいです。ローカルなので衝突しないでしょう。最悪の場合、プロジェクトファイルをテキストエディタで書き換える運用も想定しているので、短くしましょう。
+- [x]: アセット IDにUUID を使うのは長過ぎます。データが冗長ですし、デバッグがしにくいです。ローカルなので衝突しないでしょう。最悪の場合、プロジェクトファイルをテキストエディタで書き換える運用も想定しているので、短くしましょう。
   - "123abcde" みたいな七桁くらいで良いと思います。命名規則は以下で。
   - ImageAsset -> img-123abcde
   - ValueAsset -> val-123abcde
@@ -9,8 +9,10 @@
   - VectorAsset -> vec-123abcde
   - DynamicVectorAsset -> dvg-123abcde
   - Instance になったら先頭に ins-(unix時刻)- をつける
-
+- [ ]: ImageEditModal で、Shiftキーを押しながらリサイズすると、Shiftキーを押した時点のサイズの縦横比を維持するようにする。これは元画像との縦横比を維持するのとは別にしてほしい。現状、元画像との縦横比を維持する動作はShiftキーを押しながらリサイズすると発生するが、その動作は無効にする。元画像との縦横比を維持する動作は、チェックボックスが入っている時に限って発生するようにする。チェックボックスが入っていると、Shiftキーに関わらず、元画像との縦横比を維持する。
+- [ ]: VectorEditModal/DynamicVectorEditModal で、Shiftキーを押しながらリサイズすると、Shiftキーを押した時点のサイズの縦横比を維持するようにする。
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
+- [ ]: AssetLibrary の「アセット」の文字が大きいので修正する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
