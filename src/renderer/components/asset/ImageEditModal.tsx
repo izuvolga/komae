@@ -319,19 +319,61 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
-        const resizeResult = calculateResizeValues({
-          deltaX,
-          deltaY,
-          dragStartValues,
-          resizeHandle,
-          aspectRatioLocked: aspectRatioLocked || isShiftPressed,
-          canvasWidth: project.canvas.width,
-          canvasHeight: project.canvas.height,
-          minSize: 10
-        });
+        // チェックボックスが有効な場合は元画像の縦横比を適用
+        let finalResizeResult;
+        if (aspectRatioLocked) {
+          // 元画像の縦横比を維持
+          const originalAspectRatio = asset.original_width / asset.original_height;
 
-        updatePosition(resizeResult.x, resizeResult.y);
-        updateSize(resizeResult.width, resizeResult.height);
+          // まず通常のリサイズを計算
+          const baseResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: false,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+
+          // 元画像の縦横比に基づいてサイズを調整
+          let newWidth = baseResult.width;
+          let newHeight = baseResult.height;
+          let newX = baseResult.x;
+          let newY = baseResult.y;
+
+          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+            // 幅ベースで元画像の縦横比を維持
+            newHeight = newWidth / originalAspectRatio;
+            if (resizeHandle.includes('top')) {
+              newY = dragStartValues.y + dragStartValues.height - newHeight;
+            }
+          } else {
+            // 高さベースで元画像の縦横比を維持
+            newWidth = newHeight * originalAspectRatio;
+            if (resizeHandle.includes('left')) {
+              newX = dragStartValues.x + dragStartValues.width - newWidth;
+            }
+          }
+
+          finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        } else {
+          // Shiftキーが押されている場合は現在のサイズの縦横比を維持、そうでなければ自由リサイズ
+          finalResizeResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: isShiftPressed,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+        }
+
+        updatePosition(finalResizeResult.x, finalResizeResult.y);
+        updateSize(finalResizeResult.width, finalResizeResult.height);
       } else if (maskDragPointIndex !== null && currentMask) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, maskDragStartPos.x, maskDragStartPos.y);
         
