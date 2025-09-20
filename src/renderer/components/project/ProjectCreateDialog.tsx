@@ -51,10 +51,10 @@ const Crop916 = () => {
 // プリセットのキャンバスサイズ
 {/* 横長の場合には、アイコンを90度回転させる */}
 const CANVAS_PRESETS = [
-  { name: '縦長（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
-  { name: '縦長（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
   { name: '横長（4:3）', icon: <Crop23 />, width: 1024, height: 768 },
   { name: '横長（16:9）', icon: <Crop916 />, width: 1280, height: 720 },
+  { name: '縦長（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
+  { name: '縦長（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
   { name: 'スクエア', icon: <CropSquare />, width: 1024, height: 1024 },
   { name: 'カスタム', icon: <SettingsApplications />, width: 800, height: 600 }, // カスタム用のデフォルト値
 ];
@@ -424,21 +424,70 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                   label={
                     <Box sx={{
                       display: 'flex',
-                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      width: '100%',
+                      minHeight: '48px',
                       bgcolor: 'background.paper',
-                      borderColor:  'var(--dialog-active-border)',
+                      borderColor: 'var(--dialog-active-border)',
                       borderWidth: 1,
                       borderStyle: 'solid',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
+                      px: 2,
+                      py: 1.5,
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      }
+                    }}>
+                      {/* アイコン領域 */}
+                      <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '24px',
+                        height: '24px',
+                        color: 'text.secondary'
                       }}>
-                      <Typography variant="body2" component="span" sx={{ mt: 1 }}>{preset.icon}</Typography>
-                      <Typography variant="body2" component="span" >{preset.name}</Typography>
-                      {index < CANVAS_PRESETS.length - 1 && (
-                        <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>{preset.width} × {preset.height}</Typography>
-                      )}
+                        {preset.icon}
+                      </Box>
+
+                      {/* テキスト領域 */}
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                        <Typography variant="body2" component="span" sx={{
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          color: 'text.primary'
+                        }}>
+                          {preset.name}
+                        </Typography>
+                        {index < CANVAS_PRESETS.length - 1 && (
+                          <Typography variant="caption" component="span" sx={{
+                            fontSize: '12px',
+                            color: 'text.secondary'
+                          }}>
+                            {preset.width} × {preset.height} px
+                          </Typography>
+                        )}
+                        {index === CANVAS_PRESETS.length - 1 && (
+                          <Typography variant="caption" component="span" sx={{
+                            fontSize: '12px',
+                            color: 'text.secondary'
+                          }}>
+                            任意のサイズを設定
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                   }
-                  sx={{ mb: 0.5 }}
+                  sx={{
+                    mb: 1,
+                    ml: 0,
+                    mr: 0,
+                    width: '100%',
+                    '& .MuiFormControlLabel-label': {
+                      width: '100%'
+                    }
+                  }}
                   disabled={isCreating}
                 />
               ))}
