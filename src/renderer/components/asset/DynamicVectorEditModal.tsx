@@ -16,6 +16,8 @@ import {
   InputLabel,
   Chip,
   Alert,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
@@ -134,6 +136,8 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
+  const [shiftAspectRatio, setShiftAspectRatio] = useState<number | null>(null);
 
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -239,28 +243,6 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     updateAvailableValueAssets();
   }, [asset, assetInstance, updateAvailableValueAssets]);
 
-  // Shiftキーの状態を監視
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   // マウス移動とマウスアップのハンドラー（グローバルイベント）
   useEffect(() => {
@@ -284,16 +266,94 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
-        const resizeResult = calculateResizeValues({
-          deltaX,
-          deltaY,
-          dragStartValues,
-          resizeHandle,
-          aspectRatioLocked: isShiftPressed,
-          canvasWidth: project.canvas.width,
-          canvasHeight: project.canvas.height,
-          minSize: 10
-        });
+        // チェックボックスが有効な場合は元画像の縦横比を適用
+        let finalResizeResult;
+        if (aspectRatioLocked && asset.original_width && asset.original_height) {
+          // 元画像の縦横比を維持
+          const originalAspectRatio = asset.original_width / asset.original_height;
+
+          // まず通常のリサイズを計算
+          const baseResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: false,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+
+          // 元画像の縦横比に基づいてサイズを調整
+          let newWidth = baseResult.width;
+          let newHeight = baseResult.height;
+          let newX = baseResult.x;
+          let newY = baseResult.y;
+
+          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+            // 幅ベースで元画像の縦横比を維持
+            newHeight = newWidth / originalAspectRatio;
+            if (resizeHandle.includes('top')) {
+              newY = dragStartValues.y + dragStartValues.height - newHeight;
+            }
+          } else {
+            // 高さベースで元画像の縦横比を維持
+            newWidth = newHeight * originalAspectRatio;
+            if (resizeHandle.includes('left')) {
+              newX = dragStartValues.x + dragStartValues.width - newWidth;
+            }
+          }
+
+          finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        } else if (isShiftPressed && shiftAspectRatio !== null) {
+          // Shiftキーが押されている場合は記録された縦横比を維持
+          const baseResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: false,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+
+          // 記録された縦横比に基づいてサイズを調整
+          let newWidth = baseResult.width;
+          let newHeight = baseResult.height;
+          let newX = baseResult.x;
+          let newY = baseResult.y;
+
+          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+            // 幅ベースで記録された縦横比を維持
+            newHeight = newWidth / shiftAspectRatio;
+            if (resizeHandle.includes('top')) {
+              newY = dragStartValues.y + dragStartValues.height - newHeight;
+            }
+          } else {
+            // 高さベースで記録された縦横比を維持
+            newWidth = newHeight * shiftAspectRatio;
+            if (resizeHandle.includes('left')) {
+              newX = dragStartValues.x + dragStartValues.width - newWidth;
+            }
+          }
+
+          finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        } else {
+          // 自由リサイズ
+          finalResizeResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: false,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+        }
+
+        const resizeResult = finalResizeResult;
 
         updatePosition(resizeResult.x, resizeResult.y);
         updateSize(resizeResult.width, resizeResult.height);
@@ -314,7 +374,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, isShiftPressed, project?.canvas]);
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, isShiftPressed, aspectRatioLocked, shiftAspectRatio, asset.original_width, asset.original_height, project?.canvas]);
 
   // パラメータが変更されたときにSVGを再実行（デバウンス処理付き）
   const scheduleExecution = useCallback(() => {
@@ -409,6 +469,34 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
   const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
 
+  // Shiftキーの状態を監視（currentSizeの定義後に配置）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+        // Shiftキーが押された時点の縦横比を記録
+        if (currentSize.width > 0 && currentSize.height > 0) {
+          setShiftAspectRatio(currentSize.width / currentSize.height);
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+        setShiftAspectRatio(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [currentSize]);
+
   // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御 - 共通ユーティリティを使用
 
   // 値の更新
@@ -478,6 +566,23 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     }
   };
 
+  // サイズ変更ハンドラー（縦横比チェックボックス対応）
+  const handleSizeChange = (field: 'width' | 'height', value: number) => {
+    let newWidth = field === 'width' ? value : currentSize.width;
+    let newHeight = field === 'height' ? value : currentSize.height;
+
+    // 縦横比チェックボックスが有効な場合、元画像の縦横比を維持
+    if (aspectRatioLocked && asset.original_width && asset.original_height) {
+      const originalAspectRatio = asset.original_width / asset.original_height;
+      if (field === 'width') {
+        newHeight = Math.round(newWidth / originalAspectRatio);
+      } else {
+        newWidth = Math.round(newHeight * originalAspectRatio);
+      }
+    }
+
+    updateSize(newWidth, newHeight);
+  };
 
   // マウス操作のハンドラー
   const handleImageMouseDown = (e: React.MouseEvent) => {
@@ -872,7 +977,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <Typography variant="caption">幅 (px)</Typography>
                   <NumericInput
                     value={currentSize.width}
-                    onChange={(value) => updateSize(value, currentSize.height)}
+                    onChange={(value) => handleSizeChange('width', value)}
                     min={1}
                     step={1}
                     decimals={2}
@@ -882,13 +987,25 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <Typography variant="caption">高さ (px)</Typography>
                   <NumericInput
                     value={currentSize.height}
-                    onChange={(value) => updateSize(currentSize.width, value)}
+                    onChange={(value) => handleSizeChange('height', value)}
                     min={1}
                     step={1}
                     decimals={2}
                   />
                 </Box>
               </Box>
+              {/* 縦横比チェックボックス */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={aspectRatioLocked}
+                    onChange={(e) => setAspectRatioLocked(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="縦横比を元画像にあわせる"
+                sx={{ mt: 1 }}
+              />
             </Box>
 
             {/* Opacity */}
