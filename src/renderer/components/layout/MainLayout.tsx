@@ -13,6 +13,7 @@ import {
   KeyboardArrowDown,
 } from '@mui/icons-material';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
+import { generateAssetInstanceId } from '../../../utils/idGenerator';
 import { AssetLibrary } from '../asset/AssetLibrary';
 import { PreviewArea } from '../preview/PreviewArea';
 import { EnhancedSpreadsheet } from '../spreadsheet/EnhancedSpreadsheet';
@@ -357,8 +358,9 @@ export const MainLayout: React.FC = () => {
         
         usedAssets.add(assetKey);
         
-        asset_instances[`instance-${i}-${j}`] = {
-          id: `instance-${i}-${j}`,
+        const instanceId = generateAssetInstanceId();
+        asset_instances[instanceId] = {
+          id: instanceId,
           asset_id: assetKey,
           z_index: j,
           transform: { 

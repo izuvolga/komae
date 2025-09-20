@@ -1,16 +1,12 @@
 /**
- * 短いIDを生成するユーティリティ
- * UUIDの代わりに使用して、データの冗長性を削減し、デバッグを容易にする
- */
-
-/**
- * 7桁のランダム文字列を生成
+ * 8桁のランダム文字列を生成
  * 文字セット: 0-9, a-z (小文字のみ)
+ * UUIDの代わりに使用して、データの冗長性を削減し、デバッグを容易にする
  */
 function generateShortId(): string {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
   let result = '';
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
@@ -72,11 +68,4 @@ export function generateProjectId(): string {
  */
 export function generatePageId(): string {
   return `page-${generateShortId()}`;
-}
-
-/**
- * 汎用的な短いIDを生成（プレフィックスなし）
- */
-export function generateGenericShortId(): string {
-  return generateShortId();
 }

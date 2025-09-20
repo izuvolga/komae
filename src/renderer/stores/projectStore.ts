@@ -560,7 +560,7 @@ export const useProjectStore = create<ProjectStore>()(
             delete page.asset_instances[existingInstance.id];
           } else {
             // 新しいインスタンスを作成、以前の編集内容があれば復元
-            const instanceId = `instance-${Date.now()}`;
+            const instanceId = generateAssetInstanceId();
             let newInstance: AssetInstance = {
               id: instanceId,
               asset_id: assetId,
