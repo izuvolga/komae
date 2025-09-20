@@ -490,8 +490,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   position: 'relative',
                   width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                   height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  border: '2px solid',
-                  borderColor: 'primary.main',
                   borderRadius: 1,
                   overflow: 'visible',
                   boxShadow: 2,
@@ -639,6 +637,22 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     onResizeMouseDown={handleResizeMouseDown}
                     zIndex={4}
                     visible={!maskEditMode}
+                  />
+
+                  {/* キャンバスフレームオーバーレイ（常に最前面） */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: '0px',
+                      top: '0px',
+                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                      borderRadius: 1,
+                      zIndex: 10,
+                      pointerEvents: 'none',
+                    }}
                   />
                 </Box>
           </Box>
