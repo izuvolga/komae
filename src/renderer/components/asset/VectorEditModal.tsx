@@ -522,7 +522,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     zIndex={3}
                   />
 
-                  {/* キャンバスフレームオーバーレイ（拡張領域の中央に配置） */}
+                  {/* キャンバスボーダー（最前面） */}
                   <Box
                     sx={{
                       position: 'absolute',
