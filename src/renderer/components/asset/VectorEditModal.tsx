@@ -534,7 +534,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               xmlns="http://www.w3.org/2000/svg"
               preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
             >
-
               {/* キャンバス */}
               <rect
                 id="vec-edit-canvas"
@@ -564,7 +563,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   )
                 }}
               />
-
               {/* ドラッグエリア（SVG版） */}
               <rect
                 x={currentPos.x + margin}
@@ -589,6 +587,18 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     height: currentSize.height
                   });
                 }}
+              />
+              {/* キャンバスの線 */}
+              <rect
+                id="vec-edit-canvas"
+                x={margin}
+                y={margin}
+                width={project.canvas.width}
+                height={project.canvas.height}
+                stroke='#3b82f6'
+                strokeWidth='5'
+                fill='none'
+                rx="2"
               />
 
               {/* リサイズハンドル（既存のSVGコンポーネントを維持） */}
