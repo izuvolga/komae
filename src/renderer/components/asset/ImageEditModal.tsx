@@ -486,8 +486,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左側: プレビューエリア - 固定幅 */}
           <Box sx={{
-            width: 400,
-            minWidth: 400,
+            width: 600,
+            minWidth: 600,
             p: 2,
             backgroundColor: 'action.hover', // より明るいグレー
             borderRight: '1px solid',
@@ -657,10 +657,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           </Box>
 
           {/* 右側: パラメータ編集エリア - スクロール可能 */}
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pt: 5 }}>
             {/* Asset Name（上方に配置、マスク編集時は非表示） */}
             {mode === 'asset' && !maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
+              <Box sx={{ mb: 3, pb: 1, borderBottom: '1px solid',
                 borderBottomColor: 'divider' }}>
                 <TextField
                   label="Asset Name"
@@ -673,25 +673,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                 />
               </Box>
             )}
-              
-            {/* 元画像情報（Asset編集時のみ、マスク編集時は非表示） */}
-            {mode === 'asset' && !maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
-                borderBottomColor: 'divider' }}>
-                <ReadOnlyInput
-                  label="Original Width/Height"
-                  value={`${asset.original_width} × ${asset.original_height}`}
-                />
-              </Box>
-            )}
 
             {/* デフォルトサイズ（マスク編集時は非表示） */}
             {!maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
+              <Box sx={{ mb: 2, pb: 1, borderBottom: '1px solid',
                 borderBottomColor: 'divider' }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                  {mode === 'asset' ? 'Default Width/Height' : 'Width/Height'}
-                </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="caption">幅</Typography>
@@ -748,7 +734,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                         size="small"
                       />
                     }
-                    label="縦横比を元画像にあわせる"
+                    label={`縦横比を元画像にあわせる(${asset.original_width}×${asset.original_height})`}
                   />
                 </Box>
               </Box>
@@ -756,11 +742,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
             {/* 位置（マスク編集時は非表示） */}
             {!maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
+              <Box sx={{ mb: 2, pb: 1, borderBottom: '1px solid',
                 borderBottomColor: 'divider' }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                  {mode === 'asset' ? 'Default PosX/PosY' : 'PosX/PosY'}
-                </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="caption">X (px)</Typography>
@@ -794,22 +777,22 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
             {/* 透明度（マスク編集時は非表示） */}
             {!maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
+              <Box sx={{ mb: 2, pb: 1, borderBottom: '1px solid',
                 borderBottomColor: 'divider' }}>
                 <OpacityInput
                   value={currentOpacity}
                   onChange={updateOpacity}
-                  label={mode === 'asset' ? 'Default Opacity' : 'Opacity'}
+                  label={mode === 'asset' ? 'デフォルト透明度' : '透明度'}
                 />
               </Box>
             )}
 
             {/* Z-Index（マスク編集時は非表示） */}
             {!maskEditMode && (
-              <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid',
+              <Box sx={{ mb: 2, pb: 1, borderBottom: '1px solid',
                 borderBottomColor: 'divider' }}>
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                  {mode === 'asset' ? 'Default Z-Index' : 'Z-Index'}
+                  {mode === 'asset' ? 'デフォルト Z-Index' : 'Z-Index'}
                 </Typography>
                 <Box sx={{ '& .MuiTextField-root': { mb: 1 } }}>
                   <ZIndexInput
@@ -874,13 +857,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
             {maskEditMode && currentMask && (
               <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                  Default Mask
+                  デフォルトマスク
                 </Typography>
                 {currentMask.map((point, index) => (
                   <Box key={index} sx={{
                     mb: 2,
                     p: 2,
-                    backgroundColor: 'action.hover', // テーマの色を使用
+                    backgroundColor: 'background.paper', // テーマの色を使用
                     borderRadius: 1,
                     border: '1px solid',
                     borderColor: 'divider' // ダークモードでも適切なボーダー色

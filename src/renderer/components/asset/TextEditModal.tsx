@@ -660,8 +660,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左側: プレビューエリア - 固定幅 */}
           <Box sx={{
-            width: 450,
-            minWidth: 450,
+            width: 600,
+            minWidth: 600,
             p: 2,
             backgroundColor: 'action.hover',
             borderRight: '1px solid',

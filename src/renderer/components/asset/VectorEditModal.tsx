@@ -439,8 +439,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左側：プレビュー - 固定幅 */}
           <Box sx={{
-            width: 400,
-            minWidth: 400,
+            width: 600,
+            minWidth: 600,
             p: 2,
             backgroundColor: 'action.hover',
             borderRight: '1px solid',
