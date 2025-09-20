@@ -42,6 +42,12 @@ export type ResizeHandleType = typeof RESIZE_HANDLES[number];
  * EditModalで使用される標準スケールファクター
  */
 export const EDIT_MODAL_SCALE = 0.35;
+/**
+ * EditModalがキャンバスサイズの何倍のサイズを使用するか
+ * （例：2なら1辺がキャンバスの2倍のサイズの編集領域）
+ */
+export const EDIT_MODAL_CANVAS_SCALE = 1;
+export const EDIT_MODAL_CANVAS_SCALE_INVERSE = 1 / EDIT_MODAL_CANVAS_SCALE;
 
 /**
  * リサイズハンドルのサイズ（px）
@@ -277,7 +283,9 @@ export const wrapSVGWithParentContainer = (
   height: number, 
   opacity: number,
   originalWidth: number,
-  originalHeight: number
+  originalHeight: number,
+  offsetX: number = 0,
+  offsetY: number = 0
 ): string => {
   const scaleX = width / originalWidth;
   const scaleY = height / originalHeight;
@@ -287,8 +295,8 @@ export const wrapSVGWithParentContainer = (
 
   return `<svg version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      x="${adjustedX}px"
-      y="${adjustedY}px"
+      x="${adjustedX + offsetX}px"
+      y="${adjustedY + offsetY}px"
       width="${originalWidth}px"
       height="${originalHeight}px"
       transform="scale(${width / originalWidth}, ${height / originalHeight})"

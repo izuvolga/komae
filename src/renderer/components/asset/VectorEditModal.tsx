@@ -27,6 +27,8 @@ import {
   convertMouseDelta,
   constrainToCanvas,
   EDIT_MODAL_SCALE,
+  EDIT_MODAL_CANVAS_SCALE,
+  EDIT_MODAL_CANVAS_SCALE_INVERSE,
   getCurrentPosition,
   getCurrentSize,
   getCurrentOpacity,
@@ -37,7 +39,8 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
+import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
+import { off } from 'process';
 
 // 統合されたプロパティ
 interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
@@ -453,35 +456,78 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左側：プレビュー - 固定幅 */}
-          <Box sx={{
+          <Box
+            id="vec-edit-preview-container"
+            sx={{
             width: 600,
             minWidth: 600,
-            p: 4, // キャンバス外表示のためpaddingを増加
+            p: 0, // キャンバス外表示のためpaddingを増加
             backgroundColor: 'action.hover',
-            borderRight: '1px solid',
-            borderRightColor: 'divider',
+            // borderRight: '1px solid',
+            // borderRightColor: 'divider',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            overflow: 'auto' // スクロールを許可
+            overflow: 'auto', // スクロール可能に
           }}>
-            <Box sx={{
-                  position: 'relative',
-                  width: `${project.canvas.width * EDIT_MODAL_SCALE * 2}px`, // 表示領域を2倍に拡張
-                  height: `${project.canvas.height * EDIT_MODAL_SCALE * 2}px`, // 表示領域を2倍に拡張
-                  overflow: 'visible',
-                  boxShadow: 2,
-                  /* backgroundColor: 'grey.50' */
-                }}>
-                  {/* 拡張されたSVG描画結果 */}
-                  <svg
-                    id="vec-edit-preview-svg"
-                    width='100%'
-                    height='100%'
-                    viewBox={`${-project.canvas.width / 2} ${-project.canvas.height / 2} ${project.canvas.width * 2} ${project.canvas.height * 2}`}
-                    xmlns="http://www.w3.org/2000/svg"
-                    dangerouslySetInnerHTML={{ __html: `${wrapSVGWithParentContainer(
+            {/* SVGベースの統合描画領域 */}
+            <svg
+              id="vec-edit-preview-svg"
+              width={`100%`} // SVG要素は親要素にフィットさせる
+              height={`100%`} // SVG要素は親要素にフィットさせる
+              viewBox={`0 0 ${project.canvas.width + 100} ${project.canvas.height + 100}`} // svg の空間はキャンバスの2倍とる
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
+                position: 'relative'
+              }}
+              preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
+            >
+              
+              {/* キャンバスの外側 */}
+              <rect
+                x={0}
+                y={0}
+                width={project.canvas.width + 100}
+                height={project.canvas.height + 100}
+                fill="#ffacaa"
+                rx="2"
+              />
+              {/* キャンバス背景 */}
+              <rect
+                x={50}
+                y={50}
+                width={project.canvas.width}
+                height={project.canvas.height}
+                fill="#f5f5f5"
+                rx="2"
+              />
+
+              {/* SVGコンテンツ - 共通ユーティリティを使用 */}
+              {
+                wrapSVGWithParentContainer(
+                    asset.svg_content,
+                    currentPos.x,
+                    currentPos.y,
+                    currentSize.width,
+                    currentSize.height,
+                    currentOpacity,
+                    asset.original_width,
+                    asset.original_height,
+                    50,
+                    50
+                )
+              }
+
+              {/* <svg version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                x={50}   // キャンバスの0,0にあわせてオフセット
+                y={50}  // キャンバスの0,0にあわせてオフセット
+                width="100%"
+                height="100%"
+                dangerouslySetInnerHTML={{
+                    __html: wrapSVGWithParentContainer(
                       asset.svg_content,
                       currentPos.x,
                       currentPos.y,
@@ -489,56 +535,53 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       currentSize.height,
                       currentOpacity,
                       asset.original_width,
-                      asset.original_height)}` }}
-                    />
+                      asset.original_height,
+                      50,
+                      50
+                    )
+                  }}
+                >
+              </svg> */}
+              {/* ドラッグエリア（SVG版） */}
+              <rect
+                x={currentPos.x + 50}
+                y={currentPos.y + 50}
+                width={currentSize.width}
+                height={currentSize.height}
+                fill="transparent"
+                stroke="#007acc"
+                strokeWidth="0.5"
+                strokeDasharray="2,2"
+                style={{ cursor: 'move' }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const svg = e.currentTarget.ownerSVGElement;
+                  if (!svg) return;
 
-                  {/* インタラクション用の透明な要素（ドラッグエリア - 拡張座標系） */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${(currentPos.x + project.canvas.width / 2) * EDIT_MODAL_SCALE}px`,
-                      top: `${(currentPos.y + project.canvas.height / 2) * EDIT_MODAL_SCALE}px`,
-                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
-                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
-                      backgroundColor: 'transparent',
-                      border: '1px dashed #007acc',
-                      cursor: 'move',
-                      zIndex: 2,
-                      pointerEvents: 'all',
-                    }}
-                    onMouseDown={handlePreviewMouseDown}
-                  />
-
-                  {/* リサイズハンドル（拡張座標系） */}
-                  <ResizeHandleOverlay
-                    canvasWidth={project.canvas.width * 2}
-                    canvasHeight={project.canvas.height * 2}
-                    currentPos={{
-                      x: currentPos.x + project.canvas.width / 2,
-                      y: currentPos.y + project.canvas.height / 2
-                    }}
-                    currentSize={currentSize}
-                    onResizeMouseDown={handleResizeMouseDown}
-                    zIndex={3}
-                  />
-
-                  {/* キャンバスボーダー（最前面） */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: `${project.canvas.width * EDIT_MODAL_SCALE / 2}px`,
-                      top: `${project.canvas.height * EDIT_MODAL_SCALE / 2}px`,
-                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                      border: '2px solid',
-                      borderColor: 'primary.main',
-                      borderRadius: 1,
-                      zIndex: 10,
-                      pointerEvents: 'none',
-                    }}
-                  />
-                </Box>
+                  setIsDragging(true);
+                  setDragStartPos({ x: e.clientX, y: e.clientY });
+                  setDragStartValues({
+                    x: currentPos.x,
+                    y: currentPos.y,
+                    width: currentSize.width,
+                    height: currentSize.height
+                  });
+                }}
+              />
+              {/* リサイズハンドル（既存のSVGコンポーネントを維持） */}
+              <ResizeHandleOverlay
+                canvasWidth={project.canvas.width}
+                canvasHeight={project.canvas.height}
+                currentPos={{
+                  x: currentPos.x + 50,
+                  y: currentPos.y + 50
+                }}
+                currentSize={currentSize}
+                onResizeMouseDown={handleResizeMouseDown}
+              />
+            </svg>
           </Box>
+
 
           {/* 右側：プロパティ編集 - スクロール可能 */}
           <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
