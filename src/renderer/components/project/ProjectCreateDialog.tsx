@@ -51,10 +51,10 @@ const Crop916 = () => {
 // プリセットのキャンバスサイズ
 {/* 横長の場合には、アイコンを90度回転させる */}
 const CANVAS_PRESETS = [
-  { name: '横長（4:3）', icon: <Crop23 />, width: 1024, height: 768 },
-  { name: '横長（16:9）', icon: <Crop916 />, width: 1280, height: 720 },
-  { name: '縦長（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
-  { name: '縦長（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
+  { name: '縦向き（4:3）', icon: <Crop23 />, width: 1024, height: 768 },
+  { name: '縦向き（16:9）', icon: <Crop916 />, width: 1280, height: 720 },
+  { name: '横向き（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
+  { name: '横向き（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
   { name: 'スクエア', icon: <CropSquare />, width: 1024, height: 1024 },
   { name: 'カスタム', icon: <SettingsApplications />, width: 800, height: 600 }, // カスタム用のデフォルト値
 ];
