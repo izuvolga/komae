@@ -684,8 +684,8 @@ export const AssetLibrary: React.FC = () => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        p: 2,
-        borderBottom: '1px solid',
+        p: 1,
+        borderBottom: '2px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper'
       }}>

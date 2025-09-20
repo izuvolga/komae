@@ -512,7 +512,7 @@ export const MainLayout: React.FC = () => {
                       duration: 3000,
                     });
                   }}
-                  sx={{ fontSize: '0.75rem' }}
+                  sx={{ fontSize: '0.75rem', p: 1 }}
                 >
                   Project
                 </Button>
