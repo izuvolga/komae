@@ -535,15 +535,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
             >
 
-              {/* キャンバスの外側 */}
-              <rect
-                x={0}
-                y={0}
-                width={project.canvas.width + margin * 2}
-                height={project.canvas.height + margin * 2}
-                fill="#ffacaa"
-                rx="2"
-              />
               {/* キャンバス */}
               <rect
                 id="vec-edit-canvas"
@@ -558,6 +549,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   position: 'relative'
                 }}
               />
+              {/* SVGアセットの描画 */}
               <g
                 dangerouslySetInnerHTML={{
                   __html: wrapSVGWithParentContainer(
@@ -581,8 +573,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 height={currentSize.height}
                 fill="transparent"
                 stroke="#007acc"
-                strokeWidth="0.5"
-                strokeDasharray="2,2"
+                strokeWidth="5.0"
+                strokeDasharray="4"
                 style={{ cursor: 'move' }}
                 onMouseDown={(e) => {
                   e.preventDefault();
