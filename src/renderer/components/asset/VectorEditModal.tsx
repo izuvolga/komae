@@ -367,8 +367,21 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
       handlePositionChange('x', finalResizeResult.x);
       handlePositionChange('y', finalResizeResult.y);
-      handleSizeChange('width', finalResizeResult.width);
-      handleSizeChange('height', finalResizeResult.height);
+
+      // リサイズ時は両方のサイズを直接更新
+      if (mode === 'asset') {
+        setEditedAsset(prev => ({
+          ...prev,
+          default_width: finalResizeResult.width,
+          default_height: finalResizeResult.height,
+        }));
+      } else if (editedInstance) {
+        setEditedInstance(prev => prev ? {
+          ...prev,
+          override_width: finalResizeResult.width,
+          override_height: finalResizeResult.height,
+        } : null);
+      }
     }
   };;
 
