@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem, Button, useTheme } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Close as CloseIcon, Translate as TranslateIcon, ShowChart as ShowChartIcon, Image as ImageIcon, AutoFixHigh as AutoFixHighIcon, Bolt as BoltIcon, TextFields as TextFieldsIcon, Functions as FunctionsIcon} from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Image as ImageIcon, Pentagon as DvaOutIcon, Autorenew as DvaInIcon, Pentagon as PentagonIcon, TextFields as TextFieldsIcon, Functions as FunctionsIcon} from '@mui/icons-material';
 
 import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
@@ -349,7 +349,7 @@ export const AssetLibrary: React.FC = () => {
       // CustomAssetベースのDynamicVectorAssetを作成
       const result = createDynamicVectorAsset({
         customAsset, // 完全なCustomAssetオブジェクトを渡す
-        name: `${customAssetInfo.name} (Dynamic SVG)`,
+        name: `${customAssetInfo.name} (カスタムSVG)`,
       });
       
       addAsset(result);
@@ -698,7 +698,7 @@ export const AssetLibrary: React.FC = () => {
           >
             <PanelCollapseLeftIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
             アセット
           </Typography>
         </Box>
@@ -732,10 +732,15 @@ export const AssetLibrary: React.FC = () => {
               <ImageIcon sx={{ mr: 1 }} /> 画像
             </MenuItem>
             <MenuItem onClick={handleImportVectorAsset}>
-              <AutoFixHighIcon sx={{ mr: 1 }} /> SVG
+              <PentagonIcon sx={{ mr: 1 }} /> SVG
             </MenuItem>
             <MenuItem onClick={handleCreateDynamicVectorAsset}>
-              <BoltIcon sx={{ mr: 1 }} /> Dynamic SVG
+              {/** Pentagon と DataObject のアイコンを重ねる*/}
+              <Box sx={{ position: 'relative', width: 24, height: 24, mr: 1 }}>
+                <DvaOutIcon sx={{ position: 'absolute', top: 0, left: 0, fontSize: 24, color: 'text.primary' }} />
+                <DvaInIcon sx={{ position: 'absolute', top: 4.5, left: 4, fontSize: 16, color: 'background.default' }} />
+              </Box>
+              カスタム SVG
             </MenuItem>
             <MenuItem onClick={handleCreateTextAsset}>
               <TextFieldsIcon sx={{ mr: 1 }} /> テキスト
@@ -965,7 +970,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
             fontWeight: 'bold',
             borderRadius: '4px'
           }}>
-            <TranslateIcon fontSize="inherit" />
+            <TextFieldsIcon fontSize="inherit" />
           </Box>
         );
       case 'ValueAsset':
@@ -982,7 +987,7 @@ const AssetItem: React.FC<AssetItemProps> = ({
             fontWeight: 'bold',
             borderRadius: '4px'
           }}>
-            <ShowChartIcon fontSize="inherit" />
+            <FunctionsIcon fontSize="inherit" />
           </Box>
         );
       default:
