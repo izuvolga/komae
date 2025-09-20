@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -84,6 +84,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [shiftAspectRatio, setShiftAspectRatio] = useState<number | null>(null);
 
+  // 動的スケール計算用のref
+  const previewSvgRef = useRef<SVGSVGElement>(null);
+  const [dynamicScale, setDynamicScale] = useState(VEC_EDIT_MODAL_SCALE);
+
   // data-theme属性の設定
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
@@ -93,6 +97,49 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
+
+  // モーダルが開いた時にスケールを動的に計算
+  useEffect(() => {
+    if (isOpen && project && previewSvgRef.current) {
+      const calculateScale = () => {
+        const svgElement = previewSvgRef.current;
+        if (!svgElement) return;
+
+        const svgRect = svgElement.getBoundingClientRect();
+        const canvasWidth = project.canvas.width;
+        
+        // SVGの実際の描画エリア幅を取得
+        const svgDisplayWidth = svgRect.width;
+        
+        // viewBoxで設定されている総幅は canvasWidth + 100 なので、
+        // キャンバス部分の幅は (canvasWidth / (canvasWidth + 100)) * svgDisplayWidth
+        const canvasDisplayWidth = (canvasWidth / (canvasWidth + 100)) * svgDisplayWidth;
+        
+        // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+        const calculatedScale = canvasDisplayWidth / canvasWidth;
+        
+        console.log(`Dynamic scale calculation:
+          - Canvas width: ${canvasWidth}px
+          - SVG display width: ${svgDisplayWidth}px
+          - Canvas display width: ${canvasDisplayWidth}px
+          - Calculated scale: ${calculatedScale}`);
+        
+        setDynamicScale(calculatedScale);
+      };
+
+      // モーダルが完全に開いてから計算するため、少し遅延
+      const timer = setTimeout(calculateScale, 100);
+      
+      // リサイズ時の再計算
+      const resizeObserver = new ResizeObserver(calculateScale);
+      resizeObserver.observe(previewSvgRef.current);
+
+      return () => {
+        clearTimeout(timer);
+        resizeObserver.disconnect();
+      };
+    }
+  }, [isOpen, project]);
 
   if (!isOpen || !project) return null;
 
@@ -267,7 +314,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     if (!project) return;
 
     if (isDragging) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, VEC_EDIT_MODAL_SCALE);
+      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
       // キャンバス制約を削除し、ドラッグを自由に
       const newX = dragStartValues.x + deltaX;
@@ -276,7 +323,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, VEC_EDIT_MODAL_SCALE);
+      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
       // チェックボックスが有効な場合は元画像の縦横比を適用
       let finalResizeResult;
@@ -423,7 +470,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragStartPos, dragStartValues, currentPos, currentSize, resizeHandle]);
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, currentPos, currentSize, resizeHandle, dynamicScale]);
 
   return (
     <Dialog
@@ -476,6 +523,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           }}>
             {/* SVGベースの統合描画領域 */}
             <svg
+              ref={previewSvgRef}
               id="vec-edit-preview-svg"
               width={`100%`} // SVG要素は親要素にフィットさせる
               height={`100%`} // SVG要素は親要素にフィットさせる
