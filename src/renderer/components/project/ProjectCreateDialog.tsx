@@ -17,6 +17,13 @@ import {
   MenuItem,
   Divider
 } from '@mui/material';
+import {
+  Crop32,
+  Crop169,
+  CropSquare,
+  SettingsApplications,
+} from '@mui/icons-material';
+
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
@@ -28,15 +35,28 @@ interface ProjectCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
 }
+// Define Crop23 icon (Translate 90 degree rotation of <Crop32 />)
+const Crop23 = () => {
+  return (
+    <Crop32 style={{ transform: 'rotate(90deg)' }} />
+  );
+};
+const Crop916 = () => {
+  return (
+    <Crop169 style={{ transform: 'rotate(90deg)' }} />
+  );
+}
+
 
 // プリセットのキャンバスサイズ
+{/* 横長の場合には、アイコンを90度回転させる */}
 const CANVAS_PRESETS = [
-  { name: '縦長（3:4）', width: 768, height: 1024 },
-  { name: '縦長（9:16）', width: 720, height: 1280 },
-  { name: '横長（4:3）', width: 1024, height: 768 },
-  { name: '横長（16:9）', width: 1280, height: 720 },
-  { name: 'スクエア', width: 1024, height: 1024 },
-  { name: 'カスタム', width: 800, height: 600 }, // カスタム用のデフォルト値
+  { name: '縦長（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
+  { name: '縦長（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
+  { name: '横長（4:3）', icon: <Crop23 />, width: 1024, height: 768 },
+  { name: '横長（16:9）', icon: <Crop916 />, width: 1280, height: 720 },
+  { name: 'スクエア', icon: <CropSquare />, width: 1024, height: 1024 },
+  { name: 'カスタム', icon: <SettingsApplications />, width: 800, height: 600 }, // カスタム用のデフォルト値
 ];
 
 export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
@@ -269,7 +289,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 5 }}>
           {/* プロジェクト基本情報 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <TextField
@@ -298,7 +318,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             />
           </Box>
 
-          <Divider sx={{ my: 1.5 }} />
+          {/* <Divider sx={{ my: 1.5 }} /> */}
 
           {/* 多言語設定 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -387,7 +407,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             </div>
           </Box>
 
-          <Divider sx={{ my: 1.5 }} />
+          {/* <Divider sx={{ my: 1.5 }} /> */}
 
           {/* キャンバス設定 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -402,12 +422,19 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                   value={index.toString()}
                   control={<Radio size="small" disabled={isCreating} />}
                   label={
-                    <Box>
-                      <Typography variant="body2" component="span">{preset.name}</Typography>
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      bgcolor: 'background.paper',
+                      borderColor:  'var(--dialog-active-border)',
+                      borderWidth: 1,
+                      borderStyle: 'solid',
+                      borderRadius: '4px',
+                      }}>
+                      <Typography variant="body2" component="span" sx={{ mt: 1 }}>{preset.icon}</Typography>
+                      <Typography variant="body2" component="span" >{preset.name}</Typography>
                       {index < CANVAS_PRESETS.length - 1 && (
-                        <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>
-                          {preset.width} × {preset.height}
-                        </Typography>
+                        <Typography variant="caption" component="span" sx={{ ml: 1, color: 'text.secondary' }}>{preset.width} × {preset.height}</Typography>
                       )}
                     </Box>
                   }
