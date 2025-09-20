@@ -1,32 +1,7 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
-- [x]: EnhancedSpreadSheet のセルが非表示状態でも、✏️ を押下したらEditModalを表示する
-- [x]: AssetLibrary の Asset のサムネイルを表示する
-  - TextAsset ... T の文字（現在のまま）
-  - ValueAsset ... V の文字（現在のまま）
-  - VectorAsset ... 線画のアイコン
-  - DynamicVectorAsset ... 線画のアイコン（ValueAssetが紐づいている場合は ValueAssetの初期値利用）
-- [x]: 以下の EditModal で、マウス操作があるものは全て SVG のハンドラを利用する（DynamicVectorEditModal.tsx 参考）
-  - @src/renderer/components/asset/ValueEditModal.tsx
-  - @src/renderer/components/asset/DynamicVectorEditModal.tsx
-  - @src/renderer/components/asset/TextEditModal.tsx
-  - @src/renderer/components/asset/VectorEditModal.tsx
-  - @src/renderer/components/asset/ImageEditModal.tsx
-- [x]: EditModal で、共通処理があるものは共通化する
-- [x]: ValueAssetEditModal のプレビュー画面が不要なので削除
-- [x]: TextEditModal の Z-Index が正常に動作していない？
-- [x]: CustomAssetSelectionModal のMUIへの移行は中断します。CustomAssetManagementModal も非常に似た UI を持っているので、そちらと統合してしまえるように思えます。Custom Asset Management に「アセットを作成」ボタン（CustomAssetSelectionModalの「この CustomAsset で Dynamic SVG を作成」ボタンに相当）を追加すれば良い気がしています。
-- [x]: EnhancedSpreadSheet のヘッダ部分の右クリックのメニューから、アセットの編集・削除ができるようにしてください
-- [x]: EnhancedSpreadSheet の TextEditModal の ヘッダを右クリックしたら「すべて確認用テキストにする」を入れる。instance.multilingual_text における現在アクティブになっている言語の値（getCurrentLanguage関数の実装を参照）を undefined にする機能を追加してください。
-- [x]: EnhancedSpreadSheet の 「新しいページを追加」を押下したときに、デフォルトではアセットを全て表示状態にしてください。現在は全て非表示状態になってしまっている。
-- [x]: EnhancedSpreadSheet の 行のコンテキストメニューで「全て表示」がうまく動作しません。その行のうち、1, 2 つがランダムに表示状態になります。何度も「全て表示」を押下していると、最終的に全て表示状態になるようです。「全て隠す」は正常に動作しています。
-- [x]: 現在、Preview のセルにカーソルが乗ったときに限り、right-panel の Preview Window の内容が変化しますが、どのセルであっても、カーソルが乗ると「そのカーソルが存在するページ（行）」の内容が Preview Window に表示されるようにしてください。例えば、1行目のセルにカーソルが乗っているときは、Preview Window には常に1ページ目の内容が表示されるようにする、ということです。
-- [x]: UI 変更。更新があったセルは ModeEdit -> BorderColor にして色も変更する。
-- [x]: ValueAsset を編集してなくても編集済みのマークが付くようになるのを修正
-- [x]: EnhancedSpreadSheet の位置の入れ替えロジックがおかしい
-- [x]: Library -> Custom Assets にサムネを表示する
-- [ ]: アセット ID、UUID は長過ぎます。データが冗長ですし、デバッグがしにくいです。ローカルなので衝突しないでしょう。
+- [ ]: アセット IDにUUID を使うのは長過ぎます。データが冗長ですし、デバッグがしにくいです。ローカルなので衝突しないでしょう。最悪の場合、プロジェクトファイルをテキストエディタで書き換える運用も想定しているので、短くしましょう。
   - "123abcde" みたいな七桁くらいで良いと思います。命名規則は以下で。
   - ImageAsset -> img-123abcde
   - ValueAsset -> val-123abcde
@@ -37,53 +12,10 @@
 
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
-- [ ]: EnhancedSpreadSheet を横方向に中途半端な位置にスクロールしたままにすると、列の入れ替えのときに半透明な四角が違和感のある位置に出る
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal の「縦横比を元画像にあわせる」が機能していない。単に現在のアスペクト比をキープするだけになっている。
-- [x]: CustomAssetManagementModal.tsx に Dynamic SVG のプレビューも表示したほうが良いと思う。Asset Details の↓あたりに
-
-## デザイン
-- ダークモードでデザインが見えなくなっている
-  - [x]: 全般的に、MUI の TextField のラベルの色が見えません。文字の色が暗いのに、ダークモードで背景が暗いため。全 EditModal です。どこで設定されていますか？ => src/theme/muiTheme.ts で設定されている
-  - [x]: ValueEditModal の「値の型」「新規ページでの動作」「初期値にリセット」「前のページの値を継承」の文言も見にくい状態です。文字が暗いです。
-  - [x]: Asset Library のアセット追加の + ボタン自体、明るめの灰色が良いと思うのですが、色は変更可能ですか。
-  - [x]: Asset Library の + ボタン押下後のプルダウンが一切見えないです。文字と背景色どちらも暗い状況です。
-  - [x]: VectorEditModal の「アセット名」「ファイルパス」「元サイズ」、@src/renderer/components/common/NumericInput.tsx の上下の矢印、「Default Opacity」もだいぶ見にくい
-  - [x]: DynamicVectorEditModal の「Opacity」も暗くてみにくいですね。
-  - [x]: DynamicVectorEditModal の @parameters の見出し以下にあるパラメータ名、型（楕円形で囲まれているが、その楕円）が見にくいいです。また、"Original Width / Height" もみづらいです。いずれも文字が暗いです。
-  - [x]: ImageEditModal の「縦横比を元画像にあわせる」
-  - [x]: ImageEditModal の「Mask Edit Mode」も青色ですが、ダークモードだと若干見づらいので少し明るくしてください。
-  - [x]: ImageEditModal の「Mask Edit Mode」の鉛筆のアイコンは MUI のアイコンにできる
-  - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスの中身が見れず、テキストボックスを囲んでいる矩形のデザインも、ダークモードの割に明るすぎる状態です。改善をしてください
-  - [x]: VectorEditModal/DynamicVectorEditModal/TextEditModal の左側のプレビュー領域があるのですが、キャンバスは白色で良いとしても、キャンバスの外側は同様に action.hover の色にしてください。
-  - [x]: TextEditModal の「縁取りの色」「塗りの色」の文言が暗くて見にくいです
-  - [x]: ValueAsset のヘルプマークの色が統一されていない？
-  - [x]: ImageEditModal の Mask Edit Mode の P1 〜 P4 のテキストボックスは NumericInput のモジュールを使うようにしてください
-  - [x]: TextEditModal の「テキストの内容は〜」と「このテキストの用途〜」は、TextField ヘルプマークから参照できるようにできますか。
-  - [x]: CustomAssetManagementModal.tsx のカスタムアセットの項目ですが、ダークモードだとカスタムアセットのバージョン番号が見えないです。バージョンを囲む領域が明るい色にもかかわらず、明るい文字が使われています。また、ダークモードだとカスタムアセットの項目自体を囲む四角形がマウスでホバーしたときに明るくなりすぎます。
-  - [x]: CustomAssetManagementModal.tsx の Parameters: の下にあるパラメータ名の箇所が見にくいです。明るい背景に、明るい文字が使われています。
-- [x]: @src/renderer/components/customasset/CustomAssetManagementModal.tsx スクロールできないです。Custom Assets と Asset Details の２つの領域に左右で分かれていると思いますが、いずれもスクロールができないです。独立してスクルロールできるようにしてください。
-- [x]: Project ヘッダの言語切替は MUI のプルダウンにできるんじゃないか
 - [ ]: Font Management 画面の上の方が見切れている
-
-## CustomAssetManagementModal
-CustomAssetManagementModal なんですが、右側の領域から、以下の 4 項目を消してください。
-- Type
-- Version
-- Author
-- Description
-
-なぜなら、すでに左側のCustom Assets 配下に表示されているためです。
-その代わり、右側には
-- Preview (新項目)
-- Parameters
-- Code Preview
-
-の項目を追加してください。
-Preview は、デフォルトのパラメータで DynamicVectorAsset のプレビューをしてください。
-プレビュー画面は、既存の DynamicVectorEditModal のようにしてください。ただし、キャンバスサイズは、
-もし CustomAsset の @height と @width が既存で存在すればそれを尊重して利用し、なければ 300 x 300 の正方形内部に描画してください。
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
@@ -92,7 +24,6 @@ Preview は、デフォルトのパラメータで DynamicVectorAsset のプレ�
 - [ ]: HTML Viewer の中にフォントのライセンス全文と著作権表示を表示する画面を追加する
 
 ## 大きめの改善
-- [x]: CSS をリファクタリングする
 - [ ]: プロジェクト作成時に、キャンバスの色を指定できるようにする
 - [ ]: ImageAsset で参照されている画像に同じものを指定可能にする
 - [ ]: アセット同士のグループ化機能
@@ -103,6 +34,8 @@ Preview は、デフォルトのパラメータで DynamicVectorAsset のプレ�
 - [ ]: Asset Library の Asset を自動でソートする機能をほしい
   - 種類ごと
   - 名前順
+
+## TextAsset 改善
 - [ ]: TextAsset に rotate を対応する
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
   - 行番号表示
