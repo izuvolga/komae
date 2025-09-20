@@ -468,20 +468,18 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           }}>
             <Box sx={{
                   position: 'relative',
-                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                  height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 1,
+                  width: `${project.canvas.width * EDIT_MODAL_SCALE * 2}px`, // 表示領域を2倍に拡張
+                  height: `${project.canvas.height * EDIT_MODAL_SCALE * 2}px`, // 表示領域を2倍に拡張
                   overflow: 'visible',
                   boxShadow: 2,
-                  backgroundColor: 'grey.50'
+                  /* backgroundColor: 'grey.50' */
                 }}>
-                  {/* SVG描画結果 */}
+                  {/* 拡張されたSVG描画結果 */}
                   <svg
+                    id="vec-edit-preview-svg"
                     width='100%'
                     height='100%'
-                    viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
+                    viewBox={`${-project.canvas.width / 2} ${-project.canvas.height / 2} ${project.canvas.width * 2} ${project.canvas.height * 2}`}
                     xmlns="http://www.w3.org/2000/svg"
                     dangerouslySetInnerHTML={{ __html: `${wrapSVGWithParentContainer(
                       asset.svg_content,
@@ -494,12 +492,12 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       asset.original_height)}` }}
                     />
 
-                  {/* インタラクション用の透明な要素（ドラッグエリア） */}
+                  {/* インタラクション用の透明な要素（ドラッグエリア - 拡張座標系） */}
                   <div
                     style={{
                       position: 'absolute',
-                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
-                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
+                      left: `${(currentPos.x + project.canvas.width / 2) * EDIT_MODAL_SCALE}px`,
+                      top: `${(currentPos.y + project.canvas.height / 2) * EDIT_MODAL_SCALE}px`,
                       width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
                       height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
                       backgroundColor: 'transparent',
@@ -511,22 +509,25 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     onMouseDown={handlePreviewMouseDown}
                   />
 
-                  {/* リサイズハンドル */}
+                  {/* リサイズハンドル（拡張座標系） */}
                   <ResizeHandleOverlay
-                    canvasWidth={project.canvas.width}
-                    canvasHeight={project.canvas.height}
-                    currentPos={currentPos}
+                    canvasWidth={project.canvas.width * 2}
+                    canvasHeight={project.canvas.height * 2}
+                    currentPos={{
+                      x: currentPos.x + project.canvas.width / 2,
+                      y: currentPos.y + project.canvas.height / 2
+                    }}
                     currentSize={currentSize}
                     onResizeMouseDown={handleResizeMouseDown}
                     zIndex={3}
                   />
 
-                  {/* キャンバスフレームオーバーレイ（常に最前面） */}
+                  {/* キャンバスフレームオーバーレイ（拡張領域の中央に配置） */}
                   <Box
                     sx={{
                       position: 'absolute',
-                      left: '0px',
-                      top: '0px',
+                      left: `${project.canvas.width * EDIT_MODAL_SCALE / 2}px`,
+                      top: `${project.canvas.height * EDIT_MODAL_SCALE / 2}px`,
                       width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
                       height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
                       border: '2px solid',
