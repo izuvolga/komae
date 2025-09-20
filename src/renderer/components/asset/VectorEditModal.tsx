@@ -529,10 +529,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               height={`100%`} // SVG要素は親要素にフィットさせる
               viewBox={`0 0 ${project.canvas.width + 100} ${project.canvas.height + 100}`} // 100pxの余白を追加
               xmlns="http://www.w3.org/2000/svg"
-              style={{
-                filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
-                position: 'relative'
-              }}
               preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
             >
 
@@ -554,6 +550,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 height={project.canvas.height}
                 fill="#f5f5f5"
                 rx="2"
+                style={{
+                  filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
+                  position: 'relative'
+                }}
               />
               <g
                 dangerouslySetInnerHTML={{
