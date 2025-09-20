@@ -43,7 +43,7 @@ import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
 import { off } from 'process';
 import { wrap } from 'module';
 
-const EDIT_MODAL_SCALE = 0.46875; // TODO: 正確な値を計算する
+const VEC_EDIT_MODAL_SCALE = 0.46875; // TODO: 正確な値を計算する
 
 // 統合されたプロパティ
 interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
@@ -267,7 +267,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     if (!project) return;
 
     if (isDragging) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, EDIT_MODAL_SCALE);
+      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, VEC_EDIT_MODAL_SCALE);
 
       // キャンバス制約を削除し、ドラッグを自由に
       const newX = dragStartValues.x + deltaX;
@@ -276,7 +276,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, EDIT_MODAL_SCALE);
+      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, VEC_EDIT_MODAL_SCALE);
 
       // チェックボックスが有効な場合は元画像の縦横比を適用
       let finalResizeResult;
@@ -497,8 +497,9 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 fill="#ffacaa"
                 rx="2"
               />
-              {/* キャンバス背景 */}
+              {/* キャンバス */}
               <rect
+                id="vec-edit-canvas"
                 x={50}
                 y={50}
                 width={project.canvas.width}
