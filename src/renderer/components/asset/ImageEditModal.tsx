@@ -96,6 +96,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [shiftAspectRatio, setShiftAspectRatio] = useState<number | null>(null);
 
   // マスク編集専用の状態
   const [maskDragPointIndex, setMaskDragPointIndex] = useState<number | null>(null);
@@ -112,28 +113,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
 
-  // Shiftキーの状態を監視
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftPressed(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   if (!isOpen || !project) return null;
 
@@ -163,6 +142,36 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
   const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
   const currentMask = getCurrentMask();
+
+  // Shiftキーの状態を監視
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift' && !isShiftPressed) {
+        setIsShiftPressed(true);
+        // Shiftキーが押された瞬間の現在のサイズの縦横比を記録
+        const currentWidth = currentSize.width;
+        const currentHeight = currentSize.height;
+        if (currentWidth > 0 && currentHeight > 0) {
+          setShiftAspectRatio(currentWidth / currentHeight);
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+        setShiftAspectRatio(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [currentSize, isShiftPressed]);
 
   // 値の更新（Asset vs Instance）
   const updatePosition = (x: number, y: number) => {
@@ -358,14 +367,48 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           }
 
           finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        } else if (isShiftPressed && shiftAspectRatio !== null) {
+          // Shiftキーが押されている場合は記録された縦横比を維持
+          const baseResult = calculateResizeValues({
+            deltaX,
+            deltaY,
+            dragStartValues,
+            resizeHandle,
+            aspectRatioLocked: false,
+            canvasWidth: project.canvas.width,
+            canvasHeight: project.canvas.height,
+            minSize: 10
+          });
+
+          // 記録された縦横比に基づいてサイズを調整
+          let newWidth = baseResult.width;
+          let newHeight = baseResult.height;
+          let newX = baseResult.x;
+          let newY = baseResult.y;
+
+          if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
+            // 幅ベースで記録された縦横比を維持
+            newHeight = newWidth / shiftAspectRatio;
+            if (resizeHandle.includes('top')) {
+              newY = dragStartValues.y + dragStartValues.height - newHeight;
+            }
+          } else {
+            // 高さベースで記録された縦横比を維持
+            newWidth = newHeight * shiftAspectRatio;
+            if (resizeHandle.includes('left')) {
+              newX = dragStartValues.x + dragStartValues.width - newWidth;
+            }
+          }
+
+          finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
         } else {
-          // Shiftキーが押されている場合は現在のサイズの縦横比を維持、そうでなければ自由リサイズ
+          // 自由リサイズ
           finalResizeResult = calculateResizeValues({
             deltaX,
             deltaY,
             dragStartValues,
             resizeHandle,
-            aspectRatioLocked: isShiftPressed,
+            aspectRatioLocked: false,
             canvasWidth: project.canvas.width,
             canvasHeight: project.canvas.height,
             minSize: 10
