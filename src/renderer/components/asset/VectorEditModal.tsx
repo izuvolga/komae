@@ -40,6 +40,7 @@ import {
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
+import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { off } from 'process';
 import { wrap } from 'module';
 
@@ -87,6 +88,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   // 動的スケール計算用のref
   const previewSvgRef = useRef<SVGSVGElement>(null);
   const [dynamicScale, setDynamicScale] = useState(VEC_EDIT_MODAL_SCALE);
+
+  // スナップ機能関連の状態
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const SNAP_THRESHOLD = 10; // 10px以内でスナップ
 
   // data-theme属性の設定
   useEffect(() => {
@@ -319,12 +324,27 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     if (isDragging) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
-      // キャンバス制約を削除し、ドラッグを自由に
-      const newX = dragStartValues.x + deltaX;
-      const newY = dragStartValues.y + deltaY;
+      // 提案された新しい位置を計算
+      const proposedX = dragStartValues.x + deltaX;
+      const proposedY = dragStartValues.y + deltaY;
 
-      handlePositionChange('x', newX);
-      handlePositionChange('y', newY);
+      // スナップ計算を実行
+      const snapResult = calculateSnap(
+        proposedX,
+        proposedY,
+        currentSize.width,
+        currentSize.height,
+        project.canvas.width,
+        project.canvas.height,
+        SNAP_THRESHOLD
+      );
+
+      // スナップした位置を適用
+      handlePositionChange('x', snapResult.snappedX);
+      handlePositionChange('y', snapResult.snappedY);
+
+      // ガイドラインを更新
+      setSnapGuides(snapResult.snapGuides);
     } else if (isResizing && resizeHandle) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
@@ -460,6 +480,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     setIsDragging(false);
     setIsResizing(false);
     setResizeHandle(null);
+    // スナップガイドラインをクリア
+    setSnapGuides([]);
   };
 
   // マウスイベントのグローバルリスナー設定
@@ -612,6 +634,21 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 currentSize={currentSize}
                 onResizeMouseDown={handleResizeMouseDown}
               />
+
+              {/* スナップガイドライン */}
+              {snapGuides.map((guide, index) => (
+                <line
+                  key={index}
+                  x1={guide.type === 'vertical' ? guide.position + margin : guide.start + margin}
+                  y1={guide.type === 'vertical' ? guide.start + margin : guide.position + margin}
+                  x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
+                  y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
+                  stroke="#ff4444"
+                  strokeWidth="1.5"
+                  strokeDasharray="4,4"
+                  style={{ pointerEvents: 'none' }}
+                />
+              ))}
             </svg>
           </Box>
 
