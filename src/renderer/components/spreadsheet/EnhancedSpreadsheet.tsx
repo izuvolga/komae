@@ -18,6 +18,7 @@ import { CellContextMenu } from './CellContextMenu';
 import { CursorOverlay } from './CursorOverlay';
 import { ColumnDragOverlay } from './ColumnDragOverlay';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
+import { generatePageId, generateAssetInstanceId } from '../../../utils/idGenerator';
 import { AssetThumbnail } from '../asset/AssetThumbnail';
 import { scrollCursorIntoView } from '../../utils/scrollUtils';
 import { createColumnDragCalculator } from '../../utils/columnDragCalculations';
@@ -305,13 +306,13 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
   const handleAddPage = () => {
     const pageNumber = pages.length + 1;
-    const pageId = `page-${Date.now()}`;
+    const pageId = generatePageId();
 
     // 全アセットのデフォルトインスタンスを作成
     const asset_instances: Record<string, AssetInstance> = {};
 
     Object.values(project.assets).forEach(asset => {
-      const instanceId = `instance-${Date.now()}-${asset.id}`;
+      const instanceId = generateAssetInstanceId();
       let newInstance: AssetInstance = {
         id: instanceId,
         asset_id: asset.id,
@@ -1133,7 +1134,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     if (rowContextMenu.pageIndex < 0) return;
 
     const newPage = {
-      id: `page-${Date.now()}`,
+      id: generatePageId(),
       title: '',
       asset_instances: {},
     };
@@ -1145,7 +1146,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
     if (rowContextMenu.pageIndex < 0) return;
 
     const newPage = {
-      id: `page-${Date.now()}`,
+      id: generatePageId(),
       title: '',
       asset_instances: {},
     };

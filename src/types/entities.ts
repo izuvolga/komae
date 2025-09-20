@@ -532,7 +532,13 @@ export interface SaveDialogOptions {
 
 
 // Asset初期化用のヘルパー関数
-import { v4 as uuidv4 } from 'uuid';
+import {
+  generateImageAssetId,
+  generateTextAssetId,
+  generateVectorAssetId,
+  generateDynamicVectorAssetId,
+  generateValueAssetId
+} from '../utils/idGenerator';
 
 /**
  * ImageAssetの初期データを作成
@@ -544,7 +550,7 @@ export function createImageAsset(params: {
   originalHeight: number;
 }): ImageAsset {
   return {
-    id: `img-${uuidv4()}`,
+    id: generateImageAssetId(),
     type: 'ImageAsset',
     name: params.name,
     original_file_path: params.relativePath,
@@ -885,7 +891,7 @@ export function createDefaultTextAsset(params: {
 
   // 最小限のフィールドでTextAssetを作成
   const asset: TextAsset = {
-    id: `text-${uuidv4()}`,
+    id: generateTextAssetId(),
     type: 'TextAsset',
     name,
     default_text: '',
@@ -910,7 +916,7 @@ export function createVectorAsset(params: {
   svgContent: string;
 }): VectorAsset {
   return {
-    id: `vector-${uuidv4()}`,
+    id: generateVectorAssetId(),
     type: 'VectorAsset',
     name: params.name,
     original_file_path: params.relativePath,
@@ -945,7 +951,7 @@ export function createDynamicVectorAsset(params: {
   }), {} as Record<string, number | string>);
 
   return {
-    id: `dynamic-vector-${uuidv4()}`,
+    id: generateDynamicVectorAssetId(),
     type: 'DynamicVectorAsset',
     name: params.name || `${params.customAsset.name} (Dynamic SVG)`,
 
@@ -1012,7 +1018,7 @@ export function createValueAsset(params: {
   const name = params.name || generateUniqueValueAssetName(params.project);
 
   return {
-    id: `value-${uuidv4()}`,
+    id: generateValueAssetId(),
     type: 'ValueAsset',
     name: name,
     value_type: params.value_type,

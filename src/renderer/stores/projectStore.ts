@@ -14,6 +14,7 @@ import type {
   TextAsset,
   TextAssetInstance
 } from '../../types/entities';
+import { generateAssetInstanceId } from '../../utils/idGenerator';
 import { getDefaultExportSettings } from '../../utils/exportSettings';
 
 // ページ配列操作のヘルパー関数
@@ -199,7 +200,7 @@ export const useProjectStore = create<ProjectStore>()(
 
           // 既存の全ページに新しいアセットのインスタンスを作成
           state.project.pages.forEach(page => {
-            const instanceId = `instance-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const instanceId = generateAssetInstanceId();
             let newInstance: AssetInstance = {
               id: instanceId,
               asset_id: asset.id,
@@ -506,7 +507,7 @@ export const useProjectStore = create<ProjectStore>()(
           }
 
           // 新しいインスタンスを作成
-          const newInstanceId = `instance-${Date.now()}`;
+          const newInstanceId = generateAssetInstanceId();
           const newInstance = {
             ...sourceAssetInstance,
             id: newInstanceId,
@@ -611,7 +612,7 @@ export const useProjectStore = create<ProjectStore>()(
 
           // 一括でインスタンスを作成
           assetsToShow.forEach(asset => {
-            const instanceId = `instance-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const instanceId = generateAssetInstanceId();
             let newInstance: AssetInstance = {
               id: instanceId,
               asset_id: asset.id,

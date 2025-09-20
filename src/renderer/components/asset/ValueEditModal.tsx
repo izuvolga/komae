@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ValueAsset, ValueAssetInstance, Page, ProjectData, validateValueAssetData, validateValueAssetInstanceData } from '../../../types/entities';
+import { generateAssetInstanceId } from '../../../utils/idGenerator';
 import { useProjectStore } from '../../stores/projectStore';
 import { evaluateFormula, getEffectiveValueAssetValue, parseFormulaReferences } from '../../../utils/valueEvaluation';
 import { ReadOnlyInput } from '../common/ReadOnlyInput';
@@ -61,7 +62,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   // Instance編集用のstate
   const [editingInstance, setEditingInstance] = useState<ValueAssetInstance>(
     assetInstance || {
-      id: `value-instance-${Date.now()}`,
+      id: generateAssetInstanceId(),
       asset_id: asset.id,
       override_value: undefined,
     }
@@ -112,7 +113,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   useEffect(() => {
     setEditingAsset(asset);
     setEditingInstance(assetInstance || {
-      id: `value-instance-${Date.now()}`,
+      id: generateAssetInstanceId(),
       asset_id: asset.id,
       override_value: undefined,
     });

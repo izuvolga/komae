@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as os from 'os';
-import { v4 as uuidv4 } from 'uuid';
+import { generateProjectId, generatePageId } from '../../utils/idGenerator';
 import type {
   ProjectData,
   ProjectCreateParams,
@@ -97,7 +97,7 @@ export class ProjectManager {
   }
 
   async createProject(params: ProjectCreateParams): Promise<ProjectData> {
-    const projectId = uuidv4();
+    const projectId = generateProjectId();
 
     const projectData: ProjectData = {
       metadata: {
@@ -117,7 +117,7 @@ export class ProjectManager {
     };
 
     // デフォルトページを作成
-    const defaultPageId = `page-${uuidv4()}`;
+    const defaultPageId = generatePageId();
     projectData.pages.push({
       id: defaultPageId,
       title: '',
