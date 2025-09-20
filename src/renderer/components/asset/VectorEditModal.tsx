@@ -26,7 +26,6 @@ import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanc
 import {
   convertMouseDelta,
   constrainToCanvas,
-  EDIT_MODAL_SCALE,
   EDIT_MODAL_CANVAS_SCALE,
   EDIT_MODAL_CANVAS_SCALE_INVERSE,
   getCurrentPosition,
@@ -43,6 +42,8 @@ import {
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
 import { off } from 'process';
 import { wrap } from 'module';
+
+const EDIT_MODAL_SCALE = 1.2; // TODO: 正確な値を計算する
 
 // 統合されたプロパティ
 interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
@@ -266,7 +267,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     if (!project) return;
 
     if (isDragging) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+      let { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+      // SVG座標系に変換
+      deltaX = deltaX / EDIT_MODAL_SCALE;
+      deltaY = deltaY / EDIT_MODAL_SCALE;
 
       // キャンバス制約を削除し、ドラッグを自由に
       const newX = dragStartValues.x + deltaX;
@@ -275,7 +279,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
-      const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+      let { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+      // SVG座標系に変換
+      deltaX = deltaX / EDIT_MODAL_SCALE;
+      deltaY = deltaY / EDIT_MODAL_SCALE;
 
       // チェックボックスが有効な場合は元画像の縦横比を適用
       let finalResizeResult;
