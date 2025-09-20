@@ -13,14 +13,16 @@
 - [x]: 同様に、VectorEditModal/DynamicVectorEditModal において
   - 縦横比を元画像に合わせるチェックボックスを追加
   - Shiftキーを押しながらリサイズすると、Shiftキーを押した時点のサイズの縦横比を維持するようにする。
-- [ ]: ImageEditModal において、キャンバスサイズが横長（16:9）になるとプレビューが見切れます。まず、プレビューの箇所を横スクロールできるようにするか、プレビューの箇所をキャンバスサイズに合わせて拡大縮小するようにする。
+- [x]: ImageEditModal において、キャンバスサイズが横長（16:9）になるとプレビューが見切れます。まず、プレビューの箇所を横スクロールできるようにするか、プレビューの箇所をキャンバスサイズに合わせて拡大縮小するようにする。
 - [ ]: EditModal 画面のプレビューの箇所、キャンバスサイズちょうどではなく、上下左右に10%ずつくらいに作業領域を拡大させて、キャンバス外部にはみ出す形でも編集できるようにする。
-- [ ]: AssetLibrary の「アセット」の文字が大きいので修正する
+- [x]: AssetLibrary の「アセット」の文字が大きいので修正する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal の「縦横比を元画像にあわせる」が機能していない。単に現在のアスペクト比をキープするだけになっている。
 - [ ]: Font Management 画面の上の方が見切れている
+- [ ]: Asset Librry でのアイコンが統一されていない（追加画面とサムネイル）ので統一
+- [ ]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
