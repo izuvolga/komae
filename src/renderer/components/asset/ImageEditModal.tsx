@@ -314,17 +314,9 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-        
-        const constrained = constrainToCanvas(
-          dragStartValues.x + deltaX,
-          dragStartValues.y + deltaY,
-          currentSize.width,
-          currentSize.height,
-          project.canvas.width,
-          project.canvas.height
-        );
-        
-        updatePosition(constrained.x, constrained.y);
+
+        // キャンバス外への移動を許可
+        updatePosition(dragStartValues.x + deltaX, dragStartValues.y + deltaY);
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
@@ -334,15 +326,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           // 元画像の縦横比を維持
           const originalAspectRatio = asset.original_width / asset.original_height;
 
-          // まず通常のリサイズを計算
+          // まず通常のリサイズを計算（キャンバス制約なし）
           const baseResult = calculateResizeValues({
             deltaX,
             deltaY,
             dragStartValues,
             resizeHandle,
             aspectRatioLocked: false,
-            canvasWidth: project.canvas.width,
-            canvasHeight: project.canvas.height,
             minSize: 10
           });
 
@@ -375,8 +365,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
             dragStartValues,
             resizeHandle,
             aspectRatioLocked: false,
-            canvasWidth: project.canvas.width,
-            canvasHeight: project.canvas.height,
             minSize: 10
           });
 
@@ -402,15 +390,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
           finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
         } else {
-          // 自由リサイズ
+          // 自由リサイズ（キャンバス制約なし）
           finalResizeResult = calculateResizeValues({
             deltaX,
             deltaY,
             dragStartValues,
             resizeHandle,
             aspectRatioLocked: false,
-            canvasWidth: project.canvas.width,
-            canvasHeight: project.canvas.height,
             minSize: 10
           });
         }
@@ -488,14 +474,15 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           <Box sx={{
             width: 600,
             minWidth: 600,
-            p: 2,
+            p: 4, // キャンバス外表示のためpaddingを増加
             backgroundColor: 'action.hover', // より明るいグレー
             borderRight: '1px solid',
             borderRightColor: 'divider',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            overflow: 'auto' // スクロールを許可
           }}>
             <Box
               data-canvas-frame
@@ -506,7 +493,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   border: '2px solid',
                   borderColor: 'primary.main',
                   borderRadius: 1,
-                  overflow: 'hidden',
+                  overflow: 'visible',
                   boxShadow: 2,
                   backgroundColor: 'grey.50'
                 }}>
