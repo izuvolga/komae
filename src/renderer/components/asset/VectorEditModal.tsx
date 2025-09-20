@@ -222,7 +222,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     };
   }, [currentSize, isShiftPressed]);
 
-  // SVGを親SVG要素でラップして位置・サイズ・不透明度を制御 - 共通ユーティリティを使用
+  // SVGを見要SVG要素でラップして位置・サイズ・不透明度を制御 - 共通ユーティリティを使用
 
   // ドラッグ操作ハンドラー
   const handlePreviewMouseDown = (e: React.MouseEvent) => {
@@ -262,19 +262,13 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     
     if (isDragging) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-      const currentSizeForDrag = getCurrentSize(mode, editedAsset, editedInstance);
       
-      const constrained = constrainToCanvas(
-        dragStartValues.x + deltaX,
-        dragStartValues.y + deltaY,
-        currentSizeForDrag.width,
-        currentSizeForDrag.height,
-        project.canvas.width,
-        project.canvas.height
-      );
+      // キャンバス制約を削除し、ドラッグを自由に
+      const newX = dragStartValues.x + deltaX;
+      const newY = dragStartValues.y + deltaY;
       
-      handlePositionChange('x', constrained.x);
-      handlePositionChange('y', constrained.y);
+      handlePositionChange('x', newX);
+      handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
 
@@ -284,85 +278,106 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         // 元画像の縦横比を維持
         const originalAspectRatio = asset.original_width / asset.original_height;
 
-        // まず通常のリサイズを計算
-        const baseResult = calculateResizeValues({
-          deltaX,
-          deltaY,
-          dragStartValues,
-          resizeHandle,
-          aspectRatioLocked: false,
-          canvasWidth: project.canvas.width,
-          canvasHeight: project.canvas.height,
-          minSize: 10
-        });
+        // キャンバス制約なしでリサイズを計算
+        let newWidth = dragStartValues.width;
+        let newHeight = dragStartValues.height;
+        let newX = dragStartValues.x;
+        let newY = dragStartValues.y;
+
+        if (resizeHandle.includes('right')) newWidth = Math.max(10, dragStartValues.width + deltaX);
+        if (resizeHandle.includes('left')) {
+          newWidth = Math.max(10, dragStartValues.width - deltaX);
+          newX = dragStartValues.x + dragStartValues.width - newWidth;
+        }
+        if (resizeHandle.includes('bottom')) newHeight = Math.max(10, dragStartValues.height + deltaY);
+        if (resizeHandle.includes('top')) {
+          newHeight = Math.max(10, dragStartValues.height - deltaY);
+          newY = dragStartValues.y + dragStartValues.height - newHeight;
+        }
+
+        const baseResult = { x: newX, y: newY, width: newWidth, height: newHeight };
 
         // 元画像の縦横比に基づいてサイズを調整
-        let newWidth = baseResult.width;
-        let newHeight = baseResult.height;
-        let newX = baseResult.x;
-        let newY = baseResult.y;
+        let adjustedWidth = baseResult.width;
+        let adjustedHeight = baseResult.height;
+        let adjustedX = baseResult.x;
+        let adjustedY = baseResult.y;
 
         if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
           // 幅ベースで元画像の縦横比を維持
-          newHeight = newWidth / originalAspectRatio;
+          adjustedHeight = adjustedWidth / originalAspectRatio;
           if (resizeHandle.includes('top')) {
-            newY = dragStartValues.y + dragStartValues.height - newHeight;
+            adjustedY = dragStartValues.y + dragStartValues.height - adjustedHeight;
           }
         } else {
           // 高さベースで元画像の縦横比を維持
-          newWidth = newHeight * originalAspectRatio;
+          adjustedWidth = adjustedHeight * originalAspectRatio;
           if (resizeHandle.includes('left')) {
-            newX = dragStartValues.x + dragStartValues.width - newWidth;
+            adjustedX = dragStartValues.x + dragStartValues.width - adjustedWidth;
           }
         }
 
-        finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        finalResizeResult = { x: adjustedX, y: adjustedY, width: adjustedWidth, height: adjustedHeight };
       } else if (isShiftPressed && shiftAspectRatio !== null) {
         // Shiftキーが押されている場合は記録された縦横比を維持
-        const baseResult = calculateResizeValues({
-          deltaX,
-          deltaY,
-          dragStartValues,
-          resizeHandle,
-          aspectRatioLocked: false,
-          canvasWidth: project.canvas.width,
-          canvasHeight: project.canvas.height,
-          minSize: 10
-        });
+        let newWidth = dragStartValues.width;
+        let newHeight = dragStartValues.height;
+        let newX = dragStartValues.x;
+        let newY = dragStartValues.y;
+
+        if (resizeHandle.includes('right')) newWidth = Math.max(10, dragStartValues.width + deltaX);
+        if (resizeHandle.includes('left')) {
+          newWidth = Math.max(10, dragStartValues.width - deltaX);
+          newX = dragStartValues.x + dragStartValues.width - newWidth;
+        }
+        if (resizeHandle.includes('bottom')) newHeight = Math.max(10, dragStartValues.height + deltaY);
+        if (resizeHandle.includes('top')) {
+          newHeight = Math.max(10, dragStartValues.height - deltaY);
+          newY = dragStartValues.y + dragStartValues.height - newHeight;
+        }
+
+        const baseResult = { x: newX, y: newY, width: newWidth, height: newHeight };
 
         // 記録された縦横比に基づいてサイズを調整
-        let newWidth = baseResult.width;
-        let newHeight = baseResult.height;
-        let newX = baseResult.x;
-        let newY = baseResult.y;
+        let shiftWidth = baseResult.width;
+        let shiftHeight = baseResult.height;
+        let shiftX = baseResult.x;
+        let shiftY = baseResult.y;
 
         if (resizeHandle.includes('right') || resizeHandle.includes('left')) {
           // 幅ベースで記録された縦横比を維持
-          newHeight = newWidth / shiftAspectRatio;
+          shiftHeight = shiftWidth / shiftAspectRatio;
           if (resizeHandle.includes('top')) {
-            newY = dragStartValues.y + dragStartValues.height - newHeight;
+            shiftY = dragStartValues.y + dragStartValues.height - shiftHeight;
           }
         } else {
           // 高さベースで記録された縦横比を維持
-          newWidth = newHeight * shiftAspectRatio;
+          shiftWidth = shiftHeight * shiftAspectRatio;
           if (resizeHandle.includes('left')) {
-            newX = dragStartValues.x + dragStartValues.width - newWidth;
+            shiftX = dragStartValues.x + dragStartValues.width - shiftWidth;
           }
         }
 
-        finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
+        finalResizeResult = { x: shiftX, y: shiftY, width: shiftWidth, height: shiftHeight };
       } else {
-        // 自由リサイズ
-        finalResizeResult = calculateResizeValues({
-          deltaX,
-          deltaY,
-          dragStartValues,
-          resizeHandle,
-          aspectRatioLocked: false,
-          canvasWidth: project.canvas.width,
-          canvasHeight: project.canvas.height,
-          minSize: 10
-        });
+        // 自由リサイズ（キャンバス制約なし）
+        let newWidth = dragStartValues.width;
+        let newHeight = dragStartValues.height;
+        let newX = dragStartValues.x;
+        let newY = dragStartValues.y;
+
+        if (resizeHandle.includes('right')) newWidth = Math.max(10, dragStartValues.width + deltaX);
+        if (resizeHandle.includes('left')) {
+          newWidth = Math.max(10, dragStartValues.width - deltaX);
+          newX = dragStartValues.x + dragStartValues.width - newWidth;
+        }
+        if (resizeHandle.includes('bottom')) newHeight = Math.max(10, dragStartValues.height + deltaY);
+        if (resizeHandle.includes('top')) {
+          newHeight = Math.max(10, dragStartValues.height - deltaY);
+          newY = dragStartValues.y + dragStartValues.height - newHeight;
+        }
+
+        finalResizeResult = { x: newX, y: newY, width: newWidth, height: newHeight };
       }
 
       handlePositionChange('x', finalResizeResult.x);
@@ -441,14 +456,15 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
           <Box sx={{
             width: 600,
             minWidth: 600,
-            p: 2,
+            p: 4, // キャンバス外表示のためpaddingを増加
             backgroundColor: 'action.hover',
             borderRight: '1px solid',
             borderRightColor: 'divider',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            overflow: 'auto' // スクロールを許可
           }}>
             <Box sx={{
                   position: 'relative',
@@ -457,7 +473,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   border: '2px solid',
                   borderColor: 'primary.main',
                   borderRadius: 1,
-                  overflow: 'hidden',
+                  overflow: 'visible',
                   boxShadow: 2,
                   backgroundColor: 'grey.50'
                 }}>
@@ -503,6 +519,22 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     currentSize={currentSize}
                     onResizeMouseDown={handleResizeMouseDown}
                     zIndex={3}
+                  />
+
+                  {/* キャンバスフレームオーバーレイ（常に最前面） */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: '0px',
+                      top: '0px',
+                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                      borderRadius: 1,
+                      zIndex: 10,
+                      pointerEvents: 'none',
+                    }}
                   />
                 </Box>
           </Box>
