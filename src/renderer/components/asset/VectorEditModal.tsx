@@ -264,14 +264,14 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!project) return;
-    
+
     if (isDragging) {
       const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-      
+
       // キャンバス制約を削除し、ドラッグを自由に
       const newX = dragStartValues.x + deltaX;
       const newY = dragStartValues.y + deltaY;
-      
+
       handlePositionChange('x', newX);
       handlePositionChange('y', newY);
     } else if (isResizing && resizeHandle) {
@@ -486,7 +486,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               }}
               preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
             >
-              
+
               {/* キャンバスの外側 */}
               <rect
                 x={0}
@@ -519,7 +519,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   )
                 }}
               />
-             
+
               {/* ドラッグエリア（SVG版） */}
               <rect
                 x={currentPos.x + 50}
