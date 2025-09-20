@@ -34,6 +34,7 @@ import {
   getCurrentOpacity,
   getCurrentZIndex,
   wrapSVGWithParentContainer,
+  wrapSVGWithParentContainerElem,
   validateZIndexNumber,
   ZIndexValidationResult,
   calculateResizeValues,
@@ -41,6 +42,7 @@ import {
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
 import { off } from 'process';
+import { wrap } from 'module';
 
 // 統合されたプロパティ
 interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
@@ -461,10 +463,10 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
             sx={{
             width: 600,
             minWidth: 600,
-            p: 0, // キャンバス外表示のためpaddingを増加
+            p: 0,
             backgroundColor: 'action.hover',
-            // borderRight: '1px solid',
-            // borderRightColor: 'divider',
+            borderRight: '1px solid',
+            borderRightColor: 'divider',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -476,7 +478,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               id="vec-edit-preview-svg"
               width={`100%`} // SVG要素は親要素にフィットさせる
               height={`100%`} // SVG要素は親要素にフィットさせる
-              viewBox={`0 0 ${project.canvas.width + 100} ${project.canvas.height + 100}`} // svg の空間はキャンバスの2倍とる
+              viewBox={`0 0 ${project.canvas.width + 100} ${project.canvas.height + 100}`} // 100pxの余白を追加
               xmlns="http://www.w3.org/2000/svg"
               style={{
                 filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
@@ -503,45 +505,21 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 fill="#f5f5f5"
                 rx="2"
               />
-
-              {/* SVGコンテンツ - 共通ユーティリティを使用 */}
-              {
-                wrapSVGWithParentContainer(
+              <g
+                dangerouslySetInnerHTML={{
+                  __html: wrapSVGWithParentContainer(
                     asset.svg_content,
-                    currentPos.x,
-                    currentPos.y,
+                    currentPos.x + 50,
+                    currentPos.y + 50,
                     currentSize.width,
                     currentSize.height,
                     currentOpacity,
                     asset.original_width,
-                    asset.original_height,
-                    50,
-                    50
-                )
-              }
-
-              {/* <svg version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                x={50}   // キャンバスの0,0にあわせてオフセット
-                y={50}  // キャンバスの0,0にあわせてオフセット
-                width="100%"
-                height="100%"
-                dangerouslySetInnerHTML={{
-                    __html: wrapSVGWithParentContainer(
-                      asset.svg_content,
-                      currentPos.x,
-                      currentPos.y,
-                      currentSize.width,
-                      currentSize.height,
-                      currentOpacity,
-                      asset.original_width,
-                      asset.original_height,
-                      50,
-                      50
-                    )
-                  }}
-                >
-              </svg> */}
+                    asset.original_height
+                  )
+                }}
+              />
+             
               {/* ドラッグエリア（SVG版） */}
               <rect
                 x={currentPos.x + 50}
@@ -557,7 +535,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   e.preventDefault();
                   const svg = e.currentTarget.ownerSVGElement;
                   if (!svg) return;
-
                   setIsDragging(true);
                   setDragStartPos({ x: e.clientX, y: e.clientY });
                   setDragStartValues({
@@ -568,6 +545,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   });
                 }}
               />
+
               {/* リサイズハンドル（既存のSVGコンポーネントを維持） */}
               <ResizeHandleOverlay
                 canvasWidth={project.canvas.width}

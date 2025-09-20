@@ -37,6 +37,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
 
   const svgWidth = svgRight - svgLeft;
   const svgHeight = svgBottom - svgTop;
+  const handlerSize = Math.max(svgWidth, svgHeight) * 0.02; // キャンバスの長辺の2%をハンドルサイズにする
 
   return (
     <svg
@@ -47,7 +48,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
       height={`${svgHeight}px`}
     >
       <g transform={`translate(${-svgLeft}, ${-svgTop})`}>
-        {generateResizeHandles(currentPos, currentSize, onResizeMouseDown)}
+        {generateResizeHandles(currentPos, currentSize, onResizeMouseDown, handlerSize)}
       </g>
     </svg>
   );
@@ -65,10 +66,11 @@ export const RESIZE_HANDLE_SIZE = 16;
 export const generateResizeHandles = (
   position: { x: number; y: number },
   size: { width: number; height: number },
-  onResizeMouseDown: (e: React.MouseEvent, handle: string) => void
+  onResizeMouseDown: (e: React.MouseEvent, handle: string) => void,
+  handlerSize: number = RESIZE_HANDLE_SIZE,
 ): React.ReactElement[] => {
   return RESIZE_HANDLES.map(handle => {
-    const handleSize = RESIZE_HANDLE_SIZE;
+    const handleSize = handlerSize;
     let x = 0;
     let y = 0;
     let cursor = 'nw-resize';
