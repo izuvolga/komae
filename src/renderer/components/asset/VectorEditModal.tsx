@@ -111,9 +111,9 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
         // SVGの実際の描画エリア幅を取得
         const svgDisplayWidth = svgRect.width;
         
-        // viewBoxで設定されている総幅は canvasWidth + 100 なので、
-        // キャンバス部分の幅は (canvasWidth / (canvasWidth + 100)) * svgDisplayWidth
-        const canvasDisplayWidth = (canvasWidth / (canvasWidth + 100)) * svgDisplayWidth;
+        // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+        // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+        const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
         
         // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
         const calculatedScale = canvasDisplayWidth / canvasWidth;
@@ -142,6 +142,9 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   }, [isOpen, project]);
 
   if (!isOpen || !project) return null;
+
+  // 動的余白計算（キャンバス長辺の10%）
+  const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
 
   // 現在の値を取得（Asset vs Instance）- 共通ユーティリティを使用
 
@@ -527,7 +530,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               id="vec-edit-preview-svg"
               width={`100%`} // SVG要素は親要素にフィットさせる
               height={`100%`} // SVG要素は親要素にフィットさせる
-              viewBox={`0 0 ${project.canvas.width + 100} ${project.canvas.height + 100}`} // 100pxの余白を追加
+              viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`} // 動的余白を追加
               xmlns="http://www.w3.org/2000/svg"
               preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
             >
@@ -536,16 +539,16 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
               <rect
                 x={0}
                 y={0}
-                width={project.canvas.width + 100}
-                height={project.canvas.height + 100}
+                width={project.canvas.width + margin * 2}
+                height={project.canvas.height + margin * 2}
                 fill="#ffacaa"
                 rx="2"
               />
               {/* キャンバス */}
               <rect
                 id="vec-edit-canvas"
-                x={50}
-                y={50}
+                x={margin}
+                y={margin}
                 width={project.canvas.width}
                 height={project.canvas.height}
                 fill="#f5f5f5"
@@ -559,8 +562,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 dangerouslySetInnerHTML={{
                   __html: wrapSVGWithParentContainer(
                     asset.svg_content,
-                    currentPos.x + 50,
-                    currentPos.y + 50,
+                    currentPos.x + margin,
+                    currentPos.y + margin,
                     currentSize.width,
                     currentSize.height,
                     currentOpacity,
@@ -572,8 +575,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
               {/* ドラッグエリア（SVG版） */}
               <rect
-                x={currentPos.x + 50}
-                y={currentPos.y + 50}
+                x={currentPos.x + margin}
+                y={currentPos.y + margin}
                 width={currentSize.width}
                 height={currentSize.height}
                 fill="transparent"
@@ -601,8 +604,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 canvasWidth={project.canvas.width}
                 canvasHeight={project.canvas.height}
                 currentPos={{
-                  x: currentPos.x + 50,
-                  y: currentPos.y + 50
+                  x: currentPos.x + margin,
+                  y: currentPos.y + margin
                 }}
                 currentSize={currentSize}
                 onResizeMouseDown={handleResizeMouseDown}
