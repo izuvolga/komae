@@ -23,7 +23,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
   }
 
   // 画像とリサイズハンドルを含む十分な領域を計算
-  const handleSize = 12; // リサイズハンドルのサイズ
+  const handleSize = Math.max(canvasWidth, canvasHeight) * 0.02; // キャンバスの長辺の2%をハンドルサイズにする
   const imageLeft = currentPos.x;
   const imageTop = currentPos.y;
   const imageRight = imageLeft + currentSize.width;
@@ -37,7 +37,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
 
   const svgWidth = svgRight - svgLeft;
   const svgHeight = svgBottom - svgTop;
-  const handlerSize = Math.max(svgWidth, svgHeight) * 0.02; // キャンバスの長辺の2%をハンドルサイズにする
+  
 
   return (
     <svg
@@ -48,7 +48,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
       height={`${svgHeight}px`}
     >
       <g transform={`translate(${-svgLeft}, ${-svgTop})`}>
-        {generateResizeHandles(currentPos, currentSize, onResizeMouseDown, handlerSize)}
+        {generateResizeHandles(currentPos, currentSize, onResizeMouseDown, handleSize)}
       </g>
     </svg>
   );

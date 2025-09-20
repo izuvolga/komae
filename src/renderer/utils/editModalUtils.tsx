@@ -138,11 +138,12 @@ export const convertMouseDelta = (
   clientX: number,
   clientY: number,
   startX: number,
-  startY: number
+  startY: number,
+  scale: number = EDIT_MODAL_SCALE
 ): { deltaX: number; deltaY: number } => {
   return {
-    deltaX: (clientX - startX) / EDIT_MODAL_SCALE,
-    deltaY: (clientY - startY) / EDIT_MODAL_SCALE,
+    deltaX: (clientX - startX) / scale,
+    deltaY: (clientY - startY) / scale,
   };
 };
 
