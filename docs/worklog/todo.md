@@ -21,7 +21,7 @@
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal の「縦横比を元画像にあわせる」が機能していない。単に現在のアスペクト比をキープするだけになっている。
 - [ ]: Font Management 画面の上の方が見切れている
-- [ ]: Asset Librry でのアイコンが統一されていない（追加画面とサムネイル）ので統一
+- [x]: Asset Librry でのアイコンが統一されていない（追加画面とサムネイル）ので統一
 - [ ]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
 
 ## HTML ファイル関連
