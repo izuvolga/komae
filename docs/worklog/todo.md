@@ -20,11 +20,24 @@
 - [x]: Asset Librry でのアイコンが統一されていない（追加画面とサムネイル）ので統一
 - [x]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
 - [x]: Font Management 画面の上の方が見切れている
+- [x]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
-- [ ]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
+- [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
+- [ ]: プロジェクト作成ページの改善
+  - 言語選択画面は、MUI の https://mui.com/material-ui/react-autocomplete/#checkboxes を使う
+  - 一番下の詳細ページをまとめたページは不要
+  - キャンバスサイズ選択するときのアイコンと実際のサイズがあってない
+  - キャンバスのデフォルトの色を選択できるようにする
+  - ヘルプアイコンはホバーにする
+- [ ]: Custom Asset Management のいち関係
+  - ゴミ箱と追加を逆に
+  - プレビューとアセット一覧を逆に
+  - コード領域が全部見れるように
+- [ ]: TextEditAsset の縦書き
+  - https://mui.com/material-ui/react-toggle-button/#size と TextRotateVertical TextRotationNone を使う
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
