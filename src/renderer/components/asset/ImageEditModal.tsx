@@ -573,27 +573,25 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               <>
                 {/* マスク範囲外の薄い白色オーバーレイ */}
                 <svg
-                  style={{
-                    position: 'absolute',
-                    left: '0px',
-                    top: '0px',
-                    width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                    height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                    zIndex: 2,
-                    pointerEvents: 'none',
-                  }}
+                  x="0"
+                  y="0"
+                  width="100%"
+                  height="100%"
+                  viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="xMidYMid meet"
                 >
                   <defs>
                     <mask id="maskOverlay">
                       <rect
                         x="0"
                         y="0"
-                        width={project.canvas.width * EDIT_MODAL_SCALE}
-                        height={project.canvas.height * EDIT_MODAL_SCALE}
+                        width={project.canvas.width}
+                        height={project.canvas.height}
                         fill="white"
                       />
                       <polygon
-                        points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
+                        points={currentMask.map(point => `${point[0]},${point[1]}`).join(' ')}
                         fill="black"
                       />
                     </mask>
@@ -601,8 +599,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   <rect
                     x="0"
                     y="0"
-                    width={project.canvas.width * EDIT_MODAL_SCALE}
-                    height={project.canvas.height * EDIT_MODAL_SCALE}
+                    width={project.canvas.width}
+                    height={project.canvas.height}
                     fill="rgba(255, 255, 255, 0.6)"
                     mask="url(#maskOverlay)"
                   />
@@ -614,22 +612,22 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                     position: 'absolute',
                     left: '0px',
                     top: '0px',
-                    width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                    height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+                    width: `${project.canvas.width}px`,
+                    height: `${project.canvas.height}px`,
                     zIndex: 3,
                     pointerEvents: 'none',
                   }}
                 >
                   <polygon
-                    points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
+                    points={currentMask.map(point => `${point[0]},${point[1]}`).join(' ')}
                     fill="rgba(255, 0, 0, 0.2)"
                     stroke="red"
                     strokeWidth="1"
                   />
                   {currentMask.map((point, index) => {
                     const handleSize = 16; // ハンドルのサイズ
-                    const x = point[0] * EDIT_MODAL_SCALE;
-                    const y = point[1] * EDIT_MODAL_SCALE;
+                    const x = point[0];
+                    const y = point[1];
                     // ハンドルを矩形の内側に配置するためのオフセット
                     const offset = handleSize / 2;
                     const offset_direction = [
