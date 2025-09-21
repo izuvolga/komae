@@ -19,10 +19,12 @@
 - [x]: ImageEditModal の「縦横比を元画像にあわせる」が機能していない。単に現在のアスペクト比をキープするだけになっている。
 - [x]: Asset Librry でのアイコンが統一されていない（追加画面とサムネイル）ので統一
 - [x]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
+- [x]: Font Management 画面の上の方が見切れている
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
-- [ ]: Font Management 画面の上の方が見切れている
+- [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
+- [ ]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
