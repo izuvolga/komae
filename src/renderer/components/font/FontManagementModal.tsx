@@ -257,11 +257,11 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <DialogContent sx={{ mt: 3, p: 3, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Sample Text入力 */}
           <div className="sample-text-section">
             <TextField
-              label="Sample Text"
+              label="サンプルテキスト"
               value={sampleText}
               onChange={(e) => setSampleText(e.target.value)}
               placeholder="Enter sample text..."

@@ -13,7 +13,7 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
 import { CustomAssetInfo } from '../../../main/services/CustomAssetManager';
-import { Warning } from '@mui/icons-material';
+import { Warning, FormatListBulletedAdd, LibraryAdd } from '@mui/icons-material';
 
 interface CustomAssetManagementModalProps {
   isOpen: boolean;
@@ -226,51 +226,13 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
       </DialogTitle>
       <DialogContent
         sx={{
+          mt: 3,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           p: 3,
         }}
       >
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 2,
-              mb: 3,
-              pt: 3,
-              flexShrink: 0,
-            }}
-          >
-            {mode === 'management' ? (
-              <>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddAsset}
-                  disabled={isLoading}
-                >
-                  Add Custom Asset
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={handleDeleteAsset}
-                  disabled={isLoading || !selectedAssetId}
-                >
-                  Delete Selected
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCreateDynamicSVG}
-                disabled={isLoading || !selectedAssetId}
-              >
-                このCustomAssetでDynamic SVGを作成
-              </Button>
-            )}
-          </Box>
 
           <Box sx={{ display: 'flex', height: '100%', gap: 2 }}>
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -462,6 +424,37 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
             </Box>
           </Box>
       </DialogContent>
+      <DialogActions>
+        {mode === 'management' ? (
+          <>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddAsset}
+              disabled={isLoading}
+            >
+              <FormatListBulletedAdd />
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleDeleteAsset}
+              disabled={isLoading || !selectedAssetId}
+            >
+              Delete Selected
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateDynamicSVG}
+            disabled={isLoading || !selectedAssetId}
+          >
+            <LibraryAdd />
+          </Button>
+        )}
+      </DialogActions>
     </Dialog>
   );
 };
