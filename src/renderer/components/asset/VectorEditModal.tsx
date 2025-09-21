@@ -557,7 +557,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   position: 'relative'
                 }}
               />
-              {/* SVGアセットの描画 */}
+
+              {/* SVG描画結果 */}
               <g
                 dangerouslySetInnerHTML={{
                   __html: wrapSVGWithParentContainer(
@@ -572,7 +573,21 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                   )
                 }}
               />
-              {/* ドラッグエリア（SVG版） */}
+
+              {/* キャンバスの線 */}
+              <rect
+                id="vec-edit-canvas"
+                x={margin}
+                y={margin}
+                width={project.canvas.width}
+                height={project.canvas.height}
+                stroke='#3b82f6'
+                strokeWidth='5'
+                fill='none'
+                rx="2"
+              />
+
+              {/* インタラクション用透明エリア */}
               <rect
                 x={currentPos.x + margin}
                 y={currentPos.y + margin}
@@ -597,18 +612,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                     height: currentSize.height
                   });
                 }}
-              />
-              {/* キャンバスの線 */}
-              <rect
-                id="vec-edit-canvas"
-                x={margin}
-                y={margin}
-                width={project.canvas.width}
-                height={project.canvas.height}
-                stroke='#3b82f6'
-                strokeWidth='5'
-                fill='none'
-                rx="2"
               />
 
               {/* リサイズハンドル（既存のSVGコンポーネントを維持） */}
