@@ -698,9 +698,6 @@ export const AssetLibrary: React.FC = () => {
           >
             <PanelCollapseLeftIcon />
           </IconButton>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-            アセット
-          </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton

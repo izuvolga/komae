@@ -197,7 +197,6 @@ export const PreviewArea: React.FC = () => {
       <div className="preview-header">
         <div className="header-top">
           <div className="header-left">
-            <h3>プレビュー</h3>
           </div>
           <div className="header-right">
             <button 
