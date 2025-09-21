@@ -62,7 +62,7 @@ export const FontLicenseModal: React.FC<FontLicenseModalProps> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ mt: 3 }}>
         {font && (
           <Box sx={{ mb: 3 }}>
             <Typography variant="h6" component="h4" sx={{ mb: 1 }}>

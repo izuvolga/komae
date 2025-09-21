@@ -82,7 +82,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     setIsLoading(true);
     try {
       const newFont = await window.electronAPI.font.addCustomFont(fontPath, licensePath);
-      
+
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
       const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
       if (refreshedFonts) {
@@ -91,7 +91,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         // フォールバック：通常の再読み込み
         await loadFonts();
       }
-      
+
       console.log('Font added successfully:', newFont.name);
     } catch (error) {
       console.error('Failed to add font:', error);
@@ -105,7 +105,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     setIsLoading(true);
     try {
       const newFont = await window.electronAPI.font.addGoogleFont(googleFontUrl);
-      
+
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
       const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
       if (refreshedFonts) {
@@ -114,7 +114,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         // フォールバック：通常の再読み込み
         await loadFonts();
       }
-      
+
       console.log('Google Font added successfully:', newFont.name);
     } catch (error) {
       console.error('Failed to add Google font:', error);
@@ -128,7 +128,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     setIsLoading(true);
     try {
       const newFont = await window.electronAPI.font.addBuiltinFont(fontPath, licensePath);
-      
+
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
       const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
       if (refreshedFonts) {
@@ -137,7 +137,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         // フォールバック：通常の再読み込み
         await loadFonts();
       }
-      
+
       console.log('Builtin Font added successfully:', newFont.name);
     } catch (error) {
       console.error('Failed to add builtin font:', error);
@@ -178,14 +178,14 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
 
     try {
       setIsLoading(true);
-      
+
       // フォントタイプに応じて適切な削除関数を呼び出し
       if (fontToDelete.type === 'builtin') {
         await window.electronAPI.font.removeBuiltinFont(selectedFont);
       } else {
         await window.electronAPI.font.removeCustomFont(selectedFont);
       }
-      
+
       // CSS @font-faceルールを更新してフォント一覧も再読み込み
       const refreshedFonts = await (window as any).komaeApp?.refreshFonts?.();
       if (refreshedFonts) {
@@ -195,7 +195,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
         await loadFonts();
       }
       setSelectedFont(null);
-      
+
       console.log('Font deleted successfully:', fontToDelete.name);
     } catch (error) {
       console.error('Failed to delete font:', error);
@@ -210,12 +210,12 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
     if (font.id === 'system-ui') {
       return 'system-ui, -apple-system, sans-serif';
     }
-    
+
     // Google Fontsの場合はフォント名を使用
     if (font.isGoogleFont) {
       return `"${font.name}", system-ui, sans-serif`;
     }
-    
+
     // ビルトインフォント・カスタムフォントの場合はIDを使用（CSS @font-faceで登録された名前と一致させる）
     return `"${font.id}", system-ui, sans-serif`;
   };
@@ -305,9 +305,9 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                         LICENSE
                       </button>
                     </div>
-                    <div 
+                    <div
                       className="font-preview"
-                      style={{ 
+                      style={{
                         fontFamily: getFontFamily(font),
                         fontSize: '18px',
                         lineHeight: '1.4'
@@ -317,7 +317,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                     </div>
                   </div>
                 ))}
-                
+
                 {fonts.length === 0 && !isLoading && (
                   <div className="no-fonts-message">
                     No fonts available
@@ -328,11 +328,10 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           </div>
 
           {/* 操作ボタン */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'fix-end', mt: 3, gap: 2, ml: 'auto'}}>
             <Button
-              variant="outlined"
+              variant="contained"
               color="error"
-              startIcon={<DeleteIcon />}
               onClick={handleDeleteFont}
               disabled={!selectedFont || isLoading || (
                 // システムフォントは削除不可
@@ -348,15 +347,14 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
                     : 'Delete selected font'
               }
             >
-              Delete Font
+              <DeleteIcon />
             </Button>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
               onClick={() => setShowAddModal(true)}
               disabled={isLoading}
             >
-              Add Font
+              <AddIcon />
             </Button>
           </Box>
       </DialogContent>

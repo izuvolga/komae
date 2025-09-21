@@ -48,6 +48,7 @@
 /* FontManagementModal固有のスタイル（共通CSSでカバーされない部分のみ） */
 
 .sample-text-section {
+  margin-top: 24px;
   margin-bottom: 24px;
 }
 

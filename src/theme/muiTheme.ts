@@ -16,6 +16,12 @@ export const komaeTheme = createTheme({
       dark: '#374151',
       contrastText: '#ffffff',
     },
+    info: {
+      main: '#0ea5e9',
+      light: '#38bdf8',
+      dark: '#0284c7',
+      contrastText: '#ffffff',
+    },
     error: {
       main: '#dc3545', // 現在の btn-danger カラー
       light: '#f87171',
@@ -211,6 +217,30 @@ export const komaeDarkTheme = createTheme({
   palette: {
     ...komaeTheme.palette,
     mode: 'dark',
+    info: {
+      main: '#0c82b8ff',
+      light: '#238cb9ff',
+      dark: '#005078ff',
+      contrastText: '#ffffff',
+    },
+    error: {
+      main: '#dc3545', // 現在の btn-danger カラー
+      light: '#f87171',
+      dark: '#c82333',
+      contrastText: '#ffffff',
+    },
+    warning: {
+      main: 'rgba(187, 122, 10, 1)',
+      light: '#c1921cff',
+      dark: '#d97706',
+      contrastText: '#000000',
+    },
+    success: {
+      main: '#053b29ff',
+      light: '#34d399',
+      dark: '#059669',
+      contrastText: '#ffffff',
+    },
     background: {
       default: '#111827',
       paper: '#111827',

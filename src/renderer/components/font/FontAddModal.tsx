@@ -15,7 +15,7 @@ import {
   FormControl,
   FormLabel,
 } from '@mui/material';
-import { Close as CloseIcon, Help as HelpIcon, FolderOpen as FolderOpenIcon } from '@mui/icons-material';
+import { Cached as CachedIcon, Close as CloseIcon, Help as HelpIcon, FolderOpen as FolderOpenIcon, Add as AddIcon,  } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
@@ -230,10 +230,9 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ p: 3, pt: 2 }}>
+        <DialogContent sx={{ p: 3, mt: 1 }}>
           {/* フォントタイプ選択 */}
           <FormControl component="fieldset" sx={{ mb: 3 }} disabled={isLoading}>
-            <FormLabel component="legend">フォントタイプ</FormLabel>
             <RadioGroup
               value={fontType}
               onChange={(e) => setFontType(e.target.value as 'embed' | 'google' | 'builtin')}
@@ -263,9 +262,6 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           {fontType === 'embed' && (
             <>
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Font File
-                </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
                     fullWidth
@@ -422,17 +418,11 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
 
         <DialogActions>
           <Button
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
             onClick={handleAdd}
             variant="contained"
             disabled={(fontType === 'embed' && !fontFile) || (fontType === 'google' && !googleFontUrl.trim()) || (fontType === 'builtin' && !fontFile) || isLoading}
           >
-            {isLoading ? '追加中...' : '追加'}
+            {isLoading ? <CachedIcon /> : <AddIcon />}
           </Button>
         </DialogActions>
       </Dialog>
