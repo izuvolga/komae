@@ -51,6 +51,7 @@ import {
 } from '../../utils/editModalUtils';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
+import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 
 export interface DynamicVectorEditModalProps {
   mode: 'asset' | 'instance';
@@ -787,100 +788,30 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            {/* SVGベースの統合描画領域（VectorEditModalと同様） */}
-            <svg
+            <EditModalSvgCanvas
               ref={previewSvgRef}
-              data-dve-canvas-frame
-              width={`100%`} // SVG要素は親要素にフィットさせる
-              height={`100%`} // SVG要素は親要素にフィットさせる
-              viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`} // 動的余白を追加
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
-            >
-              {/* キャンバス */}
-              <rect
-                x={margin}
-                y={margin}
-                width={project.canvas.width}
-                height={project.canvas.height}
-                fill="#f5f5f5"
-                rx="2"
-                style={{
-                  filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
-                  position: 'relative'
-                }}
-              />
-
-              {/* SVG描画結果 */}
-              {svgResult.svg && (
-                <g
-                  dangerouslySetInnerHTML={{
-                    __html: wrapSVGWithParentContainer(
-                      svgResult.svg,
-                      currentPos.x + margin,
-                      currentPos.y + margin,
-                      currentSize.width,
-                      currentSize.height,
-                      currentOpacity,
-                      editedAsset.original_width,
-                      editedAsset.original_height
-                    )
-                  }}
-                />
-              )}
-
-              {/* キャンバスの線 */}
-              <rect
-                id="vec-edit-canvas"
-                x={margin}
-                y={margin}
-                width={project.canvas.width}
-                height={project.canvas.height}
-                stroke='#3b82f6'
-                strokeWidth='5'
-                fill='none'
-                rx="2"
-              />
-
-              {/* インタラクション用透明エリア */}
-              <rect
-                x={currentPos.x + margin}
-                y={currentPos.y + margin}
-                width={currentSize.width}
-                height={currentSize.height}
-                fill="transparent"
-                stroke="#007acc"
-                strokeWidth="1"
-                strokeDasharray="5,5"
-                style={{ cursor: 'move' }}
-                onMouseDown={handleImageMouseDown}
-              />
-
-              {/* リサイズハンドル */}
-              <ResizeHandleOverlay
-                canvasWidth={project.canvas.width}
-                canvasHeight={project.canvas.height}
-                currentPos={{x: currentPos.x + margin, y: currentPos.y + margin}}
-                currentSize={currentSize}
-                onResizeMouseDown={handleResizeMouseDown}
-                visible={true}
-              />
-
-              {/* スナップガイドライン */}
-              {snapGuides.map((guide, index) => (
-                <line
-                  key={index}
-                  x1={guide.type === 'vertical' ? guide.position + margin : guide.start + margin}
-                  y1={guide.type === 'vertical' ? guide.start + margin : guide.position + margin}
-                  x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
-                  y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
-                  stroke="#ff4444"
-                  strokeWidth="1"
-                  strokeDasharray="3,3"
-                  opacity="0.8"
-                />
-              ))}
-            </svg>
+              project={project}
+              currentPos={currentPos}
+              currentSize={currentSize}
+              currentOpacity={currentOpacity}
+              svgContent={svgResult.svg}
+              originalWidth={editedAsset.original_width}
+              originalHeight={editedAsset.original_height}
+              onDragStart={(e) => {
+                e.preventDefault();
+                calculateDynamicScale(); // ドラッグ開始時にスケール計算
+                setIsDragging(true);
+                setDragStartPos({ x: e.clientX, y: e.clientY });
+                setDragStartValues({
+                  x: currentPos.x,
+                  y: currentPos.y,
+                  width: currentSize.width,
+                  height: currentSize.height
+                });
+              }}
+              onResizeStart={handleResizeMouseDown}
+              snapGuides={snapGuides}
+            />
 
             {/* エラー・実行中表示 */}
             {svgResult.error && (

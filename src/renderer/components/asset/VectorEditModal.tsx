@@ -269,24 +269,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     };
   }, [currentSize, isShiftPressed]);
 
-  // SVGを見要SVG要素でラップして位置・サイズ・不透明度を制御 - 共通ユーティリティを使用
-
-  // ドラッグ操作ハンドラー
-  const handlePreviewMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setIsDragging(true);
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({
-      x: currentPos.x,
-      y: currentPos.y,
-      width: currentSize.width,
-      height: currentSize.height
-    });
-  };
 
   // リサイズハンドラー
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
