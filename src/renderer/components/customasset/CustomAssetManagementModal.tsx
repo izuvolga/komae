@@ -10,10 +10,15 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
 import { useTheme } from '../../../theme/ThemeContext';
 import { CustomAssetInfo } from '../../../main/services/CustomAssetManager';
-import { Warning, FormatListBulletedAdd, LibraryAdd } from '@mui/icons-material';
+import {
+  Close as CloseIcon,
+  Warning,
+  AddPhotoAlternate,
+  Delete,
+  Add
+} from '@mui/icons-material';
 
 interface CustomAssetManagementModalProps {
   isOpen: boolean;
@@ -433,7 +438,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               onClick={handleAddAsset}
               disabled={isLoading}
             >
-              <FormatListBulletedAdd />
+              <Add />
             </Button>
             <Button
               variant="contained"
@@ -441,17 +446,18 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
               onClick={handleDeleteAsset}
               disabled={isLoading || !selectedAssetId}
             >
-              Delete Selected
+              <Delete />
             </Button>
           </>
         ) : (
           <Button
+            sx={{ mr: 'auto' }}
             variant="contained"
             color="primary"
             onClick={handleCreateDynamicSVG}
             disabled={isLoading || !selectedAssetId}
           >
-            <LibraryAdd />
+            <AddPhotoAlternate />
           </Button>
         )}
       </DialogActions>
