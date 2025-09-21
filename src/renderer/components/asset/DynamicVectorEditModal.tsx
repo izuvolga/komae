@@ -146,6 +146,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const margin = project ? Math.max(project.canvas.width, project.canvas.height) * 0.1 : 100;
   const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
   const [dynamicScale, setDynamicScale] = useState<number>(1);
+  const [scaleCalculated, setScaleCalculated] = useState(false);
   const previewSvgRef = useRef<SVGSVGElement>(null);
 
   // data-theme属性の設定
@@ -153,49 +154,33 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
     document.documentElement.setAttribute('data-theme', themeMode);
   }, [themeMode]);
 
-  // モーダルが開いた時にスケールを動的に計算（VectorEditModalと同様）
-  useEffect(() => {
-    console.log('DynamicVectorEditModal opened, calculating scale...', { isOpen, project , previewSvgRef: previewSvgRef.current});
-    if (isOpen && project && previewSvgRef.current) {
-      const calculateScale = () => {
-        const svgElement = previewSvgRef.current;
-        if (!svgElement) return;
+  // ドラッグ開始時にスケールを計算する関数（VectorEditModalと同様）
+  const calculateDynamicScale = () => {
+    if (scaleCalculated || !previewSvgRef.current || !project) return;
 
-        const svgRect = svgElement.getBoundingClientRect();
-        const canvasWidth = project.canvas.width;
+    const svgElement = previewSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const canvasWidth = project.canvas.width;
 
-        // SVGの実際の描画エリア幅を取得
-        const svgDisplayWidth = svgRect.width;
+    // SVGの実際の描画エリア幅を取得
+    const svgDisplayWidth = svgRect.width;
 
-        // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
-        // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
-        const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
+    // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+    // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+    const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
 
-        // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
-        const calculatedScale = canvasDisplayWidth / canvasWidth;
+    // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+    const calculatedScale = canvasDisplayWidth / canvasWidth;
 
-        console.log(`DynamicVectorEditModal scale calculation:
-          - Canvas width: ${canvasWidth}px
-          - SVG display width: ${svgDisplayWidth}px
-          - Canvas display width: ${canvasDisplayWidth}px
-          - Calculated scale: ${calculatedScale}`);
+    console.log(`DynamicVectorEditModal scale calculation:
+      - Canvas width: ${canvasWidth}px
+      - SVG display width: ${svgDisplayWidth}px
+      - Canvas display width: ${canvasDisplayWidth}px
+      - Calculated scale: ${calculatedScale}`);
 
-        setDynamicScale(calculatedScale);
-      };
-
-      // モーダルが完全に開いてから計算するため、少し遅延
-      const timer = setTimeout(calculateScale, 100);
-
-      // リサイズ時の再計算
-      const resizeObserver = new ResizeObserver(calculateScale);
-      resizeObserver.observe(previewSvgRef.current);
-
-      return () => {
-        clearTimeout(timer);
-        resizeObserver.disconnect();
-      };
-    }
-  }, [isOpen, project, margin]);
+    setDynamicScale(calculatedScale);
+    setScaleCalculated(true);
+  };
 
   // CustomAssetを取得するuseEffect
   useEffect(() => {
@@ -657,10 +642,12 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const handleImageMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
+    calculateDynamicScale(); // ドラッグ開始時にスケール計算
+
     const canvasRect = document.querySelector('[data-dve-canvas-frame]')?.getBoundingClientRect();
     if (!canvasRect) return;
-    
+
     setIsDragging(true);
     setDragStartPos({ x: e.clientX, y: e.clientY });
     setDragStartValues({
@@ -674,7 +661,9 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
+    calculateDynamicScale(); // リサイズ開始時にスケール計算
+
     setIsResizing(true);
     setResizeHandle(handle);
     setDragStartPos({ x: e.clientX, y: e.clientY });

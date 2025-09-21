@@ -87,6 +87,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   // 動的スケール計算用のref
   const previewSvgRef = useRef<SVGSVGElement>(null);
   const [dynamicScale, setDynamicScale] = useState(1);
+  const [scaleCalculated, setScaleCalculated] = useState(false);
 
   // スナップ機能関連の状態
   const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
@@ -102,48 +103,33 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
 
-  // モーダルが開いた時にスケールを動的に計算
-  useEffect(() => {
-    if (isOpen && project && previewSvgRef.current) {
-      const calculateScale = () => {
-        const svgElement = previewSvgRef.current;
-        if (!svgElement) return;
+  // ドラッグ開始時にスケールを計算する関数
+  const calculateDynamicScale = () => {
+    if (scaleCalculated || !previewSvgRef.current || !project) return;
 
-        const svgRect = svgElement.getBoundingClientRect();
-        const canvasWidth = project.canvas.width;
-        
-        // SVGの実際の描画エリア幅を取得
-        const svgDisplayWidth = svgRect.width;
-        
-        // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
-        // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
-        const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
-        
-        // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
-        const calculatedScale = canvasDisplayWidth / canvasWidth;
-        
-        console.log(`Dynamic scale calculation:
-          - Canvas width: ${canvasWidth}px
-          - SVG display width: ${svgDisplayWidth}px
-          - Canvas display width: ${canvasDisplayWidth}px
-          - Calculated scale: ${calculatedScale}`);
-        
-        setDynamicScale(calculatedScale);
-      };
+    const svgElement = previewSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const canvasWidth = project.canvas.width;
 
-      // モーダルが完全に開いてから計算するため、少し遅延
-      const timer = setTimeout(calculateScale, 100);
-      
-      // リサイズ時の再計算
-      const resizeObserver = new ResizeObserver(calculateScale);
-      resizeObserver.observe(previewSvgRef.current);
+    // SVGの実際の描画エリア幅を取得
+    const svgDisplayWidth = svgRect.width;
 
-      return () => {
-        clearTimeout(timer);
-        resizeObserver.disconnect();
-      };
-    }
-  }, [isOpen, project]);
+    // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+    // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+    const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
+
+    // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+    const calculatedScale = canvasDisplayWidth / canvasWidth;
+
+    console.log(`VectorEditModal scale calculation:
+      - Canvas width: ${canvasWidth}px
+      - SVG display width: ${svgDisplayWidth}px
+      - Canvas display width: ${canvasDisplayWidth}px
+      - Calculated scale: ${calculatedScale}`);
+
+    setDynamicScale(calculatedScale);
+    setScaleCalculated(true);
+  };
 
   if (!isOpen || !project) return null;
 
@@ -305,6 +291,8 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     e.preventDefault();
     e.stopPropagation();
+
+    calculateDynamicScale(); // リサイズ開始時にスケール計算
 
     setIsResizing(true);
     setResizeHandle(handle);
@@ -597,6 +585,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                 style={{ cursor: 'move' }}
                 onMouseDown={(e) => {
                   e.preventDefault();
+                  calculateDynamicScale(); // ドラッグ開始時にスケール計算
                   const svg = e.currentTarget.ownerSVGElement;
                   if (!svg) return;
                   setIsDragging(true);
