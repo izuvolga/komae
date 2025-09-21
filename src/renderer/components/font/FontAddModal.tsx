@@ -262,6 +262,9 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
           {fontType === 'embed' && (
             <>
               <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  フォントファイル
+                </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
                     fullWidth
@@ -286,7 +289,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="subtitle2">
-                    License File
+                    ライセンスファイル
                   </Typography>
                   <IconButton
                     size="small"
@@ -301,7 +304,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                   <TextField
                     fullWidth
                     value={licenseFile ? licenseFile.split('/').pop() || licenseFile : ''}
-                    placeholder="ライセンスファイルを選択（オプション）..."
+                    placeholder="ファイルを選択（オプション）..."
                     InputProps={{
                       readOnly: true,
                     }}

@@ -781,8 +781,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <TextField
                     label={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        確認用テキスト
-                        <Tooltip title="テキストの内容は各ページで個別に設定できます。">
+                        ダミーテキスト
+                        <Tooltip title="テキストの内容は、さらに各ページで個別に設定できます。このテキストは、編集画面での動作確認用や、初期値として使用されます。">
                           <HelpIcon sx={{ fontSize: 16, cursor: 'help' }} />
                         </Tooltip>
                       </Box>

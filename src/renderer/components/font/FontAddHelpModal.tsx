@@ -66,7 +66,7 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ mt: 3 }}>
         <Typography variant="body1" sx={{ mb: 2 }}>
           フォントのファイルを指定せず、
           <Link
@@ -119,10 +119,10 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
             <ListItemText primary="2. 「Web」タブの <link> セクションを開く" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="3. 以下のような記述から URL 部分をコピー" />
+            <ListItemText primary="3. 内容から URL 部分をコピー" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="4. 上記のテキストボックスに貼り付け" />
+            <ListItemText primary="4. テキストボックスに貼り付け" />
           </ListItem>
         </List>
           
@@ -135,9 +135,10 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
 
         <Box
           sx={{
-            bgcolor: 'grey.100',
+            bgcolor: 'action.hover',
             p: 2,
             borderRadius: 1,
+            borderColor: 'divider',
             fontFamily: 'monospace',
             fontSize: '0.875rem',
             overflow: 'auto',
@@ -146,16 +147,10 @@ export const FontAddHelpModal: React.FC<FontAddHelpModalProps> = ({
           <Typography component="pre" sx={{ m: 0, whiteSpace: 'pre-wrap' }}>
 {`<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="`}<Box component="span" sx={{ bgcolor: 'yellow', px: 0.5 }}>https://fonts.googleapis.com/css?family=Example+Font</Box>{`" rel="stylesheet">`}
+<link href="`}<Box component="span" sx={{ bgcolor: 'warning.main', px: 0.5 }}>https://fonts.googleapis.com/css?family=Example+Font</Box>{`" rel="stylesheet">`}
           </Typography>
         </Box>
       </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose} variant="contained">
-          Close
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
