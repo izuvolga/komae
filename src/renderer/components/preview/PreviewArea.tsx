@@ -200,20 +200,8 @@ export const PreviewArea: React.FC = () => {
           <div className="header-left">
           </div>
           <div className="header-right">
-            <IconButton 
-              sx={{
-                height: 28,
-                color: 'text.secondary',
-              }}
-              onClick={togglePreview}
-              title="プレビューウィンドウを閉じる"
-            >
-              <PanelCollapseRightIcon />
-            </IconButton>
-          </div>
-        </div>
-        <div className="preview-controls">
           <div className="controls-left">
+
             <div className="canvas-fit-control">
               <button
                 className={`mode-btn fit-btn ${canvasFit ? 'active' : ''}`}
@@ -244,6 +232,20 @@ export const PreviewArea: React.FC = () => {
               </div>
             )}
           </div>
+
+            <IconButton 
+              sx={{
+                height: 28,
+                color: 'text.secondary',
+              }}
+              onClick={togglePreview}
+              title="プレビューウィンドウを閉じる"
+            >
+              <PanelCollapseRightIcon />
+            </IconButton>
+          </div>
+        </div>
+        <div className="preview-controls">
           <div className="page-info">
             <span>Page:{Object.values(project.pages).indexOf(currentPageData) + 1} Assets:{Object.keys(currentPageData.asset_instances).length} {canvasWidth}×{canvasHeight}px</span>
           </div>
