@@ -41,6 +41,7 @@ import {
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
+import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 import { off } from 'process';
 import { wrap } from 'module';
 
@@ -533,114 +534,31 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
             justifyContent: 'center',
             overflow: 'auto', // スクロール可能に
           }}>
-            {/* SVGベースの統合描画領域 */}
-            <svg
+            {/* SVG描画領域（共通コンポーネント） */}
+            <EditModalSvgCanvas
               ref={previewSvgRef}
-              id="vec-edit-preview-svg"
-              width={`100%`} // SVG要素は親要素にフィットさせる
-              height={`100%`} // SVG要素は親要素にフィットさせる
-              viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`} // 動的余白を追加
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
-            >
-              {/* キャンバス */}
-              <rect
-                id="vec-edit-canvas"
-                x={margin}
-                y={margin}
-                width={project.canvas.width}
-                height={project.canvas.height}
-                fill="#f5f5f5"
-                rx="2"
-                style={{
-                  filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
-                  position: 'relative'
-                }}
-              />
-
-              {/* SVG描画結果 */}
-              <g
-                dangerouslySetInnerHTML={{
-                  __html: wrapSVGWithParentContainer(
-                    asset.svg_content,
-                    currentPos.x + margin,
-                    currentPos.y + margin,
-                    currentSize.width,
-                    currentSize.height,
-                    currentOpacity,
-                    asset.original_width,
-                    asset.original_height
-                  )
-                }}
-              />
-
-              {/* キャンバスの線 */}
-              <rect
-                id="vec-edit-canvas"
-                x={margin}
-                y={margin}
-                width={project.canvas.width}
-                height={project.canvas.height}
-                stroke='#3b82f6'
-                strokeWidth='5'
-                fill='none'
-                rx="2"
-              />
-
-              {/* インタラクション用透明エリア */}
-              <rect
-                x={currentPos.x + margin}
-                y={currentPos.y + margin}
-                width={currentSize.width}
-                height={currentSize.height}
-                fill="transparent"
-                stroke="#007acc"
-                strokeWidth="5.0"
-                strokeDasharray="4"
-                style={{ cursor: 'move' }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  calculateDynamicScale(); // ドラッグ開始時にスケール計算
-                  const svg = e.currentTarget.ownerSVGElement;
-                  if (!svg) return;
-                  setIsDragging(true);
-                  setDragStartPos({ x: e.clientX, y: e.clientY });
-                  setDragStartValues({
-                    x: currentPos.x,
-                    y: currentPos.y,
-                    width: currentSize.width,
-                    height: currentSize.height
-                  });
-                }}
-              />
-
-              {/* リサイズハンドル（既存のSVGコンポーネントを維持） */}
-              <ResizeHandleOverlay
-                canvasWidth={project.canvas.width}
-                canvasHeight={project.canvas.height}
-                currentPos={{
-                  x: currentPos.x + margin,
-                  y: currentPos.y + margin
-                }}
-                currentSize={currentSize}
-                onResizeMouseDown={handleResizeMouseDown}
-              />
-
-              {/* スナップガイドライン */}
-              {snapGuides.map((guide, index) => (
-                <line
-                  key={index}
-                  x1={guide.type === 'vertical' ? guide.position + margin : guide.start + margin}
-                  y1={guide.type === 'vertical' ? guide.start + margin : guide.position + margin}
-                  x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
-                  y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
-                  stroke="#ff4444"
-                  strokeWidth="1.5"
-                  strokeDasharray="4,4"
-                  style={{ pointerEvents: 'none' }}
-                />
-              ))}
-            </svg>
+              project={project}
+              currentPos={currentPos}
+              currentSize={currentSize}
+              currentOpacity={currentOpacity}
+              svgContent={asset.svg_content}
+              originalWidth={asset.original_width}
+              originalHeight={asset.original_height}
+              onDragStart={(e) => {
+                e.preventDefault();
+                calculateDynamicScale(); // ドラッグ開始時にスケール計算
+                setIsDragging(true);
+                setDragStartPos({ x: e.clientX, y: e.clientY });
+                setDragStartValues({
+                  x: currentPos.x,
+                  y: currentPos.y,
+                  width: currentSize.width,
+                  height: currentSize.height
+                });
+              }}
+              onResizeStart={handleResizeMouseDown}
+              snapGuides={snapGuides}
+            />
           </Box>
 
 
