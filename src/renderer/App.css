@@ -10,6 +10,16 @@
   position: relative;
 }
 
+/* キャンバスの透明部分の唐草模様の色に使われる */
+:root {
+  --canvas-grid-color: #d1d5db; /* grey.300 */
+}
+
+[data-theme="dark"] {
+  --canvas-grid-color: #374151; /* grey.700 */
+}
+
+
 /* ローディングオーバーレイ */
 .loading-overlay {
   position: fixed;

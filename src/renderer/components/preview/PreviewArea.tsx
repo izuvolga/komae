@@ -1,13 +1,25 @@
 import React, { useRef, useCallback } from 'react';
-import { IconButton } from '@mui/material';
+import {
+  Box,
+  Paper,
+  Typography,
+  IconButton,
+  Slider,
+  Button,
+  Divider,
+  Stack,
+  Tooltip,
+  useTheme as useMuiTheme
+} from '@mui/material';
+import { Remove as ZoomInIcon, Add as ZoomOutIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { PanelCollapseRightIcon, FitToViewIcon } from '../icons/PanelIcons';
 import { PagePreview } from './PagePreview';
-import './PreviewArea.css';
 
 export const PreviewArea: React.FC = () => {
   const { mode } = useTheme();
+  const muiTheme = useMuiTheme();
   const project = useProjectStore((state) => state.project);
   const currentPage = useProjectStore((state) => state.ui.currentPage);
   const cursor = useProjectStore((state) => state.ui.cursor);
@@ -173,20 +185,36 @@ export const PreviewArea: React.FC = () => {
 
   if (!currentPageData) {
     return (
-      <div className="preview-area">
-        <div className="preview-header">
-          <h3>プレビュー</h3>
-        </div>
-        <div className="preview-empty">
-          <p>プレビューするページがありません</p>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Paper
+          sx={{
+            p: 0,
+            borderRadius: 0,
+            borderBottom: 1,
+            borderColor: 'divider',
+            backgroundColor: 'grey.50'
+          }}
+        >
+          <Typography variant="subtitle2" fontWeight={600}>
+            プレビュー
+          </Typography>
+        </Paper>
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'text.secondary'
+          }}
+        >
+          <Typography variant="body2">
+            プレビューするページがありません
+          </Typography>
+        </Box>
+      </Box>
     );
   }
-
-  const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setZoomLevel(parseFloat(e.target.value));
-  };
 
   const handleCanvasFitButtonClick = () => {
     setCanvasFit(!canvasFit);
@@ -194,101 +222,163 @@ export const PreviewArea: React.FC = () => {
 
 
   return (
-    <div className="preview-area">
-      <div className="preview-header">
-        <div className="header-top">
-          <div className="header-left">
-          </div>
-          <div className="header-right">
-          <div className="controls-left">
-
-            <div className="canvas-fit-control">
-              <button
-                className={`mode-btn fit-btn ${canvasFit ? 'active' : ''}`}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%'}}>
+      {/* Header */}
+      <Paper
+        sx={{
+          p: 0,
+          borderRadius: 0,
+          borderBottom: 1,
+          borderColor: 'divider',
+          backgroundColor: 'background.default'
+        }}
+      >
+        {/* Top Header */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1} mt={1} spacing={1}>
+          {/* Left Side Controls */}
+          <Stack direction="row" alignItems="center" pl={2} spacing={0}>
+            {/* Canvas Fit Button */}
+            <Tooltip title="キャンバスをプレビュー画面に収める">
+              <Button
+                variant={canvasFit ? "contained" : "outlined"}
+                size="small"
                 onClick={handleCanvasFitButtonClick}
-                title="キャンバスをプレビュー画面に収める"
+                sx={{
+                  minWidth: 'auto',
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                  color: canvasFit ? 'primary.contrastText' : 'text.primary'
+                }}
               >
-                <FitToViewIcon size={14} />
-              </button>
-            </div>
+                <FitToViewIcon size={16} />
+              </Button>
+            </Tooltip>
+
+            {/* Zoom Controls */}
             {!canvasFit && (
-              <div className="zoom-control">
-                <label>倍率:</label>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="3.0"
-                  step="0.1"
+              <Stack direction="row" alignItems="center" pl={2} spacing={1}>
+                <ZoomInIcon sx={{ fontSize: 16 }} />
+                <Slider
                   value={zoomLevel}
-                  onChange={handleZoomChange}
-                  className="zoom-slider"
+                  onChange={(_, value) => setZoomLevel(value as number)}
+                  min={0.1}
+                  max={3.0}
+                  step={0.1}
+                  sx={{ width: 80 }}
+                  size="small"
                 />
-                <span className="zoom-value">{Math.round(zoomLevel * 100)}%</span>
-              </div>
+                <ZoomOutIcon sx={{ fontSize: 16 }} />
+                <Typography
+                  variant="caption"
+                  color="text.primary"
+                  fontWeight={500}
+                  sx={{ minWidth: 35, textAlign: 'right' }}
+                >
+                  {Math.round(zoomLevel * 100)}%
+                </Typography>
+              </Stack>
             )}
-            {canvasFit && (
-              <div className="zoom-display">
-                <span className="zoom-value">自動フィット: {Math.round(zoomLevel * 100)}%</span>
-              </div>
-            )}
-          </div>
 
-            <IconButton 
-              sx={{
-                height: 28,
-                color: 'text.secondary',
-              }}
-              onClick={togglePreview}
-              title="プレビューウィンドウを閉じる"
-            >
-              <PanelCollapseRightIcon />
-            </IconButton>
-          </div>
-        </div>
-        <div className="preview-controls">
-          <div className="page-info">
-            <span>Page:{Object.values(project.pages).indexOf(currentPageData) + 1} Assets:{Object.keys(currentPageData.asset_instances).length} {canvasWidth}×{canvasHeight}px</span>
-          </div>
-        </div>
-      </div>
+          </Stack>
 
-      <div className="preview-content">
-        <div 
-          className="preview-canvas-container"
+          {/* Right Side Controls */}
+          <Stack direction="row" alignItems="center" pr={2} spacing={1}>
+            {/* Close Button */}
+            <Tooltip title="プレビューウィンドウを閉じる">
+              <IconButton
+                size="small"
+                onClick={togglePreview}
+                sx={{
+                  height: 28,
+                  color: 'text.secondary'
+                }}
+              >
+                <PanelCollapseRightIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Stack>
+
+        {/* Page Info */}
+        <Typography variant="caption" color="text.secondary" sx={{ p: 1, display: 'block' }}>
+          Page: {Object.values(project.pages).indexOf(currentPageData) + 1} |{' '}
+          Assets: {Object.keys(currentPageData.asset_instances).length} |{' '}
+          {canvasWidth}×{canvasHeight}px
+        </Typography>
+      </Paper>
+
+      {/* Preview Content */}
+      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <Box
           ref={previewContentRef}
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'background.default',
+            backgroundImage: `
+              linear-gradient(45deg, var(--canvas-grid-color) 25%, transparent 25%),
+              linear-gradient(-45deg, var(--canvas-grid-color) 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, var(--canvas-grid-color) 75%),
+              linear-gradient(-45deg, transparent 75%, var(--canvas-grid-color) 75%)
+            `,
+            backgroundSize: '20px 20px',
+            backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+            overflow: 'auto'
+          }}
         >
-          <div 
-            className="preview-canvas-wrapper"
-            style={{
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
               width: canvasWidth * zoomLevel + 400,
               height: canvasHeight * zoomLevel + 400,
               minWidth: '200%',
               minHeight: '200%',
+              p: '50px',
+              boxSizing: 'border-box'
             }}
           >
-            <div 
-              className="preview-canvas"
-              style={{
+            <Box
+              sx={{
                 width: canvasWidth * zoomLevel,
                 height: canvasHeight * zoomLevel,
                 position: 'relative',
                 display: 'inline-block',
+                backgroundColor: 'background.paper',
+                border: 1,
+                borderColor: 'grey.300',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                overflow: 'hidden'
               }}
             >
-              {/* キャンバス背景 */}
-              <div className="canvas-background" />
-              
-              {/* SVGベースのページプレビュー */}
+              {/* Canvas Background */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'var(--canvas-base-color-default)'
+                }}
+              />
+
+              {/* SVG-based Page Preview */}
               <PagePreview
                 project={project}
                 page={currentPageData}
                 zoomLevel={zoomLevel}
               />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 
