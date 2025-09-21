@@ -12,6 +12,7 @@ import {
   Notifications,
   KeyboardArrowDown,
   Tune,
+  Settings,
 } from '@mui/icons-material';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { generateAssetInstanceId } from '../../../utils/idGenerator';
@@ -23,7 +24,9 @@ import { ProjectCreateDialog } from '../project/ProjectCreateDialog';
 import { FontManagementModal } from '../font/FontManagementModal';
 import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import { BulkEditModal } from '../text/BulkEditModal';
+import { AppSettingsModal } from '../common/AppSettingsModal';
 import { useProjectStore } from '../../stores/projectStore';
+import { useAppSettingsStore } from '../../stores/appSettingsStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { useTheme } from '../../../theme/ThemeContext';
 import { getLanguageDisplayName } from '../../../constants/languages';
@@ -50,7 +53,12 @@ export const MainLayout: React.FC = () => {
   const setPreviewWidth = useProjectStore((state) => state.setPreviewWidth);
   const saveProject = useProjectStore((state) => state.saveProject);
   const loadProject = useProjectStore((state) => state.loadProject);
+  const createDefaultProject = useProjectStore((state) => state.createDefaultProject);
   const addNotification = useProjectStore((state) => state.addNotification);
+
+  // App Settings
+  const appSettings = useAppSettingsStore((state) => state.settings);
+  const loadAppSettings = useAppSettingsStore((state) => state.loadSettings);
   
   // 多言語機能
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -66,11 +74,36 @@ export const MainLayout: React.FC = () => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
+  const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
 
   // テーマ変更時にCSS変数を設定
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', mode);
   }, [mode]);
+
+  // アプリ起動時の設定読み込みとデフォルトプロジェクト作成
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // アプリ設定を読み込み
+        await loadAppSettings();
+      } catch (error) {
+        console.error('Failed to load app settings:', error);
+      }
+    };
+
+    initializeApp();
+  }, [loadAppSettings]);
+
+  // 設定が読み込まれた後、skipWelcomeScreenの確認とデフォルトプロジェクト作成
+  useEffect(() => {
+    if (appSettings && !project) {
+      if (appSettings.skipWelcomeScreen) {
+        console.log('[MainLayout] Skip welcome screen enabled, creating default project');
+        createDefaultProject();
+      }
+    }
+  }, [appSettings, project, createDefaultProject]);
 
   // アセットライブラリのリサイズ開始
   const handleAssetResizeStart = useCallback((e: React.MouseEvent) => {
@@ -207,6 +240,10 @@ export const MainLayout: React.FC = () => {
       toggleCustomAssetManagement();
     });
 
+    const unsubscribeAppSettings = window.electronAPI.menu.onAppSettings(() => {
+      setShowAppSettingsModal(true);
+    });
+
     return () => {
       unsubscribeSave();
       unsubscribeOpen();
@@ -214,6 +251,7 @@ export const MainLayout: React.FC = () => {
       unsubscribeExportProject();
       unsubscribeCustomFonts();
       unsubscribeCustomAssets();
+      unsubscribeAppSettings();
     };
   }, [handleSaveProject]);
 
@@ -581,8 +619,25 @@ export const MainLayout: React.FC = () => {
                   ))}
                 </Select>
               </FormControl>
+
+              {/* アプリ設定ボタン */}
+              <Tooltip title="アプリケーション設定">
+                <Button
+                  color='primary'
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setShowAppSettingsModal(true)}
+                  sx={{
+                    fontSize: '0.5rem',
+                    height: 28,
+                    p: 1
+                  }}
+                >
+                  <Settings />
+                </Button>
+              </Tooltip>
             </div>
-            
+
             <div className="toolbar-section right-section">
               {/* テスト用通知ボタン（開発中のみ） */}
               <Button
@@ -658,6 +713,12 @@ export const MainLayout: React.FC = () => {
       <BulkEditModal
         isOpen={showBulkEditModal}
         onClose={() => setShowBulkEditModal(false)}
+      />
+
+      {/* アプリケーション設定ダイアログ */}
+      <AppSettingsModal
+        isOpen={showAppSettingsModal}
+        onClose={() => setShowAppSettingsModal(false)}
       />
     </div>
   );

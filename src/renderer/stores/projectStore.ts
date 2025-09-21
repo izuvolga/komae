@@ -111,6 +111,7 @@ interface ProjectStore {
   loadProject: (filePath: string) => Promise<void>;
   exportProject: (format: ExportFormat, options?: Partial<ExportOptions>) => Promise<void>;
   importAsset: (filePath: string) => Promise<Asset>;
+  createDefaultProject: () => void;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -747,13 +748,35 @@ export const useProjectStore = create<ProjectStore>()(
 
         // Async Actions
         saveProject: async () => {
-          const { project, addNotification } = get();
+          const { project, currentProjectPath, addNotification } = get();
           if (!project) return;
 
           set((state) => { state.app.isLoading = true; });
 
           try {
-            const filePath = await window.electronAPI.project.save(project);
+            let targetFilePath: string | undefined;
+
+            // 初回保存時（currentProjectPathがnull）にファイルダイアログを表示
+            if (!currentProjectPath) {
+              const result = await window.electronAPI.fileSystem.showSaveDialog({
+                title: '新しいプロジェクトを保存',
+                defaultPath: `${project.metadata.title || 'Untitled'}.komae`,
+                filters: [
+                  { name: 'Komae Project', extensions: ['komae'] },
+                ],
+              });
+
+              if (result.canceled || !result.filePath) {
+                // ユーザーがキャンセルした場合
+                set((state) => { state.app.isLoading = false; });
+                return;
+              }
+
+              targetFilePath = result.filePath;
+            }
+
+            // プロジェクトを保存（ファイルパスが指定されていれば使用、そうでなければ既存パスを使用）
+            const savedPath = await window.electronAPI.project.save(project, targetFilePath);
 
             // プロジェクトパスを取得して設定
             const projectPath = await window.electronAPI.project.getCurrentPath();
@@ -764,11 +787,15 @@ export const useProjectStore = create<ProjectStore>()(
               state.app.lastSaved = new Date();
               state.app.isLoading = false;
             });
+
             // 保存成功の通知を表示
+            const isFirstSave = !currentProjectPath;
             addNotification({
               type: 'success',
-              title: 'プロジェクトが保存されました',
-              message: 'プロジェクトファイルの保存が完了しました',
+              title: isFirstSave ? '新しいプロジェクトが作成されました' : 'プロジェクトが保存されました',
+              message: isFirstSave
+                ? `プロジェクトファイルが作成されました: ${savedPath}`
+                : 'プロジェクトファイルの保存が完了しました',
               autoClose: true,
               duration: 3000,
             });
@@ -912,6 +939,36 @@ export const useProjectStore = create<ProjectStore>()(
             });
             throw error;
           }
+        },
+
+        createDefaultProject: () => {
+          const defaultProject: ProjectData = {
+            metadata: {
+              komae_version: '1.0',
+              project_version: '1.0',
+              title: 'Untitled',
+              description: '',
+              // TODO: システムロケールを取得してデフォルト言語を設定
+              // 現在は手動で ja/en/zh を設定
+              supportedLanguages: ['ja', 'en', 'zh'], // TODO: navigator.language || Electron's app.getLocale()
+              currentLanguage: 'ja', // TODO: navigator.language || Electron's app.getLocale()
+            },
+            canvas: {
+              width: 768,
+              height: 1024
+            },
+            assets: {},
+            pages: [],
+            hiddenColumns: [],
+            hiddenRows: [],
+          };
+
+          set((state) => {
+            state.project = defaultProject;
+            state.currentProjectPath = null; // 新規プロジェクトなのでパスはnull
+            state.app.isDirty = false;
+            state.app.lastSaved = null;
+          });
         },
       }))
     ),

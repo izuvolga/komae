@@ -1,12 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { 
-  ProjectCreateParams, 
-  ProjectData, 
-  ExportFormat, 
+import type {
+  ProjectCreateParams,
+  ProjectData,
+  ExportFormat,
   ExportOptions,
   OpenDialogOptions,
-  SaveDialogOptions 
+  SaveDialogOptions
 } from '../types/entities';
+import type { AppSettings } from '../main/services/AppSettingsManager';
 
 // ElectronAPI定義
 const electronAPI = {
@@ -126,6 +127,24 @@ const electronAPI = {
       ipcRenderer.invoke('fileSystem:createTempFile', fileName, data),
   },
 
+  // App Settings Operations
+  appSettings: {
+    load: (): Promise<AppSettings> =>
+      ipcRenderer.invoke('appSettings:load'),
+
+    save: (settings: AppSettings): Promise<void> =>
+      ipcRenderer.invoke('appSettings:save', settings),
+
+    update: <K extends keyof AppSettings>(key: K, value: AppSettings[K]): Promise<void> =>
+      ipcRenderer.invoke('appSettings:update', key, value),
+
+    reset: (): Promise<void> =>
+      ipcRenderer.invoke('appSettings:reset'),
+
+    getPath: (): Promise<string> =>
+      ipcRenderer.invoke('appSettings:getPath'),
+  },
+
   // System Integration
   system: {
     getVersion: (): Promise<string> => 
@@ -211,6 +230,12 @@ const electronAPI = {
       const handler = () => callback();
       ipcRenderer.on('menu:custom-assets', handler);
       return () => ipcRenderer.removeListener('menu:custom-assets', handler);
+    },
+
+    onAppSettings: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('menu:app-settings', handler);
+      return () => ipcRenderer.removeListener('menu:app-settings', handler);
     },
   },
 

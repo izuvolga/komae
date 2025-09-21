@@ -7,6 +7,7 @@ import { AssetManager } from './services/AssetManager';
 import { FontManager } from './services/FontManager';
 import { CustomAssetManager } from './services/CustomAssetManager';
 import { ExportService } from './services/ExportService';
+import { AppSettingsManager } from './services/AppSettingsManager';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
 
@@ -18,6 +19,7 @@ class KomaeApp {
   private fontManager: FontManager;
   private customAssetManager: CustomAssetManager;
   private exportService: ExportService;
+  private appSettingsManager: AppSettingsManager;
   private logger = getLogger();
 
   constructor() {
@@ -27,6 +29,7 @@ class KomaeApp {
     this.fontManager = new FontManager();
     this.customAssetManager = new CustomAssetManager();
     this.exportService = new ExportService(this.fontManager);
+    this.appSettingsManager = new AppSettingsManager();
     
     this.setupEventHandlers();
     this.setupIPC();
@@ -592,6 +595,52 @@ class KomaeApp {
     ipcMain.handle('shell:openExternal', async (event, url: string) => {
       const { shell } = await import('electron');
       await shell.openExternal(url);
+    });
+
+    // App Settings Operations
+    ipcMain.handle('appSettings:load', async () => {
+      try {
+        return await this.appSettingsManager.loadSettings();
+      } catch (error) {
+        console.error('Failed to load app settings:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('appSettings:save', async (event, settings) => {
+      try {
+        await this.appSettingsManager.saveSettings(settings);
+      } catch (error) {
+        console.error('Failed to save app settings:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('appSettings:update', async (event, key: string, value: any) => {
+      try {
+        await this.appSettingsManager.updateSetting(key as any, value);
+      } catch (error) {
+        console.error('Failed to update app setting:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('appSettings:reset', async () => {
+      try {
+        await this.appSettingsManager.resetSettings();
+      } catch (error) {
+        console.error('Failed to reset app settings:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('appSettings:getPath', async () => {
+      try {
+        return this.appSettingsManager.getSettingsPath();
+      } catch (error) {
+        console.error('Failed to get app settings path:', error);
+        throw error;
+      }
     });
 
     // Logger Operations
