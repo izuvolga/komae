@@ -187,19 +187,6 @@ export const PreviewArea: React.FC = () => {
   if (!currentPageData) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Paper
-          sx={{
-            p: 0,
-            borderRadius: 0,
-            borderBottom: 1,
-            borderColor: 'divider',
-            backgroundColor: 'grey.50'
-          }}
-        >
-          <Typography variant="subtitle2" fontWeight={600}>
-            プレビュー
-          </Typography>
-        </Paper>
         <Box
           sx={{
             flex: 1,

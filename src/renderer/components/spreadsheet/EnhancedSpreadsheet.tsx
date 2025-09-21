@@ -27,6 +27,7 @@ import './PageThumbnail.css';
 import './ColumnContextMenu.css';
 import './RowContextMenu.css';
 import './CellContextMenu.css';
+import { NoteAdd } from '@mui/icons-material';
 
 export const EnhancedSpreadsheet: React.FC = () => {
   const { mode } = useTheme();
@@ -1839,7 +1840,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
           <div className="spreadsheet-row add-page-row">
             <div className="cell add-page-cell">
               <button className="add-page-btn" onClick={handleAddPage}>
-                + 新しいページを追加
+                <NoteAdd sx={{ fontSize: '1.5rem', color: 'primary.main' }} />
               </button>
             </div>
           </div>
