@@ -9,6 +9,7 @@ import {
   Divider,
   Stack,
   Tooltip,
+  Chip,
   useTheme as useMuiTheme
 } from '@mui/material';
 import { Remove as ZoomInIcon, Add as ZoomOutIcon } from '@mui/icons-material';
@@ -301,11 +302,44 @@ export const PreviewArea: React.FC = () => {
         </Stack>
 
         {/* Page Info */}
-        <Typography variant="caption" color="text.secondary" sx={{ p: 1, display: 'block' }}>
-          Page: {Object.values(project.pages).indexOf(currentPageData) + 1} |{' '}
-          Assets: {Object.keys(currentPageData.asset_instances).length} |{' '}
-          {canvasWidth}×{canvasHeight}px
-        </Typography>
+        <Stack direction="row" spacing={1} sx={{ p: 1, flexWrap: 'wrap' }}>
+          <Chip
+            label={`Page ${Object.values(project.pages).indexOf(currentPageData) + 1}`}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: '0.75rem',
+              height: 20,
+              backgroundColor: 'primary.50',
+              borderColor: 'primary.200',
+              color: 'primary.700'
+            }}
+          />
+          <Chip
+            label={`${Object.keys(currentPageData.asset_instances).length} Assets`}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: '0.75rem',
+              height: 20,
+              backgroundColor: 'success.50',
+              borderColor: 'success.200',
+              color: 'success.700'
+            }}
+          />
+          <Chip
+            label={`${canvasWidth}×${canvasHeight}px`}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: '0.75rem',
+              height: 20,
+              backgroundColor: 'grey.50',
+              borderColor: 'grey.300',
+              color: 'grey.700'
+            }}
+          />
+        </Stack>
       </Paper>
 
       {/* Preview Content */}
@@ -349,7 +383,7 @@ export const PreviewArea: React.FC = () => {
                 height: canvasHeight * zoomLevel,
                 position: 'relative',
                 display: 'inline-block',
-                backgroundColor: 'background.paper',
+                backgroundColor: 'var(--canvas-base-color-default)',
                 border: 1,
                 borderColor: 'grey.300',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
