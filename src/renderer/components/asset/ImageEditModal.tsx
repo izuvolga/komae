@@ -302,25 +302,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     }
   };
 
-  // マウス操作のハンドラー
-  const handleImageMouseDown = (e: React.MouseEvent) => {
-    if (maskEditMode) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const canvasRect = document.querySelector('[data-canvas-frame]')?.getBoundingClientRect();
-    if (!canvasRect) return;
-    
-    setIsDragging(true);
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({
-      x: currentPos.x,
-      y: currentPos.y,
-      width: currentSize.width,
-      height: currentSize.height
-    });
-  };
 
   const handleMaskPointMouseDown = (e: React.MouseEvent, pointIndex: number) => {
     e.preventDefault();

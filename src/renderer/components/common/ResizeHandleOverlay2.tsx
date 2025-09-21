@@ -6,7 +6,7 @@ interface ResizeHandleOverlayProps {
   currentPos: { x: number; y: number };
   currentSize: { width: number; height: number };
   onResizeMouseDown: (e: React.MouseEvent, handle: string) => void;
-  zIndex?: number;
+  handleSize?: number;
   visible?: boolean;
 }
 
@@ -16,6 +16,7 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
   currentPos,
   currentSize,
   onResizeMouseDown,
+  handleSize = 16,
   visible = true,
 }) => {
   if (!visible) {
@@ -23,7 +24,6 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
   }
 
   // 画像とリサイズハンドルを含む十分な領域を計算
-  const handleSize = Math.max(canvasWidth, canvasHeight) * 0.02; // キャンバスの長辺の2%をハンドルサイズにする
   const imageLeft = currentPos.x;
   const imageTop = currentPos.y;
   const imageRight = imageLeft + currentSize.width;

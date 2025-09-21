@@ -46,7 +46,7 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
 }, ref) => {
   // 動的余白計算（キャンバス長辺の10%）
   const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
-
+  const handleSize = Math.max(project.canvas.width, project.canvas.height) * 0.04; // キャンバスの長辺の4%をハンドルサイズにする
   return (
     <svg
       ref={ref}
@@ -126,6 +126,7 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
         }}
         currentSize={currentSize}
         onResizeMouseDown={onResizeStart}
+        handleSize={handleSize}
         visible={maskMode !== 'edit'}
       />
 
@@ -183,10 +184,10 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
 
           {/* マスクポイントハンドル */}
           {maskCoords.map((point, index) => {
-            const handleSize = 16;
+            const localHandleSize = handleSize;
             const x = point[0] + margin;
             const y = point[1] + margin;
-            const offset = handleSize / 2;
+            const offset = localHandleSize / 2;
             const offset_direction = [
               [ 1,  1], // 左上
               [-1,  1], // 右上
@@ -197,11 +198,10 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
             return (
               <g key={`mask-handle-${index}`}>
                 {/* 外側の白い枠 */}
-                <rect
-                  x={x - handleSize / 2 + offset * offset_direction[0]}
-                  y={y - handleSize / 2 + offset * offset_direction[1]}
-                  width={handleSize}
-                  height={handleSize}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={localHandleSize / 2}
                   fill="white"
                   stroke="red"
                   strokeWidth="2"
@@ -209,11 +209,10 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
                   onMouseDown={(e) => onMaskPointDragStart?.(e, index)}
                 />
                 {/* 内側の赤い四角 */}
-                <rect
-                  x={x - handleSize / 2 + 3 + offset * offset_direction[0]}
-                  y={y - handleSize / 2 + 3 + offset * offset_direction[1]}
-                  width={handleSize - 6}
-                  height={handleSize - 6}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={localHandleSize / 2 - 3}
                   fill="red"
                   stroke="none"
                   style={{ pointerEvents: 'none' }}
