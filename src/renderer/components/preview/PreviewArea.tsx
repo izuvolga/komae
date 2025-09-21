@@ -1,4 +1,5 @@
 import React, { useRef, useCallback } from 'react';
+import { IconButton } from '@mui/material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { PanelCollapseRightIcon, FitToViewIcon } from '../icons/PanelIcons';
@@ -199,13 +200,16 @@ export const PreviewArea: React.FC = () => {
           <div className="header-left">
           </div>
           <div className="header-right">
-            <button 
-              className="panel-toggle-btn preview-close-btn"
+            <IconButton 
+              sx={{
+                height: 28,
+                color: 'text.secondary',
+              }}
               onClick={togglePreview}
               title="プレビューウィンドウを閉じる"
             >
               <PanelCollapseRightIcon />
-            </button>
+            </IconButton>
           </div>
         </div>
         <div className="preview-controls">

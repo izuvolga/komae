@@ -243,13 +243,13 @@
 .project-edit-btn,
 .bulk-edit-btn {
   padding: 4px 8px;
-  border: 1px solid var(--btn-border-color);
-  background-color: var(--btn-bg-color);
+  border: 1px solid var(--btn-hover-border-color);
+  background-color: var(--btn-hover-bg-color);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 12px;
-  color: var(--text-secondary-color);
+  color: var(--btn-hover-border-color);
   margin-right: 8px;
   white-space: nowrap;
 }

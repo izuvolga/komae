@@ -694,7 +694,12 @@ export const AssetLibrary: React.FC = () => {
             onClick={toggleAssetLibrary}
             size="small"
             title="アセットライブラリを閉じる"
-            sx={{ color: 'text.secondary' }}
+            sx={{
+              color: 'text.secondary',
+              ml: 2,
+              pr: 1,
+              height: 28
+            }}
           >
             <PanelCollapseLeftIcon />
           </IconButton>
@@ -705,6 +710,7 @@ export const AssetLibrary: React.FC = () => {
             size="small"
             title="アセットを作成"
             sx={{
+              height: 28,
               bgcolor: 'action.hover',
               '&:hover': {
                 bgcolor: 'action.selected'
@@ -752,6 +758,7 @@ export const AssetLibrary: React.FC = () => {
             size="small"
             title="選択したアセットを削除"
             sx={{
+              height: 28,
               color: selectedAssets.length === 0 ? 'text.disabled' : 'error.main',
               '&:hover': {
                 bgcolor: selectedAssets.length === 0 ? 'transparent' : 'error.light'

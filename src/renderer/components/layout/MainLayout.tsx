@@ -8,9 +8,10 @@ import {
   Tooltip,
 } from '@mui/material';
 import {
-  Edit,
+  Translate,
   Notifications,
   KeyboardArrowDown,
+  Tune,
 } from '@mui/icons-material';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { generateAssetInstanceId } from '../../../utils/idGenerator';
@@ -487,22 +488,24 @@ export const MainLayout: React.FC = () => {
             <div className="toolbar-section left-section">
               {/* Asset非表示時：プロジェクト名の左にボタン */}
               {!showAssetLibrary && (
-                <button
-                  className="panel-toggle-btn asset-open-btn"
+                <IconButton
+                  sx={{
+                    color: 'text.secondary',
+                    height: 28
+                  }}
                   onClick={toggleAssetLibrary}
                   title="アセットライブラリを開く"
                 >
                   <PanelExpandLeftIcon />
-                </button>
+                </IconButton>
               )}
               
               {/* プロジェクト編集ボタン */}
               <Tooltip title="プロジェクト設定を編集">
                 <Button
-                  className="project-edit-btn"
+                  color='primary'
                   variant="outlined"
                   size="small"
-                  startIcon={<Edit />}
                   onClick={() => {
                     addNotification({
                       type: 'info',
@@ -512,55 +515,26 @@ export const MainLayout: React.FC = () => {
                       duration: 3000,
                     });
                   }}
-                  sx={{ fontSize: '0.75rem', p: 1 }}
+                  sx={{
+                    fontSize: '0.5rem',
+                    height: 28,
+                    p: 1
+                  }}
                 >
-                  Project
+                  <Tune />
                 </Button>
               </Tooltip>
               
-              {/* 言語切り替えドロップダウン */}
-              <div className="language-selector-container">
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={getCurrentLanguage()}
-                    onChange={(event) => {
-                      const newLanguage = event.target.value as string;
-                      setCurrentLanguage(newLanguage);
-                      addNotification({
-                        type: 'info',
-                        title: '言語切り替え',
-                        message: `表示言語を${getLanguageDisplayName(newLanguage)}に変更しました`,
-                        autoClose: true,
-                        duration: 2000,
-                      });
-                    }}
-                    IconComponent={KeyboardArrowDown}
-                    sx={{
-                      fontSize: '0.75rem',
-                      height: 28,
-                      '& .MuiSelect-select': {
-                        py: 0.5,
-                        px: 1
-                      }
-                    }}
-                  >
-                    {getSupportedLanguages().map(langCode => (
-                      <MenuItem key={langCode} value={langCode} sx={{ fontSize: '0.813rem' }}>
-                        {getLanguageDisplayName(langCode)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
-              
               {/* TextAsset Bulk Edit ボタン */}
               <Tooltip title="テキストアセット一括編集">
-                <IconButton
-                  className="bulk-edit-btn"
+                <Button
+                  color='primary'
                   onClick={() => setShowBulkEditModal(true)}
                   size="small"
+                  variant="outlined"
                   sx={{
                     transition: 'all 0.1s ease',
+                    height: 28,
                     '&:hover': {
                       transition: 'all 0.1s ease'
                     },
@@ -571,10 +545,42 @@ export const MainLayout: React.FC = () => {
                     }
                   }}
                 >
-                  <Edit />
-                </IconButton>
+                  <Translate />
+                </Button>
               </Tooltip>
-              
+
+              {/* 言語切り替えドロップダウン */}
+              <FormControl size="small" sx={{ minWidth: 120 }} color='primary'>
+                <Select
+                  value={getCurrentLanguage()}
+                  onChange={(event) => {
+                    const newLanguage = event.target.value as string;
+                    setCurrentLanguage(newLanguage);
+                    addNotification({
+                      type: 'info',
+                      title: '言語切り替え',
+                      message: `表示言語を${getLanguageDisplayName(newLanguage)}に変更しました`,
+                      autoClose: true,
+                      duration: 2000,
+                    });
+                  }}
+                  IconComponent={KeyboardArrowDown}
+                  sx={{
+                    fontSize: '0.75rem',
+                    height: 28,
+                    '& .MuiSelect-select': {
+                      py: 0.5,
+                      px: 1
+                    }
+                  }}
+                >
+                  {getSupportedLanguages().map(langCode => (
+                    <MenuItem key={langCode} value={langCode} sx={{ fontSize: '0.813rem' }}>
+                      {getLanguageDisplayName(langCode)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </div>
             
             <div className="toolbar-section right-section">
@@ -591,13 +597,17 @@ export const MainLayout: React.FC = () => {
 
               {/* Preview非表示時：プロジェクト名の右にボタン */}
               {!showPreview && (
-                <button
+                <IconButton
+                  sx={{
+                    color: 'text.secondary',
+                    height: 28
+                  }}
                   className="panel-toggle-btn preview-open-btn"
                   onClick={togglePreview}
                   title="プレビューウィンドウを開く"
                 >
                   <PanelExpandRightIcon />
-                </button>
+                </IconButton>
               )}
             </div>
           </div>
