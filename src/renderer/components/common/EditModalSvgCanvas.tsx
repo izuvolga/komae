@@ -12,7 +12,7 @@ interface EditModalSvgCanvasProps {
   currentOpacity: number;
 
   // SVG描画内容
-  svgContent: string | null;
+  svgContent: string;
   originalWidth?: number;
   originalHeight?: number;
 
@@ -47,6 +47,16 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
   // 動的余白計算（キャンバス長辺の10%）
   const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
   const handleSize = Math.max(project.canvas.width, project.canvas.height) * 0.04; // キャンバスの長辺の4%をハンドルサイズにする
+  const content = wrapSVGWithParentContainer(
+              svgContent,
+              currentPos.x + margin,
+              currentPos.y + margin,
+              currentSize.width,
+              currentSize.height,
+              currentOpacity,
+              originalWidth || 0,
+              originalHeight || 0
+            )
   return (
     <svg
       ref={ref}
@@ -71,21 +81,30 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       />
 
       {/* SVG描画結果 */}
-      {svgContent && (
+      {(maskMode === 'none' || maskMode === 'edit') && (
         <g
           dangerouslySetInnerHTML={{
-            __html: wrapSVGWithParentContainer(
-              svgContent,
-              currentPos.x + margin,
-              currentPos.y + margin,
-              currentSize.width,
-              currentSize.height,
-              currentOpacity,
-              originalWidth || 0,
-              originalHeight || 0
-            )
+            __html: content
           }}
         />
+      )}
+      {/* SVG描画結果（マスク適用） */}
+      { maskMode === 'apply' && maskCoords && (
+        <>
+          <defs>
+            <clipPath id={`maskClip-${project.canvas.width}-${project.canvas.height}`}>
+              <polygon
+                points={maskCoords.map(point => `${point[0] + margin},${point[1] + margin}`).join(' ')}
+              />
+            </clipPath>
+          </defs>
+          <g
+            clipPath={`url(#maskClip-${project.canvas.width}-${project.canvas.height})`}
+            dangerouslySetInnerHTML={{
+              __html: content
+            }}
+          />
+        </>
       )}
 
       {/* キャンバス枠線 */}
@@ -220,34 +239,6 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
               </g>
             );
           })}
-        </>
-      )}
-
-      {/* マスク適用モード */}
-      {maskMode === 'apply' && maskCoords && svgContent && (
-        <>
-          <defs>
-            <clipPath id={`maskClip-${project.canvas.width}-${project.canvas.height}`}>
-              <polygon
-                points={maskCoords.map(point => `${point[0] + margin},${point[1] + margin}`).join(' ')}
-              />
-            </clipPath>
-          </defs>
-          <g
-            clipPath={`url(#maskClip-${project.canvas.width}-${project.canvas.height})`}
-            dangerouslySetInnerHTML={{
-              __html: wrapSVGWithParentContainer(
-                svgContent,
-                currentPos.x + margin,
-                currentPos.y + margin,
-                currentSize.width,
-                currentSize.height,
-                currentOpacity,
-                originalWidth || 0,
-                originalHeight || 0
-              )
-            }}
-          />
         </>
       )}
     </svg>

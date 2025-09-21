@@ -794,7 +794,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
               currentPos={currentPos}
               currentSize={currentSize}
               currentOpacity={currentOpacity}
-              svgContent={svgResult.svg}
+              svgContent={svgResult.svg || `<text x="50%" y="50%" class="error.main">(${svgResult.error})</text>`}
               originalWidth={editedAsset.original_width}
               originalHeight={editedAsset.original_height}
               onDragStart={(e) => {

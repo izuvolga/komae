@@ -278,15 +278,21 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   // z_index専用のサニタイズ関数、バリデーション関数、数値入力検証は共通ユーティリティを使用
 
   const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | undefined) => {
+    // キャンバスの四隅と同じ場合かつ、画像編集モードの場合にはマスクを削除（undefinedに設定）
+    let finalMask = mask;
+    if (mask && isCanvasSizeMask(mask) && !maskEditMode) {
+      finalMask = undefined;
+    }
+
     if (mode === 'instance' && editedInstance) {
       setEditedInstance(prev => prev ? {
         ...prev,
-        override_mask: mask,
+        override_mask: finalMask,
       } : null);
     } else {
       setEditedAsset(prev => ({
         ...prev,
-        default_mask: mask,
+        default_mask: finalMask,
       }));
     }
   };
@@ -549,7 +555,11 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               }}
               onResizeStart={handleResizeMouseDown}
               snapGuides={snapGuides}
-              maskMode={maskEditMode ? 'edit' : 'none'}
+              maskMode={
+                maskEditMode ? 'edit' :
+                currentMask && !isCanvasSizeMask(currentMask) ? 'apply' :
+                'none'
+              }
               maskCoords={currentMask}
               onMaskPointDragStart={handleMaskPointMouseDown}
             />
