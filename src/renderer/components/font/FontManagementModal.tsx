@@ -331,6 +331,13 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
           <Box sx={{ display: 'flex', justifyContent: 'fix-end', mt: 3, gap: 2, ml: 'auto'}}>
             <Button
               variant="contained"
+              onClick={() => setShowAddModal(true)}
+              disabled={isLoading}
+            >
+              <AddIcon />
+            </Button>
+            <Button
+              variant="contained"
               color="error"
               onClick={handleDeleteFont}
               disabled={!selectedFont || isLoading || (
@@ -348,13 +355,6 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
               }
             >
               <DeleteIcon />
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => setShowAddModal(true)}
-              disabled={isLoading}
-            >
-              <AddIcon />
             </Button>
           </Box>
       </DialogContent>

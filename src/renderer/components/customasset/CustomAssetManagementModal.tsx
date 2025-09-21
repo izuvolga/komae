@@ -402,8 +402,7 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                         p: 2,
                         fontFamily: 'monospace',
                         fontSize: '12px',
-                        overflow: 'auto',
-                        maxHeight: '300px'
+                        overflow: 'auto'
                       }}>
                         <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
                           <code>{previewCode}</code>
