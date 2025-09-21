@@ -554,6 +554,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               originalWidth={asset.original_width}
               originalHeight={asset.original_height}
               onDragStart={(e) => {
+                if (maskEditMode) return;
                 e.preventDefault();
                 calculateDynamicScale(); // ドラッグ開始時にスケール計算
                 setIsDragging(true);
@@ -567,106 +568,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
               }}
               onResizeStart={handleResizeMouseDown}
               snapGuides={snapGuides}
+              maskMode={maskEditMode ? 'edit' : 'none'}
+              maskCoords={currentMask}
+              onMaskPointDragStart={handleMaskPointMouseDown}
             />
-            {/* マスク編集時のオーバーレイ表示 */}
-            {maskEditMode && currentMask && (
-              <>
-                {/* マスク範囲外の薄い白色オーバーレイ */}
-                <svg
-                  x="0"
-                  y="0"
-                  width="100%"
-                  height="100%"
-                  viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="xMidYMid meet"
-                >
-                  <defs>
-                    <mask id="maskOverlay">
-                      <rect
-                        x="0"
-                        y="0"
-                        width={project.canvas.width}
-                        height={project.canvas.height}
-                        fill="white"
-                      />
-                      <polygon
-                        points={currentMask.map(point => `${point[0]},${point[1]}`).join(' ')}
-                        fill="black"
-                      />
-                    </mask>
-                  </defs>
-                  <rect
-                    x="0"
-                    y="0"
-                    width={project.canvas.width}
-                    height={project.canvas.height}
-                    fill="rgba(255, 255, 255, 0.6)"
-                    mask="url(#maskOverlay)"
-                  />
-                </svg>
-                
-                {/* マスクポリゴン表示 */}
-                <svg
-                  style={{
-                    position: 'absolute',
-                    left: '0px',
-                    top: '0px',
-                    width: `${project.canvas.width}px`,
-                    height: `${project.canvas.height}px`,
-                    zIndex: 3,
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <polygon
-                    points={currentMask.map(point => `${point[0]},${point[1]}`).join(' ')}
-                    fill="rgba(255, 0, 0, 0.2)"
-                    stroke="red"
-                    strokeWidth="1"
-                  />
-                  {currentMask.map((point, index) => {
-                    const handleSize = 16; // ハンドルのサイズ
-                    const x = point[0];
-                    const y = point[1];
-                    // ハンドルを矩形の内側に配置するためのオフセット
-                    const offset = handleSize / 2;
-                    const offset_direction = [
-                      [ 1,  1], // 左上
-                      [-1,  1], // 右上
-                      [-1, -1], // 右下
-                      [ 1, -1]  // 左下
-                    ][index];
-
-                    return (
-                      <g key={index}>
-                        {/* 外側の白い枠 */}
-                        <rect
-                          x={x - handleSize / 2 + offset * offset_direction[0]}
-                          y={y - handleSize / 2 + offset * offset_direction[1]}
-                          width={handleSize}
-                          height={handleSize}
-                          fill="white"
-                          stroke="red"
-                          strokeWidth="2"
-                          style={{ cursor: 'pointer', pointerEvents: 'all' }}
-                          onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
-                        />
-                        {/* 内側の赤い四角 */}
-                        <rect
-                          x={x - handleSize / 2 + 3 + offset * offset_direction[0]}
-                          y={y - handleSize / 2 + 3 + offset * offset_direction[1]}
-                          width={handleSize - 6}
-                          height={handleSize - 6}
-                          fill="red"
-                          stroke="none"
-                          style={{ pointerEvents: 'none' }}
-                        />
-                      </g>
-                    );
-                  })}
-                </svg>
-              </>
-            )}
           </Box>
 
           {/* 右側: パラメータ編集エリア - スクロール可能 */}
