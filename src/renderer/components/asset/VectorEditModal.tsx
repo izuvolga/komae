@@ -44,7 +44,6 @@ import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { off } from 'process';
 import { wrap } from 'module';
 
-const VEC_EDIT_MODAL_SCALE = 0.46875; // TODO: 正確な値を計算する
 
 // 統合されたプロパティ
 interface VectorEditModalProps extends BaseEditModalProps<VectorAsset, VectorAssetInstance> {
@@ -87,7 +86,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 
   // 動的スケール計算用のref
   const previewSvgRef = useRef<SVGSVGElement>(null);
-  const [dynamicScale, setDynamicScale] = useState(VEC_EDIT_MODAL_SCALE);
+  const [dynamicScale, setDynamicScale] = useState(1);
 
   // スナップ機能関連の状態
   const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
