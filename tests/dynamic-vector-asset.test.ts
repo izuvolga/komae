@@ -79,7 +79,7 @@ describe('DynamicVectorAsset', () => {
         name: 'Test Dynamic SVG',
       });
 
-      expect(asset.id).toMatch(/^dynamic-vector-/);
+      expect(asset.id).toMatch(/^dvg-/);
       expect(asset.type).toBe('DynamicVectorAsset');
       expect(asset.name).toBe('Test Dynamic SVG');
       expect(asset.use_page_variables).toBe(false);

@@ -130,7 +130,7 @@ describe('DynamicVectorAsset Integration Tests', () => {
         false  // useValueVariables
       );
 
-      expect(result.id).toMatch(/^dynamic-vector-/);
+      expect(result.id).toMatch(/^dvg-/);
       expect(result.name).toBe('Test Dynamic SVG');
       expect(result.type).toBe('DynamicVectorAsset');
     });
