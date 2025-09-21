@@ -42,7 +42,6 @@ import {
 import {
   convertMouseDelta,
   constrainToCanvas,
-  EDIT_MODAL_SCALE,
   getCurrentPosition,
   getCurrentSize,
   getCurrentOpacity,
@@ -53,7 +52,8 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
+import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
+import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
 
 export interface DynamicVectorEditModalProps {
   mode: 'asset' | 'instance';
@@ -142,10 +142,60 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
   // 実行タイマー用のref
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 動的余白計算とスナップ機能（VectorEditModalと同様）
+  const margin = project ? Math.max(project.canvas.width, project.canvas.height) * 0.1 : 100;
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const [dynamicScale, setDynamicScale] = useState<number>(1);
+  const previewSvgRef = useRef<SVGSVGElement>(null);
+
   // data-theme属性の設定
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
   }, [themeMode]);
+
+  // モーダルが開いた時にスケールを動的に計算（VectorEditModalと同様）
+  useEffect(() => {
+    console.log('DynamicVectorEditModal opened, calculating scale...', { isOpen, project , previewSvgRef: previewSvgRef.current});
+    if (isOpen && project && previewSvgRef.current) {
+      const calculateScale = () => {
+        const svgElement = previewSvgRef.current;
+        if (!svgElement) return;
+
+        const svgRect = svgElement.getBoundingClientRect();
+        const canvasWidth = project.canvas.width;
+
+        // SVGの実際の描画エリア幅を取得
+        const svgDisplayWidth = svgRect.width;
+
+        // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+        // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+        const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
+
+        // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+        const calculatedScale = canvasDisplayWidth / canvasWidth;
+
+        console.log(`DynamicVectorEditModal scale calculation:
+          - Canvas width: ${canvasWidth}px
+          - SVG display width: ${svgDisplayWidth}px
+          - Canvas display width: ${canvasDisplayWidth}px
+          - Calculated scale: ${calculatedScale}`);
+
+        setDynamicScale(calculatedScale);
+      };
+
+      // モーダルが完全に開いてから計算するため、少し遅延
+      const timer = setTimeout(calculateScale, 100);
+
+      // リサイズ時の再計算
+      const resizeObserver = new ResizeObserver(calculateScale);
+      resizeObserver.observe(previewSvgRef.current);
+
+      return () => {
+        clearTimeout(timer);
+        resizeObserver.disconnect();
+      };
+    }
+  }, [isOpen, project, margin]);
 
   // CustomAssetを取得するuseEffect
   useEffect(() => {
@@ -250,21 +300,39 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       if (!project) return;
       
       if (isDragging) {
-        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
         const currentSizeForDrag = getCurrentSize(mode, editedAsset, editedInstance);
-        
+
+        const newX = dragStartValues.x + deltaX;
+        const newY = dragStartValues.y + deltaY;
+
+        // スナップ計算を適用
+        const snapResult = calculateSnap(
+          newX,
+          newY,
+          currentSizeForDrag.width,
+          currentSizeForDrag.height,
+          project.canvas.width,
+          project.canvas.height,
+          10 // 10pxスナップ閾値
+        );
+
+        // スナップガイドを更新
+        setSnapGuides(snapResult.snapGuides);
+
+        // キャンバス制約とスナップ結果を適用
         const constrained = constrainToCanvas(
-          dragStartValues.x + deltaX,
-          dragStartValues.y + deltaY,
+          snapResult.snappedX,
+          snapResult.snappedY,
           currentSizeForDrag.width,
           currentSizeForDrag.height,
           project.canvas.width,
           project.canvas.height
         );
-        
+
         updatePosition(constrained.x, constrained.y);
       } else if (isResizing && resizeHandle) {
-        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
         
         // チェックボックスが有効な場合は元画像の縦横比を適用
         let finalResizeResult;
@@ -364,6 +432,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
       setIsDragging(false);
       setIsResizing(false);
       setResizeHandle(null);
+      setSnapGuides([]); // スナップガイドをクリア
     };
 
     if (isDragging || isResizing) {
@@ -374,7 +443,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, isShiftPressed, aspectRatioLocked, shiftAspectRatio, asset.original_width, asset.original_height, project?.canvas]);
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, isShiftPressed, aspectRatioLocked, shiftAspectRatio, asset.original_width, asset.original_height, project?.canvas, dynamicScale]);
 
   // パラメータが変更されたときにSVGを再実行（デバウンス処理付き）
   const scheduleExecution = useCallback(() => {
@@ -720,125 +789,163 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <Box
+            {/* SVGベースの統合描画領域（VectorEditModalと同様） */}
+            <svg
+              ref={previewSvgRef}
               data-dve-canvas-frame
-              sx={{
-                  position: 'relative',
-                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                  height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+              width={`100%`} // SVG要素は親要素にフィットさせる
+              height={`100%`} // SVG要素は親要素にフィットさせる
+              viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`} // 動的余白を追加
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="xMidYMid meet" // アスペクト比を維持して中央に配置
+            >
+              {/* キャンバス */}
+              <rect
+                x={margin}
+                y={margin}
+                width={project.canvas.width}
+                height={project.canvas.height}
+                fill="#f5f5f5"
+                rx="2"
+                style={{
+                  filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
+                  position: 'relative'
+                }}
+              />
+
+              {/* SVG描画結果 */}
+              {svgResult.svg && (
+                <g
+                  dangerouslySetInnerHTML={{
+                    __html: wrapSVGWithParentContainer(
+                      svgResult.svg,
+                      currentPos.x + margin,
+                      currentPos.y + margin,
+                      currentSize.width,
+                      currentSize.height,
+                      currentOpacity,
+                      editedAsset.original_width,
+                      editedAsset.original_height
+                    )
+                  }}
+                />
+              )}
+
+              {/* スナップガイドライン */}
+              {snapGuides.map((guide, index) => (
+                <line
+                  key={index}
+                  x1={guide.type === 'vertical' ? guide.position + margin : guide.start + margin}
+                  y1={guide.type === 'vertical' ? guide.start + margin : guide.position + margin}
+                  x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
+                  y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
+                  stroke="#ff4444"
+                  strokeWidth="1"
+                  strokeDasharray="3,3"
+                  opacity="0.8"
+                />
+              ))}
+
+              {/* インタラクション用透明エリア */}
+              <rect
+                x={currentPos.x + margin}
+                y={currentPos.y + margin}
+                width={currentSize.width}
+                height={currentSize.height}
+                fill="transparent"
+                stroke="#007acc"
+                strokeWidth="1"
+                strokeDasharray="5,5"
+                style={{ cursor: 'move' }}
+                onMouseDown={handleImageMouseDown}
+              />
+
+              {/* リサイズハンドル */}
+              <ResizeHandleOverlay
+                canvasWidth={project.canvas.width}
+                canvasHeight={project.canvas.height}
+                currentPos={{x: currentPos.x + margin, y: currentPos.y + margin}}
+                currentSize={currentSize}
+                onResizeMouseDown={handleResizeMouseDown}
+                visible={true}
+              />
+            </svg>
+
+            {/* エラー・実行中表示 */}
+            {svgResult.error && (
+              <Box sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'error.main',
+                textAlign: 'center',
+                p: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: 1,
+                boxShadow: 2
+              }}>
+                <Typography variant="h4" sx={{ mb: 1 }}>⚠️</Typography>
+                <Typography variant="body2">{svgResult.error}</Typography>
+              </Box>
+            )}
+
+            {!svgResult.svg && !svgResult.error && (
+              <Box sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+                textAlign: 'center',
+                p: 2,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: 1,
+                boxShadow: 2
+              }}>
+                <Typography variant="h4" sx={{ mb: 1 }}>📝</Typography>
+                <Typography variant="body2">スクリプトを入力してください</Typography>
+              </Box>
+            )}
+
+            {isExecuting && (
+              <Box sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                p: 1,
+                borderRadius: 1,
+                boxShadow: 2
+              }}>
+                <Box sx={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
                   border: '2px solid',
                   borderColor: 'primary.main',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                  boxShadow: 2,
-                  backgroundColor: 'grey.50'
-                }}>
-                  {/* SVG描画結果: wrapDynamicVectorSVG と同様 */}
-                  {svgResult.svg ? (
-                    <svg
-                      width='100%'
-                      height='100%'
-                      viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      dangerouslySetInnerHTML={{ __html: `${wrapSVGWithParentContainer(
-                        svgResult.svg,
-                        currentPos.x,
-                        currentPos.y,
-                        currentSize.width,
-                        currentSize.height,
-                        currentOpacity,
-                        editedAsset.original_width,
-                        editedAsset.original_height)}` }}
-                      />
-                  ) : svgResult.error ? (
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      color: 'error.main',
-                      textAlign: 'center',
-                      p: 2
-                    }}>
-                      <Typography variant="h4" sx={{ mb: 1 }}>⚠️</Typography>
-                      <Typography variant="body2">{svgResult.error}</Typography>
-                    </Box>
-                  ) : (
-                    <Box sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100%',
-                      color: 'text.secondary',
-                      textAlign: 'center',
-                      p: 2
-                    }}>
-                      <Typography variant="h4" sx={{ mb: 1 }}>📝</Typography>
-                      <Typography variant="body2">スクリプトを入力してください</Typography>
-                    </Box>
-                  )}
-
-                  {/* 実行中インジケーター */}
-                  {isExecuting && (
-                    <Box sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      bgcolor: 'rgba(255, 255, 255, 0.9)',
-                      p: 1,
-                      borderRadius: 1,
-                      boxShadow: 2
-                    }}>
-                      <Box sx={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        borderTopColor: 'transparent',
-                        animation: 'spin 1s linear infinite',
-                        '@keyframes spin': {
-                          '0%': { transform: 'rotate(0deg)' },
-                          '100%': { transform: 'rotate(360deg)' }
-                        }
-                      }} />
-                      <Typography variant="body2">実行中...</Typography>
-                    </Box>
-                  )}
-
-                  {/* インタラクション用の透明な要素（ドラッグエリア） */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
-                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
-                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
-                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
-                      backgroundColor: 'transparent',
-                      border: '1px dashed #007acc',
-                      cursor: 'move',
-                      zIndex: 2,
-                      pointerEvents: 'all',
-                    }}
-                    onMouseDown={handleImageMouseDown}
-                  />
-
-                  {/* リサイズハンドル */}
-                  <ResizeHandleOverlay
-                    canvasWidth={project.canvas.width}
-                    canvasHeight={project.canvas.height}
-                    currentPos={currentPos}
-                    currentSize={currentSize}
-                    onResizeMouseDown={handleResizeMouseDown}
-                    zIndex={3}
-                  />
-                </Box>
+                  borderTopColor: 'transparent',
+                  animation: 'spin 1s linear infinite',
+                  '@keyframes spin': {
+                    '0%': { transform: 'rotate(0deg)' },
+                    '100%': { transform: 'rotate(360deg)' }
+                  }
+                }} />
+                <Typography variant="body2">実行中...</Typography>
+              </Box>
+            )}
           </Box>
 
           {/* 右側: 設定パネル - スクロール可能 */}
