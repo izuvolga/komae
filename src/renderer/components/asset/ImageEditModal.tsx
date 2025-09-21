@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -42,6 +42,8 @@ import {
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
+import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
+import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 
 // 統合されたプロパティ
 interface ImageEditModalProps extends BaseEditModalProps<ImageAsset, ImageAssetInstance> {
@@ -113,8 +115,47 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
 
+  // 動的スケール計算用のref
+  const previewSvgRef = useRef<SVGSVGElement>(null);
+  const [dynamicScale, setDynamicScale] = useState(1);
+  const [scaleCalculated, setScaleCalculated] = useState(false);
+
+  // スナップ機能関連の状態
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const SNAP_THRESHOLD = 10; // 10px以内でスナップ
+
+  // ドラッグ開始時にスケールを計算する関数
+  const calculateDynamicScale = () => {
+    if (scaleCalculated || !previewSvgRef.current || !project) return;
+
+    const svgElement = previewSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const canvasWidth = project.canvas.width;
+
+    // SVGの実際の描画エリア幅を取得
+    const svgDisplayWidth = svgRect.width;
+
+    // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+    // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+    const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
+
+    // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+    const calculatedScale = canvasDisplayWidth / canvasWidth;
+
+    console.log(`VectorEditModal scale calculation:
+      - Canvas width: ${canvasWidth}px
+      - SVG display width: ${svgDisplayWidth}px
+      - Canvas display width: ${canvasDisplayWidth}px
+      - Calculated scale: ${calculatedScale}`);
+
+    setDynamicScale(calculatedScale);
+    setScaleCalculated(true);
+  };
 
   if (!isOpen || !project) return null;
+
+  // 動的余白計算（キャンバス長辺の10%）
+  const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
 
   // 現在の値を取得（Asset vs Instance） - 共通ユーティリティを使用
 
@@ -314,9 +355,21 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-
+        // 提案された新しい位置を計算
+        const proposedX = dragStartValues.x + deltaX;
+        const proposedY = dragStartValues.y + deltaY;
+        // スナップ計算を実行
+        const snapResult = calculateSnap(
+          proposedX,
+          proposedY,
+          currentSize.width,
+          currentSize.height,
+          project.canvas.width,
+          project.canvas.height,
+          SNAP_THRESHOLD
+        );
         // キャンバス外への移動を許可
-        updatePosition(dragStartValues.x + deltaX, dragStartValues.y + deltaY);
+        updatePosition(snapResult.snappedX, snapResult.snappedY);
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
         
@@ -435,6 +488,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   }, [isDragging, isResizing, maskDragPointIndex, dragStartPos, dragStartValues, maskDragStartPos, maskDragStartValues, resizeHandle, aspectRatioLocked, currentSize, project.canvas]);
 
   const imagePath = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
+  function wrapImagePathBySvg(path: string) {
+    return `<image xlink:href="${path}" x="0" y="0" width="${asset.original_width}" height="${asset.original_height}" />`;
+  }
+    
 
   const modalTitle = mode === 'instance' ? `ImageAssetInstance 編集: ${asset.name}` : `ImageAsset 編集: ${asset.name}`;
 
@@ -471,190 +528,147 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       <DialogContent sx={{ p: 0, height: '70vh', overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', height: '100%' }}>
           {/* 左側: プレビューエリア - 固定幅 */}
-          <Box sx={{
-            width: 600,
-            minWidth: 600,
-            p: 4, // キャンバス外表示のためpaddingを増加
-            backgroundColor: 'action.hover', // より明るいグレー
-            borderRight: '1px solid',
-            borderRightColor: 'divider',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'auto' // スクロールを許可
+          <Box
+            id="img-edit-preview-container"
+            sx={{
+              width: 600,
+              minWidth: 600,
+              p: 4, // キャンバス外表示のためpaddingを増加
+              backgroundColor: 'action.hover', // より明るいグレー
+              borderRight: '1px solid',
+              borderRightColor: 'divider',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'auto' // スクロールを許可
           }}>
-            <Box
-              data-canvas-frame
-              sx={{
-                  position: 'relative',
-                  width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                  height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                  borderRadius: 1,
-                  overflow: 'visible',
-                  boxShadow: 2,
-                  backgroundColor: 'grey.50'
-                }}>
-                  <img
-                    src={imagePath}
-                    alt={asset.name}
-                    style={{
-                      position: 'absolute',
-                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
-                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
-                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
-                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
-                      opacity: currentOpacity,
-                      zIndex: 1,
-                    }}
+            {/* SVG描画領域（共通コンポーネント） */}
+            <EditModalSvgCanvas
+              ref={previewSvgRef}
+              project={project}
+              currentPos={currentPos}
+              currentSize={currentSize}
+              currentOpacity={currentOpacity}
+              svgContent={wrapImagePathBySvg(imagePath)}
+              originalWidth={asset.original_width}
+              originalHeight={asset.original_height}
+              onDragStart={(e) => {
+                e.preventDefault();
+                calculateDynamicScale(); // ドラッグ開始時にスケール計算
+                setIsDragging(true);
+                setDragStartPos({ x: e.clientX, y: e.clientY });
+                setDragStartValues({
+                  x: currentPos.x,
+                  y: currentPos.y,
+                  width: currentSize.width,
+                  height: currentSize.height
+                });
+              }}
+              onResizeStart={handleResizeMouseDown}
+              snapGuides={snapGuides}
+            />
+            {/* マスク編集時のオーバーレイ表示 */}
+            {maskEditMode && currentMask && (
+              <>
+                {/* マスク範囲外の薄い白色オーバーレイ */}
+                <svg
+                  style={{
+                    position: 'absolute',
+                    left: '0px',
+                    top: '0px',
+                    width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                    height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+                    zIndex: 2,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <defs>
+                    <mask id="maskOverlay">
+                      <rect
+                        x="0"
+                        y="0"
+                        width={project.canvas.width * EDIT_MODAL_SCALE}
+                        height={project.canvas.height * EDIT_MODAL_SCALE}
+                        fill="white"
+                      />
+                      <polygon
+                        points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
+                        fill="black"
+                      />
+                    </mask>
+                  </defs>
+                  <rect
+                    x="0"
+                    y="0"
+                    width={project.canvas.width * EDIT_MODAL_SCALE}
+                    height={project.canvas.height * EDIT_MODAL_SCALE}
+                    fill="rgba(255, 255, 255, 0.6)"
+                    mask="url(#maskOverlay)"
                   />
-                  
-                  {/* インタラクション用の透明な要素 */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: `${currentPos.x * EDIT_MODAL_SCALE}px`,
-                      top: `${currentPos.y * EDIT_MODAL_SCALE}px`,
-                      width: `${currentSize.width * EDIT_MODAL_SCALE}px`,
-                      height: `${currentSize.height * EDIT_MODAL_SCALE}px`,
-                      backgroundColor: 'transparent',
-                      border: '1px dashed #007acc',
-                      cursor: maskEditMode ? 'default' : 'move',
-                      zIndex: 2,
-                      pointerEvents: 'all',
-                    }}
-                    onMouseDown={handleImageMouseDown}
+                </svg>
+                
+                {/* マスクポリゴン表示 */}
+                <svg
+                  style={{
+                    position: 'absolute',
+                    left: '0px',
+                    top: '0px',
+                    width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
+                    height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
+                    zIndex: 3,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <polygon
+                    points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
+                    fill="rgba(255, 0, 0, 0.2)"
+                    stroke="red"
+                    strokeWidth="1"
                   />
+                  {currentMask.map((point, index) => {
+                    const handleSize = 16; // ハンドルのサイズ
+                    const x = point[0] * EDIT_MODAL_SCALE;
+                    const y = point[1] * EDIT_MODAL_SCALE;
+                    // ハンドルを矩形の内側に配置するためのオフセット
+                    const offset = handleSize / 2;
+                    const offset_direction = [
+                      [ 1,  1], // 左上
+                      [-1,  1], // 右上
+                      [-1, -1], // 右下
+                      [ 1, -1]  // 左下
+                    ][index];
 
-                  {/* マスク編集時のオーバーレイ表示 */}
-                  {maskEditMode && currentMask && (
-                    <>
-                      {/* マスク範囲外の薄い白色オーバーレイ */}
-                      <svg
-                        style={{
-                          position: 'absolute',
-                          left: '0px',
-                          top: '0px',
-                          width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                          height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                          zIndex: 2,
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <defs>
-                          <mask id="maskOverlay">
-                            <rect
-                              x="0"
-                              y="0"
-                              width={project.canvas.width * EDIT_MODAL_SCALE}
-                              height={project.canvas.height * EDIT_MODAL_SCALE}
-                              fill="white"
-                            />
-                            <polygon
-                              points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
-                              fill="black"
-                            />
-                          </mask>
-                        </defs>
+                    return (
+                      <g key={index}>
+                        {/* 外側の白い枠 */}
                         <rect
-                          x="0"
-                          y="0"
-                          width={project.canvas.width * EDIT_MODAL_SCALE}
-                          height={project.canvas.height * EDIT_MODAL_SCALE}
-                          fill="rgba(255, 255, 255, 0.6)"
-                          mask="url(#maskOverlay)"
-                        />
-                      </svg>
-                      
-                      {/* マスクポリゴン表示 */}
-                      <svg
-                        style={{
-                          position: 'absolute',
-                          left: '0px',
-                          top: '0px',
-                          width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                          height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                          zIndex: 3,
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <polygon
-                          points={currentMask.map(point => `${point[0] * EDIT_MODAL_SCALE},${point[1] * EDIT_MODAL_SCALE}`).join(' ')}
-                          fill="rgba(255, 0, 0, 0.2)"
+                          x={x - handleSize / 2 + offset * offset_direction[0]}
+                          y={y - handleSize / 2 + offset * offset_direction[1]}
+                          width={handleSize}
+                          height={handleSize}
+                          fill="white"
                           stroke="red"
-                          strokeWidth="1"
+                          strokeWidth="2"
+                          style={{ cursor: 'pointer', pointerEvents: 'all' }}
+                          onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
                         />
-                        {currentMask.map((point, index) => {
-                          const handleSize = 16; // ハンドルのサイズ
-                          const x = point[0] * EDIT_MODAL_SCALE;
-                          const y = point[1] * EDIT_MODAL_SCALE;
-                          // ハンドルを矩形の内側に配置するためのオフセット
-                          const offset = handleSize / 2;
-                          const offset_direction = [
-                            [ 1,  1], // 左上
-                            [-1,  1], // 右上
-                            [-1, -1], // 右下
-                            [ 1, -1]  // 左下
-                          ][index];
-
-                          return (
-                            <g key={index}>
-                              {/* 外側の白い枠 */}
-                              <rect
-                                x={x - handleSize / 2 + offset * offset_direction[0]}
-                                y={y - handleSize / 2 + offset * offset_direction[1]}
-                                width={handleSize}
-                                height={handleSize}
-                                fill="white"
-                                stroke="red"
-                                strokeWidth="2"
-                                style={{ cursor: 'pointer', pointerEvents: 'all' }}
-                                onMouseDown={(e) => handleMaskPointMouseDown(e, index)}
-                              />
-                              {/* 内側の赤い四角 */}
-                              <rect
-                                x={x - handleSize / 2 + 3 + offset * offset_direction[0]}
-                                y={y - handleSize / 2 + 3 + offset * offset_direction[1]}
-                                width={handleSize - 6}
-                                height={handleSize - 6}
-                                fill="red"
-                                stroke="none"
-                                style={{ pointerEvents: 'none' }}
-                              />
-                            </g>
-                          );
-                        })}
-                      </svg>
-                    </>
-                  )}
-
-                  {/* リサイズハンドル */}
-                  <ResizeHandleOverlay
-                    canvasWidth={project.canvas.width}
-                    canvasHeight={project.canvas.height}
-                    currentPos={currentPos}
-                    currentSize={currentSize}
-                    onResizeMouseDown={handleResizeMouseDown}
-                    zIndex={4}
-                    visible={!maskEditMode}
-                  />
-
-                  {/* キャンバスフレームオーバーレイ（常に最前面） */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: '0px',
-                      top: '0px',
-                      width: `${project.canvas.width * EDIT_MODAL_SCALE}px`,
-                      height: `${project.canvas.height * EDIT_MODAL_SCALE}px`,
-                      border: '2px solid',
-                      borderColor: 'primary.main',
-                      borderRadius: 1,
-                      zIndex: 10,
-                      pointerEvents: 'none',
-                    }}
-                  />
-                </Box>
+                        {/* 内側の赤い四角 */}
+                        <rect
+                          x={x - handleSize / 2 + 3 + offset * offset_direction[0]}
+                          y={y - handleSize / 2 + 3 + offset * offset_direction[1]}
+                          width={handleSize - 6}
+                          height={handleSize - 6}
+                          fill="red"
+                          stroke="none"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+              </>
+            )}
           </Box>
 
           {/* 右側: パラメータ編集エリア - スクロール可能 */}
