@@ -1,0 +1,22 @@
+<svg
+  id="edit-modal-preview"
+  width="1000px"
+  height="1000px"
+  viewBox="0 0 1000 1000"
+  xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gauge">
+      <stop offset="0%" stop-color="#339933"/>
+      <stop offset="40%" stop-color="#ffcc00"/>
+      <stop offset="60%" stop-color="#ffcc00"/>
+      <stop offset="100%" stop-color="#ff9900"/>
+    </linearGradient>
+    <linearGradient id="whiteBlur" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#FFF" stop-opacity="80%"/>
+      <stop offset="50%" stop-color="#FFF" stop-opacity="0%" />
+    </linearGradient>
+    <filter id="f1" x="0" y="0">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
+    </filter>
+  </defs>
+</svg>
