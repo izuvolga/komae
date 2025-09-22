@@ -360,6 +360,8 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
           project.canvas.height,
           SNAP_THRESHOLD
         );
+        // スナップガイドを更新
+        setSnapGuides(snapResult.snapGuides);
         // キャンバス外への移動を許可
         updatePosition(snapResult.snappedX, snapResult.snappedY);
       } else if (isResizing && resizeHandle) {
@@ -467,6 +469,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       setIsResizing(false);
       setResizeHandle(null);
       setMaskDragPointIndex(null);
+      setSnapGuides([]); // スナップガイドをクリア
     };
 
     if (isDragging || isResizing || maskDragPointIndex !== null) {

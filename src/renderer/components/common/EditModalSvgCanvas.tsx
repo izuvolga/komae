@@ -158,7 +158,7 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
           x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
           y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
           stroke="#ff4444"
-          strokeWidth="1.5"
+          strokeWidth="3"
           strokeDasharray="4,4"
           style={{ pointerEvents: 'none' }}
         />
