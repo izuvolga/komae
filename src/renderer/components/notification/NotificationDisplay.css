@@ -3,7 +3,7 @@
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 1001; /* エラーバナー(999)よりも上、ローディング(1000)よりも上 */
+  z-index: 1500; /* モーダル(1300)よりも上に表示 */
   display: flex;
   flex-direction: column;
   gap: 8px;
