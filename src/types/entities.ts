@@ -15,6 +15,7 @@ export interface ProjectMetadata {
 export interface CanvasConfig {
   width: number;
   height: number;
+  backgroundColor?: string; // デフォルト: '#ffffff'
 }
 
 // AssetAttr定義は削除 - ImageAssetInstanceに直接override_width, override_heightを追加

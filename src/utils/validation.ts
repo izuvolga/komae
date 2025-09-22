@@ -189,7 +189,8 @@ const ProjectMetadataSchema = z.object({
 const CanvasConfigSchema = z.object({
   width: z.number().int().min(1),
   height: z.number().int().min(1),
-});
+  backgroundColor: z.string().optional().default('#ffffff'),
+});;
 
 
 // ProjectData スキーマ

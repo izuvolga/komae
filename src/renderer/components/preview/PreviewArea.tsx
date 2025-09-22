@@ -370,7 +370,7 @@ export const PreviewArea: React.FC = () => {
                 height: canvasHeight * zoomLevel,
                 position: 'relative',
                 display: 'inline-block',
-                backgroundColor: 'var(--canvas-base-color-default)',
+                backgroundColor: project.canvas.backgroundColor || '#ffffff',
                 border: 1,
                 borderColor: 'grey.300',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -385,7 +385,7 @@ export const PreviewArea: React.FC = () => {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  backgroundColor: 'var(--canvas-base-color-default)'
+                  backgroundColor: project.canvas.backgroundColor || '#ffffff'
                 }}
               />
 

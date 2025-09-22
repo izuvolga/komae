@@ -72,7 +72,7 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
         y={margin}
         width={project.canvas.width}
         height={project.canvas.height}
-        fill="#f5f5f5"
+        fill={project.canvas.backgroundColor || '#ffffff'}
         rx="2"
         style={{
           filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',

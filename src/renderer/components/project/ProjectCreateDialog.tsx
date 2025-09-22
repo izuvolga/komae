@@ -35,6 +35,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ProjectCreateParams, CanvasConfig, ProjectData } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
+import { ColorPicker } from '../common/ColorPicker';
 import './ProjectCreateDialog.css';
 
 interface ProjectCreateDialogProps {
@@ -90,6 +91,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   const [supportedLanguages, setSupportedLanguages] = useState<string[]>(DEFAULT_SUPPORTED_LANGUAGES);
   const [currentLanguage, setCurrentLanguage] = useState(DEFAULT_CURRENT_LANGUAGE);
 
+  // キャンバス背景色状態
+  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
+
   // テーマ変更時にCSS変数を設定
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', themeMode);
@@ -116,6 +120,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         setCustomWidth(canvas.width);
         setCustomHeight(canvas.height);
       }
+
+      // キャンバス背景色を設定
+      setCanvasBackgroundColor(canvas.backgroundColor || '#ffffff');
     }
   }, [mode, existingProject]);
 
@@ -125,10 +132,10 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     if (presetIndex < CANVAS_PRESETS.length - 1) {
       // プリセット選択
       const preset = CANVAS_PRESETS[presetIndex];
-      return { width: preset.width, height: preset.height };
+      return { width: preset.width, height: preset.height, backgroundColor: canvasBackgroundColor };
     } else {
       // カスタム選択
-      return { width: customWidth, height: customHeight };
+      return { width: customWidth, height: customHeight, backgroundColor: canvasBackgroundColor };
     }
   };
 
@@ -263,6 +270,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     setCustomHeight(600);
     setSupportedLanguages(DEFAULT_SUPPORTED_LANGUAGES);
     setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
+    setCanvasBackgroundColor('#ffffff');
   };
 
   const handleCancel = () => {
@@ -589,6 +597,25 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             </Box>
           )}
 
+          {/* キャンバス背景色設定 */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
+                キャンバス背景色
+              </Typography>
+              <Tooltip title="キャンバスの背景色を設定します。作品のベース色として使用されます。">
+                <IconButton size="small">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <ColorPicker
+              value={canvasBackgroundColor}
+              onChange={setCanvasBackgroundColor}
+              disabled={isCreating}
+            />
+          </Box>
+
           {/* 現在の設定確認 */}
           <Box sx={{
             bgcolor: themeMode === 'dark' ? 'grey.900' : 'grey.50',
@@ -608,6 +635,20 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             </Typography>
             <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
               キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
+              <br />
+              背景色:
+              <Box component="span" sx={{
+                display: 'inline-block',
+                width: 16,
+                height: 16,
+                backgroundColor: canvasBackgroundColor,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '2px',
+                marginLeft: 1,
+                verticalAlign: 'middle'
+              }} />
+              {canvasBackgroundColor}
             </Typography>
 {(mode === 'create' || mode === 'save') && title.trim() && (
               <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary', mt: 1 }}>
