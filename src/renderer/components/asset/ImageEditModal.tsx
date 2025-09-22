@@ -34,6 +34,8 @@ import {
   getCurrentOpacity,
   getCurrentZIndex,
   validateZIndexValue,
+  validateZIndexNumber,
+  ZIndexValidationResult,
   sanitizeZIndexInput,
   validateNumericInput,
   validateAndSetNumericValue,
@@ -84,11 +86,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
-  const [zIndexValidation, setZIndexValidation] = useState<{
-    isValid: boolean;
-    error?: string;
-    warning?: string;
-  }>({ isValid: true });
+  const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
   const [maskEditMode, setMaskEditMode] = useState(false);
 
   // マウス操作関連の状態
@@ -273,6 +271,13 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         default_z_index: zIndex,
       }));
     }
+    // Z-Index衝突検知
+    validateZIndex(zIndex);
+  };
+
+  const validateZIndex = (zIndex: number) => {
+    const validation = validateZIndexNumber(zIndex, project, page, editedInstance?.id);
+    setZIndexValidation(validation);
   };
 
   // z_index専用のサニタイズ関数、バリデーション関数、数値入力検証は共通ユーティリティを使用
