@@ -123,6 +123,8 @@
     - イタリア語の写真（複数形） (fotografie) + 
   - 候補
     - comasta はどうか？ (COMA = Comic AniMAtion の略)
+    - comasti (COMA + STI = Comic Animation + SToRy Interface)
+    - Komae Studio わかりやすく。アプリ名自体は komae のままでもよい（一番これがしっくりきてる）
 
 ## スプレッドシート関連
 - [x]: 特定のスプレッドシートの列を非表示にする機能
