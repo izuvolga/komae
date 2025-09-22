@@ -97,10 +97,26 @@ HTMLでのエクスポート後にしか動作確認はできない。
 別のページにジャンプする選択肢を読者に提供するためのアセット
 JumpAssetを設定したページに、ユーザに選択肢を表示する画面が描画される。
 JumpAssetInstance には、選択肢の文言と、選択肢を選んだときに遷移するページのIDを紐づける。
+さらに、それぞれの文言の座標は指定できる。
 選択肢を選んだときに遷移するページのIDだけでなく、ValueAssetのIDと、期待する値も紐づけることができる。
 多言語対応となっているため、TextAssetInstance 同様の構造を持っている。
 HTMLでのエクスポート時には押下できるボタンが表示される
 PNGの場合には、「→ XX page」という文言が小さく表示される。
+
+```
+export interface JumpAsset extends BaseAsset {
+  type: 'JumpAsset';
+  default_options: {
+    text?: string; // 選択肢の文言（optional）
+    value_asset_id?: string; // 紐づけるValueAssetのID（optional）
+    target_page_id: string; // 選択肢を選んだときに遷移するページのID
+    expected_value?: string | number; // 期待する値（optional）
+    pos_x: number; // 選択肢の座標X
+    pos_y: number; // 選択肢の座標Y
+  }[];
+  default_opacity: number; // 透明度（0.0 - 1.0）
+}
+```
 
 ## Motion
 
