@@ -123,7 +123,6 @@
     - イタリア語の写真（複数形） (fotografie) + 
   - 候補
     - comasta はどうか？ (COMA = Comic AniMAtion の略)
-    - Pixma (Pixel + Manga の略)
 
 ## スプレッドシート関連
 - [x]: 特定のスプレッドシートの列を非表示にする機能
