@@ -394,7 +394,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               disabled={isCreating}
               disableCloseOnSelect
               renderOption={(props, option, { selected }) => (
-                <Box component="li" {...props}>
+                <Box component="li" {...props} sx={{ color: 'text.primary' }}>
                   <Checkbox
                     icon={<CheckBoxOutlineBlank fontSize="small" />}
                     checkedIcon={<CheckBox fontSize="small" />}
