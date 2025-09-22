@@ -31,8 +31,11 @@ const electronAPI = {
     validateDirectory: (projectPath: string): Promise<boolean> => 
       ipcRenderer.invoke('project:validateDirectory', projectPath),
       
-    getCurrentPath: (): Promise<string | null> => 
+    getCurrentPath: (): Promise<string | null> =>
       ipcRenderer.invoke('project:getCurrentPath'),
+
+    updateMetadata: (metadata: any, canvas?: any): Promise<void> =>
+      ipcRenderer.invoke('project:updateMetadata', metadata, canvas),
   },
 
   // Asset Operations

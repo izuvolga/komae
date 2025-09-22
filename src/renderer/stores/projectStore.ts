@@ -3,6 +3,8 @@ import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
   ProjectData,
+  ProjectMetadata,
+  CanvasConfig,
   UIState,
   AppState,
   Asset,
@@ -112,6 +114,7 @@ interface ProjectStore {
   exportProject: (format: ExportFormat, options?: Partial<ExportOptions>) => Promise<void>;
   importAsset: (filePath: string) => Promise<Asset>;
   createDefaultProject: () => Promise<void>;
+  updateProjectMetadata: (metadata: Partial<ProjectMetadata>, canvas?: CanvasConfig) => Promise<void>;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -833,6 +836,50 @@ export const useProjectStore = create<ProjectStore>()(
               autoClose: false,
             });
 
+            throw error;
+          }
+        },
+
+        updateProjectMetadata: async (metadata: Partial<ProjectMetadata>, canvas?: CanvasConfig) => {
+          const { project } = get();
+          if (!project) {
+            throw new Error('プロジェクトが開かれていません');
+          }
+
+          try {
+            // バックエンドでプロジェクトファイルを更新
+            await window.electronAPI.project.updateMetadata(metadata, canvas);
+
+            // ストアの状態を更新
+            set((state) => {
+              if (state.project) {
+                state.project.metadata = {
+                  ...state.project.metadata,
+                  ...metadata
+                };
+                if (canvas) {
+                  state.project.canvas = canvas;
+                }
+                state.app.isDirty = false; // メタデータ更新は自動保存されるため
+              }
+            });
+
+            get().addNotification({
+              type: 'success',
+              title: 'プロジェクト設定を更新しました',
+              message: 'プロジェクトのメタデータが正常に更新されました',
+              autoClose: true,
+              duration: 3000,
+            });
+
+          } catch (error) {
+            console.error('Failed to update project metadata:', error);
+            get().addNotification({
+              type: 'error',
+              title: 'プロジェクト設定の更新に失敗しました',
+              message: error instanceof Error ? error.message : String(error),
+              autoClose: false,
+            });
             throw error;
           }
         },

@@ -27,13 +27,15 @@ import {
 import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
-import type { ProjectCreateParams, CanvasConfig } from '../../../types/entities';
+import type { ProjectCreateParams, CanvasConfig, ProjectData } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
 import './ProjectCreateDialog.css';
 
 interface ProjectCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  mode?: 'create' | 'edit';
+  existingProject?: ProjectData;
 }
 // Define Crop23 icon (Translate 90 degree rotation of <Crop32 />)
 const Crop23 = () => {
@@ -62,9 +64,11 @@ const CANVAS_PRESETS = [
 export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   isOpen,
   onClose,
+  mode = 'create',
+  existingProject,
 }) => {
   const { setProject, addNotification } = useProjectStore();
-  const { mode } = useTheme();
+  const { mode: themeMode } = useTheme();
   
   // フォーム状態
   const [title, setTitle] = useState('');
@@ -82,8 +86,32 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
   // テーマ変更時にCSS変数を設定
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', mode);
-  }, [mode]);
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
+
+  // 編集モード時の初期値設定
+  useEffect(() => {
+    if (mode === 'edit' && existingProject) {
+      setTitle(existingProject.metadata.title);
+      setDescription(existingProject.metadata.description || '');
+      setSupportedLanguages(existingProject.metadata.supportedLanguages);
+      setCurrentLanguage(existingProject.metadata.currentLanguage);
+
+      // キャンバスサイズに応じてプリセットを設定
+      const canvas = existingProject.canvas;
+      const presetIndex = CANVAS_PRESETS.findIndex(preset =>
+        preset.width === canvas.width && preset.height === canvas.height
+      );
+
+      if (presetIndex !== -1 && presetIndex < CANVAS_PRESETS.length - 1) {
+        setSelectedPreset(presetIndex.toString());
+      } else {
+        setSelectedPreset((CANVAS_PRESETS.length - 1).toString()); // カスタム
+        setCustomWidth(canvas.width);
+        setCustomHeight(canvas.height);
+      }
+    }
+  }, [mode, existingProject]);
 
   // 現在のキャンバス設定を取得
   const getCurrentCanvas = (): CanvasConfig => {
@@ -106,79 +134,18 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       // プロジェクト名が未入力の場合は "Untitled" をデフォルトとする
       const projectTitle = title.trim() || 'Untitled';
 
-      const params: ProjectCreateParams = {
-        title: projectTitle,
-        description: description.trim() || undefined,
-        canvas,
-        supportedLanguages,
-        currentLanguage,
-      };
-
-      // プロジェクト保存先ディレクトリを選択するダイアログを表示
-      const saveResult = await window.electronAPI.fileSystem.showDirectorySelectDialog({
-        title: `「${projectTitle}」フォルダを作成する親ディレクトリを選択`
-      });
-
-      if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
-        // キャンセルされた場合はプロジェクト作成をキャンセル
-        addNotification({
-          type: 'info',
-          title: 'プロジェクト作成がキャンセルされました',
-          message: '保存先ディレクトリが選択されませんでした',
-          autoClose: true,
-          duration: 3000,
-        });
-        setIsCreating(false);
-        return;
+      if (mode === 'edit') {
+        // 編集モード: 既存プロジェクトを更新
+        await handleUpdateProject(projectTitle, canvas);
+      } else {
+        // 新規作成モード: 新しいプロジェクトを作成
+        await handleCreateProject(projectTitle, canvas);
       }
-
-      const parentDir = saveResult.filePaths[0];
-      const projectName = projectTitle;
-      const projectDir = `${parentDir}/${projectName}`;
-      const projectFilePath = `${projectDir}/${projectName}.komae`;
-
-      // ElectronAPIを通じてプロジェクトデータを作成
-      const projectData = await window.electronAPI.project.create(params);
-
-      // プロジェクトディレクトリを作成
-      await window.electronAPI.project.createDirectory(projectDir);
-
-      // プロジェクトファイルを保存
-      await window.electronAPI.project.save(projectData, projectFilePath);
-      
-      // プロジェクトをストアに設定
-      setProject(projectData);
-
-      // プロジェクトパスを取得して設定
-      const currentProjectPath = await window.electronAPI.project.getCurrentPath();
-      const { setCurrentProjectPath } = useProjectStore.getState();
-      setCurrentProjectPath(currentProjectPath);
-
-      addNotification({
-        type: 'success',
-        title: 'プロジェクトが作成されました',
-        message: `「${projectName}」が ${projectDir} に保存されました`,
-        autoClose: true,
-        duration: 5000,
-      });
-
-      // フォームをリセット
-      setTitle('');
-      setDescription('');
-      setSelectedPreset('0');
-      setCustomWidth(800);
-      setCustomHeight(600);
-      setSupportedLanguages(DEFAULT_SUPPORTED_LANGUAGES);
-      setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
-      setSelectedLanguageForAdd('');
-      setShowLanguageDropdown(false);
-      
-      onClose();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       addNotification({
         type: 'error',
-        title: 'プロジェクトの作成に失敗しました',
+        title: mode === 'edit' ? 'プロジェクトの更新に失敗しました' : 'プロジェクトの作成に失敗しました',
         message: `エラー: ${message}`,
         autoClose: false,
       });
@@ -187,8 +154,82 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     }
   };
 
-  const handleCancel = () => {
-    // フォームをリセット
+  const handleCreateProject = async (projectTitle: string, canvas: CanvasConfig) => {
+    const params: ProjectCreateParams = {
+      title: projectTitle,
+      description: description.trim() || undefined,
+      canvas,
+      supportedLanguages,
+      currentLanguage,
+    };
+
+    // プロジェクト保存先ディレクトリを選択するダイアログを表示
+    const saveResult = await window.electronAPI.fileSystem.showDirectorySelectDialog({
+      title: `「${projectTitle}」フォルダを作成する親ディレクトリを選択`
+    });
+
+    if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
+      // キャンセルされた場合はプロジェクト作成をキャンセル
+      addNotification({
+        type: 'info',
+        title: 'プロジェクト作成がキャンセルされました',
+        message: '保存先ディレクトリが選択されませんでした',
+        autoClose: true,
+        duration: 3000,
+      });
+      setIsCreating(false);
+      return;
+    }
+
+    const parentDir = saveResult.filePaths[0];
+    const projectName = projectTitle;
+    const projectDir = `${parentDir}/${projectName}`;
+    const projectFilePath = `${projectDir}/${projectName}.komae`;
+
+    // ElectronAPIを通じてプロジェクトデータを作成
+    const projectData = await window.electronAPI.project.create(params);
+
+    // プロジェクトディレクトリを作成
+    await window.electronAPI.project.createDirectory(projectDir);
+
+    // プロジェクトファイルを保存
+    await window.electronAPI.project.save(projectData, projectFilePath);
+
+    // プロジェクトをストアに設定
+    setProject(projectData);
+
+    // プロジェクトパスを取得して設定
+    const currentProjectPath = await window.electronAPI.project.getCurrentPath();
+    const { setCurrentProjectPath } = useProjectStore.getState();
+    setCurrentProjectPath(currentProjectPath);
+
+    addNotification({
+      type: 'success',
+      title: 'プロジェクトが作成されました',
+      message: `「${projectName}」が ${projectDir} に保存されました`,
+      autoClose: true,
+      duration: 5000,
+    });
+
+    resetForm();
+    onClose();
+  };
+
+  const handleUpdateProject = async (projectTitle: string, canvas: CanvasConfig) => {
+    const { updateProjectMetadata } = useProjectStore.getState();
+
+    const metadata = {
+      title: projectTitle,
+      description: description.trim() || undefined,
+      supportedLanguages,
+      currentLanguage,
+    };
+
+    await updateProjectMetadata(metadata, canvas);
+    onClose();
+  };
+
+  const resetForm = () => {
     setTitle('');
     setDescription('');
     setSelectedPreset('0');
@@ -198,6 +239,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
     setSelectedLanguageForAdd('');
     setShowLanguageDropdown(false);
+  };
+
+  const handleCancel = () => {
+    // 新規作成モードの場合のみフォームをリセット
+    if (mode === 'create') {
+      resetForm();
+    }
     onClose();
   };
   
@@ -270,7 +318,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           pr: 1,
         }}
       >
-        新規プロジェクト作成
+{mode === 'edit' ? 'プロジェクト編集' : '新規プロジェクト作成'}
         <IconButton
           onClick={handleCancel}
           disabled={isCreating}
@@ -519,7 +567,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
           {/* 現在の設定確認 */}
           <Box sx={{
-            bgcolor: mode === 'dark' ? 'grey.900' : 'grey.50',
+            bgcolor: themeMode === 'dark' ? 'grey.900' : 'grey.50',
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: '6px',
@@ -537,7 +585,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
               キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
             </Typography>
-            {title.trim() && (
+{mode === 'create' && title.trim() && (
               <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary', mt: 1 }}>
                 作成される構造:<br />
                 選択ディレクトリ/{title.trim()}/<br />
@@ -561,7 +609,10 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           onClick={handleCreate}
           disabled={isCreating}
         >
-          {isCreating ? '作成中...' : '作成'}
+{isCreating
+            ? (mode === 'edit' ? '更新中...' : '作成中...')
+            : (mode === 'edit' ? '更新' : '作成')
+          }
         </Button>
       </DialogActions>
     </Dialog>

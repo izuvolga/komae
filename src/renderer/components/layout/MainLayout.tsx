@@ -73,6 +73,7 @@ export const MainLayout: React.FC = () => {
   // ダイアログの状態
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
+  const [showProjectEditDialog, setShowProjectEditDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
 
@@ -544,15 +545,7 @@ export const MainLayout: React.FC = () => {
                   color='primary'
                   variant="outlined"
                   size="small"
-                  onClick={() => {
-                    addNotification({
-                      type: 'info',
-                      title: 'プロジェクト設定',
-                      message: 'プロジェクト設定機能は現在開発中です',
-                      autoClose: true,
-                      duration: 3000,
-                    });
-                  }}
+                  onClick={() => setShowProjectEditDialog(true)}
                   sx={{
                     fontSize: '0.5rem',
                     height: 28,
@@ -695,6 +688,14 @@ export const MainLayout: React.FC = () => {
       <ProjectCreateDialog
         isOpen={showProjectCreateDialog}
         onClose={() => setShowProjectCreateDialog(false)}
+      />
+
+      {/* プロジェクト編集ダイアログ */}
+      <ProjectCreateDialog
+        isOpen={showProjectEditDialog}
+        onClose={() => setShowProjectEditDialog(false)}
+        mode="edit"
+        existingProject={project}
       />
 
       {/* フォント管理ダイアログ */}

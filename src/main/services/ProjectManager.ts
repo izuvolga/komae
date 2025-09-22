@@ -6,6 +6,8 @@ import { generateProjectId, generatePageId } from '../../utils/idGenerator';
 import type {
   ProjectData,
   ProjectCreateParams,
+  ProjectMetadata,
+  CanvasConfig,
   ExportFormat,
   ExportOptions,
   TextAsset
@@ -311,5 +313,53 @@ export class ProjectManager {
 
   setCurrentProjectPath(filePath: string | null): void {
     this.currentProjectPath = filePath;
+  }
+
+  /**
+   * プロジェクトメタデータを更新
+   * @param metadata 更新するメタデータ
+   * @param canvas 更新するキャンバス設定
+   */
+  async updateProjectMetadata(metadata: Partial<ProjectMetadata>, canvas?: CanvasConfig): Promise<void> {
+    if (!this.currentProjectPath) {
+      throw new Error('プロジェクトが開かれていません');
+    }
+
+    try {
+      // 現在のプロジェクトファイルを読み込み
+      const projectFilePath = await this.detectProjectFile(this.currentProjectPath);
+      if (!projectFilePath) {
+        throw new Error('プロジェクトファイルが見つかりません');
+      }
+
+      const projectData = await this.loadProject(projectFilePath);
+
+      // メタデータを更新
+      const updatedProject: ProjectData = {
+        ...projectData,
+        metadata: {
+          ...projectData.metadata,
+          ...metadata
+        },
+        ...(canvas && { canvas })
+      };
+
+      // プロジェクトファイルを保存
+      await this.saveProject(updatedProject, projectFilePath);
+
+      await this.logger.logDevelopment('project_metadata_updated', 'Project metadata updated successfully', {
+        projectPath: this.currentProjectPath,
+        updatedFields: Object.keys(metadata),
+        canvasUpdated: !!canvas
+      });
+
+    } catch (error) {
+      await this.logger.logError('project_metadata_update_failed', error as Error, {
+        projectPath: this.currentProjectPath,
+        metadata,
+        canvas
+      });
+      throw new Error(`プロジェクトメタデータの更新に失敗しました: ${error}`);
+    }
   }
 }

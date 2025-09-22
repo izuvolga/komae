@@ -254,6 +254,15 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('project:updateMetadata', async (event, metadata, canvas?: any) => {
+      try {
+        await this.projectManager.updateProjectMetadata(metadata, canvas);
+      } catch (error) {
+        console.error('Failed to update project metadata:', error);
+        throw error;
+      }
+    });
+
     ipcMain.handle('project:load', async (event, filePath: string) => {
       try {
         const projectData = await this.projectManager.loadProject(filePath);
