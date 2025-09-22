@@ -21,7 +21,7 @@
 - [x]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
 - [x]: Font Management 画面の上の方が見切れている
 - [x]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
-- [ ]: 新規プロジェクトに最初に1ページは追加する
+- [x]: 新規プロジェクトに最初に1ページは追加する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
@@ -42,7 +42,7 @@
   - コード領域が全部見れるように
 - [ ]: TextEditAsset の縦書き
   - https://mui.com/material-ui/react-toggle-button/#size と TextRotateVertical TextRotationNone を使う
-- [ ]: アプリ立ち上げ時の動作について改善をしたいです。
+- [x]: アプリ立ち上げ時の動作について改善をしたいです。
   - アプリ立ち上げ直後は、サンプルプロジェクト / 新規プロジェクト / プロジェクトを開く の3択を表示する画面が表示されます。
   - しかし、いきなり UI 画面を表示してほしいです。
   - そしてアセットやページの追加などができるようにしてほしいです。
@@ -51,9 +51,9 @@
   - 開発中、いちいちサンプルプロジェクトを開くのが面倒なので...
   - 今後、初期の画面が不要というユーザもいるかもしれないので、設定で初期画面を表示しないようにできるようにする。そのため、現在の初期立ち上げ画面自体は残す。
   - もしかしたら、project の管理構造上、実装は面倒かもしれないので、まずは実装方針の調査をしてほしい。
-- [ ]: プロジェクトを保存するときに Untitled.komae になるのだが、上書き保存しても何も反映されない。というかフォルダ作成をしてほしい。
-- [ ]: プロジェクトを保存せずアセットをインポートすることができない
-- [ ]: 途中でプロジェクトの対応言語の変更ができるようにしたい
+- [x]: プロジェクトを保存するときに Untitled.komae になるのだが、上書き保存しても何も反映されない。というかフォルダ作成をしてほしい。
+- [x]: プロジェクトを保存せずアセットをインポートすることができない
+- [x]: 途中でプロジェクトの対応言語の変更ができるようにしたい
 - [ ]: ValueAsset 改善
   - color 型対応
   - string 型の多言語対応
@@ -100,12 +100,30 @@
 - [ ]: @parameters の型に font を追加し、フォントのプロダウン
 - [ ]: @parameters の型に bool を追加し、トグルスイッチ
 - [ ]: githubのurlからインポートできるようにする
+- [ ]: generateSVG ではなく、もっと良い名前にする
+  - run, build, create など
+- [ ]: 専用の構造体を受け取るようにする
+  - asset/instance/アプリ名(komae) など。
+  - instance.asset.width, instance.asset.height instance.width, instance.height
 
 # v0.1 リリースに向けてのTODO
+
 
 ## プロジェクト管理
 - [ ]: 自動保存機能
 - [ ]: Redo/Undo 機能
+
+## アプリ名
+- [ ]: 本当に komae でよいのか？
+  - 狛江市、COMAE いずれもすでに一般名詞である
+  - ブレスト
+    - koma は日本語の駒（将棋の駒、コマ、漫画のコマ）を意味する
+    - このアプリは物理的には「しかけ絵本」の概念
+    - イタリア語の漫画複数形 (fumetti)
+    - イタリア語の写真（複数形） (fotografie) + 
+  - 候補
+    - comasta はどうか？ (COMA = Comic AniMAtion の略)
+    - Pixma (Pixel + Manga の略)
 
 ## スプレッドシート関連
 - [x]: 特定のスプレッドシートの列を非表示にする機能
