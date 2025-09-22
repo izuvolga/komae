@@ -240,75 +240,6 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
       >
 
           <Box sx={{ display: 'flex', height: '100%', gap: 2 }}>
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-              <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>Custom Assets ({customAssets.length})</Typography>
-              {isLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-                  <Typography variant="body2" color="text.secondary">Loading...</Typography>
-                </Box>
-              ) : customAssets.length === 0 ? (
-                <Box sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  p: 4,
-                  textAlign: 'center',
-                  color: 'text.secondary',
-                  fontStyle: 'italic'
-                }}>
-                  <Typography variant="body2">
-                    No custom assets found. Click "Add Custom Asset" to import your first asset.
-                  </Typography>
-                </Box>
-              ) : (
-                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
-                  {customAssets.map((asset) => (
-                    <Box
-                      key={asset.id}
-                      onClick={() => handleAssetSelect(asset.id)}
-                      sx={{
-                        p: 2,
-                        border: '1px solid',
-                        borderColor: selectedAssetId === asset.id ? 'primary.main' : 'divider',
-                        borderRadius: 1,
-                        mb: 1,
-                        cursor: 'pointer',
-                        bgcolor: selectedAssetId === asset.id ? 'action.selected' : 'background.paper',
-                        '&:hover': {
-                          borderColor: 'primary.main',
-                          bgcolor: 'action.hover'
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{asset.name}</Typography>
-                        <Typography variant="caption" sx={{
-                          bgcolor: 'action.hover',
-                          color: 'text.primary',
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: 'divider'
-                        }}>v{asset.version}</Typography>
-                      </Box>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>by {asset.author}</Typography>
-                      <Typography variant="body2" sx={{ color: 'text.primary', mb: 1 }}>{asset.description}</Typography>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {asset.parameters.length > 0 ?
-                            `${asset.parameters.length} parameters` :
-                            'No parameters'
-                          }
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{asset.width}x{asset.height}</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>Added: {formatDate(asset.addedAt)}</Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
 
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
               {selectedAsset ? (
@@ -423,6 +354,76 @@ const CustomAssetManagementModal: React.FC<CustomAssetManagementModalProps> = ({
                   <Typography variant="body2">
                     Select a custom asset to view details
                   </Typography>
+                </Box>
+              )}
+            </Box>
+
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+              <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>Custom Assets ({customAssets.length})</Typography>
+              {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
+                  <Typography variant="body2" color="text.secondary">Loading...</Typography>
+                </Box>
+              ) : customAssets.length === 0 ? (
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  p: 4,
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  fontStyle: 'italic'
+                }}>
+                  <Typography variant="body2">
+                    No custom assets found. Click "Add Custom Asset" to import your first asset.
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1 }}>
+                  {customAssets.map((asset) => (
+                    <Box
+                      key={asset.id}
+                      onClick={() => handleAssetSelect(asset.id)}
+                      sx={{
+                        p: 2,
+                        border: '1px solid',
+                        borderColor: selectedAssetId === asset.id ? 'primary.main' : 'divider',
+                        borderRadius: 1,
+                        mb: 1,
+                        cursor: 'pointer',
+                        bgcolor: selectedAssetId === asset.id ? 'action.selected' : 'background.paper',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          bgcolor: 'action.hover'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{asset.name}</Typography>
+                        <Typography variant="caption" sx={{
+                          bgcolor: 'action.hover',
+                          color: 'text.primary',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}>v{asset.version}</Typography>
+                      </Box>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>by {asset.author}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary', mb: 1 }}>{asset.description}</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {asset.parameters.length > 0 ?
+                            `${asset.parameters.length} parameters` :
+                            'No parameters'
+                          }
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{asset.width}x{asset.height}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>Added: {formatDate(asset.addedAt)}</Typography>
+                      </Box>
+                    </Box>
+                  ))}
                 </Box>
               )}
             </Box>

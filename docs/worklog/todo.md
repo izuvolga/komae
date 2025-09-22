@@ -24,7 +24,7 @@
 - [x]: 新規プロジェクトに最初に1ページは追加する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
-- [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
+- [x]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [x]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
 - [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
@@ -37,10 +37,10 @@
     - デフォルトだと "Untitled" にする
     - 内部的な名前なので、実際のファイル名にはならない、<プロジェクト名>および配下の<プロジェクト名>.komae は書き換えてOK
   - 「説明」の横にヘルプアイコンをつけて「メモ用です。HTMLエクスポート時には含まれません。」と説明する
-- [ ]: Custom Asset Management のいち関係
-  - ゴミ箱と追加を逆に
-  - プレビューとアセット一覧を逆に
-  - コード領域が全部見れるように
+- [x]: Custom Asset Management の位置関係
+  - [x]: ゴミ箱と追加を逆に
+  - [x]: プレビューとアセット一覧を逆に
+  - [x]: コード領域が全部見れるように
 - [ ]: TextEditAsset の縦書き
   - https://mui.com/material-ui/react-toggle-button/#size と TextRotateVertical TextRotationNone を使う
 - [x]: アプリ立ち上げ時の動作について改善をしたいです。
