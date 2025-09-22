@@ -22,13 +22,14 @@
 - [x]: Font Management 画面の上の方が見切れている
 - [x]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
 - [x]: 新規プロジェクトに最初に1ページは追加する
+- [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
-- [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
+- [x]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
 - [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
 - [ ]: プロジェクト作成ページの改善
-  - 言語選択画面は、MUI の https://mui.com/material-ui/react-autocomplete/#checkboxes を使う
+  - [x]: 言語選択画面は、MUI の https://mui.com/material-ui/react-autocomplete/#checkboxes を使う
   - キャンバスサイズ選択するときのアイコンと実際のサイズがあってない
   - キャンバスのデフォルトの色を選択できるようにする
   - 対応言語の横のヘルプアイコンをホバーにする
@@ -105,6 +106,7 @@
 - [ ]: 専用の構造体を受け取るようにする
   - asset/instance/アプリ名(komae) など。
   - instance.asset.width, instance.asset.height instance.width, instance.height
+- [ ]: 丸、三角、四角、多角形など、基本図形を描画するカスタムアセットをビルトインで追加する
 
 # v0.1 リリースに向けてのTODO
 
