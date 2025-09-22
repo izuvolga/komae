@@ -13,6 +13,10 @@ import {
   Alert,
   CircularProgress,
   Stack,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio,
 } from '@mui/material';
 import {
   Settings as SettingsIcon,
@@ -20,6 +24,7 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useAppSettingsStore } from '../../stores/appSettingsStore';
+import type { ThemePreference } from '../../../main/services/AppSettingsManager';
 
 interface AppSettingsModalProps {
   isOpen: boolean;
@@ -41,6 +46,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
   // ローカル状態でフォームを管理
   const [localSkipWelcomeScreen, setLocalSkipWelcomeScreen] = useState(false);
+  const [localThemePreference, setLocalThemePreference] = useState<ThemePreference>('system');
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -48,6 +54,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   useEffect(() => {
     if (settings) {
       setLocalSkipWelcomeScreen(settings.skipWelcomeScreen);
+      setLocalThemePreference(settings.themePreference);
       setHasChanges(false);
     }
   }, [settings]);
@@ -62,15 +69,23 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   // 変更を検知
   useEffect(() => {
     if (settings) {
-      const changed = localSkipWelcomeScreen !== settings.skipWelcomeScreen;
+      const changed =
+        localSkipWelcomeScreen !== settings.skipWelcomeScreen ||
+        localThemePreference !== settings.themePreference;
       setHasChanges(changed);
     }
-  }, [localSkipWelcomeScreen, settings]);
+  }, [localSkipWelcomeScreen, localThemePreference, settings]);
 
   const handleSkipWelcomeScreenChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setLocalSkipWelcomeScreen(event.target.checked);
+  };
+
+  const handleThemePreferenceChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setLocalThemePreference(event.target.value as ThemePreference);
   };
 
   const handleSave = async () => {
@@ -80,6 +95,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     try {
       await updateSettings({
         skipWelcomeScreen: localSkipWelcomeScreen,
+        themePreference: localThemePreference,
       });
       setHasChanges(false);
       onClose();
@@ -112,6 +128,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     // 変更を破棄してローカル状態をリセット
     if (settings) {
       setLocalSkipWelcomeScreen(settings.skipWelcomeScreen);
+      setLocalThemePreference(settings.themePreference);
       setHasChanges(false);
     }
     onClose();
@@ -181,6 +198,67 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </Box>
               }
             />
+          </Box>
+
+          <Divider />
+
+          {/* テーマ設定 */}
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+              テーマ設定
+            </Typography>
+            <FormControl component="fieldset">
+              <FormLabel component="legend" sx={{ fontSize: '14px', mb: 1 }}>
+                表示テーマ
+              </FormLabel>
+              <RadioGroup
+                value={localThemePreference}
+                onChange={handleThemePreferenceChange}
+              >
+                <FormControlLabel
+                  value="light"
+                  control={<Radio disabled={isSaving} />}
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        ライトモード
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        常に明るいテーマを使用します
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  value="dark"
+                  control={<Radio disabled={isSaving} />}
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        ダークモード
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        常に暗いテーマを使用します
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <FormControlLabel
+                  value="system"
+                  control={<Radio disabled={isSaving} />}
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        システム設定に従う
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        OSの設定に合わせて自動的に切り替わります
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
           </Box>
 
           <Divider />

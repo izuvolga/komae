@@ -181,7 +181,7 @@ class KomaeApp {
           { role: 'toggleDevTools' },
           { type: 'separator' },
           {
-            label: 'Toggle Dark Mode',
+            label: 'Toggle Theme',
             accelerator: 'CmdOrCtrl+Shift+D',
             click: () => {
               this.mainWindow?.webContents.send('menu:toggle-dark-mode');

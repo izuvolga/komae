@@ -3,14 +3,18 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { getLogger } from '../../utils/logger';
 
+export type ThemePreference = 'light' | 'dark' | 'system';
+
 export interface AppSettings {
   skipWelcomeScreen: boolean;
+  themePreference: ThemePreference;
   version: string;
   lastModified: string;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   skipWelcomeScreen: false,
+  themePreference: 'system',
   version: '1.0',
   lastModified: new Date().toISOString(),
 };
