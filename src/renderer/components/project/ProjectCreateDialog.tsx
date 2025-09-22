@@ -34,8 +34,9 @@ import './ProjectCreateDialog.css';
 interface ProjectCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  mode?: 'create' | 'edit';
+  mode?: 'create' | 'edit' | 'save';
   existingProject?: ProjectData;
+  onSaveFromTemp?: (params: ProjectCreateParams) => Promise<void>;
 }
 // Define Crop23 icon (Translate 90 degree rotation of <Crop32 />)
 const Crop23 = () => {
@@ -66,6 +67,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   onClose,
   mode = 'create',
   existingProject,
+  onSaveFromTemp,
 }) => {
   const { setProject, addNotification } = useProjectStore();
   const { mode: themeMode } = useTheme();
@@ -137,6 +139,9 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       if (mode === 'edit') {
         // 編集モード: 既存プロジェクトを更新
         await handleUpdateProject(projectTitle, canvas);
+      } else if (mode === 'save') {
+        // 一時プロジェクト保存モード: 一時プロジェクトを永続化
+        await handleSaveFromTemp(projectTitle, canvas);
       } else {
         // 新規作成モード: 新しいプロジェクトを作成
         await handleCreateProject(projectTitle, canvas);
@@ -145,7 +150,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       const message = error instanceof Error ? error.message : String(error);
       addNotification({
         type: 'error',
-        title: mode === 'edit' ? 'プロジェクトの更新に失敗しました' : 'プロジェクトの作成に失敗しました',
+        title: mode === 'edit' ? 'プロジェクトの更新に失敗しました' : (mode === 'save' ? 'プロジェクトの保存に失敗しました' : 'プロジェクトの作成に失敗しました'),
         message: `エラー: ${message}`,
         autoClose: false,
       });
@@ -229,6 +234,23 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     onClose();
   };
 
+  const handleSaveFromTemp = async (projectTitle: string, canvas: CanvasConfig) => {
+    if (!onSaveFromTemp) {
+      throw new Error('一時プロジェクト保存用のコールバックが設定されていません');
+    }
+
+    const params: ProjectCreateParams = {
+      title: projectTitle,
+      description: description.trim() || undefined,
+      supportedLanguages,
+      currentLanguage,
+      canvas,
+    };
+
+    await onSaveFromTemp(params);
+    onClose();
+  };
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
@@ -242,8 +264,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   };
 
   const handleCancel = () => {
-    // 新規作成モードの場合のみフォームをリセット
-    if (mode === 'create') {
+    // 新規作成モードまたは保存モードの場合にフォームをリセット
+    if (mode === 'create' || mode === 'save') {
       resetForm();
     }
     onClose();
@@ -318,7 +340,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           pr: 1,
         }}
       >
-{mode === 'edit' ? 'プロジェクト編集' : '新規プロジェクト作成'}
+{mode === 'edit' ? 'プロジェクト編集' : (mode === 'save' ? 'プロジェクト保存' : '新規プロジェクト作成')}
         <IconButton
           onClick={handleCancel}
           disabled={isCreating}
@@ -585,7 +607,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary' }}>
               キャンバスサイズ: {currentCanvas.width} × {currentCanvas.height} ピクセル
             </Typography>
-{mode === 'create' && title.trim() && (
+{(mode === 'create' || mode === 'save') && title.trim() && (
               <Typography variant="body2" sx={{ fontSize: '14px', color: 'text.secondary', mt: 1 }}>
                 作成される構造:<br />
                 選択ディレクトリ/{title.trim()}/<br />
@@ -610,8 +632,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           disabled={isCreating}
         >
 {isCreating
-            ? (mode === 'edit' ? '更新中...' : '作成中...')
-            : (mode === 'edit' ? '更新' : '作成')
+            ? (mode === 'edit' ? '更新中...' : (mode === 'save' ? '保存中...' : '作成中...'))
+            : (mode === 'edit' ? '更新' : (mode === 'save' ? '保存' : '作成'))
           }
         </Button>
       </DialogActions>

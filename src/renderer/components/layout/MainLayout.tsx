@@ -30,7 +30,7 @@ import { useAppSettingsStore } from '../../stores/appSettingsStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { useTheme } from '../../../theme/ThemeContext';
 import { getLanguageDisplayName } from '../../../constants/languages';
-import type { ExportOptions } from '../../../types/entities';
+import type { ExportOptions, ProjectCreateParams } from '../../../types/entities';
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
@@ -74,6 +74,7 @@ export const MainLayout: React.FC = () => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showProjectCreateDialog, setShowProjectCreateDialog] = useState(false);
   const [showProjectEditDialog, setShowProjectEditDialog] = useState(false);
+  const [showProjectSaveDialog, setShowProjectSaveDialog] = useState(false);
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
   const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
 
@@ -145,13 +146,103 @@ export const MainLayout: React.FC = () => {
   // 保存処理（ストアのsaveProject機能を使用）
   const handleSaveProject = useCallback(async () => {
     try {
-      await saveProject();
+      // 一時プロジェクトかどうかを確認
+      const isTemp = currentProjectPath ?
+        await window.electronAPI.tempProject.isTemp(currentProjectPath) : false;
+
+      if (isTemp) {
+        // 一時プロジェクトの場合はダイアログを表示
+        setShowProjectSaveDialog(true);
+      } else {
+        // 通常の保存処理
+        await saveProject();
+      }
     } catch (error) {
       console.error('Failed to save project:', error);
     }
-  }, [saveProject]);
+  }, [saveProject, currentProjectPath]);
 
-  // テスト用通知ボタン（開発中のみ）
+  // 一時プロジェクト保存処理
+  const handleSaveFromTemp = useCallback(async (params: ProjectCreateParams) => {
+    try {
+      // 親ディレクトリ選択ダイアログを表示
+      const saveResult = await window.electronAPI.fileSystem.showDirectorySelectDialog({
+        title: `「${params.title}」フォルダを作成する親ディレクトリを選択`
+      });
+
+      if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
+        // キャンセルされた場合
+        addNotification({
+          type: 'info',
+          title: 'プロジェクト保存がキャンセルされました',
+          message: '保存先ディレクトリが選択されませんでした',
+          autoClose: true,
+          duration: 3000,
+        });
+        return;
+      }
+
+      const parentDir = saveResult.filePaths[0];
+      const projectName = params.title;
+      const projectDir = `${parentDir}/${projectName}`;
+
+      // 現在のプロジェクトデータを取得
+      if (!project) {
+        throw new Error('プロジェクトデータが見つかりません');
+      }
+
+      // プロジェクトメタデータを更新
+      const updatedProject = {
+        ...project,
+        metadata: {
+          ...project.metadata,
+          title: params.title,
+          description: params.description,
+          supportedLanguages: params.supportedLanguages || project.metadata.supportedLanguages,
+          currentLanguage: params.currentLanguage || project.metadata.currentLanguage,
+        },
+        canvas: params.canvas,
+      };
+
+      // 一時プロジェクトを永続プロジェクトに移行
+      if (currentProjectPath) {
+        await window.electronAPI.tempProject.migrate(currentProjectPath, projectDir);
+      } else {
+        await window.electronAPI.project.createDirectory(projectDir);
+      }
+
+      // 更新されたプロジェクトデータを保存
+      const projectFilePath = `${projectDir}/${projectName}.komae`;
+      await window.electronAPI.project.save(updatedProject, projectFilePath);
+
+      // プロジェクトパスを更新
+      const newProjectPath = await window.electronAPI.project.getCurrentPath();
+      setCurrentProjectPath(newProjectPath);
+
+      // ストアのプロジェクトデータを更新
+      setProject(updatedProject);
+
+      // 成功通知
+      addNotification({
+        type: 'success',
+        title: 'プロジェクトが保存されました',
+        message: `「${projectName}」が ${projectDir} に保存されました`,
+        autoClose: true,
+        duration: 5000,
+      });
+
+    } catch (error) {
+      console.error('Failed to save temp project:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      addNotification({
+        type: 'error',
+        title: 'プロジェクトの保存に失敗しました',
+        message: `エラー: ${message}`,
+        autoClose: false,
+      });
+    }
+  }, [project, currentProjectPath, setProject, setCurrentProjectPath, addNotification]);
+
   // エクスポート処理
   const handleExport = useCallback(async (options: ExportOptions) => {
     const logger = getRendererLogger();
@@ -545,7 +636,32 @@ export const MainLayout: React.FC = () => {
                   color='primary'
                   variant="outlined"
                   size="small"
-                  onClick={() => setShowProjectEditDialog(true)}
+                  onClick={async () => {
+                    try {
+                      // 一時プロジェクトかどうかを確認
+                      const isTemp = currentProjectPath ?
+                        await window.electronAPI.tempProject.isTemp(currentProjectPath) : false;
+
+                      if (isTemp) {
+                        // 一時プロジェクトの場合は保存ダイアログを開く
+                        addNotification({
+                          type: 'info',
+                          title: 'プロジェクト編集について',
+                          message: '一時プロジェクトの設定を変更するには、まずプロジェクトを保存してください。',
+                          autoClose: true,
+                          duration: 5000,
+                        });
+                        setShowProjectSaveDialog(true);
+                      } else {
+                        // 永続プロジェクトの場合は編集ダイアログを開く
+                        setShowProjectEditDialog(true);
+                      }
+                    } catch (error) {
+                      console.error('Failed to check project type:', error);
+                      // エラーの場合はデフォルトで編集ダイアログを開く
+                      setShowProjectEditDialog(true);
+                    }
+                  }}
                   sx={{
                     fontSize: '0.5rem',
                     height: 28,
@@ -696,6 +812,15 @@ export const MainLayout: React.FC = () => {
         onClose={() => setShowProjectEditDialog(false)}
         mode="edit"
         existingProject={project}
+      />
+
+      {/* 一時プロジェクト保存ダイアログ */}
+      <ProjectCreateDialog
+        isOpen={showProjectSaveDialog}
+        onClose={() => setShowProjectSaveDialog(false)}
+        mode="save"
+        existingProject={project}
+        onSaveFromTemp={handleSaveFromTemp}
       />
 
       {/* フォント管理ダイアログ */}
