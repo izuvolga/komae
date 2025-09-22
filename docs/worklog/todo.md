@@ -21,6 +21,7 @@
 - [x]: プロジェクト作成に"crop169" とか"crop43" とかのアイコンを追加する
 - [x]: Font Management 画面の上の方が見切れている
 - [x]: UI のボタンはできるだけアイコン化、言語は極力使わないようにする
+- [ ]: 新規プロジェクトに最初に1ページは追加する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageEditModal で Z-Index を手入力した後上下の矢印で値が変更できない。VectorAsset/DynamicVectorAsset は動作する。
 - [ ]: ImageEditModal で Z-Index の衝突検知が動作してない。VectorAsset/DynamicVectorAsset は動作する。
@@ -59,11 +60,11 @@
 - [ ]: カスタムアセットのIDがファイル名になっているのを何とかする
 - [ ]: プレビューエリアの背景が透明になってる？
 - [ ]: 通知がモーダルの黒い背景の裏側にある
-- [ ]: 新規プロジェクトに最初に1ページは追加する
 - [ ]: 新規プロジェクトを作成したとき、プレビューエリアの拡大方法がズレている。
 - [ ]: アプリ設定画面にダークモードのトグルを追加
 - [ ]: アプリ設定画面をツールバーから参照させるようにし、コマンド + , で開けるようにする
 - [ ]: ツールバーのタイトルを Electron ではなくアプリ名にする。
+- [ ]: hiddenColumns, hiddenRows は komae ファイルではなく、ローカルストレージに保存するようにする
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
@@ -96,6 +97,9 @@
 ## DynamicVectorAsset
 - [ ]: DynamicVectorAsset の @parameters に紐づけられている ValueAsset の型が変化したときに、紐づけを解除して @parameters の値を初期値に変更する
 - [ ]: @parameters の型に color を追加し、Edit 画面でカラーピッカーを表示する
+- [ ]: @parameters の型に font を追加し、フォントのプロダウン
+- [ ]: @parameters の型に bool を追加し、トグルスイッチ
+- [ ]: githubのurlからインポートできるようにする
 
 # v0.1 リリースに向けてのTODO
 
@@ -117,3 +121,6 @@
 - [ ]: GitHub Actions での CI/CD パイプラインを構築
 - [ ]: CLA 同意を導入 https://qiita.com/suin/items/5d53afb397e1788be61d
 - [ ]: ビルド済みアプリケーションを GitHub Releases にアップロード
+
+## v2 移行
+- [ ]: 画像のrotate機能
