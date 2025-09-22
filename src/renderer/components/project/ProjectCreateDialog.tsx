@@ -99,23 +99,15 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   };
 
   const handleCreate = async () => {
-    if (!title.trim()) {
-      addNotification({
-        type: 'warning',
-        title: '入力エラー',
-        message: 'プロジェクト名を入力してください',
-        autoClose: true,
-        duration: 3000,
-      });
-      return;
-    }
-
     setIsCreating(true);
-    
+
     try {
       const canvas = getCurrentCanvas();
+      // プロジェクト名が未入力の場合は "Untitled" をデフォルトとする
+      const projectTitle = title.trim() || 'Untitled';
+
       const params: ProjectCreateParams = {
-        title: title.trim(),
+        title: projectTitle,
         description: description.trim() || undefined,
         canvas,
         supportedLanguages,
@@ -124,7 +116,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
       // プロジェクト保存先ディレクトリを選択するダイアログを表示
       const saveResult = await window.electronAPI.fileSystem.showDirectorySelectDialog({
-        title: `「${title.trim()}」フォルダを作成する親ディレクトリを選択`
+        title: `「${projectTitle}」フォルダを作成する親ディレクトリを選択`
       });
 
       if (saveResult.canceled || !saveResult.filePaths || saveResult.filePaths.length === 0) {
@@ -141,7 +133,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
       }
 
       const parentDir = saveResult.filePaths[0];
-      const projectName = title.trim();
+      const projectName = projectTitle;
       const projectDir = `${parentDir}/${projectName}`;
       const projectFilePath = `${projectDir}/${projectName}.komae`;
 
@@ -296,9 +288,8 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
               label="プロジェクト名"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="私の物語"
+              placeholder="未入力の場合は「Untitled」になります"
               disabled={isCreating}
-              required
               fullWidth
               size="small"
             />
