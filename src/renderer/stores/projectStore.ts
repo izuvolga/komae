@@ -16,7 +16,7 @@ import type {
   TextAsset,
   TextAssetInstance
 } from '../../types/entities';
-import { generateAssetInstanceId } from '../../utils/idGenerator';
+import { generateAssetInstanceId, generatePageId } from '../../utils/idGenerator';
 import { getDefaultExportSettings } from '../../utils/exportSettings';
 
 // ページ配列操作のヘルパー関数
@@ -1028,6 +1028,14 @@ export const useProjectStore = create<ProjectStore>()(
               hiddenColumns: [],
               hiddenRows: [],
             };
+
+            // デフォルトページを作成
+            const defaultPageId = generatePageId();
+            defaultProject.pages.push({
+              id: defaultPageId,
+              title: '',
+              asset_instances: {},
+            });
 
             set((state) => {
               state.project = defaultProject;
