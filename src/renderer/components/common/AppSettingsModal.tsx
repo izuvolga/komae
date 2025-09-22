@@ -166,7 +166,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
         </Stack>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ mt: 3 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             設定の読み込みに失敗しました: {error}
@@ -202,15 +202,12 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
           <Divider />
 
-          {/* テーマ設定 */}
+          {/* 表示テーマ */}
           <Box>
             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-              テーマ設定
+              表示テーマ
             </Typography>
             <FormControl component="fieldset">
-              <FormLabel component="legend" sx={{ fontSize: '14px', mb: 1 }}>
-                表示テーマ
-              </FormLabel>
               <RadioGroup
                 value={localThemePreference}
                 onChange={handleThemePreferenceChange}

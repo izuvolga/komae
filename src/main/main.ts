@@ -110,9 +110,41 @@ class KomaeApp {
   }
 
   private createMenu(): void {
-    const template: Electron.MenuItemConstructorOptions[] = [
-      {
-        label: 'File',
+    const template: Electron.MenuItemConstructorOptions[] = [];
+
+    // macOSの場合はアプリケーションメニューを最初に追加
+    if (process.platform === 'darwin') {
+      template.push({
+        label: 'Komae',
+        submenu: [
+          {
+            label: 'About Komae',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:about');
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'Settings...',
+            accelerator: 'CmdOrCtrl+,',
+            click: () => {
+              this.mainWindow?.webContents.send('menu:app-settings');
+            },
+          },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' },
+        ],
+      });
+    }
+
+    template.push({
+      label: 'File',
         submenu: [
           {
             label: 'New Project',
@@ -215,6 +247,17 @@ class KomaeApp {
       {
         label: 'Help',
         submenu: [
+          // 非macOSの場合はSettingsをHelpメニューに追加
+          ...(process.platform !== 'darwin' ? [
+            {
+              label: 'Settings...',
+              accelerator: 'CmdOrCtrl+,',
+              click: () => {
+                this.mainWindow?.webContents.send('menu:app-settings');
+              },
+            },
+            { type: 'separator' as const },
+          ] : []),
           {
             label: 'About Komae',
             click: () => {
@@ -222,8 +265,8 @@ class KomaeApp {
             },
           },
         ],
-      },
-    ];
+      }
+    );
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);

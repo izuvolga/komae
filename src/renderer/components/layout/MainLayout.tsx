@@ -728,23 +728,6 @@ export const MainLayout: React.FC = () => {
                   ))}
                 </Select>
               </FormControl>
-
-              {/* アプリ設定ボタン */}
-              <Tooltip title="アプリケーション設定">
-                <Button
-                  color='primary'
-                  variant="outlined"
-                  size="small"
-                  onClick={() => setShowAppSettingsModal(true)}
-                  sx={{
-                    fontSize: '0.5rem',
-                    height: 28,
-                    p: 1
-                  }}
-                >
-                  <Settings />
-                </Button>
-              </Tooltip>
             </div>
 
             <div className="toolbar-section right-section">
