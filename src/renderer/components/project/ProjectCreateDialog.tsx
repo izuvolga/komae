@@ -20,7 +20,8 @@ import {
   Checkbox,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  Tooltip
 } from '@mui/material';
 import {
   Crop32,
@@ -59,10 +60,10 @@ const Crop916 = () => {
 // プリセットのキャンバスサイズ
 {/* 横長の場合には、アイコンを90度回転させる */}
 const CANVAS_PRESETS = [
-  { name: '縦向き（4:3）', icon: <Crop23 />, width: 1024, height: 768 },
-  { name: '縦向き（16:9）', icon: <Crop916 />, width: 1280, height: 720 },
-  { name: '横向き（3:4）', icon: <Crop32 />, width: 768, height: 1024 },
-  { name: '横向き（9:16）', icon: <Crop169 />, width: 720, height: 1280 },
+  { name: '横向き（4:3）', icon: <Crop32 />, width: 1024, height: 768 },
+  { name: '横向き（16:9）', icon: <Crop169 />, width: 1280, height: 720 },
+  { name: '縦向き（3:4）', icon: <Crop23 />, width: 768, height: 1024 },
+  { name: '縦向き（9:16）', icon: <Crop916 />, width: 720, height: 1280 },
   { name: 'スクエア', icon: <CropSquare />, width: 1024, height: 1024 },
   { name: 'カスタム', icon: <SettingsApplications />, width: 800, height: 600 }, // カスタム用のデフォルト値
 ];
@@ -334,8 +335,17 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 5 }}>
           {/* プロジェクト基本情報 */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
+                プロジェクト名
+              </Typography>
+              <Tooltip title="プロジェクトを保存するために、最初にこの名前のフォルダとファイルが作成されます。作品の内容には影響しません。後から変更可能です。">
+                <IconButton size="small">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <TextField
-              label="プロジェクト名"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="未入力の場合は「Untitled」になります"
@@ -346,11 +356,20 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
+                備考欄
+              </Typography>
+              <Tooltip title="作品の管理用のメモとしてお使いください。作品内容には影響しません。">
+                <IconButton size="small">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <TextField
-              label="説明 (オプション)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="キャラクターの日常を描いた作品..."
+              placeholder="備考"
               multiline
               rows={3}
               disabled={isCreating}
@@ -365,23 +384,13 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
-                対応言語
+                サポート言語
               </Typography>
-              <IconButton
-                size="small"
-                title="多言語対応機能について"
-                onClick={() => {
-                  addNotification({
-                    type: 'info',
-                    title: '多言語対応機能',
-                    message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
-                    autoClose: true,
-                    duration: 5000,
-                  });
-                }}
-              >
-                <HelpIcon fontSize="small" />
-              </IconButton>
+              <Tooltip title="作品が対応する言語を設定できます。作中で利用するテキストにおいて、言語ごとに異なる文章、フォント、サイズなどを切り替え可能になります。">
+                <IconButton size="small">
+                  <HelpIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
 
             {/* 言語選択 Autocomplete */}
@@ -427,21 +436,31 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 
             {/* メイン言語選択 */}
             {supportedLanguages.length > 1 && (
-              <FormControl size="small">
-                <InputLabel>メイン言語</InputLabel>
-                <Select
-                  value={currentLanguage}
-                  onChange={(e) => setCurrentLanguage(e.target.value)}
-                  disabled={isCreating}
-                  label="メイン言語"
-                >
-                  {supportedLanguages.map(langCode => (
-                    <MenuItem key={langCode} value={langCode}>
-                      {getLanguageDisplayName(langCode)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
+                    メイン言語
+                  </Typography>
+                  <Tooltip title="作業中にメインで利用される言語。作品の出力結果には影響はありません。あなたの母国語を選ぶことをおすすめします。">
+                    <IconButton size="small">
+                      <HelpIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <FormControl size="small">
+                  <Select
+                    value={currentLanguage}
+                    onChange={(e) => setCurrentLanguage(e.target.value)}
+                    disabled={isCreating}
+                  >
+                    {supportedLanguages.map(langCode => (
+                      <MenuItem key={langCode} value={langCode}>
+                        {getLanguageDisplayName(langCode)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             )}
 
             {supportedLanguages.length === 1 && (
