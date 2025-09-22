@@ -15,7 +15,12 @@ import {
   Chip,
   Menu,
   MenuItem,
-  Divider
+  Divider,
+  Autocomplete,
+  Checkbox,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import {
   Crop32,
@@ -24,7 +29,7 @@ import {
   SettingsApplications,
 } from '@mui/icons-material';
 
-import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Help as HelpIcon, CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { ProjectCreateParams, CanvasConfig, ProjectData } from '../../../types/entities';
@@ -83,8 +88,6 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
   // 多言語対応状態
   const [supportedLanguages, setSupportedLanguages] = useState<string[]>(DEFAULT_SUPPORTED_LANGUAGES);
   const [currentLanguage, setCurrentLanguage] = useState(DEFAULT_CURRENT_LANGUAGE);
-  const [selectedLanguageForAdd, setSelectedLanguageForAdd] = useState('');
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   // テーマ変更時にCSS変数を設定
   useEffect(() => {
@@ -259,8 +262,6 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     setCustomHeight(600);
     setSupportedLanguages(DEFAULT_SUPPORTED_LANGUAGES);
     setCurrentLanguage(DEFAULT_CURRENT_LANGUAGE);
-    setSelectedLanguageForAdd('');
-    setShowLanguageDropdown(false);
   };
 
   const handleCancel = () => {
@@ -271,47 +272,26 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
     onClose();
   };
   
-  // 言語追加処理
-  const handleAddLanguage = () => {
-    if (selectedLanguageForAdd && !supportedLanguages.includes(selectedLanguageForAdd)) {
-      const newSupportedLanguages = [...supportedLanguages, selectedLanguageForAdd];
-      setSupportedLanguages(newSupportedLanguages);
-      
-      // 最初の言語を追加した場合、それをcurrentLanguageに設定
-      if (supportedLanguages.length === 0) {
-        setCurrentLanguage(selectedLanguageForAdd);
-      }
-      
-      setSelectedLanguageForAdd('');
-      setShowLanguageDropdown(false);
-    }
-  };
-  
-  // 言語削除処理
-  const handleRemoveLanguage = (langCode: string) => {
-    if (supportedLanguages.length <= 1) {
+  // 言語選択処理
+  const handleLanguageChange = (selectedLanguages: string[]) => {
+    // 最低1つの言語は必須
+    if (selectedLanguages.length === 0) {
       addNotification({
         type: 'warning',
-        title: '言語削除エラー',
+        title: '言語選択エラー',
         message: '最低1つの言語が必要です',
         autoClose: true,
         duration: 3000,
       });
       return;
     }
-    
-    const newSupportedLanguages = supportedLanguages.filter(lang => lang !== langCode);
-    setSupportedLanguages(newSupportedLanguages);
-    
-    // 削除した言語がcurrentLanguageの場合、最初の言語に変更
-    if (currentLanguage === langCode) {
-      setCurrentLanguage(newSupportedLanguages[0]);
+
+    setSupportedLanguages(selectedLanguages);
+
+    // 現在のメイン言語が削除された場合、最初の言語をメイン言語に設定
+    if (!selectedLanguages.includes(currentLanguage)) {
+      setCurrentLanguage(selectedLanguages[0]);
     }
-  };
-  
-  // 利用可能な追加言語を取得
-  const getAvailableLanguagesForAdd = () => {
-    return AVAILABLE_LANGUAGES.filter(lang => !supportedLanguages.includes(lang.code));
   };
 
   const isCustomSelected = parseInt(selectedPreset) === CANVAS_PRESETS.length - 1;
@@ -382,90 +362,93 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           {/* <Divider sx={{ my: 1.5 }} /> */}
 
           {/* 多言語設定 */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>対応言語</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
+                対応言語
+              </Typography>
+              <IconButton
+                size="small"
+                title="多言語対応機能について"
+                onClick={() => {
+                  addNotification({
+                    type: 'info',
+                    title: '多言語対応機能',
+                    message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
+                    autoClose: true,
+                    duration: 5000,
+                  });
+                }}
+              >
+                <HelpIcon fontSize="small" />
+              </IconButton>
+            </Box>
 
-            <div className="language-selector-area">
-              <div className="language-dropdown-container">
-                <div
-                  className="language-dropdown-trigger"
-                  onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                >
-                  <span>{selectedLanguageForAdd || '言語を追加'}</span>
-                  <span className="dropdown-arrow">▼</span>
-                  <IconButton
+            {/* 言語選択 Autocomplete */}
+            <Autocomplete
+              multiple
+              options={AVAILABLE_LANGUAGES.map(lang => lang.code)}
+              getOptionLabel={(code) => getLanguageDisplayName(code)}
+              value={supportedLanguages}
+              onChange={(event, newValue) => handleLanguageChange(newValue)}
+              disabled={isCreating}
+              disableCloseOnSelect
+              renderOption={(props, option, { selected }) => (
+                <Box component="li" {...props}>
+                  <Checkbox
+                    icon={<CheckBoxOutlineBlank fontSize="small" />}
+                    checkedIcon={<CheckBox fontSize="small" />}
+                    style={{ marginRight: 8 }}
+                    checked={selected}
+                  />
+                  {getLanguageDisplayName(option)}
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="対応言語を選択"
+                  size="small"
+                />
+              )}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option}
+                    label={option.toUpperCase()}
                     size="small"
-                    title="多言語対応機能について"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addNotification({
-                        type: 'info',
-                        title: '多言語対応機能',
-                        message: 'プロジェクトで使用する言語を設定できます。TextAssetで言語ごとに異なるテキスト、フォント、サイズなどを設定可能になります。',
-                        autoClose: true,
-                        duration: 5000,
-                      });
-                    }}
-                  >
-                    <HelpIcon fontSize="small" />
-                  </IconButton>
-                </div>
+                    color={option === currentLanguage ? 'primary' : 'default'}
+                    variant={option === currentLanguage ? 'filled' : 'outlined'}
+                  />
+                ))
+              }
+            />
 
-                {showLanguageDropdown && (
-                  <div className="language-dropdown-menu">
-                    {getAvailableLanguagesForAdd().map(lang => (
-                      <div
-                        key={lang.code}
-                        className="language-dropdown-item"
-                        onClick={() => {
-                          setSelectedLanguageForAdd(lang.code);
-                          handleAddLanguage();
-                        }}
-                      >
-                        {getLanguageDisplayName(lang.code)}
-                      </div>
-                    ))}
-                    {getAvailableLanguagesForAdd().length === 0 && (
-                      <div className="language-dropdown-item disabled">
-                        追加可能な言語がありません
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Lang Code Box */}
-            <div className="lang-code-box">
-              {supportedLanguages.map(langCode => (
-                <div
-                  key={langCode}
-                  className={`lang-code-tag ${currentLanguage === langCode ? 'active' : ''}`}
-                  title={getLanguageDisplayName(langCode)}
+            {/* メイン言語選択 */}
+            {supportedLanguages.length > 1 && (
+              <FormControl size="small">
+                <InputLabel>メイン言語</InputLabel>
+                <Select
+                  value={currentLanguage}
+                  onChange={(e) => setCurrentLanguage(e.target.value)}
+                  disabled={isCreating}
+                  label="メイン言語"
                 >
-                  <span
-                    className="lang-code-text"
-                    onClick={() => setCurrentLanguage(langCode)}
-                  >
-                    {langCode.toUpperCase()}
-                  </span>
-                  {supportedLanguages.length > 1 && (
-                    <IconButton
-                      size="small"
-                      onClick={() => handleRemoveLanguage(langCode)}
-                      title={`${langCode.toUpperCase()}を削除`}
-                      sx={{ ml: 0.5, p: 0.25 }}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </div>
-              ))}
-            </div>
+                  {supportedLanguages.map(langCode => (
+                    <MenuItem key={langCode} value={langCode}>
+                      {getLanguageDisplayName(langCode)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
 
-            <div className="language-info">
-              <small>現在の言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong></small>
-            </div>
+            {supportedLanguages.length === 1 && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                メイン言語: <strong>{getLanguageDisplayName(currentLanguage)}</strong>
+              </Typography>
+            )}
           </Box>
 
           {/* <Divider sx={{ my: 1.5 }} /> */}
