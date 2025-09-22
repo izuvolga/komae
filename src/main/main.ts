@@ -8,6 +8,7 @@ import { FontManager } from './services/FontManager';
 import { CustomAssetManager } from './services/CustomAssetManager';
 import { ExportService } from './services/ExportService';
 import { AppSettingsManager } from './services/AppSettingsManager';
+import { TempProjectManager } from './services/TempProjectManager';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
 
@@ -20,6 +21,7 @@ class KomaeApp {
   private customAssetManager: CustomAssetManager;
   private exportService: ExportService;
   private appSettingsManager: AppSettingsManager;
+  private tempProjectManager: TempProjectManager;
   private logger = getLogger();
 
   constructor() {
@@ -30,6 +32,7 @@ class KomaeApp {
     this.customAssetManager = new CustomAssetManager();
     this.exportService = new ExportService(this.fontManager);
     this.appSettingsManager = new AppSettingsManager();
+    this.tempProjectManager = new TempProjectManager();
     
     this.setupEventHandlers();
     this.setupIPC();
@@ -50,7 +53,15 @@ class KomaeApp {
   }
 
   private setupEventHandlers(): void {
-    app.whenReady().then(() => {
+    app.whenReady().then(async () => {
+      // アプリ起動時に古い一時プロジェクトをクリーンアップ
+      try {
+        console.log('[Main] Starting cleanup of old temporary projects on app startup');
+        await this.tempProjectManager.cleanupOldTempProjects();
+      } catch (error) {
+        console.error('[Main] Failed to cleanup old temp projects on startup:', error);
+      }
+
       this.createWindow();
       this.createMenu();
     });
@@ -643,6 +654,50 @@ class KomaeApp {
       }
     });
 
+    // Temporary Project Operations
+    ipcMain.handle('tempProject:create', async () => {
+      try {
+        const tempProjectPath = await this.tempProjectManager.createTempProject();
+        console.log('[Main] Setting AssetManager currentProjectPath:', tempProjectPath);
+        this.assetManager.setCurrentProjectPath(tempProjectPath);
+        return tempProjectPath;
+      } catch (error) {
+        console.error('Failed to create temporary project:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('tempProject:migrate', async (event, tempDir: string, targetDir: string) => {
+      try {
+        await this.tempProjectManager.migrateTempProject(tempDir, targetDir);
+        // 移行後にAssetManagerとFontManagerのパスを更新
+        console.log('[Main] Updating AssetManager and FontManager paths after migration:', targetDir);
+        this.assetManager.setCurrentProjectPath(targetDir);
+        this.fontManager.setCurrentProjectPath(targetDir);
+      } catch (error) {
+        console.error('Failed to migrate temporary project:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('tempProject:cleanup', async (event, tempDir: string) => {
+      try {
+        await this.tempProjectManager.cleanupTempProject(tempDir);
+      } catch (error) {
+        console.error('Failed to cleanup temporary project:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('tempProject:isTemp', async (event, projectPath: string | null) => {
+      try {
+        return this.tempProjectManager.isTempProject(projectPath);
+      } catch (error) {
+        console.error('Failed to check if project is temporary:', error);
+        throw error;
+      }
+    });
+
     // Logger Operations
     ipcMain.handle('logger:userInteraction', async (event, action: string, component: string, context: any) => {
       try {
@@ -747,10 +802,32 @@ class KomaeApp {
           
           // プロジェクト内ファイルの処理（従来の動作）
           const currentProjectPath = this.projectManager.getCurrentProjectPath();
-          
-          if (currentProjectPath && filePath.startsWith(currentProjectPath)) {
-            callback({ path: filePath });
+
+          console.log('[Custom Protocol] Processing asset request:');
+          console.log('  - Request URL:', request.url);
+          console.log('  - Decoded filePath:', filePath);
+          console.log('  - Current project path (ProjectManager):', currentProjectPath);
+          console.log('  - Current project path (AssetManager):', this.assetManager.getCurrentProjectPath());
+
+          // 一時プロジェクトの場合、AssetManagerのパスを使用
+          const assetProjectPath = this.assetManager.getCurrentProjectPath();
+          const effectiveProjectPath = currentProjectPath || assetProjectPath;
+
+          if (effectiveProjectPath && filePath.startsWith(effectiveProjectPath)) {
+            // ファイルの存在確認
+            const fs = require('fs');
+            if (fs.existsSync(filePath)) {
+              console.log('[Custom Protocol] Serving file:', filePath);
+              console.log('[Custom Protocol] File exists and is readable');
+              callback({ path: filePath });
+            } else {
+              console.log('[Custom Protocol] File does not exist:', filePath);
+              callback({ error: -6 }); // ERROR_FILE_NOT_FOUND
+            }
           } else {
+            console.log('[Custom Protocol] Access denied - file path does not match project path');
+            console.log('[Custom Protocol] Effective project path:', effectiveProjectPath);
+            console.log('[Custom Protocol] File path starts with project path:', filePath.startsWith(effectiveProjectPath || ''));
             callback({ error: -3 }); // ERROR_ABORTED
           }
         } catch (error) {

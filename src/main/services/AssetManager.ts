@@ -32,7 +32,15 @@ export class AssetManager {
    * 現在のプロジェクトパスを設定
    */
   setCurrentProjectPath(projectPath: string | null): void {
+    console.log('[AssetManager] Setting current project path:', projectPath);
     this.currentProjectPath = projectPath;
+  }
+
+  /**
+   * 現在のプロジェクトパスを取得
+   */
+  getCurrentProjectPath(): string | null {
+    return this.currentProjectPath;
   }
 
   async importAsset(
@@ -43,6 +51,7 @@ export class AssetManager {
     const tracker = new PerformanceTracker('asset_import');
 
     try {
+      console.log('[AssetManager] Current project path:', this.currentProjectPath);
       if (!this.currentProjectPath) {
         const error = new Error('No project is currently open. Please open or create a project first.');
         await this.logger.logError('asset_import', error, {

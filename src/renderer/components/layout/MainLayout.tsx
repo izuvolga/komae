@@ -100,7 +100,7 @@ export const MainLayout: React.FC = () => {
     if (appSettings && !project) {
       if (appSettings.skipWelcomeScreen) {
         console.log('[MainLayout] Skip welcome screen enabled, creating default project');
-        createDefaultProject();
+        createDefaultProject().catch(console.error);
       }
     }
   }, [appSettings, project, createDefaultProject]);

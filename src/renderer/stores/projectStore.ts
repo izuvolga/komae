@@ -111,7 +111,7 @@ interface ProjectStore {
   loadProject: (filePath: string) => Promise<void>;
   exportProject: (format: ExportFormat, options?: Partial<ExportOptions>) => Promise<void>;
   importAsset: (filePath: string) => Promise<Asset>;
-  createDefaultProject: () => void;
+  createDefaultProject: () => Promise<void>;
 }
 
 export const useProjectStore = create<ProjectStore>()(
@@ -754,25 +754,40 @@ export const useProjectStore = create<ProjectStore>()(
           set((state) => { state.app.isLoading = true; });
 
           try {
-            let targetFilePath: string | undefined;
+            // 一時プロジェクトかどうかを確認
+            const isTemp = currentProjectPath ?
+              await window.electronAPI.tempProject.isTemp(currentProjectPath) : false;
 
-            // 初回保存時（currentProjectPathがnull）にファイルダイアログを表示
-            if (!currentProjectPath) {
-              const result = await window.electronAPI.fileSystem.showSaveDialog({
-                title: '新しいプロジェクトを保存',
-                defaultPath: `${project.metadata.title || 'Untitled'}.komae`,
-                filters: [
-                  { name: 'Komae Project', extensions: ['komae'] },
-                ],
+            let targetFilePath: string | undefined;
+            let needsMigration = false;
+
+            // 初回保存時または一時プロジェクトの場合にフォルダ作成ダイアログを表示
+            if (!currentProjectPath || isTemp) {
+              const result = await window.electronAPI.fileSystem.showDirectorySelectDialog({
+                title: `「${project.metadata.title || 'Untitled'}」フォルダを作成する親ディレクトリを選択`
               });
 
-              if (result.canceled || !result.filePath) {
+              if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
                 // ユーザーがキャンセルした場合
                 set((state) => { state.app.isLoading = false; });
                 return;
               }
 
-              targetFilePath = result.filePath;
+              const parentDir = result.filePaths[0];
+              const projectName = project.metadata.title || 'Untitled';
+              const projectDir = `${parentDir}/${projectName}`;
+              targetFilePath = `${projectDir}/${projectName}.komae`;
+              needsMigration = isTemp;
+
+              // 一時プロジェクトの場合は内容を移行、そうでなければ新しいディレクトリを作成
+              if (needsMigration && currentProjectPath) {
+                // 一時プロジェクトを移行（ディレクトリ作成も含む）
+                await window.electronAPI.tempProject.migrate(currentProjectPath, projectDir);
+                // 移行後にAssetManagerとFontManagerのパスを更新（tempProject:migrateのIPCハンドラーで行う）
+              } else {
+                // 新しいプロジェクトディレクトリを作成（AssetManagerとFontManagerのパス設定も含む）
+                await window.electronAPI.project.createDirectory(projectDir);
+              }
             }
 
             // プロジェクトを保存（ファイルパスが指定されていれば使用、そうでなければ既存パスを使用）
@@ -789,12 +804,12 @@ export const useProjectStore = create<ProjectStore>()(
             });
 
             // 保存成功の通知を表示
-            const isFirstSave = !currentProjectPath;
+            const isFirstSave = !currentProjectPath || isTemp;
             addNotification({
               type: 'success',
               title: isFirstSave ? '新しいプロジェクトが作成されました' : 'プロジェクトが保存されました',
               message: isFirstSave
-                ? `プロジェクトファイルが作成されました: ${savedPath}`
+                ? `プロジェクトフォルダが作成されました: ${savedPath.replace(/\/[^/]+\.komae$/, '')}`
                 : 'プロジェクトファイルの保存が完了しました',
               autoClose: true,
               duration: 3000,
@@ -941,34 +956,69 @@ export const useProjectStore = create<ProjectStore>()(
           }
         },
 
-        createDefaultProject: () => {
-          const defaultProject: ProjectData = {
-            metadata: {
-              komae_version: '1.0',
-              project_version: '1.0',
-              title: 'Untitled',
-              description: '',
-              // TODO: システムロケールを取得してデフォルト言語を設定
-              // 現在は手動で ja/en/zh を設定
-              supportedLanguages: ['ja', 'en', 'zh'], // TODO: navigator.language || Electron's app.getLocale()
-              currentLanguage: 'ja', // TODO: navigator.language || Electron's app.getLocale()
-            },
-            canvas: {
-              width: 768,
-              height: 1024
-            },
-            assets: {},
-            pages: [],
-            hiddenColumns: [],
-            hiddenRows: [],
-          };
+        createDefaultProject: async () => {
+          try {
+            // 一時プロジェクトディレクトリを作成
+            const tempProjectDir = await window.electronAPI.tempProject.create();
 
-          set((state) => {
-            state.project = defaultProject;
-            state.currentProjectPath = null; // 新規プロジェクトなのでパスはnull
-            state.app.isDirty = false;
-            state.app.lastSaved = null;
-          });
+            const defaultProject: ProjectData = {
+              metadata: {
+                komae_version: '1.0',
+                project_version: '1.0',
+                title: 'Untitled',
+                description: '',
+                // TODO: システムロケールを取得してデフォルト言語を設定
+                // 現在は手動で ja/en/zh を設定
+                supportedLanguages: ['ja', 'en', 'zh'], // TODO: navigator.language || Electron's app.getLocale()
+                currentLanguage: 'ja', // TODO: navigator.language || Electron's app.getLocale()
+              },
+              canvas: {
+                width: 768,
+                height: 1024
+              },
+              assets: {},
+              pages: [],
+              hiddenColumns: [],
+              hiddenRows: [],
+            };
+
+            set((state) => {
+              state.project = defaultProject;
+              state.currentProjectPath = tempProjectDir; // 一時ディレクトリパスを設定
+              state.app.isDirty = false;
+              state.app.lastSaved = null;
+            });
+
+            console.log('[ProjectStore] Created default project with temporary directory:', tempProjectDir);
+          } catch (error) {
+            console.error('[ProjectStore] Failed to create default project:', error);
+            // エラーの場合は従来通りメモリ上のプロジェクトを作成
+            const defaultProject: ProjectData = {
+              metadata: {
+                komae_version: '1.0',
+                project_version: '1.0',
+                title: 'Untitled',
+                description: '',
+                supportedLanguages: ['ja', 'en', 'zh'],
+                currentLanguage: 'ja',
+              },
+              canvas: {
+                width: 768,
+                height: 1024
+              },
+              assets: {},
+              pages: [],
+              hiddenColumns: [],
+              hiddenRows: [],
+            };
+
+            set((state) => {
+              state.project = defaultProject;
+              state.currentProjectPath = null;
+              state.app.isDirty = false;
+              state.app.lastSaved = null;
+            });
+          }
         },
       }))
     ),

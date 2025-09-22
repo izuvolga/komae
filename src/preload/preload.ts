@@ -145,6 +145,21 @@ const electronAPI = {
       ipcRenderer.invoke('appSettings:getPath'),
   },
 
+  // Temporary Project Operations
+  tempProject: {
+    create: (): Promise<string> =>
+      ipcRenderer.invoke('tempProject:create'),
+
+    migrate: (tempDir: string, targetDir: string): Promise<void> =>
+      ipcRenderer.invoke('tempProject:migrate', tempDir, targetDir),
+
+    cleanup: (tempDir: string): Promise<void> =>
+      ipcRenderer.invoke('tempProject:cleanup', tempDir),
+
+    isTemp: (projectPath: string | null): Promise<boolean> =>
+      ipcRenderer.invoke('tempProject:isTemp', projectPath),
+  },
+
   // System Integration
   system: {
     getVersion: (): Promise<string> => 
