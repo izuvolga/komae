@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <rect width="100%" height="100%" fill="pink" />
+  <rect x="500" y="64" width="5" height="5" fill="lightblue" />
+  <svg xmlns="http://www.w3.org/2000/svg" x="0" y="0" width="1000" height="1000" viewBox="0 0 1000 1000">
+    <g opacity="1">
+      <text text-anchor="start" x="500" y="64" dy="0" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000">あ</text>
+      <text text-anchor="start" x="500" y="64" dy="64" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000">い</text>
+      <text text-anchor="start" x="500" y="64" dy="128" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000" transform="rotate(90, 532, 160)">A</text> <!-- 128+(64/2)文字の中心を指定 -->
+      <text text-anchor="start" x="500" y="64" dy="192" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000" transform="rotate(90, 532, 224)">B</text>
+      <text text-anchor="start" x="500" y="64" dy="256" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000">う</text>
+      <text text-anchor="start" x="500" y="64" dy="320" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000">え</text>
+    </g>
+  </svg>
+</svg>
