@@ -638,36 +638,31 @@ function generateSingleLanguageTextElement(
     });
     return textBody.join('\n');
   } else {
-    // 横書きテキスト：行ごとにtspan要素
+    // 横書きテキスト：文字ごとにtext要素（複数行対応）
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
 
-    lines.forEach((line, index) => {
-      const dyValue = index === 0 ? 0 : finalFontSize + leading;
-      textBody.push(`    <tspan x="${defaultPosX}" dy="${dyValue}">${line}</tspan>`);
-    });
+    lines.forEach((line, lineIndex) => {
+      // 各行のY座標を計算（上から下に配置）
+      const lineYPos = defaultPosY + (lineIndex * (finalFontSize + leading));
 
-    return `<text
-    x="${defaultPosX}"
-    y="${defaultPosY}"
-    font-family="${font}"
-    font-size="${finalFontSize}"
-    stroke="${strokeColor}"
-    fill="${strokeColor}"
-    stroke-width="${strokeWidth}"${transformAttr}
-  >
-${textBody.join('\n')}
-  </text>
-  <text
-    x="${defaultPosX}"
-    y="${defaultPosY}"
-    font-family="${font}"
-    font-size="${finalFontSize}"
-    stroke="none"
-    fill="${fillColor}"${transformAttr}
-  >
-${textBody.join('\n')}
-  </text>`;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        // 各文字のX座標を計算（左から右に配置）
+        const charXPos = defaultPosX + (i * finalFontSize);
+
+        const posattributes = `x="${charXPos}" y="${lineYPos}"`;
+        const fontattributes = `font-size="${finalFontSize}" font-family="${font}"`;
+        const fillattributes = `fill="${fillColor}"`;
+
+        // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
+        // これを防ぐため、ストロークを文字の内側に描画するには、paint-order プロパティを使用するのだが、
+        // 作成時点で paint-order はすべてのブラウザでサポートされているわけではないため、text要素を2回重ねて描画する方法を採用する。
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
+      }
+    });
+    return textBody.join('\n');
   }
 }
 
