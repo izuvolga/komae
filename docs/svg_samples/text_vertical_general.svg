@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000">
+  <g class="lang-common" opacity="1">
+    <!-- 白い縁取り -->
+    <text x="100" y="100"
+          font-family="system-ui, -apple-system, sans-serif"
+          font-size="64"
+          stroke="#FFFFFF" fill="#FFFFFF" stroke-width="2"
+          writing-mode="vertical-rl" glyph-orientation-vertical="0">
+      <tspan x="200" dy="0">テキスト</tspan>
+      <tspan x="64" dy="0">AAAA</tspan>
+    </text>
+
+    <!-- 黒い文字 -->
+    <text x="100" y="100"
+          font-family="system-ui, -apple-system, sans-serif"
+          font-size="64"
+          stroke="none" fill="#000000"
+          writing-mode="vertical-rl" glyph-orientation-vertical="0">
+      <tspan x="200" dy="0">テキスト</tspan>
+      <tspan x="64" dy="0">AAAA</tspan>
+    </text>
+  </g>
+</svg>
