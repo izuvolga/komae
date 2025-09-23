@@ -567,10 +567,10 @@ function generateSingleLanguageTextElement(
   asset: TextAsset,
   textInstance: TextAssetInstance,
   language: string,
-  finalPosX: number,
-  finalPosY: number,
-  finalFontSize: number,
-  finalOpacity: number,
+  posX: number,
+  posY: number,
+  fontSize: number,
+  opacity: number,
   textContent: string
 ): string {
   const effectiveFont = getEffectiveFontFace(asset, textInstance, language);
@@ -587,14 +587,6 @@ function generateSingleLanguageTextElement(
 
   // Transform設定（位置調整）
   const transforms: string[] = [];
-  // Calculate position relative to default (0, 0)
-  const defaultPosX = 0;
-  const defaultPosY = 0;
-  const translateX = finalPosX - defaultPosX;
-  const translateY = finalPosY - defaultPosY;
-  if (translateX !== 0 || translateY !== 0) {
-    transforms.push(`translate(${translateX},${translateY})`);
-  }
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
   /**
@@ -612,21 +604,21 @@ function generateSingleLanguageTextElement(
 
     lines.forEach((line, lineIndex) => {
       // 各行のx座標を計算（右から左に配置）
-      const lineXPos = defaultPosX - (lineIndex * finalFontSize);
+      const lineXPos = posX - (lineIndex * fontSize);
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        let dy = Math.max(defaultPosY, i * (finalFontSize + leading))
+        let dy = Math.max(0, i * (fontSize + leading))
         // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
         let posattributes = '';
         if (i === 0) {
           // 行の最初の文字：初期Y位置を設定
-          posattributes = `x="${lineXPos}" y="${defaultPosY}"`;
+          posattributes = `x="${lineXPos}" y="${posY}"`;
         } else {
           // 行内の後続文字：下方向に移動
-          posattributes = `x="${lineXPos}" y="${defaultPosY}" dy="${dy}"`;
+          posattributes = `x="${lineXPos}" y="${posY}" dy="${dy}"`;
         }
-        const fontattributes = `font-size="${finalFontSize}" font-family="${font}"`;
+        const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
@@ -644,15 +636,15 @@ function generateSingleLanguageTextElement(
 
     lines.forEach((line, lineIndex) => {
       // 各行のY座標を計算（上から下に配置）
-      const lineYPos = defaultPosY + (lineIndex * (finalFontSize + leading));
+      const lineYPos = posY + (lineIndex * (fontSize + leading));
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
         // 各文字のX座標を計算（左から右に配置）
-        const charXPos = defaultPosX + (i * finalFontSize);
+        const charXPos = posX + (i * fontSize);
 
         const posattributes = `x="${charXPos}" y="${lineYPos}"`;
-        const fontattributes = `font-size="${finalFontSize}" font-family="${font}"`;
+        const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
