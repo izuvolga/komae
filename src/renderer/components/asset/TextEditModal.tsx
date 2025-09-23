@@ -367,37 +367,97 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const getTextFrameSize = useCallback(() => {
     const pos = currentPos;
     const scale = previewDimensions.scale;
-    const fontSize = getCurrentValue('font_size')
-    const charWidth = fontSize * previewDimensions.scale
+    const fontSize = getCurrentValue('font_size');
     const lines = (getCurrentValue('text') || '').split('\n');
     const vertical = getCurrentValue('vertical');
-    const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
+    const leading = getCurrentValue('leading') || 1.2;
+
+    // 実際に描画されたDOM要素からサイズを取得を試行
+    try {
+      const currentLanguage = getCurrentLanguage();
+      const textElement = document.getElementById(PREVIEW_DOM_ID);
+      if (textElement) {
+        // HTMLElementとして画面上のサイズを取得
+        // const rect = textElement.getBoundingClientRect();
+        // const previewContainer = document.getElementById('text-preview-svg');
+
+        // if (rect && rect.width > 0 && rect.height > 0 && previewContainer) {
+        //   const containerRect = previewContainer.getBoundingClientRect();
+        //   console.log('DEBUG: textElement rect:', rect.left, rect.top, 'containerRect:', containerRect.left, containerRect.top);
+
+        //   // プレビューコンテナ相対の位置を計算
+        //   let relativeLeft = rect.left - containerRect.left;
+        //   let relativeTop = rect.top - containerRect.top;
+        //   console.log('DEBUG: relative position:', relativeLeft, relativeTop);
+
+        //   return {
+        //     top: relativeTop,
+        //     left: relativeLeft,
+        //     width: rect.width,
+        //     height: rect.height,
+        //   };
+        // }
+        // HTMLElementとして画面上のサイズを取得
+        const rect = textElement.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          
+          let top = pos.y * scale;
+          let left = pos.x * scale;
+          if (vertical) {
+            /**
+             * generateSingleLanguageTextElement での計算方法に沿って、プレビュー内での位置に変換
+             *  pos.x, pos.y はテキストの左上ではなく、テキストの「ベースラインの左端」を指しているため、
+             * 位置を調整する必要がある
+             */
+            // fontSize分だけ下にずらす
+            top += fontSize * scale;
+            // fontSize分だけ左にずらす
+            left -= (fontSize) * scale;
+          } else {
+            // fontSize分だけ上にずらす
+            top -= fontSize * scale;
+          }
+
+          return {
+            top: top,
+            left: left,
+            width: rect.width,
+            height: rect.height,
+          };
+        }
+      }
+    } catch (error) {
+      // DOM取得に失敗した場合は警告を出力してフォールバック処理へ
+      console.warn('Failed to get text element bounding box:', error);
+    }
+
+    // フォールバック: 設定から推測してサイズを計算
+    const charWidth = fontSize * scale;
     let maxWidth = 0;
-    // PREVIEW_DOM_ID の要素からフォント情報を取得して、要素の位置とサイズを取得
-    // TODO:
-    // もし取得できなかった場合には、設定から推測する
+
     for (const line of lines) {
       const lineLength = line.length;
       if (lineLength > maxWidth) {
         maxWidth = lineLength;
       }
     }
+
     if (vertical) {
       return {
         top: (pos.y + fontSize / 2) * scale,
         left: (pos.x - fontSize / 2) * scale,
-        height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2, // ヒューリスティックな調整:1.2くらいでちょうどよくなる。
-        width: (lines.length * fontSize ) * scale,
-      }
+        height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2, // ヒューリスティックな調整
+        width: (lines.length * fontSize) * scale,
+      };
     } else {
       return {
         top: (pos.y - fontSize) * scale,
         left: pos.x * scale,
         height: lines.length * charWidth,
         width: maxWidth * charWidth,
-      }
+      };
     }
-  }, [currentPos, previewDimensions.scale, getCurrentValue]);
+  }, [currentPos, previewDimensions.scale, getCurrentValue, getCurrentLanguage]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -578,7 +638,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           width: canvasWidth,
           height: canvasHeight,
           backgroundColor: 'transparent',
-          domId: PREVIEW_DOM_ID,
+          domId: `${PREVIEW_DOM_ID}`,
         },
         phase,
       );

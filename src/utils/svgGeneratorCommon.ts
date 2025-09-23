@@ -554,7 +554,7 @@ export function generateMultilingualTextElement(
     const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
 
     // ID属性を追加（domIdが指定されている場合）
-    const idAttribute = domId ? ` id="${domId}-${lang}"` : '';
+    const idAttribute = domId ? ` id="${domId}"` : '';
     // lang-{languageCode}クラスを追加
     const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}${idAttribute}>${textElement}</g>`;
     results.push(languageElement);
