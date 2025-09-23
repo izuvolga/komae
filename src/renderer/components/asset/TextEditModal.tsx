@@ -378,46 +378,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       const textElement = document.getElementById(PREVIEW_DOM_ID);
       if (textElement) {
         // HTMLElementとして画面上のサイズを取得
-        // const rect = textElement.getBoundingClientRect();
-        // const previewContainer = document.getElementById('text-preview-svg');
-
-        // if (rect && rect.width > 0 && rect.height > 0 && previewContainer) {
-        //   const containerRect = previewContainer.getBoundingClientRect();
-        //   console.log('DEBUG: textElement rect:', rect.left, rect.top, 'containerRect:', containerRect.left, containerRect.top);
-
-        //   // プレビューコンテナ相対の位置を計算
-        //   let relativeLeft = rect.left - containerRect.left;
-        //   let relativeTop = rect.top - containerRect.top;
-        //   console.log('DEBUG: relative position:', relativeLeft, relativeTop);
-
-        //   return {
-        //     top: relativeTop,
-        //     left: relativeLeft,
-        //     width: rect.width,
-        //     height: rect.height,
-        //   };
-        // }
-        // HTMLElementとして画面上のサイズを取得
         const rect = textElement.getBoundingClientRect();
         if (rect && rect.width > 0 && rect.height > 0) {
           
+          // pos.x, pos.yは描画エリア全体の基準点
+          // - 横書き: 左上 (pos.x, pos.y)
+          // - 縦書き: 右上 (pos.x, pos.y)
           let top = pos.y * scale;
           let left = pos.x * scale;
-          if (vertical) {
-            /**
-             * generateSingleLanguageTextElement での計算方法に沿って、プレビュー内での位置に変換
-             *  pos.x, pos.y はテキストの左上ではなく、テキストの「ベースラインの左端」を指しているため、
-             * 位置を調整する必要がある
-             */
-            // fontSize分だけ下にずらす
-            top += fontSize * scale;
-            // fontSize分だけ左にずらす
-            left -= (fontSize) * scale;
-          } else {
-            // fontSize分だけ上にずらす
-            top -= fontSize * scale;
-          }
-
           return {
             top: top,
             left: left,

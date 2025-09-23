@@ -593,6 +593,11 @@ function generateSingleLanguageTextElement(
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
   /**
+   * 座標系の改善:
+   * posX, posYは描画エリア全体の基準点を表すように変更
+   * - 横書き: 描画エリア全体の左上 (posX, posY)
+   * - 縦書き: 描画エリア全体の右上 (posX, posY)
+   *
    * 以下の理由により、TextAsset ではtspanは使わず、代わりにtext要素を文字ごとに生成する
    * 1. 縦書きでは writing-mode="vertical-rl" を指定することが一般的であるが、描画の結果がブラウザにより異なる点を確認している
    *   特に、glyph-orientation-vertical は deprecated であり、tspan を使っても期待通りに動作しない場合があるが、
@@ -601,26 +606,21 @@ function generateSingleLanguageTextElement(
    *   に関しては、ブラウザ間で描画結果が異なるが、text属性でtransformを指定することで、より一貫した描画が可能になる
    */
   if (vertical) {
-    // 縦書きテキスト：tspan要素で文字分割（複数行対応）
+    // 縦書きテキスト：右上(posX, posY)を基準点として文字を配置
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
 
     lines.forEach((line, lineIndex) => {
-      // 各行のx座標を計算（右から左に配置）
+      // 各行のx座標を計算（右から左に配置、基準点は右上）
       const lineXPos = posX - (lineIndex * fontSize);
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        let dy = Math.max(0, i * (fontSize + leading))
-        // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
-        let posattributes = '';
-        if (i === 0) {
-          // 行の最初の文字：初期Y位置を設定
-          posattributes = `x="${lineXPos}" y="${posY}"`;
-        } else {
-          // 行内の後続文字：下方向に移動
-          posattributes = `x="${lineXPos}" y="${posY}" dy="${dy}"`;
-        }
+        // 縦書きの場合、最初の文字のY座標はposYからフォントサイズ分下
+        // （SVGのtext要素はベースラインが基準のため）
+        const charYPos = posY + fontSize + (i * (fontSize + leading));
+
+        const posattributes = `x="${lineXPos}" y="${charYPos}"`;
         const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
@@ -633,13 +633,15 @@ function generateSingleLanguageTextElement(
     });
     return textBody.join('\n');
   } else {
-    // 横書きテキスト：文字ごとにtext要素（複数行対応）
+    // 横書きテキスト：左上(posX, posY)を基準点として文字を配置
     const lines = escapedText.split('\n');
     const textBody: string[] = [];
 
     lines.forEach((line, lineIndex) => {
-      // 各行のY座標を計算（上から下に配置）
-      const lineYPos = posY + (lineIndex * (fontSize + leading));
+      // 各行のY座標を計算（上から下に配置、基準点は左上）
+      // 最初の行のY座標はposYからフォントサイズ分下
+      // （SVGのtext要素はベースラインが基準のため）
+      const lineYPos = posY + fontSize + (lineIndex * (fontSize + leading));
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
