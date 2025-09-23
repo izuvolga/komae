@@ -28,7 +28,7 @@
           <rect x="0" y="0" rx="2" ry="2" width="293" height="18" fill="url(#whiteBlur)"/>
         </svg>
       
-        <rect x="3" y="3" width="58" height="18" fill="red" />
+        <rect x="3" y="3" width="58" height="18" fill="#ff0000FF" />
         <rect x="3" y="3" width="58" height="18" fill="url(#whiteBlur)" />
       </g>
 </svg>
