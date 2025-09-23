@@ -543,7 +543,6 @@ export function generateMultilingualTextElement(
     const finalPosY = finalPos.y;
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang, phase);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
-    const finalZIndex = getEffectiveZIndexForLanguage(asset, textInstance, lang, phase);
     const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);
 
     // テキスト内容が空の場合はスキップ
@@ -564,7 +563,16 @@ export function generateMultilingualTextElement(
 /**
  * 単一言語のテキスト要素を生成する（内部ヘルパー関数）
  */
-function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextAssetInstance, language: string, finalPosX: number, finalPosY: number, finalFontSize: number, finalOpacity: number, textContent: string): string {
+function generateSingleLanguageTextElement(
+  asset: TextAsset,
+  textInstance: TextAssetInstance,
+  language: string,
+  finalPosX: number,
+  finalPosY: number,
+  finalFontSize: number,
+  finalOpacity: number,
+  textContent: string
+): string {
   const effectiveFont = getEffectiveFontFace(asset, textInstance, language);
   const font = resolveSvgFontName(effectiveFont || 'Arial');
   const strokeWidth = getEffectiveStrokeWidth(asset, textInstance, language);
@@ -589,6 +597,14 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
   }
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
+  /**
+   * 以下の理由により、TextAsset ではtspanは使わず、代わりにtext要素を文字ごとに生成する
+   * 1. 縦書きでは writing-mode="vertical-rl" を指定することが一般的であるが、描画の結果がブラウザにより異なる点を確認している
+   *   特に、glyph-orientation-vertical は deprecated であり、tspan を使っても期待通りに動作しない場合があるが、
+   *   text要素では transform 属性を使って自前で回転を制御できる（英数字だけを90度回転させる等の制御も可能）
+   * 2. 文字ごとに text 要素を生成することで、各文字の位置を明示的に制御でき、ブラウザ間の互換性が向上する。例えば、rotate 属性の描画
+   *   に関しては、ブラウザ間で描画結果が異なるが、text属性でtransformを指定することで、より一貫した描画が可能になる
+   */
   if (vertical) {
     // 縦書きテキスト：tspan要素で文字分割（複数行対応）
     const lines = escapedText.split('\n');
@@ -612,14 +628,10 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
         }
         const fontattributes = `font-size="${finalFontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
-        /**
-         * 以下の理由によりtspanは使わず、代わりにtext要素を文字ごとに生成する
-         * 1. 縦書きでは writing-mode="vertical-rl" を指定することが一般的であるが、描画の結果がブラウザにより異なる点を確認している
-         *   特に、glyph-orientation-vertical は deprecated であり、tspan を使っても期待通りに動作しない場合があるが、
-         *   text要素では transform 属性を使って自前で回転を制御できる（英数字だけを90度回転させる等の制御も可能）
-         * 2. 文字ごとに text 要素を生成することで、各文字の位置を明示的に制御でき、ブラウザ間の互換性が向上する。例えば、rotate 属性の描画
-         *   に関しては、ブラウザ間で描画結果が異なるが、text属性でtransformを指定することで、より一貫した描画が可能になる
-         */
+
+        // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
+        // これを防ぐため、ストロークを文字の内側に描画するには、paint-order プロパティを使用するのだが、
+        // 作成時点で paint-order はすべてのブラウザでサポートされているわけではないため、text要素を2回重ねて描画する方法を採用する。
         textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
         textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
       }
