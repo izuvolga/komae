@@ -1,7 +1,7 @@
 // Zodスキーマによるプロジェクトデータバリデーション
 
 import { z } from 'zod';
-import { ProjectData, Asset, Page, LanguageSettings } from '../types/entities';
+import { ProjectData, Asset, Page, LanguageSettings, UIState } from '../types/entities';
 
 // 基本的なスキーマ定義
 
@@ -193,14 +193,48 @@ const CanvasConfigSchema = z.object({
 });;
 
 
+// UIState スキーマ
+const UIStateSchema = z.object({
+  selectedAssets: z.array(z.string()).optional().default([]),
+  hiddenColumns: z.array(z.string()).optional().default([]),
+  hiddenRows: z.array(z.string()).optional().default([]),
+  selectedPages: z.array(z.string()).optional().default([]),
+  currentPage: z.string().nullable().optional().default(null),
+  activeWindow: z.enum(['asset', 'spreadsheet', 'preview']).optional().default('spreadsheet'),
+  zoomLevel: z.number().optional().default(1.0),
+  canvasFit: z.boolean().optional().default(true),
+  showAssetLibrary: z.boolean().optional().default(true),
+  showPreview: z.boolean().optional().default(true),
+  showFontManagement: z.boolean().optional().default(false),
+  showCustomAssetManagement: z.boolean().optional().default(false),
+  assetLibraryWidth: z.number().optional().default(280),
+  previewWidth: z.number().optional().default(320),
+  previewScrollX: z.number().optional().default(0),
+  previewScrollY: z.number().optional().default(0),
+  cursor: z.object({
+    visible: z.boolean().optional().default(false),
+    pageId: z.string().nullable().optional().default(null),
+    assetId: z.string().nullable().optional().default(null),
+  }).optional().default({
+    visible: false,
+    pageId: null,
+    assetId: null,
+  }),
+  clipboard: z.object({
+    assetInstance: z.any().nullable().optional().default(null),
+    sourcePageId: z.string().nullable().optional().default(null),
+  }).optional().default({
+    assetInstance: null,
+    sourcePageId: null,
+  }),
+});
+
 // ProjectData スキーマ
 const ProjectDataSchema = z.object({
   metadata: ProjectMetadataSchema,
   canvas: CanvasConfigSchema,
   assets: z.record(z.string(), AssetSchema),
   pages: z.array(PageSchema),
-  hiddenColumns: z.array(z.string()).optional().default([]),
-  hiddenRows: z.array(z.string()).optional().default([]),
 });
 
 /**
@@ -263,6 +297,25 @@ export function validatePage(data: unknown): Page {
     if (error instanceof z.ZodError) {
       throw new ValidationError(
         `Page validation failed: ${error.issues.map(issue => issue.message).join(', ')}`,
+        error.issues
+      );
+    }
+    throw new ValidationError(`Unexpected validation error: ${String(error)}`);
+  }
+}
+
+/**
+ * UIStateデータのバリデーション
+ * @param data バリデーション対象のデータ
+ * @returns バリデーション済みのUIStateデータ
+ */
+export function validateUIState(data: unknown): UIState {
+  try {
+    return UIStateSchema.parse(data);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ValidationError(
+        `UIState validation failed: ${error.issues.map(issue => issue.message).join(', ')}`,
         error.issues
       );
     }

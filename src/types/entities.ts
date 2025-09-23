@@ -422,14 +422,13 @@ export interface ProjectData {
   canvas: CanvasConfig;
   assets: Record<string, Asset>;
   pages: Page[]; // 配列形式に変更
-  // 非表示にされた列と行の管理
-  hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
-  hiddenRows: string[]; // 非表示にされたページIDのリスト
 }
 
-// UI状態
+// UI状態（ui-state.yamlに保存される）
 export interface UIState {
   selectedAssets: string[];
+  hiddenColumns: string[]; // 非表示にされたアセットIDのリスト
+  hiddenRows: string[]; // 非表示にされたページIDのリスト
   selectedPages: string[];
   currentPage: string | null;
   activeWindow: 'asset' | 'spreadsheet' | 'preview';

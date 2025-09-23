@@ -88,8 +88,6 @@ describe('ExportService', function () {
           default_z_index: 1,
         }
       },
-      hiddenColumns: [],
-      hiddenRows: [],
       pages: [
         {
           id: 'page-1',

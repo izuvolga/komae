@@ -72,8 +72,6 @@ const createTestProject = (): ProjectData => ({
     height: 600,
   },
   assets: {},
-  hiddenColumns: [],
-  hiddenRows: [],
   pages: [
     {
       id: 'page-1',

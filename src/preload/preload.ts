@@ -257,6 +257,15 @@ const electronAPI = {
     },
   },
 
+  // UI State Operations
+  uiState: {
+    load: (projectPath: string) => ipcRenderer.invoke('uiState:load', projectPath),
+    save: (projectPath: string, uiState: any) => ipcRenderer.invoke('uiState:save', projectPath, uiState),
+    update: (projectPath: string, key: string, value: any) => ipcRenderer.invoke('uiState:update', projectPath, key, value),
+    reset: (projectPath: string) => ipcRenderer.invoke('uiState:reset', projectPath),
+    exists: (projectPath: string) => ipcRenderer.invoke('uiState:exists', projectPath),
+  },
+
   // Direct IPC access for menu events
   ipc: {
     on: (channel: string, func: (...args: any[]) => void) => {

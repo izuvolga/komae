@@ -9,6 +9,7 @@ import { CustomAssetManager } from './services/CustomAssetManager';
 import { ExportService } from './services/ExportService';
 import { AppSettingsManager } from './services/AppSettingsManager';
 import { TempProjectManager } from './services/TempProjectManager';
+import { UIStateManager } from './services/UIStateManager';
 import { getLogger } from '../utils/logger';
 import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
 
@@ -22,6 +23,7 @@ class KomaeApp {
   private exportService: ExportService;
   private appSettingsManager: AppSettingsManager;
   private tempProjectManager: TempProjectManager;
+  private uiStateManager: UIStateManager;
   private logger = getLogger();
 
   constructor() {
@@ -33,6 +35,7 @@ class KomaeApp {
     this.exportService = new ExportService(this.fontManager);
     this.appSettingsManager = new AppSettingsManager();
     this.tempProjectManager = new TempProjectManager();
+    this.uiStateManager = new UIStateManager();
     
     this.setupEventHandlers();
     this.setupIPC();
@@ -780,6 +783,52 @@ class KomaeApp {
         await this.logger.logPerformance(operation, duration, context);
       } catch (error) {
         console.error('Failed to log performance:', error);
+      }
+    });
+
+    // UI State Operations
+    ipcMain.handle('uiState:load', async (event, projectPath: string) => {
+      try {
+        return await this.uiStateManager.loadUIState(projectPath);
+      } catch (error) {
+        console.error('Failed to load UI state:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('uiState:save', async (event, projectPath: string, uiState: any) => {
+      try {
+        await this.uiStateManager.saveUIState(projectPath, uiState);
+      } catch (error) {
+        console.error('Failed to save UI state:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('uiState:update', async (event, projectPath: string, key: string, value: any) => {
+      try {
+        await this.uiStateManager.updateUIState(projectPath, key as any, value);
+      } catch (error) {
+        console.error('Failed to update UI state:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('uiState:reset', async (event, projectPath: string) => {
+      try {
+        await this.uiStateManager.resetUIState(projectPath);
+      } catch (error) {
+        console.error('Failed to reset UI state:', error);
+        throw error;
+      }
+    });
+
+    ipcMain.handle('uiState:exists', async (event, projectPath: string) => {
+      try {
+        return await this.uiStateManager.exists(projectPath);
+      } catch (error) {
+        console.error('Failed to check UI state existence:', error);
+        throw error;
       }
     });
   }

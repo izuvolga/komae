@@ -127,6 +127,8 @@ export const useProjectStore = create<ProjectStore>()(
         hiddenInstanceData: {},
         ui: {
           selectedAssets: [],
+          hiddenColumns: [],
+          hiddenRows: [],
           selectedPages: [],
           currentPage: null,
           activeWindow: 'asset',
@@ -393,30 +395,73 @@ export const useProjectStore = create<ProjectStore>()(
           state.ui.previewScrollY = y;
         }),
 
-        // Hide/Show Actions
-        hideColumn: (assetId) => set((state) => {
-          if (!state.project?.hiddenColumns.includes(assetId)) {
-            state.project?.hiddenColumns.push(assetId);
-          }
-        }),
+        // Hide/Show Actions (UI状態を管理)
+        hideColumn: async (assetId) => {
+          const state = get();
+          if (!state.currentProjectPath) return;
 
-        showColumn: (assetId) => set((state) => {
-          if (state.project) {
-            state.project.hiddenColumns = state.project.hiddenColumns.filter(id => id !== assetId);
+          try {
+            // UI状態を更新
+            if (!state.ui.hiddenColumns.includes(assetId)) {
+              set((state) => {
+                state.ui.hiddenColumns.push(assetId);
+              });
+              // UI状態ファイルに保存
+              await window.electronAPI?.uiState?.update(state.currentProjectPath, 'hiddenColumns', [...state.ui.hiddenColumns, assetId]);
+            }
+          } catch (error) {
+            console.error('Failed to hide column:', error);
           }
-        }),
+        },
 
-        hideRow: (pageId) => set((state) => {
-          if (!state.project?.hiddenRows.includes(pageId)) {
-            state.project?.hiddenRows.push(pageId);
-          }
-        }),
+        showColumn: async (assetId) => {
+          const state = get();
+          if (!state.currentProjectPath) return;
 
-        showRow: (pageId) => set((state) => {
-          if (state.project) {
-            state.project.hiddenRows = state.project.hiddenRows.filter(id => id !== pageId);
+          try {
+            const newHiddenColumns = state.ui.hiddenColumns.filter(id => id !== assetId);
+            set((state) => {
+              state.ui.hiddenColumns = newHiddenColumns;
+            });
+            // UI状態ファイルに保存
+            await window.electronAPI?.uiState?.update(state.currentProjectPath, 'hiddenColumns', newHiddenColumns);
+          } catch (error) {
+            console.error('Failed to show column:', error);
           }
-        }),
+        },
+
+        hideRow: async (pageId) => {
+          const state = get();
+          if (!state.currentProjectPath) return;
+
+          try {
+            if (!state.ui.hiddenRows.includes(pageId)) {
+              set((state) => {
+                state.ui.hiddenRows.push(pageId);
+              });
+              // UI状態ファイルに保存
+              await window.electronAPI?.uiState?.update(state.currentProjectPath, 'hiddenRows', [...state.ui.hiddenRows, pageId]);
+            }
+          } catch (error) {
+            console.error('Failed to hide row:', error);
+          }
+        },
+
+        showRow: async (pageId) => {
+          const state = get();
+          if (!state.currentProjectPath) return;
+
+          try {
+            const newHiddenRows = state.ui.hiddenRows.filter(id => id !== pageId);
+            set((state) => {
+              state.ui.hiddenRows = newHiddenRows;
+            });
+            // UI状態ファイルに保存
+            await window.electronAPI?.uiState?.update(state.currentProjectPath, 'hiddenRows', newHiddenRows);
+          } catch (error) {
+            console.error('Failed to show row:', error);
+          }
+        },
 
         // Cursor Actions
         setCursor: (pageId, assetId) => set((state) => {
@@ -896,6 +941,21 @@ export const useProjectStore = create<ProjectStore>()(
             const projectPath = await window.electronAPI.project.getCurrentPath();
             get().setCurrentProjectPath(projectPath);
 
+            // UI状態を読み込み
+            if (projectPath) {
+              try {
+                const uiState = await window.electronAPI.uiState.load(projectPath);
+                set((state) => {
+                  // UI状態をマージ（hiddenColumns/hiddenRowsのみ更新）
+                  state.ui.hiddenColumns = uiState.hiddenColumns || [];
+                  state.ui.hiddenRows = uiState.hiddenRows || [];
+                });
+              } catch (uiError) {
+                console.warn('Failed to load UI state, using defaults:', uiError);
+                // UI状態の読み込みが失敗してもプロジェクト読み込みは継続
+              }
+            }
+
             // ローディング状態を解除
             set((state) => { state.app.isLoading = false; });
 
@@ -1025,8 +1085,6 @@ export const useProjectStore = create<ProjectStore>()(
               },
               assets: {},
               pages: [],
-              hiddenColumns: [],
-              hiddenRows: [],
             };
 
             // デフォルトページを作成
@@ -1063,8 +1121,6 @@ export const useProjectStore = create<ProjectStore>()(
               },
               assets: {},
               pages: [],
-              hiddenColumns: [],
-              hiddenRows: [],
             };
 
             set((state) => {
