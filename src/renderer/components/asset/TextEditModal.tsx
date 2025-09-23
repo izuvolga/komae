@@ -366,7 +366,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   const getTextFrameSize = useCallback(() => {
     const pos = currentPos;
-    const scale = previewDimensions.scale;
     const fontSize = getCurrentValue('font_size');
     const lines = (getCurrentValue('text') || '').split('\n');
     const vertical = getCurrentValue('vertical');
@@ -380,50 +379,32 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         // HTMLElementとして画面上のサイズを取得
         const rect = textElement.getBoundingClientRect();
         if (rect && rect.width > 0 && rect.height > 0) {
-          
           // pos.x, pos.yは描画エリア全体の基準点
           // - 横書き: 左上 (pos.x, pos.y)
           // - 縦書き: 右上 (pos.x, pos.y)
-          let top = pos.y * scale;
-          let left = pos.x * scale;
+          let top = pos.y;
+          let left = pos.x;
+          // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
+          let width = rect.width / previewDimensions.scale;
+          let height = rect.height / previewDimensions.scale;
+          // 縦書きの場合には、X座標の開始点は要素の右側になるように調整
+          if (vertical) {
+            left -= width;
+            // 横書きの場合には、文字の左側が基準点だが、縦書きは右側にしたいので、文字幅分を加算
+            left += fontSize;
+          }
+
           return {
             top: top,
             left: left,
-            width: rect.width,
-            height: rect.height,
+            width: width,
+            height: height,
           };
         }
       }
     } catch (error) {
-      // DOM取得に失敗した場合は警告を出力してフォールバック処理へ
+      // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
-    }
-
-    // フォールバック: 設定から推測してサイズを計算
-    const charWidth = fontSize * scale;
-    let maxWidth = 0;
-
-    for (const line of lines) {
-      const lineLength = line.length;
-      if (lineLength > maxWidth) {
-        maxWidth = lineLength;
-      }
-    }
-
-    if (vertical) {
-      return {
-        top: (pos.y + fontSize / 2) * scale,
-        left: (pos.x - fontSize / 2) * scale,
-        height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2, // ヒューリスティックな調整
-        width: (lines.length * fontSize) * scale,
-      };
-    } else {
-      return {
-        top: (pos.y - fontSize) * scale,
-        left: pos.x * scale,
-        height: lines.length * charWidth,
-        width: maxWidth * charWidth,
-      };
     }
   }, [currentPos, previewDimensions.scale, getCurrentValue, getCurrentLanguage]);
 
@@ -628,13 +609,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // SVG形式のテキストドラッグエリアを生成
   const textDragAreaSVG = useMemo(() => {
     const frameSize = getTextFrameSize();
+    if (!frameSize) return '<g></g>'; // サイズが取得できない場合は空要素を返す
     const canvasWidth = canvasConfig?.width || 800;
     const canvasHeight = canvasConfig?.height || 600;
-    // 縦書きの場合には、枠の位置を少し調整する
-    if (getCurrentValue('vertical')) {
-      frameSize.left -= (getCurrentValue('font_size') || 16) / 2;
-      frameSize.top -= (getCurrentValue('font_size') || 16) / 2;
-    }
 
     return `<svg
       width="100%"
@@ -644,10 +621,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       style="position: absolute; top: 0; left: 0; pointer-events: none;"
     >
       <rect
-        x="${frameSize.left / previewDimensions.scale}"
-        y="${frameSize.top / previewDimensions.scale}"
-        width="${frameSize.width / previewDimensions.scale}"
-        height="${frameSize.height / previewDimensions.scale}"
+        x="${frameSize.left}"
+        y="${frameSize.top}"
+        width="${frameSize.width}"
+        height="${frameSize.height}"
         fill="${isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent'}"
         stroke="${isDragging ? '#007bff' : 'rgba(0, 123, 255, 0.3)'}"
         stroke-width="${isDragging ? '2' : '1'}"
