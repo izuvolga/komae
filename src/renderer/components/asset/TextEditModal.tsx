@@ -729,6 +729,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               }}>
                 {/* SVGプレビュー */}
                 <Box
+                  id="text-preview-svg"
                   dangerouslySetInnerHTML={{ __html: previewSVG }}
                   sx={{
                     width: '100%',

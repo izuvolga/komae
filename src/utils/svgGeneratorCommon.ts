@@ -579,9 +579,9 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
 
   // Transform設定（位置調整）
   const transforms: string[] = [];
-  // Calculate position relative to default (100, 100)
-  const defaultPosX = 100;
-  const defaultPosY = 100;
+  // Calculate position relative to default (0, 0)
+  const defaultPosX = 0;
+  const defaultPosY = 0;
   const translateX = finalPosX - defaultPosX;
   const translateY = finalPosY - defaultPosY;
   if (translateX !== 0 || translateY !== 0) {
@@ -600,41 +600,31 @@ function generateSingleLanguageTextElement(asset: TextAsset, textInstance: TextA
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
-
+        let dy = Math.max(defaultPosY, i * (finalFontSize + leading))
         // 各行の最初の文字では初期Y位置に戻る、それ以外は相対移動
+        let posattributes = '';
         if (i === 0) {
           // 行の最初の文字：初期Y位置を設定
-          textBody.push(`    <tspan x="${lineXPos}" y="${defaultPosY}">${char}</tspan>`);
+          posattributes = `x="${lineXPos}" y="${defaultPosY}"`;
         } else {
           // 行内の後続文字：下方向に移動
-          textBody.push(`    <tspan x="${lineXPos}" dy="${leading}">${char}</tspan>`);
+          posattributes = `x="${lineXPos}" y="${defaultPosY}" dy="${dy}"`;
         }
+        const fontattributes = `font-size="${finalFontSize}" font-family="${font}"`;
+        const fillattributes = `fill="${fillColor}"`;
+        /**
+         * 以下の理由によりtspanは使わず、代わりにtext要素を文字ごとに生成する
+         * 1. 縦書きでは writing-mode="vertical-rl" を指定することが一般的であるが、描画の結果がブラウザにより異なる点を確認している
+         *   特に、glyph-orientation-vertical は deprecated であり、tspan を使っても期待通りに動作しない場合があるが、
+         *   text要素では transform 属性を使って自前で回転を制御できる（英数字だけを90度回転させる等の制御も可能）
+         * 2. 文字ごとに text 要素を生成することで、各文字の位置を明示的に制御でき、ブラウザ間の互換性が向上する。例えば、rotate 属性の描画
+         *   に関しては、ブラウザ間で描画結果が異なるが、text属性でtransformを指定することで、より一貫した描画が可能になる
+         */
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
       }
     });
-
-    return `<text
-    x="${defaultPosX}"
-    y="${defaultPosY}"
-    font-family="${font}"
-    font-size="${finalFontSize}"
-    stroke="${strokeColor}"
-    fill="${strokeColor}"
-    stroke-width="${strokeWidth}"
-    writing-mode="vertical-rl"${transformAttr}
-  >
-${textBody.join('\n')}
-  </text>
-  <text
-    x="${defaultPosX}"
-    y="${defaultPosY}"
-    font-family="${font}"
-    font-size="${finalFontSize}"
-    stroke="none"
-    fill="${fillColor}"
-    writing-mode="vertical-rl"${transformAttr}
-  >
-${textBody.join('\n')}
-  </text>`;
+    return textBody.join('\n');
   } else {
     // 横書きテキスト：行ごとにtspan要素
     const lines = escapedText.split('\n');
