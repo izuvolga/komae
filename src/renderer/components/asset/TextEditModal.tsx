@@ -380,8 +380,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
     if (vertical) {
       return {
-        top: pos.y * scale,
-        left: (pos.x - lines.length * fontSize + fontSize / 2) * scale,
+        top: (pos.y + fontSize / 2) * scale,
+        left: (pos.x - fontSize / 2) * scale,
         height: (maxWidth * fontSize + (maxWidth * leading)) * scale * 1.2, // ヒューリスティックな調整:1.2くらいでちょうどよくなる。
         width: (lines.length * fontSize ) * scale,
       }
@@ -597,6 +597,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const frameSize = getTextFrameSize();
     const canvasWidth = canvasConfig?.width || 800;
     const canvasHeight = canvasConfig?.height || 600;
+    // 縦書きの場合には、枠の位置を少し調整する
+    if (getCurrentValue('vertical')) {
+      frameSize.left -= (getCurrentValue('font_size') || 16) / 2;
+      frameSize.top -= (getCurrentValue('font_size') || 16) / 2;
+    }
 
     return `<svg
       width="100%"
