@@ -612,7 +612,7 @@ function generateSingleLanguageTextElement(
 
     lines.forEach((line, lineIndex) => {
       // 各行のx座標を計算（右から左に配置、基準点は右上）
-      const lineXPos = posX - (lineIndex * fontSize);
+      const lineXPos = posX - (lineIndex * fontSize); // 右端から左に配置
 
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
@@ -627,8 +627,9 @@ function generateSingleLanguageTextElement(
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
         // これを防ぐため、ストロークを文字の内側に描画するには、paint-order プロパティを使用するのだが、
         // 作成時点で paint-order はすべてのブラウザでサポートされているわけではないため、text要素を2回重ねて描画する方法を採用する。
-        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
-        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        // さらに、縦書きの場合、text-anchor="end"を指定して文字の右端をX座標の基準に配置する。
+        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
       }
     });
     return textBody.join('\n');

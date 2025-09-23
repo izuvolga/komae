@@ -373,7 +373,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
-      const currentLanguage = getCurrentLanguage();
       const textElement = document.getElementById(PREVIEW_DOM_ID);
       if (textElement) {
         // HTMLElementとして画面上のサイズを取得
@@ -390,10 +389,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           // 縦書きの場合には、X座標の開始点は要素の右側になるように調整
           if (vertical) {
             left -= width;
-            // 横書きの場合には、文字の左側が基準点だが、縦書きは右側にしたいので、文字幅分を加算
-            left += fontSize;
           }
-
           return {
             top: top,
             left: left,
