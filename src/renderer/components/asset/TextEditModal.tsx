@@ -41,6 +41,7 @@ import {
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
+const PREVIEW_DOM_ID = 'text-preview-area';
 
 export interface TextEditModalProps {
   mode: EditMode;
@@ -372,6 +373,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const vertical = getCurrentValue('vertical');
     const leading = getCurrentValue('leading') || 1.2; // デフォルトの行間
     let maxWidth = 0;
+    // PREVIEW_DOM_ID の要素からフォント情報を取得して、要素の位置とサイズを取得
+    // TODO:
+    // もし取得できなかった場合には、設定から推測する
     for (const line of lines) {
       const lineLength = line.length;
       if (lineLength > maxWidth) {
@@ -574,6 +578,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           width: canvasWidth,
           height: canvasHeight,
           backgroundColor: 'transparent',
+          domId: PREVIEW_DOM_ID,
         },
         phase,
       );

@@ -528,6 +528,7 @@ export function generateMultilingualTextElement(
   availableLanguages: string[],
   currentLanguage: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO,
+  domId?: string
 ): string {
   const textInstance = instance as TextAssetInstance;
   const results: string[] = [];
@@ -552,8 +553,10 @@ export function generateMultilingualTextElement(
 
     const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
 
+    // ID属性を追加（domIdが指定されている場合）
+    const idAttribute = domId ? ` id="${domId}-${lang}"` : '';
     // lang-{languageCode}クラスを追加
-    const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}>${textElement}</g>`;
+    const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}${idAttribute}>${textElement}</g>`;
     results.push(languageElement);
   }
 
@@ -669,10 +672,11 @@ export function generateTextPreviewSVG(
     width?: number;
     height?: number;
     backgroundColor?: string;
+    domId?: string; // 追加のdiv要素のID（必要に応じて）
   } = {},
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO,
 ): string {
-  const { width = 800, height = 600, backgroundColor = 'transparent' } = options;
+  const { width = 800, height = 600, backgroundColor = 'transparent', domId = 'temp-preview' } = options;
 
   // 一時的なインスタンスオブジェクトを作成（instanceがない場合）
   const tempInstance = instance || {
@@ -682,7 +686,7 @@ export function generateTextPreviewSVG(
 
   // TextSVG要素を生成（プレビュー用は単一言語）
   const availableLanguages = [currentLanguage];
-  const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage, phase);
+  const textElement = generateMultilingualTextElement(asset, tempInstance, availableLanguages, currentLanguage, phase, domId);
 
   return `<svg
   width="${width}"
