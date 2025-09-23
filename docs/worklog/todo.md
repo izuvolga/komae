@@ -38,12 +38,15 @@
 - [ ]: 初期起動画面は Xcode ライクにする
 
 ## TextAsset 改善
+- [ ]: bulkgauge と同じ方式で各文字を<text>に分割する
+- [ ]: EditModal の範囲選択エリアを、DOM要素の値を使ってより正確な値にする
 - [ ]: TextAsset に rotate を対応する
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
   - 行番号表示
   - 編集をしたら、編集がされた行の背景色を変更する
   - yaml のフォーマットがおかしい場合には警告エラーメッセージを表示する
 - [ ]: 新規アセット: スクリプト生成できる SVG (docs/design/asset-specificaiton.md)
+- [ ]: 塗りの色にグラデーション使えないかなぁ
 
 ## DynamicVectorAsset
 - [ ]: カスタムアセットのIDがファイル名になっているのを何とかする

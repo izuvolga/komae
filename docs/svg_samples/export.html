@@ -25,21 +25,26 @@
   <button style="position: absolute; top: 250px; left: 200px;" id="downloadBtn">Download PNG</button>
 
   <!-- SVG描画（対象はbody直下の最初のsvg要素） -->
-  <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1000 1000">
-    <rect width="100%" height="100%" fill="pink" />
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1000 1000">
+  <defs>
+    <linearGradient id="grad-global" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="0" x2="0" y2="1000">
+      <stop offset="0%" stop-color="red"/>
+      <stop offset="50%" stop-color="blue"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="pink" />
     <g opacity="1">
-      <text x="0" y="0" font-family="Hachi Maru Pop" font-size="64" stroke="none" fill="#000000" writing-mode="vertical-rl">
-        <tspan x="500" y="100">テ</tspan>
-        <tspan x="500" dy="0">キ</tspan>
-        <tspan x="500" dy="0">ス</tspan>
-        <tspan x="500" dy="0">ト</tspan>
-        <tspan x="436" y="100">A</tspan>
-        <tspan x="436" dy="0">A</tspan>
-        <tspan x="436" dy="0">A</tspan>
-        <tspan x="436" dy="0">A</tspan>
-      </text></g>
+      <text x="500" y="64" dy="0"   font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">あ</text>
+      <text x="500" y="64" dy="64"  font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">い</text>
+      <text x="500" y="64" dy="128" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)" transform="rotate(90, 532, 160)">A</text> <!-- 128+(64/2)文字の中心を指定 -->
+      <text x="500" y="64" dy="192" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)" transform="rotate(90, 532, 224)">B</text>
+      <text x="500" y="64" dy="256" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">う</text>
+      <text x="500" y="64" dy="320" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">え</text>
     </g>
-  </svg>
+</svg>
+
 
   <script type="module">
     document.getElementById("downloadBtn").addEventListener("click", function () {
