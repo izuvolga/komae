@@ -487,8 +487,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const canvasWidth = canvasConfig?.width || 800;
         const canvasHeight = canvasConfig?.height || 600;
 
-        const newX = Math.max(0, Math.min(canvasWidth - 50, dragStartValues.x + deltaX)); // 50px余裕を持たせる
-        const newY = Math.max(0, Math.min(canvasHeight - 50, dragStartValues.y + deltaY));
+        const newX = Math.max(0, Math.min(canvasWidth, dragStartValues.x + deltaX));
+        const newY = Math.max(0, Math.min(canvasHeight, dragStartValues.y + deltaY));
 
         setCurrentPosition(newX, newY);
       }
