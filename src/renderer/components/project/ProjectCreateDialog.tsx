@@ -318,6 +318,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
           width: '90vw',
           maxWidth: '600px',
           maxHeight: '90vh',
+          overflow: 'hidden',
         }
       }}
     >
