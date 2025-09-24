@@ -883,6 +883,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <NumericInput
                       value={getCurrentValue('font_size')}
                       onChange={(value) => setCurrentValue({ font_size: value })}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={0.01}
                       decimals={2}
                       className="small"
@@ -893,6 +894,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <NumericInput
                       value={getCurrentValue('leading')}
                       onChange={(value) => setCurrentValue({ leading: value })}
+                      onKeyDown={handleTextFieldKeyEvent}
                       decimals={2}
                       className="small"
                     />
@@ -948,6 +950,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     onChange={(value) => {
                       setCurrentValue({stroke_width: value});
                     }}
+                    onKeyDown={handleTextFieldKeyEvent}
                     min={0}
                     max={9999}
                     decimals={0}
@@ -969,6 +972,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <NumericInput
                       value={getCurrentPosition().x}
                       onChange={(value) => setCurrentValue({pos_x: value})}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -980,6 +984,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <NumericInput
                       value={getCurrentPosition().y}
                       onChange={(value) => setCurrentValue({pos_y: value})}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -1175,6 +1180,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <NumericInput
                       value={getCurrentValue('font_size')}
                       onChange={(value) => setCurrentValue({font_size: value})}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={0.01}
                       decimals={2}
                       className="small"
@@ -1190,6 +1196,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <NumericInput
                         value={getCurrentValue('pos_x')}
                         onChange={(value) => setCurrentValue({pos_x: value})}
+                        onKeyDown={handleTextFieldKeyEvent}
                         min={-9999}
                         max={9999}
                         decimals={2}
@@ -1203,6 +1210,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <NumericInput
                         value={getCurrentValue('pos_y')}
                         onChange={(value) => setCurrentValue({pos_y: value})}
+                        onKeyDown={handleTextFieldKeyEvent}
                         min={-9999}
                         max={9999}
                         decimals={2}
@@ -1414,6 +1422,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <NumericInput
                         value={getCurrentValue('font_size')}
                         onChange={(value) => setCurrentValue({font_size: value})}
+                        onKeyDown={handleTextFieldKeyEvent}
                         min={0.01}
                         decimals={2}
                         className="small"
@@ -1427,6 +1436,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         <NumericInput
                           value={getCurrentValue('pos_x')}
                           onChange={(value) => setCurrentValue({pos_x: value})}
+                          onKeyDown={handleTextFieldKeyEvent}
                           min={-9999}
                           max={9999}
                           decimals={2}
@@ -1440,6 +1450,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         <NumericInput
                           value={getCurrentValue('pos_y')}
                           onChange={(value) => setCurrentValue({pos_y: value})}
+                          onKeyDown={handleTextFieldKeyEvent}
                           min={-9999}
                           max={9999}
                           decimals={2}

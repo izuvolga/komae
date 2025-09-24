@@ -17,6 +17,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import type { BaseEditModalProps, EditMode } from '../../../types/common';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -63,6 +64,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
 }) => {
   const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
 
   // 編集中のデータ（モードに応じて切り替え）
   const [editedAsset, setEditedAsset] = useState<VectorAsset>(asset);
@@ -581,6 +583,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       <NumericInput
                         value={currentPos.x}
                         onChange={(value) => handlePositionChange('x', value)}
+                        onKeyDown={handleTextFieldKeyEvent}
                         step={1}
                       />
                     </Box>
@@ -589,6 +592,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       <NumericInput
                         value={currentPos.y}
                         onChange={(value) => handlePositionChange('y', value)}
+                        onKeyDown={handleTextFieldKeyEvent}
                         step={1}
                       />
                     </Box>
@@ -604,6 +608,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       <NumericInput
                         value={currentSize.width}
                         onChange={(value) => handleSizeChange('width', value)}
+                        onKeyDown={handleTextFieldKeyEvent}
                         min={1}
                         step={1}
                       />
@@ -613,6 +618,7 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
                       <NumericInput
                         value={currentSize.height}
                         onChange={(value) => handleSizeChange('height', value)}
+                        onKeyDown={handleTextFieldKeyEvent}
                         min={1}
                         step={1}
                       />

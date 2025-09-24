@@ -996,6 +996,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <NumericInput
                     value={currentPos.x}
                     onChange={(value) => updatePosition(value, currentPos.y)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     step={1}
                     decimals={2}
                   />
@@ -1005,6 +1006,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <NumericInput
                     value={currentPos.y}
                     onChange={(value) => updatePosition(currentPos.x, value)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     step={1}
                     decimals={2}
                   />
@@ -1031,6 +1033,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <NumericInput
                     value={currentSize.width}
                     onChange={(value) => handleSizeChange('width', value)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     min={1}
                     step={1}
                     decimals={2}
@@ -1041,6 +1044,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   <NumericInput
                     value={currentSize.height}
                     onChange={(value) => handleSizeChange('height', value)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     min={1}
                     step={1}
                     decimals={2}
