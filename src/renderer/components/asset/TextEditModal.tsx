@@ -1055,7 +1055,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     onChange={(e) => setCurrentValue({text: e.target.value})}
                     onKeyDown={handleTextFieldKeyEvent}
                     multiline
-                    rows={3}
+                    maxRows={30}
                     disabled={!isInstanceTextOverrideEnabled()}
                     fullWidth
                     variant="outlined"
@@ -1269,7 +1269,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 {/* 言語別のダミーテキスト */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, margin: 0 }}>
-                    言語別のダミーテキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
+                    言語別テキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
                   </Typography>
                   <FormControlLabel
                     control={
@@ -1337,7 +1337,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         onKeyDown={handleTextFieldKeyEvent}
                         disabled={!isTextOverrideEnabled}
                         multiline
-                        rows={3}
+                        maxRows={30}
                         placeholder={isTextOverrideEnabled ? '言語固有のデフォルトテキスト' : '全言語共通のデフォルトテキストを使用'}
                         fullWidth
                         variant="outlined"
