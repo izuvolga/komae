@@ -1028,7 +1028,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           }}
                         />
                       }
-                      label="確認用テキストを利用"
+                      label="ダミーテキストを利用"
                       sx={{ margin: 0, fontSize: '14px', whiteSpace: 'nowrap' }}
                     />
                   </Box>
@@ -1051,7 +1051,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   />
                   <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
                     {!isInstanceTextOverrideEnabled()
-                      ? '確認用テキストが使用されます（チェックを外すとこのページ専用のテキストを設定できます）'
+                      ? 'ダミーテキストが使用されます（チェックを外すとこのページ専用のテキストを設定できます）'
                       : 'このページ専用のテキストを設定します'
                     }
                   </Typography>
