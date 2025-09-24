@@ -19,13 +19,13 @@
 - [ ]: 通知の位置が、プレビューウィンドウのトグルボタンを隠すのがちょっとうざい
 - [ ]: PreviewArea, AssetLibrary の表示トグル状態も ui-state.yaml に保存する
 - [ ]: 以下のファイルにおいても、共通フック useTextFieldKeyboardShortcuts を利用する
-  - src/renderer/components/asset/ValueEditModal.tsx
-  - src/renderer/components/asset/DynamicVectorEditModal.tsx
-  - src/renderer/components/asset/VectorEditModal.tsx
-  - src/renderer/components/asset/ImageEditModal.tsx
-  - src/renderer/components/text/BulkEditModal.tsx (テキストエリア)
-  - src/renderer/components/font/FontManagementModal.tsx (サンプルテキストの箇所)
-  - src/renderer/components/font/FontAddModal.tsx (Google Fonts URL の箇所)
+  - [x]:src/renderer/components/asset/ValueEditModal.tsx
+  - [x]:src/renderer/components/asset/DynamicVectorEditModal.tsx
+  - [x]:src/renderer/components/asset/VectorEditModal.tsx => そもそもなさそう
+  - [x]:src/renderer/components/asset/ImageEditModal.tsx
+  - [x]:src/renderer/components/text/BulkEditModal.tsx (テキストエリア)
+  - [x]:src/renderer/components/font/FontManagementModal.tsx (サンプルテキストの箇所)
+  - [x]:src/renderer/components/font/FontAddModal.tsx (Google Fonts URL の箇所)
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
