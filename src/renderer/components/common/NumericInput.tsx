@@ -124,7 +124,10 @@ export const NumericInput: React.FC<NumericInputProps> = ({
     // デフォルトの動作（Enter時にblur）を先に処理
     if (e.key === 'Enter') {
       e.currentTarget.blur();
-      console.log('DEBUG: Enter key pressed, input blurred.');
+      // e.currentTarget.blur() が動作しないため、document から参照してフォーカスを外す..
+      if (document && document.activeElement && document.activeElement != document.body) {
+         (document.activeElement as HTMLElement).blur();
+      }
       // Enterキーの場合は外部ハンドラーに渡さない（blurに専念）
       return;
     }
