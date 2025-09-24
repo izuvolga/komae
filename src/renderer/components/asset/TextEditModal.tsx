@@ -17,8 +17,10 @@ import {
   Chip,
   Divider,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
-import { Close as CloseIcon, Help as HelpIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Help as HelpIcon, TextRotateVertical, TextRotationNone } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
@@ -892,16 +894,24 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   </Box>
                 </Box>
                 <Box sx={{ mb: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={getCurrentValue('vertical')}
-                        onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
-                        size="small"
-                      />
-                    }
-                    label="縦書き"
-                  />
+                  <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>文字の向き</Typography>
+                  <ToggleButtonGroup
+                    value={getCurrentValue('vertical') ? 'vertical' : 'horizontal'}
+                    exclusive
+                    onChange={(e, newValue) => {
+                      if (newValue !== null) {
+                        setCurrentValue({ vertical: newValue === 'vertical' });
+                      }
+                    }}
+                    size="small"
+                  >
+                    <ToggleButton value="horizontal" aria-label="横書き">
+                      <TextRotationNone />
+                    </ToggleButton>
+                    <ToggleButton value="vertical" aria-label="縦書き">
+                      <TextRotateVertical />
+                    </ToggleButton>
+                  </ToggleButtonGroup>
                 </Box>
               </Box>
             )}
@@ -1198,17 +1208,25 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
                   {/* 縦書き設定 */}
                   <Box sx={{ mb: 2 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={getCurrentValue('vertical')}
-                          onChange={(e) => setCurrentValue({vertical: e.target.checked})}
-                          disabled={!isLanguageOverrideEnabled()}
-                          size="small"
-                        />
-                      }
-                      label="縦書き"
-                    />
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>文字の向き</Typography>
+                    <ToggleButtonGroup
+                      value={getCurrentValue('vertical') ? 'vertical' : 'horizontal'}
+                      exclusive
+                      onChange={(e, newValue) => {
+                        if (newValue !== null) {
+                          setCurrentValue({ vertical: newValue === 'vertical' });
+                        }
+                      }}
+                      disabled={!isLanguageOverrideEnabled()}
+                      size="small"
+                    >
+                      <ToggleButton value="horizontal" aria-label="横書き">
+                        <TextRotationNone />
+                      </ToggleButton>
+                      <ToggleButton value="vertical" aria-label="縦書き">
+                        <TextRotateVertical />
+                      </ToggleButton>
+                    </ToggleButtonGroup>
                   </Box>
 
                   {/* 不透明度設定 */}
@@ -1424,17 +1442,25 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       </Box>
                     </Box>
                     <Box sx={{ mb: 2 }}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={getCurrentValue('vertical')}
-                            onChange={(e) => setCurrentValue({ vertical: e.target.checked })}
-                            disabled={!isLanguageDefaultOverrideEnabled()}
-                            size="small"
-                          />
-                        }
-                        label="縦書き"
-                      />
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>文字の向き</Typography>
+                      <ToggleButtonGroup
+                        value={getCurrentValue('vertical') ? 'vertical' : 'horizontal'}
+                        exclusive
+                        onChange={(e, newValue) => {
+                          if (newValue !== null) {
+                            setCurrentValue({ vertical: newValue === 'vertical' });
+                          }
+                        }}
+                        disabled={!isLanguageDefaultOverrideEnabled()}
+                        size="small"
+                      >
+                        <ToggleButton value="horizontal" aria-label="横書き">
+                          <TextRotationNone />
+                        </ToggleButton>
+                        <ToggleButton value="vertical" aria-label="縦書き">
+                          <TextRotateVertical />
+                        </ToggleButton>
+                      </ToggleButtonGroup>
                     </Box>
                   </Box>
                 )}
