@@ -23,6 +23,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useEditModalSubmit } from '../../hooks/useEditModalSubmit';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
@@ -81,6 +82,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
 }) => {
   const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
 
   // 編集中のデータ
   const [editedAsset, setEditedAsset] = useState<DynamicVectorAsset>(asset);
@@ -899,6 +901,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                   label="Name"
                   value={editedAsset.name}
                   onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
+                  onKeyDown={handleTextFieldKeyEvent}
                   fullWidth
                   variant="outlined"
                   size="small"
@@ -948,6 +951,7 @@ export const DynamicVectorEditModal: React.FC<DynamicVectorEditModalProps> = ({
                                 scheduleExecution();
                               }
                             }}
+                            onKeyDown={handleTextFieldKeyEvent}
                             onBlur={() => scheduleExecution()}
                             disabled={!!isBindingSet}
                             fullWidth

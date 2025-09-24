@@ -19,6 +19,7 @@ import { Cached as CachedIcon, Close as CloseIcon, Help as HelpIcon, FolderOpen 
 import { useTheme } from '../../../theme/ThemeContext';
 import { FontAddHelpModal } from './FontAddHelpModal';
 import { FontLicenseHelpModal } from './FontLicenseHelpModal';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 
 interface FontAddModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showLicenseHelpModal, setShowLicenseHelpModal] = useState(false);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
 
   // data-theme属性の設定
   useEffect(() => {
@@ -343,6 +345,7 @@ export const FontAddModal: React.FC<FontAddModalProps> = ({
                 fullWidth
                 value={googleFontUrl}
                 onChange={(e) => setGoogleFontUrl(e.target.value)}
+                onKeyDown={handleTextFieldKeyEvent}
                 placeholder="https://fonts.googleapis.com/css?family=..."
                 disabled={isLoading}
                 size="small"

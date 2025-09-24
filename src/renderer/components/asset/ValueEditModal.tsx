@@ -4,6 +4,7 @@ import { generateAssetInstanceId } from '../../../utils/idGenerator';
 import { useProjectStore } from '../../stores/projectStore';
 import { evaluateFormula, getEffectiveValueAssetValue, parseFormulaReferences } from '../../../utils/valueEvaluation';
 import { ReadOnlyInput } from '../common/ReadOnlyInput';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import {
   Dialog,
   DialogTitle,
@@ -55,6 +56,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
   const { mode: themeMode } = useTheme();
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
   
   // Asset編集用のstate
   const [editingAsset, setEditingAsset] = useState<ValueAsset>(asset);
@@ -339,6 +341,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
                   }
                   value={tempInputValues.name}
                   onChange={(e) => setTempInputValues(prev => ({...prev, name: e.target.value}))}
+                  onKeyDown={handleTextFieldKeyEvent}
                   placeholder="アセット名を入力"
                   error={!nameValidation.isValid}
                   helperText={!nameValidation.isValid ? nameValidation.errorMessage : ''}
@@ -374,6 +377,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
                   }
                   value={tempInputValues.initial_value}
                   onChange={(e) => setTempInputValues(prev => ({...prev, initial_value: e.target.value}))}
+                  onKeyDown={handleTextFieldKeyEvent}
                   placeholder={
                     tempInputValues.value_type === 'formula'
                       ? "例: %{value1} + %{value2} + 1"
@@ -474,6 +478,7 @@ export const ValueEditModal: React.FC<ValueEditModalProps> = ({
                   }
                   value={tempInputValues.override_value}
                   onChange={(e) => setTempInputValues(prev => ({...prev, override_value: e.target.value}))}
+                  onKeyDown={handleTextFieldKeyEvent}
                   placeholder={
                     asset.value_type === 'formula'
                       ? "このページ用の数式を入力"

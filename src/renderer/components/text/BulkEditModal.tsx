@@ -18,6 +18,7 @@ import { useTheme } from '../../../theme/ThemeContext';
 import { generateTextAssetYAML, parseTextAssetYAML } from '../../../utils/yamlConverter';
 import { generateAIPrompt } from '../../../utils/aiPrompt';
 import './BulkEditModal.css';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 
 interface BulkEditModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
   const getSupportedLanguages = useProjectStore((state) => state.getSupportedLanguages);
   const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
   const addNotification = useProjectStore((state) => state.addNotification);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
   
   const [yamlContent, setYamlContent] = useState('');
   const [originalContent, setOriginalContent] = useState('');
@@ -239,6 +241,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
             className="yaml-editor"
             value={yamlContent}
             onChange={(e) => setYamlContent(e.target.value)}
+            onKeyDown={handleTextFieldKeyEvent}
             placeholder="YAML形式のテキストデータが表示されます..."
             spellCheck={false}
             style={{ flex: 1 }}

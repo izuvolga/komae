@@ -23,6 +23,7 @@ import type { BaseModalProps } from '../../../types/common';
 import { FontAddModal } from './FontAddModal';
 import { FontLicenseModal } from './FontLicenseModal';
 import './FontManagementModal.css';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 
 interface FontManagementModalProps extends BaseModalProps {}
 
@@ -39,6 +40,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
   const [showLicenseModal, setShowLicenseModal] = useState(false);
   const [licenseFont, setLicenseFont] = useState<FontInfo | null>(null);
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
 
   // data-theme属性の設定
   useEffect(() => {
@@ -264,6 +266,7 @@ export const FontManagementModal: React.FC<FontManagementModalProps> = ({
               label="サンプルテキスト"
               value={sampleText}
               onChange={(e) => setSampleText(e.target.value)}
+              onKeyDown={handleTextFieldKeyEvent}
               placeholder="Enter sample text..."
               fullWidth
               size="small"

@@ -46,6 +46,7 @@ import {
 import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 
 // 統合されたプロパティ
 interface ImageEditModalProps extends BaseEditModalProps<ImageAsset, ImageAssetInstance> {
@@ -181,6 +182,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   const currentOpacity = getCurrentOpacity(mode, editedAsset, editedInstance);
   const currentZIndex = getCurrentZIndex(mode, editedAsset, editedInstance);
   const currentMask = getCurrentMask();
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
 
   // Shiftキーの状態を監視
   useEffect(() => {
@@ -583,7 +585,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                   label="Asset Name"
                   value={editedAsset.name}
                   onChange={(e) => setEditedAsset(prev => ({ ...prev, name: e.target.value }))}
-                  onKeyDown={handleKeyDown}
+                  onKeyDown={handleTextFieldKeyEvent}
                   fullWidth
                   variant="outlined"
                   size="small"
