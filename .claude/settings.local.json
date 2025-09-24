@@ -22,7 +22,8 @@
       "Bash(npm install:*)",
       "mcp__serena__list_memories",
       "Bash(similarity-ts:*)",
-      "mcp__serena__check_onboarding_performed"
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__read_memory"
     ],
     "deny": []
   }
