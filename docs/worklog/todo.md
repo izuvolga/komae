@@ -18,7 +18,7 @@
 - [ ]: プロジェクトの背景色を SVG で生成する
 - [ ]: 通知の位置が、プレビューウィンドウのトグルボタンを隠すのがちょっとうざい
 - [ ]: PreviewArea, AssetLibrary の表示トグル状態も ui-state.yaml に保存する
-- [ ]: 以下のファイルにおいても、共通フック useTextFieldKeyboardShortcuts を利用する
+- [x]: 以下のファイルにおいても、共通フック useTextFieldKeyboardShortcuts を利用する
   - [x]:src/renderer/components/asset/ValueEditModal.tsx
   - [x]:src/renderer/components/asset/DynamicVectorEditModal.tsx
   - [x]:src/renderer/components/asset/VectorEditModal.tsx => そもそもなさそう
