@@ -2,8 +2,9 @@ import * as yaml from 'js-yaml';
 import type { ProjectData, TextAsset, TextAssetInstance } from '../types/entities';
 import { getEffectiveTextValue } from '../types/entities';
 
+const TODO_PLACEHOLDER = "<TODO>";
+
 export interface TextAssetYAMLData {
-  languages: Record<string, string>;
   pages: Array<{
     id: string;
     title: string;
@@ -28,16 +29,10 @@ export interface ParsedPageData {
  */
 export function generateTextAssetYAML(project: ProjectData): string {
   const supportedLanguages = project.metadata.supportedLanguages || ['ja'];
-  
-  // 言語情報を生成
-  const languages: Record<string, string> = {};
-  supportedLanguages.forEach(langCode => {
-    languages[langCode] = getLanguageName(langCode);
-  });
 
   // ページデータを生成
   const pages: any[] = [];
-  
+
   for (const page of project.pages) {
     const pageData: any = {
       id: page.id,
@@ -51,7 +46,7 @@ export function generateTextAssetYAML(project: ProjectData): string {
 
       const textAsset = asset as TextAsset;
       const textInstance = instance as TextAssetInstance;
-      
+
       const instanceData: any = {
         name: textAsset.name,
       };
@@ -59,7 +54,7 @@ export function generateTextAssetYAML(project: ProjectData): string {
       // 各言語のテキストを取得
       supportedLanguages.forEach(langCode => {
         const effectiveText = getEffectiveTextValue(textAsset, textInstance, langCode);
-        instanceData[langCode] = effectiveText || '';
+        instanceData[langCode] = effectiveText || TODO_PLACEHOLDER;
       });
 
       pageData[instanceId] = instanceData;
@@ -73,7 +68,6 @@ export function generateTextAssetYAML(project: ProjectData): string {
   }
 
   const yamlData: TextAssetYAMLData = {
-    languages,
     pages,
   };
 
@@ -94,7 +88,7 @@ export function generateTextAssetYAML(project: ProjectData): string {
  */
 export function parseTextAssetYAML(yamlString: string, project: ProjectData): ParsedPageData[] {
   let parsedYaml: any;
-  
+
   try {
     parsedYaml = yaml.load(yamlString);
   } catch (error) {
@@ -129,7 +123,7 @@ export function parseTextAssetYAML(yamlString: string, project: ProjectData): Pa
     // インスタンスデータを処理
     for (const [key, value] of Object.entries(pageData)) {
       if (key === 'id' || key === 'title') continue;
-      if (!key.startsWith('instance-')) continue;
+      if (!key.startsWith('ins-')) continue;
 
       const instanceData = value as any;
       if (!instanceData || typeof instanceData !== 'object') continue;
@@ -149,11 +143,15 @@ export function parseTextAssetYAML(yamlString: string, project: ProjectData): Pa
       }
 
       const texts: Record<string, string> = {};
-      
+
       // 各言語のテキストを取得
       supportedLanguages.forEach(langCode => {
         if (typeof instanceData[langCode] === 'string') {
-          texts[langCode] = instanceData[langCode];
+          if (instanceData[langCode] === TODO_PLACEHOLDER) {
+            texts[langCode] = '';
+          } else {
+            texts[langCode] = instanceData[langCode];
+          }
         }
       });
 
@@ -175,33 +173,6 @@ export function parseTextAssetYAML(yamlString: string, project: ProjectData): Pa
 }
 
 /**
- * 言語コードから言語名を取得
- * @param langCode ISO 639-1言語コード
- * @returns 言語名
- */
-function getLanguageName(langCode: string): string {
-  const languageNames: Record<string, string> = {
-    'ja': 'Japanese',
-    'en': 'English',
-    'zh': 'Chinese',
-    'ko': 'Korean',
-    'es': 'Spanish',
-    'fr': 'French',
-    'de': 'German',
-    'it': 'Italian',
-    'pt': 'Portuguese',
-    'ru': 'Russian',
-    'ar': 'Arabic',
-    'hi': 'Hindi',
-    'th': 'Thai',
-    'vi': 'Vietnamese',
-    'tr': 'Turkish',
-  };
-  
-  return languageNames[langCode] || langCode.toUpperCase();
-}
-
-/**
  * YAML形式データの妥当性をチェック
  * @param yamlData パース済みYAMLデータ
  * @param project 現在のプロジェクトデータ
@@ -213,10 +184,6 @@ export function validateTextAssetYAML(yamlData: any, project: ProjectData): { va
   if (!yamlData || typeof yamlData !== 'object') {
     errors.push('有効なYAMLオブジェクトではありません');
     return { valid: false, errors };
-  }
-
-  if (!yamlData.languages || typeof yamlData.languages !== 'object') {
-    errors.push('languages オブジェクトが見つかりません');
   }
 
   if (!Array.isArray(yamlData.pages)) {

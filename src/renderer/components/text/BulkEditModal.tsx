@@ -36,7 +36,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
   const updateAssetInstance = useProjectStore((state) => state.updateAssetInstance);
   const addNotification = useProjectStore((state) => state.addNotification);
   const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
-  
+
   const [yamlContent, setYamlContent] = useState('');
   const [originalContent, setOriginalContent] = useState('');
   const [isModified, setIsModified] = useState(false);
@@ -67,25 +67,23 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
 
     try {
       const parsedData = parseTextAssetYAML(yamlContent, project);
-      
+
       // 各ページの各インスタンスを更新
       for (const pageData of parsedData) {
         for (const [instanceId, instanceData] of Object.entries(pageData.instances)) {
           // 多言語テキストをmultilingual_textに変換
           const multilingual_text: Record<string, string> = {};
           for (const [langCode, text] of Object.entries(instanceData.texts)) {
-            if (text && text.trim()) {
-              multilingual_text[langCode] = text;
-            }
+            multilingual_text[langCode] = text;
           }
-          
+
           updateAssetInstance(pageData.pageId, instanceId, { multilingual_text });
         }
       }
 
       setOriginalContent(yamlContent);
       setIsModified(false);
-      
+
       addNotification({
         type: 'success',
         title: 'テキスト一括更新完了',
@@ -112,7 +110,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
     try {
       const prompt = generateAIPrompt(yamlContent, getSupportedLanguages());
       await navigator.clipboard.writeText(prompt);
-      
+
       addNotification({
         type: 'success',
         title: 'AIプロンプトをコピー',
@@ -170,11 +168,10 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
           borderColor: 'divider',
         }}
       >
-        <Typography variant="h6" component="h2">TextAsset Bulk Edit</Typography>
+        テキスト一括編集
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Button
             size="small"
-            startIcon={<HelpIcon />}
             onClick={() => setShowWhatIsThis(!showWhatIsThis)}
             sx={{
               fontSize: '12px',
@@ -182,7 +179,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
               '&:hover': { bgcolor: 'action.hover' }
             }}
           >
-            What is this?
+            <HelpIcon />
           </Button>
           <Button
             size="small"
