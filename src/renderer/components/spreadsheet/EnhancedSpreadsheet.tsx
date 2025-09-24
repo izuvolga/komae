@@ -22,6 +22,7 @@ import { generatePageId, generateAssetInstanceId } from '../../../utils/idGenera
 import { AssetThumbnail } from '../asset/AssetThumbnail';
 import { scrollCursorIntoView } from '../../utils/scrollUtils';
 import { createColumnDragCalculator } from '../../utils/columnDragCalculations';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import './EnhancedSpreadsheet.css';
 import './PageThumbnail.css';
 import './ColumnContextMenu.css';
@@ -32,6 +33,7 @@ import { NoteAdd } from '@mui/icons-material';
 export const EnhancedSpreadsheet: React.FC = () => {
   const { mode } = useTheme();
   const project = useProjectStore((state) => state.project);
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
   const cursor = useProjectStore((state) => state.ui.cursor);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
   const addPage = useProjectStore((state) => state.addPage);
@@ -1646,6 +1648,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           onCompositionStart={() => setIsComposing(true)}
                           onCompositionEnd={() => setIsComposing(false)}
                           onKeyDown={(e) => {
+                            // キーボードショートカット処理を先に実行
+                            handleTextFieldKeyEvent(e);
+
                             if (e.key === 'Enter') {
                               // IME変換中の場合は無視（変換確定のEnterを許可）
                               if (isComposing || (e as any).isComposing) {
@@ -1785,6 +1790,9 @@ export const EnhancedSpreadsheet: React.FC = () => {
                                   handleSaveValueInlineEdit();
                                 }}
                                 onKeyDown={(e) => {
+                                  // キーボードショートカット処理を先に実行
+                                  handleTextFieldKeyEvent(e);
+
                                   if (e.key === 'Enter') {
                                     e.preventDefault();
                                     handleSaveValueInlineEdit();
