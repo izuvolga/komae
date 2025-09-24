@@ -18,6 +18,14 @@
 - [ ]: プロジェクトの背景色を SVG で生成する
 - [ ]: 通知の位置が、プレビューウィンドウのトグルボタンを隠すのがちょっとうざい
 - [ ]: PreviewArea, AssetLibrary の表示トグル状態も ui-state.yaml に保存する
+- [ ]: 以下のファイルにおいても、共通フック useTextFieldKeyboardShortcuts を利用する
+  - src/renderer/components/asset/ValueEditModal.tsx
+  - src/renderer/components/asset/DynamicVectorEditModal.tsx
+  - src/renderer/components/asset/VectorEditModal.tsx
+  - src/renderer/components/asset/ImageEditModal.tsx
+  - src/renderer/components/text/BulkEditModal.tsx (テキストエリア)
+  - src/renderer/components/font/FontManagementModal.tsx (サンプルテキストの箇所)
+  - src/renderer/components/font/FontAddModal.tsx (Google Fonts URL の箇所)
 
 ## HTML ファイル関連
 - [ ]: 次ページ、前ページを、表示画面の上半分・下半分タップのみで切り替えられるようにする
@@ -63,6 +71,23 @@
   - asset/instance/アプリ名(komae) など。
   - instance.asset.width, instance.asset.height instance.width, instance.height
 - [ ]: 丸、三角、四角、多角形など、基本図形を描画するカスタムアセットをビルトインで追加する
+  - 丸
+  - 三角形
+  - 四角形
+  - 多角形
+  - 矢印
+  - 吹き出し (参考: https://qleanmarket.amanaimages.com/items/FYI04531140)
+    - 丸
+    - トゲトゲ
+    - 塗りつぶし トゲトゲ (https://comic.smiles55.jp/guide/12971/)
+    - 雲のようなふわふわ
+    - ふにゃふにゃ
+  - 集中線
+  - 囲むモヤ
+  - 一方向のモヤ
+  - HPゲージ
+  - ライフゲージ
+  - ページ番号
 
 # v0.1 リリースに向けてのTODO
 
@@ -99,3 +124,5 @@
 - [ ]: 画像のrotate機能
 - [ ]: JumpAsset
   - 選択肢を表示して、選択されたら指定されたページに移動するアセット
+
+
