@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -41,6 +41,8 @@ import {
   isLanguageSettingsField,
   isTextAssetEditableField,
 } from '../../../types/entities';
+import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
+import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 
 // 編集モードの種類
 type EditMode = 'asset' | 'instance';
@@ -135,7 +137,48 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     loadFonts();
   }, [isOpen, project]);
 
-  if (!isOpen || !editingAsset) return null;
+  if (!isOpen || !project || !editingAsset) return null;
+
+  // 動的スケール計算用のref
+  const previewSvgRef = useRef<SVGSVGElement>(null);
+  const [dynamicScale, setDynamicScale] = useState(1);
+  const [scaleCalculated, setScaleCalculated] = useState(false);
+
+  // スナップ機能関連の状態
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const SNAP_THRESHOLD = 10; // 10px以内でスナップ
+
+  // 動的余白計算（キャンバス長辺の10%）
+  const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
+
+  // ドラッグ開始時にスケールを計算する関数
+  const calculateDynamicScale = () => {
+    if (scaleCalculated || !previewSvgRef.current || !project) return;
+
+    const svgElement = previewSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const canvasWidth = project.canvas.width;
+
+    // SVGの実際の描画エリア幅を取得
+    const svgDisplayWidth = svgRect.width;
+
+    // viewBoxで設定されている総幅は canvasWidth + margin*2 なので、
+    // キャンバス部分の幅は (canvasWidth / (canvasWidth + margin*2)) * svgDisplayWidth
+    const canvasDisplayWidth = (canvasWidth / (canvasWidth + margin * 2)) * svgDisplayWidth;
+
+    // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
+    const calculatedScale = canvasDisplayWidth / canvasWidth;
+
+    console.log(`TextEditModal scale calculation:
+      - Canvas width: ${canvasWidth}px
+      - SVG display width: ${svgDisplayWidth}px
+      - Canvas display width: ${canvasDisplayWidth}px
+      - Calculated scale: ${calculatedScale}`);
+
+    setDynamicScale(calculatedScale);
+    setScaleCalculated(true);
+  };
+
 
   // プレビュータブのリストを生成
   const getPreviewTabs = () => {
