@@ -528,7 +528,8 @@ export function generateMultilingualTextElement(
   availableLanguages: string[],
   currentLanguage: string,
   phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO,
-  domId?: string
+  domId?: string,
+  overridePos?: { x: number; y: number }, // 位置を強制的に上書きする。プレビュー時に利用。text要素は座標を含むため。
 ): string {
   const textInstance = instance as TextAssetInstance;
   const results: string[] = [];
@@ -540,8 +541,8 @@ export function generateMultilingualTextElement(
 
     // 新仕様多言語対応ヘルパー関数を使用して各言語の値を取得
     const finalPos = getEffectivePosition(asset, textInstance, lang, phase);
-    const finalPosX = finalPos.x;
-    const finalPosY = finalPos.y;
+    const finalPosX = overridePos ? overridePos.x : finalPos.x;
+    const finalPosY = overridePos ? overridePos.y : finalPos.y;
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang, phase);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
     const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);

@@ -23,7 +23,7 @@ import {
 import { Close as CloseIcon, Help as HelpIcon, TextRotateVertical, TextRotationNone } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
-import { generateTextPreviewSVG } from '../../../utils/svgGeneratorCommon';
+import { generateTextPreviewSVG, generateMultilingualTextElement} from '../../../utils/svgGeneratorCommon';
 import { updateLanguageSettings } from '../../../utils/languageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
@@ -41,6 +41,7 @@ import {
   isLanguageSettingsField,
   isTextAssetEditableField,
 } from '../../../types/entities';
+import { convertMouseDelta } from '../../utils/editModalUtils';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 
@@ -88,7 +89,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   // ドラッグ操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
-  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0 });
+  const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -392,25 +395,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     return !!(editingInstance.multilingual_text && currentLang in editingInstance.multilingual_text);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
-  // プレビューサイズを計算
-  const previewDimensions = useMemo(() => {
-    const canvasWidth = canvasConfig?.width || 800;
-    const canvasHeight = canvasConfig?.height || 600;
-    const maxPreviewWidth = 360;
-    const maxPreviewHeight = 300;
-
-    // 縦横比を保持しながら最大サイズ内に収める
-    const widthRatio = maxPreviewWidth / canvasWidth;
-    const heightRatio = maxPreviewHeight / canvasHeight;
-    const scale = Math.min(widthRatio, heightRatio, 1); // 1以下にする（拡大しない）
-
-    return {
-      width: Math.round(canvasWidth * scale),
-      height: Math.round(canvasHeight * scale),
-      scale,
-    };
-  }, [canvasConfig]);
-
   const getTextFrameSize = useCallback(() => {
     const pos = currentPos;
     const fontSize = getCurrentValue('font_size');
@@ -431,8 +415,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           let top = pos.y;
           let left = pos.x;
           // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-          let width = rect.width / previewDimensions.scale;
-          let height = rect.height / previewDimensions.scale;
+          let width = rect.width;
+          let height = rect.height;
           // 縦書きの場合には、X座標の開始点は要素の右側になるように調整
           if (vertical) {
             left -= width;
@@ -449,7 +433,26 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [currentPos, previewDimensions.scale, getCurrentValue, getCurrentLanguage]);
+  }, [currentPos, getCurrentValue, getCurrentLanguage]);
+
+  /** 現在のサイズを推定計算する
+   * getTextFrameSize() を使ってテキスト要素のサイズを取得し、
+   * canvasConfig と照らし合わせて、実際のキャンバス上でのサイズを計算する
+   */
+  const getCurrentSize = (): { width: number; height: number } => {
+    const canvasWidth = canvasConfig?.width || 600;
+    const canvasHeight = canvasConfig?.height || 600;
+    const textFrameSize = getTextFrameSize();
+    if (textFrameSize) {
+      const width = textFrameSize.width / dynamicScale;
+      const height = textFrameSize.height / dynamicScale;
+      if (width > 0 && height > 0) {
+        return { width, height };
+      }
+    }
+    return { width: canvasWidth, height: canvasHeight }; // サイズが取得できない場合のデフォルト値
+  }
+  const currentSize = getCurrentSize();
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -519,25 +522,55 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
     setIsDragging(true);
     setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({ x: currentPos.x, y: currentPos.y });
+    setDragStartValues({ x: currentPos.x, y: currentPos.y, width:currentSize.width, height:currentSize.height});
   };
 
+  // リサイズハンドラー
+  const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    calculateDynamicScale(); // リサイズ開始時にスケール計算
+
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    setDragStartValues({
+      x: currentPos.x,
+      y: currentPos.y,
+      width: currentSize.width,
+      height: currentSize.height
+    });
+  };
 
   // グローバルマウスイベントの処理
   useEffect(() => {
+
+
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        const deltaX = (e.clientX - dragStartPos.x) / previewDimensions.scale;
-        const deltaY = (e.clientY - dragStartPos.y) / previewDimensions.scale;
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
-        // キャンバス境界内に制限
-        const canvasWidth = canvasConfig?.width || 800;
-        const canvasHeight = canvasConfig?.height || 600;
+        // 提案された新しい位置を計算
+        const proposedX = dragStartValues.x + deltaX;
+        const proposedY = dragStartValues.y + deltaY;
 
-        const newX = Math.max(0, Math.min(canvasWidth, dragStartValues.x + deltaX));
-        const newY = Math.max(0, Math.min(canvasHeight, dragStartValues.y + deltaY));
+        // スナップ計算を実行
+        const snapResult = calculateSnap(
+          proposedX,
+          proposedY,
+          currentSize.width,
+          currentSize.height,
+          project.canvas.width,
+          project.canvas.height,
+          SNAP_THRESHOLD
+        );
 
-        setCurrentPosition(newX, newY);
+        // スナップした位置を適用
+        setCurrentPosition(snapResult.snappedX, snapResult.snappedY);
+
+        // ガイドラインを更新
+        setSnapGuides(snapResult.snapGuides);
       }
     };
 
@@ -553,7 +586,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragStartPos, dragStartValues, canvasConfig, previewDimensions.scale]);
+  }, [isDragging, dragStartPos, dragStartValues, canvasConfig]);
 
   const handleSave = () => {
     if (mode === 'asset') {
@@ -620,29 +653,18 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         phase = TextAssetInstancePhase.AUTO;
       }
 
-      const canvasWidth = canvasConfig?.width || 800;
-      const canvasHeight = canvasConfig?.height || 600;
-      const svg = generateTextPreviewSVG(
+      // TextSVG要素を生成（プレビュー用は単一言語）
+      const availableLanguages = [previewLanguage];
+      const textElement = generateMultilingualTextElement(
         previewAsset,
-        mode === 'instance' ? editingInstance : undefined,
+        editingInstance || { id: 'temp-preview', asset_id: asset.id },
+        availableLanguages,
         previewLanguage,
-        {
-          width: canvasWidth,
-          height: canvasHeight,
-          backgroundColor: 'transparent',
-          domId: `${PREVIEW_DOM_ID}`,
-        },
         phase,
+        "text-edit-modal-preview",
+        {x: 0, y: 0} // 座標移動は EditModalSvgCanvas 側で行うためここでは不要
       );
-      return `<svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 ${canvasWidth} ${canvasHeight}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="position: absolute; top: 0; left: 0; pointer-events: none;"
-      >
-      ${svg}
-      </svg>`;
+      return textElement;
     } catch (error) {
       console.error('Failed to generate preview SVG:', error);
       return '<svg><text>プレビューエラー</text></svg>';
@@ -676,7 +698,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         data-drag-area="true"
       />
     </svg>`;
-  }, [getTextFrameSize, previewDimensions.scale, canvasConfig, isDragging]);
+  }, [getTextFrameSize, canvasConfig, isDragging]);
 
   // モーダル外側クリックでの閉じる処理を削除
 
@@ -727,9 +749,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              プレビュー
-            </Typography>
 
             {/* プレビュータブ（アセット編集時のみ表示） */}
             {mode === 'asset' && project && project.metadata.supportedLanguages && project.metadata.supportedLanguages.length > 1 && (
@@ -775,44 +794,42 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
               alignItems: 'center',
               flex: 1
             }}>
-              <Box sx={{
+              <Box
+              id="text-edit-preview-container"
+              sx={{
                 position: 'relative',
-                width: previewDimensions.width,
-                height: previewDimensions.height,
+                width: 600,
+                height: 600,
                 border: '2px solid #007bff',
                 borderRadius: 1,
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                 backgroundColor: '#f8f9fa'
               }}>
-                {/* SVGプレビュー */}
-                <Box
-                  id="text-preview-svg"
-                  dangerouslySetInnerHTML={{ __html: previewSVG }}
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    pointerEvents: 'none', // SVG自体はクリック無効
+                {/* SVG描画領域（共通コンポーネント） */}
+                <EditModalSvgCanvas
+                  ref={previewSvgRef}
+                  project={project}
+                  currentPos={currentPos}
+                  currentSize={currentSize}
+                  currentOpacity={getCurrentValue('opacity')}
+                  svgContent={previewSVG}
+                  originalWidth={currentSize.width}
+                  originalHeight={currentSize.height}
+                  onDragStart={(e) => {
+                    e.preventDefault();
+                    calculateDynamicScale(); // ドラッグ開始時にスケール計算
+                    setIsDragging(true);
+                    setDragStartPos({ x: e.clientX, y: e.clientY });
+                    setDragStartValues({
+                      x: currentPos.x,
+                      y: currentPos.y,
+                      width: currentSize.width,
+                      height: currentSize.height
+                    });
                   }}
-                />
-
-                {/* SVG形式のドラッグ可能領域 */}
-                <Box
-                  dangerouslySetInnerHTML={{ __html: textDragAreaSVG }}
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    pointerEvents: 'all',
-                    zIndex: 2,
-                  }}
-                  onMouseDown={handleTextMouseDown}
-                  title="ドラッグしてテキスト位置を変更"
+                  onResizeStart={handleResizeMouseDown}
+                  snapGuides={snapGuides}
                 />
               </Box>
             </Box>
