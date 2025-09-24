@@ -610,6 +610,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           updateSize(value, currentSize.height);
                         }
                       }}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={0.01}
                       decimals={2}
                       className="small"
@@ -627,6 +628,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                           updateSize(currentSize.width, value);
                         }
                       }}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={0.01}
                       decimals={2}
                       className="small"
@@ -671,6 +673,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       onChange={(value) => {
                         updatePosition(value, currentPos.y);
                       }}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -684,6 +687,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                       onChange={(value) => {
                         updatePosition(currentPos.x, value);
                       }}
+                      onKeyDown={handleTextFieldKeyEvent}
                       min={-9999}
                       max={9999}
                       decimals={2}
@@ -800,6 +804,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                             newMask[index] = [value, point[1]];
                             updateMask(newMask);
                           }}
+                          onKeyDown={handleTextFieldKeyEvent}
                           min={-9999}
                           max={9999}
                           decimals={2}
@@ -815,6 +820,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
                             newMask[index] = [point[0], value];
                             updateMask(newMask);
                           }}
+                          onKeyDown={handleTextFieldKeyEvent}
                           min={-9999}
                           max={9999}
                           decimals={2}

@@ -12,6 +12,7 @@ interface NumericInputProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
 /**
@@ -27,7 +28,8 @@ export const NumericInput: React.FC<NumericInputProps> = ({
   decimals = 2,
   disabled = false,
   placeholder,
-  className = ''
+  className = '',
+  onKeyDown
 }) => {
   const [inputValue, setInputValue] = useState(value.toString());
   const [isEditing, setIsEditing] = useState(false);
@@ -119,10 +121,19 @@ export const NumericInput: React.FC<NumericInputProps> = ({
 
   // Enterキー押下時
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    // デフォルトの動作（Enter時にblur）を先に処理
     if (e.key === 'Enter') {
       e.currentTarget.blur();
+      console.log('DEBUG: Enter key pressed, input blurred.');
+      // Enterキーの場合は外部ハンドラーに渡さない（blurに専念）
+      return;
     }
-  }, []);
+
+    // Enterキー以外の場合は外部からのonKeyDownハンドラーを実行
+    if (onKeyDown) {
+      onKeyDown(e);
+    }
+  }, [onKeyDown]);
 
   // 値を増加させる関数
   const performIncrement = useCallback(() => {
