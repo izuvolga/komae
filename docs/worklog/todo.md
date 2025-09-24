@@ -5,7 +5,7 @@
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
 - [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
-- [ ]: TextEditAsset の縦書き
+- [x]: TextEditAsset の縦書き
   - https://mui.com/material-ui/react-toggle-button/#size と TextRotateVertical TextRotationNone を使う
 - [ ]: ValueAsset 改善
   - color 型対応
@@ -41,7 +41,7 @@
 
 ## TextAsset 改善
 - [x]: bulkgauge と同じ方式で各文字を<text>に分割する
-- [ ]: EditModal の範囲選択エリアを、DOM要素の値を使ってより正確な値にする
+- [x]: EditModal の範囲選択エリアを、DOM要素の値を使ってより正確な値にする
 - [ ]: TextAsset に rotate を対応する
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
   - 行番号表示
