@@ -33,6 +33,7 @@ import {
 import { Close as CloseIcon, Help as HelpIcon, CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
+import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import type { ProjectCreateParams, CanvasConfig, ProjectData } from '../../../types/entities';
 import { AVAILABLE_LANGUAGES, DEFAULT_SUPPORTED_LANGUAGES, DEFAULT_CURRENT_LANGUAGE, getLanguageDisplayName } from '../../../constants/languages';
 import { ColorPicker } from '../common/ColorPicker';
@@ -78,6 +79,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
 }) => {
   const { setProject, addNotification } = useProjectStore();
   const { mode: themeMode } = useTheme();
+  const { handleTextFieldKeyEvent } = useTextFieldKeyboardShortcuts();
   
   // フォーム状態
   const [title, setTitle] = useState('');
@@ -357,6 +359,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <TextField
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={handleTextFieldKeyEvent}
               placeholder="未入力の場合は「Untitled」になります"
               disabled={isCreating}
               fullWidth
@@ -378,6 +381,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
             <TextField
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={handleTextFieldKeyEvent}
               placeholder="備考"
               multiline
               rows={3}
@@ -576,6 +580,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                     type="number"
                     value={customWidth}
                     onChange={(e) => setCustomWidth(Number(e.target.value) || 800)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     inputProps={{ min: 100, max: 4000 }}
                     disabled={isCreating}
                     size="small"
@@ -588,6 +593,7 @@ export const ProjectCreateDialog: React.FC<ProjectCreateDialogProps> = ({
                     type="number"
                     value={customHeight}
                     onChange={(e) => setCustomHeight(Number(e.target.value) || 600)}
+                    onKeyDown={handleTextFieldKeyEvent}
                     inputProps={{ min: 100, max: 4000 }}
                     disabled={isCreating}
                     size="small"
