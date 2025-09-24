@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+
+/**
+ * スパイキー吹き出し（300x300表示固定・3×3余白）
+ * - ランダムな外向きトゲを放射配置
+ * - tailAngle に一致する外側トゲだけを tailLength ぶん延長
+ *
+ * @param {Object} params
+ * @param {number} params.strokeWidth           - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"]  - 線の色
+ * @param {string} [params.fillColor="#fff"]    - 内側の色
+ * @param {number} [params.tailLength=60]       - tail の長さ(0で無し)
+ * @param {number} [params.tailAngle=90]        - tail 角度(0=上,90=右)
+ * @param {number} [params.spikeCount=18]       - 外トゲの本数（多いほど密）
+ * @param {number} [params.spikeAmp=28]         - トゲの平均外向き量(px)
+ * @param {number} [params.innerDip=8]          - 谷側の食い込み量(px)
+ * @param {number} [params.seed=1]              - 乱数シード（同じ値で再現）
+ * @returns {string} SVG文字列
+ */
+function generateSpikySpeechBubbleSVG({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 60,
+  tailAngle = 90,
+  spikeCount = 18,
+  spikeAmp = 28,
+  innerDip = 8,
+  seed = 1,
+}) {
+  // === 基本寸法（見た目300固定、座標は直径の3倍） ===
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2); // 本体の基準半径
+  const V = +(6 * r).toFixed(2);                       // viewBox幅/高（6r）
+  const cx = 3 * r, cy = 3 * r;                        // 中心
+  const fmt = (n) => Number(n.toFixed(2));
+
+  // === 角度：0=上, 90=右 -> 画面ラジアン（右=0, 下=+90°） ===
+  const theta = (tailAngle - 90) * Math.PI / 180;
+
+  // === 乱数（簡易LCG） ===
+  let s = (seed >>> 0) || 1;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+  // 入力クランプ
+  const N = Math.max(5, Math.floor(spikeCount)); // 最低5本
+  const dip = Math.max(0, Math.min(innerDip, r * 0.6));
+  const amp = Math.max(2, Math.min(spikeAmp, 2 * r)); // 3×3余白で安全な範囲
+
+  // 外トゲ（N本）の角度間隔。i=0 の外トゲがちょうど θ に来るよう位相合わせ
+  const step = (2 * Math.PI) / N;
+  const phi = theta; // 外トゲ i=0 の角度
+
+  // tail の安全長：3×3余白では「円半径 r」から外へ最大 +2r までOK
+  // ただし i=0 の外トゲには既に amp 系の伸びがあるので、その分を差し引く
+  const baseOuterOffsetForTail =
+    amp * (0.6 + 0.4 * rand()); // i=0 用に先に1回サンプル（後で再利用）
+  const maxTailByView = Math.max(0, 2 * r - baseOuterOffsetForTail);
+  const tlen = Math.max(0, Math.min(tailLength, maxTailByView));
+
+  // パス頂点を生成（外トゲ→谷→外トゲ→…の順で2N点）
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const ao = phi + i * step;        // 外トゲ角
+    const ai = ao + step / 2;         // 谷角（外トゲの中間）
+
+    // 外トゲの外向きオフセットを乱数で揺らす（やや強めに外へ）
+    let outerOffset = amp * (0.6 + 0.4 * rand()); // 0.6〜1.0×amp
+    if (i === 0 && tlen > 0) {
+      // tail対象の外トゲはさらに延長（安全クランプ済）
+      outerOffset = baseOuterOffsetForTail + tlen;
+    }
+
+    // 谷は少し内側へ（軽くランダムで硬さを防ぐ）
+    const innerOffset = - (dip * (0.8 + 0.4 * rand()));
+
+    const ro = r + outerOffset;
+    const ri = Math.max(4, r + innerOffset);
+
+    // 外トゲ頂点
+    pts.push([fmt(cx + ro * Math.cos(ao)), fmt(cy + ro * Math.sin(ao))]);
+    // 谷頂点
+    pts.push([fmt(cx + ri * Math.cos(ai)), fmt(cy + ri * Math.sin(ai))]);
+  }
+  // 閉曲線用に先頭点を再掲
+  pts.push(pts[0]);
+
+  // パス生成（尖りを活かすため直線で）
+  let d = `M ${pts[0][0]} ${pts[0][1]} `;
+  for (let i = 1; i < pts.length; i++) d += `L ${pts[i][0]} ${pts[i][1]} `;
+  d += 'Z';
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}"
+        fill="${fillColor}"
+        stroke="${strokeColor}"
+        stroke-width="${strokeWidth || 0}"
+        stroke-linejoin="miter"
+        stroke-miterlimit="3"/>
+</svg>`;
+}
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = generateSpikySpeechBubbleSVG({
+      strokeWidth: 6,
+      strokeColor: '#111',
+      fillColor: '#fff',
+      tailLength: 90,   // 叫びの勢い
+      tailAngle: 210,   // 330°（右上やや上寄り）
+      spikeCount: 30,   // トゲの本数
+      spikeAmp: 80,     // トゲ平均長（上げるほど攻撃的）
+      innerDip: 10,     // 谷の食い込み
+      seed: 2025,       // 再現性
+    });
+  });
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

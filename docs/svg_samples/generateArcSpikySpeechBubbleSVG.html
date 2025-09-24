@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+
+/**
+ * 半円アーチのみで構成した吹き出し（300x300表示固定・3×3余白）
+ * - 輪郭は「半円→半円→…」の連続のみ（スパイク無し）
+ * - 乱数でアーチ幅・深さ・位置に揺らぎ
+ * - tailAngle に最も近いアーチの“幅”をブーストして強調（叫び方向）
+ *
+ * @param {Object} params
+ * @param {number} params.strokeWidth           - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"]  - 線の色
+ * @param {string} [params.fillColor="#fff"]    - 内側の色
+ * @param {number} [params.tailLength=60]       - tailの強さ（≒そのアーチ幅のブースト量）
+ * @param {number} [params.tailAngle=90]        - tailの角度(0=上,90=右)
+ * @param {number} [params.archCount=14]        - 半円アーチの本数
+ * @param {number} [params.depthJitter=8]       - 各端点の半径ジッタ量(px)
+ * @param {number} [params.seed=1]              - 乱数シード（同じ値なら同形状）
+ * @returns {string} SVG文字列
+ */
+function generateSemiArchBubbleSVG({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 60,
+  tailAngle = 90,
+  archCount = 14,
+  depthJitter = 8,
+  seed = 1,
+}) {
+  // === 基本寸法（見た目は300固定、座標は直径の3倍余白） ===
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2); // 基準半径
+  const V = +(6 * r).toFixed(2);
+  const cx = 3 * r, cy = 3 * r;
+  const fmt = (n) => Number(n.toFixed(2));
+
+  // 角度系：0=上, 90=右 → 画面ラジアン（右=0, 下=+90°）
+  const theta = (tailAngle - 90) * Math.PI / 180;
+
+  // === 乱数（LCG） ===
+  let s = (seed >>> 0) || 1;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const randRange = (a, b) => a + (b - a) * rand();
+
+  // === アーチ（半円）の“節点”角度をランダム分割で作る（2πに正規化） ===
+  const N = Math.max(6, Math.floor(archCount));
+  const baseW = Array.from({ length: N }, () => randRange(0.7, 1.6)); // 重み（区間角に相当）
+  const sumW = baseW.reduce((a, b) => a + b, 0);
+  let ang = baseW.map((w) => (2 * Math.PI) * (w / sumW)); // 各区間角
+  // 区間中心角（各半円の“山”の方向）
+  const centers = [];
+  let acc = 0;
+  for (let i = 0; i < N; i++) {
+    centers.push(acc + ang[i] / 2);
+    acc += ang[i];
+  }
+
+  // === tailAngle に最も近いアーチの“幅”をブースト ===
+  const norm = (a) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const idxTail = centers
+    .map((a, i) => ({ i, d: Math.min(Math.abs(norm(a - theta)), 2 * Math.PI - Math.abs(norm(a - theta))) }))
+    .sort((a, b) => a.d - b.d)[0].i;
+
+  // tailLength(px) → 幅ブースト量（直感的比例）。必要なら係数で調整。
+  const boost = Math.max(0, tailLength / (r * 0.8));
+  ang[idxTail] *= (1 + boost);
+
+  // 合計2πに再正規化（全体のバランスを保つ）
+  const sumA = ang.reduce((a, b) => a + b, 0);
+  ang = ang.map((a) => (a * (2 * Math.PI / sumA)));
+
+  // 再計算：節点角（端点）φ0..φN（最後は2πで先頭に一致）
+  const phi = [0];
+  for (let i = 0; i < N; i++) phi.push(phi[i] + ang[i]);
+
+  // === 端点の半径にジッタを与え、各区間を「外向き半円」で結ぶ ===
+  const jitter = (v) => (depthJitter ? randRange(-depthJitter, depthJitter) : 0);
+  const points = phi.map((a) => {
+    const rr = Math.max(4, r + jitter(depthJitter));
+    return [fmt(cx + rr * Math.cos(a)), fmt(cy + rr * Math.sin(a))];
+  });
+
+  // 半円（外向き）を2本のCubic Bezierで正確に描く
+  function semicircleCubic(Sx, Sy, Ex, Ey, Cx, Cy) {
+    const Mx = (Sx + Ex) / 2, My = (Sy + Ey) / 2;
+    const dx = Ex - Sx, dy = Ey - Sy;
+    const d = Math.hypot(dx, dy);
+    if (d < 1e-6) return `L ${fmt(Ex)} ${fmt(Ey)}`;
+    const R = d / 2;
+
+    // chord の+90°法線 n（単位）
+    const nx = -dy / d, ny = dx / d;
+    // C がどちら側にあるか（+1: n側）→ 外側はその反対
+    const side = Math.sign(nx * (Cx - Mx) + ny * (Cy - My));
+    const sgn = (side >= 0) ? -1 : 1;
+
+    // 標準90°円弧のベジェ係数
+    const k = 4 / 3 * Math.tan(Math.PI / 8);
+
+    // M を中心に、S 側単位半径ベクトル
+    const ux = (Sx - Mx) / R, uy = (Sy - My) / R;
+    const rot90 = (x, y, s) => (s > 0 ? [-y, x] : [y, -x]);
+
+    const [w1x, w1y] = rot90(ux, uy, sgn); // 外向き半円の真ん中方向
+    const Kx = Mx + R * w1x,   Ky = My + R * w1y;
+
+    const [t0x, t0y] = rot90(ux, uy, sgn);   // S側接線
+    const [t1x, t1y] = rot90(w1x, w1y, sgn); // K側接線
+
+    const c1x = Sx + k * R * t0x, c1y = Sy + k * R * t0y;
+    const c2x = Kx - k * R * t1x, c2y = Ky - k * R * t1y;
+    const c3x = Kx + k * R * t1x, c3y = Ky + k * R * t1y;
+    const c4x = Ex - k * R * (-t0x), c4y = Ey - k * R * (-t0y);
+
+    return `C ${fmt(c1x)} ${fmt(c1y)} ${fmt(c2x)} ${fmt(c2y)} ${fmt(Kx)} ${fmt(Ky)} ` +
+           `C ${fmt(c3x)} ${fmt(c3y)} ${fmt(c4x)} ${fmt(c4y)} ${fmt(Ex)} ${fmt(Ey)} `;
+  }
+
+  // パス生成：P0→半円→P1→半円→…→PN(=P0) で閉じる
+  let d = `M ${points[0][0]} ${points[0][1]} `;
+  for (let i = 0; i < N; i++) {
+    const [Sx, Sy] = points[i];
+    const [Ex, Ey] = points[(i + 1) % points.length];
+    d += semicircleCubic(Sx, Sy, Ex, Ey, cx, cy);
+  }
+  d += 'Z';
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}"
+        fill="${fillColor}"
+        stroke="${strokeColor}"
+        stroke-width="${strokeWidth || 0}"
+        stroke-linejoin="round"/>
+</svg>`;
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.innerHTML = generateSemiArchBubbleSVG({
+    strokeWidth: 5,
+    strokeColor: '#111',
+    fillColor: '#f00',
+    tailLength: 10,    // 叫び方向の“アーチ幅”を強める（視覚的に一番張り出す）
+    tailAngle: 210,    // 20°（上と右の間）
+    archCount: 10,     // 半円アーチの本数（少ないほど大きなうねり）
+    depthJitter: 1,   // 端点の半径ジッタ（大きいほど表情が出る）
+    seed: 4242,        // 再現性
+  });
+});
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

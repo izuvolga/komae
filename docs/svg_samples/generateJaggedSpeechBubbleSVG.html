@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+/**
+ * ギザギザ吹き出し（tail は指定角度に最も近い外側ギザを延長）
+ * 300x300 表示固定。はみ出し防止に viewBox を3×3余白へ拡張。
+ *
+ * @param {Object} params
+ * @param {number} params.strokeWidth          - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"] - 線の色
+ * @param {string} [params.fillColor="#fff"]   - 内側の色
+ * @param {number} [params.tailLength=40]      - tail の延長量(px) 0で丸
+ * @param {number} [params.tailAngle=90]       - tail の角度(0=上,90=右)
+ * @param {number} [params.toothCount=48]      - ギザ数（外側ピークと内側谷の合計点数）
+ * @returns {string} SVG 文字列
+ */
+function generateJaggedSpeechBubbleSVGAlignedTail({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 40,
+  tailAngle = 90,
+  toothCount = 48,
+}) {
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2); // 本体半径の基準
+  const V = +(6 * r).toFixed(2);                        // 3×3 余白座標
+  const cx = 3 * r, cy = 3 * r;
+
+  // 0°=上, 90°=右 を 画面ラジアン（右=0, 下=+90°）へ変換
+  const theta = (tailAngle - 90) * Math.PI / 180;
+
+  // ギザの深さ（自動）。必要なら固定値にしてOK
+  const toothDepth = Math.max(4, Math.min(18, r * 0.08));
+
+  // はみ出し安全のため延長上限（3×3余白で直径ぶんまで拡張）
+  const maxTail = 2 * r;
+  const tlen = Math.max(0, Math.min(tailLength, maxTail));
+
+  // 点数は偶数推奨（外ピーク/内谷が交互）
+  const N = Math.max(6, Math.floor(toothCount) | 0);
+  const step = (2 * Math.PI) / N;
+
+  // 外側ピークを i=0,2,4,... に置く設計。
+  // 位相 φ を調整して i=0 の外側ピークが θ 方向に来るよう合わせる。
+  const phi = theta; // これで i=0 の角度が θ
+
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = phi + i * step;
+    // 偶数: 外ピーク / 奇数: 内谷
+    let ro = (i % 2 === 0) ? (r + toothDepth) : (r - toothDepth);
+
+    // i=0 （θ方向の外側ピーク）を tail として延長
+    if (i === 0 && tlen > 0) {
+      ro += tlen;
+    }
+
+    const x = cx + ro * Math.cos(a);
+    const y = cy + ro * Math.sin(a);
+    pts.push([+x.toFixed(2), +y.toFixed(2)]);
+  }
+  // 閉曲線用に最初の点をもう一度
+  pts.push(pts[0]);
+
+  // パス（直線でポリゴン）
+  let d = `M ${pts[0][0]} ${pts[0][1]} `;
+  for (let i = 1; i < pts.length; i++) d += `L ${pts[i][0]} ${pts[i][1]} `;
+  d += 'Z';
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth || 0}" stroke-linejoin="round"/>
+</svg>`;
+}
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = generateJaggedSpeechBubbleSVGAlignedTail({
+      strokeWidth: 5,
+      strokeColor: '#333',
+      fillColor: '#fff',
+      tailLength: 90,   // θ方向の外側ギザを延長
+      tailAngle: 210,    // 25°（上と右の間）
+      toothCount: 60,   // 多いほど細かいギザ
+    });
+  });
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

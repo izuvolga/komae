@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+/**
+ * 漫画の吹き出しSVG（見た目300x300固定）
+ * viewBoxを直径の3倍四方に拡張して、上下左右に1直径ぶんの余白を確保
+ * @param {Object} params
+ * @param {number} params.strokeWidth - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"] - 線の色
+ * @param {string} [params.fillColor="#fff"] - 内側の色
+ * @param {number} [params.tailLength=40] - トゲの長さ(px) 0で丸
+ * @param {number} [params.tailAngle=90] - トゲの角度(0=上,90=右)
+ * @returns {string} SVG文字列（width/height=300、viewBoxは自動）
+ */
+function generateSpeechBubbleSVG({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 40,
+  tailAngle = 90,
+}) {
+  // ベース半径（本体の円）。以前と同等の見た目に合わせて 120 を基準にし、
+  // ストロークが外にはみ出さないよう半分控えます。
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2);
+
+  // 表示サイズは固定、座標系だけ拡張：直径(2r)×3 = 6r
+  const V = +(6 * r).toFixed(2);
+  const cx = 3 * r;
+  const cy = 3 * r;
+
+  const theta = (tailAngle - 90) * Math.PI / 180;
+
+  const fmt = (n) => Number(n.toFixed(2));
+
+  // トゲなしならシンプルな円
+  if (!tailLength || tailLength <= 0) {
+    return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="${fmt(cx)}" cy="${fmt(cy)}" r="${fmt(r)}"
+          fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth || 0}"/>
+</svg>`;
+  }
+
+  // トゲ根本の幅（弦長）を長さに応じて自動調整
+  const baseChord = Math.max(16, Math.min(60, tailLength * 0.8 + 16));
+  let alpha = baseChord / (2 * r);      // 弦長 ≈ 2r*alpha（小角近似）
+  alpha = Math.min(alpha, Math.PI * 0.45); // 開口過大の抑制
+
+  const a1 = theta + alpha;
+  const a2 = theta - alpha;
+
+  const p1 = { x: cx + r * Math.cos(a1), y: cy + r * Math.sin(a1) };
+  const p2 = { x: cx + r * Math.cos(a2), y: cy + r * Math.sin(a2) };
+  const tip = { x: cx + (r + tailLength) * Math.cos(theta), y: cy + (r + tailLength) * Math.sin(theta) };
+
+  // tailLength が 2r を超えると、3×3余白でもはみ出すのでクリップ（任意）
+  const maxTail = 2 * r;
+  const tlen = Math.min(tailLength, maxTail);
+  const safeTip = tlen === tailLength ? tip : {
+    x: cx + (r + tlen) * Math.cos(theta),
+    y: cy + (r + tlen) * Math.sin(theta),
+  };
+
+  // 円弧は大きい側で p1→p2（large-arc=1, sweep=1）
+  const d = [
+    `M ${fmt(p1.x)} ${fmt(p1.y)}`,
+    `A ${fmt(r)} ${fmt(r)} 0 1 1 ${fmt(p2.x)} ${fmt(p2.y)}`,
+    `L ${fmt(safeTip.x)} ${fmt(safeTip.y)}`,
+    `L ${fmt(p1.x)} ${fmt(p1.y)}`,
+    `Z`
+  ].join(' ');
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth || 0}" stroke-linejoin="round"/>
+</svg>`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const svg = generateSpeechBubbleSVG({
+    strokeWidth: 7,
+    strokeColor: '#333',
+    fillColor: '#fff',
+    tailLength: 100,
+    tailAngle: 210, // 30°方向（上と右の間）
+  });
+  document.body.innerHTML = svg;
+});
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

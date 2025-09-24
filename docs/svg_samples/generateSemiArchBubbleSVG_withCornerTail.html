@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+
+
+/**
+ * 半円アーチのみの吹き出し（角のつなぎ目＝tail を延長）
+ * 300x300表示固定 / 3×3余白のviewBox
+ *
+ * @param {Object} params
+ * @param {number} params.strokeWidth          - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"] - 線の色
+ * @param {string} [params.fillColor="#fff"]   - 内側の色
+ * @param {number} [params.tailLength=60]      - tail（角の結節点）の延長量(px)
+ * @param {number} [params.tailAngle=90]       - tailの角度(0=上,90=右)
+ * @param {number} [params.archCount=14]       - 半円アーチの本数
+ * @param {number} [params.depthJitter=8]      - 各結節点の半径ジッタ(px)
+ * @param {number} [params.seed=1]             - 乱数シード
+ * @returns {string} SVG文字列
+ */
+function generateSemiArchBubbleSVG_withCornerTail({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 60,
+  tailAngle = 90,
+  archCount = 14,
+  depthJitter = 8,
+  seed = 1,
+}) {
+  // === 基本寸法（見た目300固定、座標は直径の3倍余白） ===
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2); // 基準半径（見た目ほぼ120）
+  const V = +(6 * r).toFixed(2);
+  const cx = 3 * r, cy = 3 * r;
+  const fmt = (n) => Number(n.toFixed(2));
+  const theta = (tailAngle - 90) * Math.PI / 180; // 0=上,90=右 → 画面ラジアン
+
+  // === 乱数 ===
+  let s = (seed >>> 0) || 1;
+  const rand = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const randRange = (a, b) => a + (b - a) * rand();
+
+  // === 2πをランダム分割してアーチ区間を作る ===
+  const N = Math.max(6, Math.floor(archCount));
+  const weights = Array.from({ length: N }, () => randRange(0.7, 1.6));
+  const sumW = weights.reduce((a, b) => a + b, 0);
+  const seg = weights.map(w => (2 * Math.PI) * (w / sumW)); // 各区間角
+
+  // 区間端角 φ（0..2π、最後は2π）
+  const phi = [0];
+  for (let i = 0; i < N; i++) phi.push(phi[i] + seg[i]);
+
+  // 角の結節点（＝端角）のうち、theta に最も近いインデックスを選ぶ
+  const nearestCornerIdx = (() => {
+    const norm = a => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    let bestI = 0, bestD = 1e9;
+    for (let i = 0; i < N; i++) {
+      const a = norm(phi[i]);
+      const d = Math.min(Math.abs(norm(a - theta)), 2 * Math.PI - Math.abs(norm(a - theta)));
+      if (d < bestD) { bestD = d; bestI = i; }
+    }
+    return bestI;
+  })();
+
+  // 全体を回転して、その結節点がちょうど theta に来るよう合わせる
+  const delta = theta - phi[nearestCornerIdx];
+  for (let i = 0; i < phi.length; i++) phi[i] += delta;
+
+  // === 各結節点の半径にジッタを付与（角の位置はそのまま） ===
+  const radii = Array.from({ length: N }, () => Math.max(4, r + (depthJitter ? randRange(-depthJitter, depthJitter) : 0)));
+
+  // tail結節点を半径方向に tailLength だけ延長（3×3余白に収まるよう最大値をクリップ）
+  const idxTail = nearestCornerIdx; // 回転後も同じ結節点がtheta上にある
+  const rr0 = radii[idxTail];
+  const maxTail = Math.max(0, 3 * r - rr0); // 中心から最大3rまでOK → 追加は (3r - 現在半径)
+  const tlen = Math.max(0, Math.min(tailLength, maxTail));
+  radii[idxTail] = rr0 + tlen;
+
+  // === 半円（外向き）を正確に描くCubic Bezier 2本 ===
+  function semicircleCubic(Sx, Sy, Ex, Ey, Cx, Cy) {
+    const Mx = (Sx + Ex) / 2, My = (Sy + Ey) / 2;
+    const dx = Ex - Sx, dy = Ey - Sy;
+    const d = Math.hypot(dx, dy);
+    if (d < 1e-6) return `L ${fmt(Ex)} ${fmt(Ey)}`;
+    const R = d / 2;
+
+    // chord 法線（+90°）と中心の位置関係から「外向き」側を決める
+    const nx = -dy / d, ny = dx / d;
+    const side = Math.sign(nx * (Cx - Mx) + ny * (Cy - My)); // +1: n側に中心
+    const sgn = (side >= 0) ? -1 : 1; // 外向き＝中心の反対側
+
+    // 90°円弧のベジェ係数
+    const k = 4 / 3 * Math.tan(Math.PI / 8);
+
+    // 単位ベクトル群
+    const ux = (Sx - Mx) / R, uy = (Sy - My) / R;        // M→S 方向
+    const rot90 = (x, y, s) => (s > 0 ? [-y, x] : [y, -x]);
+    const [w1x, w1y] = rot90(ux, uy, sgn);               // 外向き半円のピーク方向
+    const Kx = Mx + R * w1x, Ky = My + R * w1y;          // 半円中点
+
+    const [t0x, t0y] = rot90(ux, uy, sgn);               // 接線（S側）
+    const [t1x, t1y] = rot90(w1x, w1y, sgn);             // 接線（K側）
+
+    const c1x = Sx + k * R * t0x, c1y = Sy + k * R * t0y;
+    const c2x = Kx - k * R * t1x, c2y = Ky - k * R * t1y;
+    const c3x = Kx + k * R * t1x, c3y = Ky + k * R * t1y;
+    const c4x = Ex - k * R * (-t0x), c4y = Ey - k * R * (-t0y);
+
+    return `C ${fmt(c1x)} ${fmt(c1y)} ${fmt(c2x)} ${fmt(c2y)} ${fmt(Kx)} ${fmt(Ky)} ` +
+           `C ${fmt(c3x)} ${fmt(c3y)} ${fmt(c4x)} ${fmt(c4y)} ${fmt(Ex)} ${fmt(Ey)} `;
+  }
+
+  // === 結節点の座標を計算（最後は先頭と同一点角なので除外してOK） ===
+  const P = [];
+  for (let i = 0; i < N; i++) {
+    const x = cx + radii[i] * Math.cos(phi[i]);
+    const y = cy + radii[i] * Math.sin(phi[i]);
+    P.push([fmt(x), fmt(y)]);
+  }
+
+  // === パス生成：P0→半円→P1→…→PN-1→半円→P0 ===
+  let d = `M ${P[0][0]} ${P[0][1]} `;
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N;
+    d += semicircleCubic(P[i][0], P[i][1], P[j][0], P[j][1], cx, cy);
+  }
+  d += 'Z';
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}"
+        fill="${fillColor}"
+        stroke="${strokeColor}"
+        stroke-width="${strokeWidth || 0}"
+        stroke-linejoin="miter"
+        stroke-miterlimit="6"/>
+</svg>`;
+}
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.innerHTML = generateSemiArchBubbleSVG_withCornerTail({
+    strokeWidth: 5,
+    strokeColor: '#111',
+    fillColor: '#fff',
+    tailLength: 50,   // 角の結節点（tail）を半径方向に80px延長
+    tailAngle: 210,    // 30°方向に角のつなぎ目を配置＆延長
+    archCount: 16,    // 半円アーチの本数
+    depthJitter: 10,  // 各結節点の半径ジッタ
+    seed: 4242,
+  });
+});
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

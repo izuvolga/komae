@@ -24,27 +24,44 @@
 <body>
   <button style="position: absolute; top: 250px; left: 200px;" id="downloadBtn">Download PNG</button>
 
-  <!-- SVG描画（対象はbody直下の最初のsvg要素） -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 1000 1000">
+  <!-- ここにSVG描画（対象はbody直下の最初のsvg要素） -->
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="fog">
   <defs>
-    <linearGradient id="grad-global" gradientUnits="userSpaceOnUse"
-                    x1="0" y1="0" x2="0" y2="1000">
-      <stop offset="0%" stop-color="red"/>
-      <stop offset="50%" stop-color="blue"/>
-    </linearGradient>
+    <!-- 霧そのもの（前回と同様） -->
+    <filter id="fogFilter" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.034" numOctaves="10" seed="42" stitchTiles="stitch" result="n1">
+        
+      </feTurbulence>
+      <feTurbulence type="fractalNoise" baseFrequency="0.0544" numOctaves="9" seed="43" stitchTiles="stitch" result="n2">
+        
+      </feTurbulence>
+      <feBlend in="n1" in2="n2" mode="screen" result="noise"></feBlend>
+      <feColorMatrix in="noise" type="luminanceToAlpha" result="alpha"></feColorMatrix>
+      <feGaussianBlur in="alpha" stdDeviation="10" result="soft"></feGaussianBlur>
+      <feComponentTransfer in="soft" result="alphaAdj">
+        <feFuncA type="gamma" amplitude="1" exponent="1.05" offset="0"></feFuncA>
+      </feComponentTransfer>
+      <feFlood flood-color="#ff0000" flood-opacity="1" result="fogColor"></feFlood>
+      <feComposite in="fogColor" in2="alphaAdj" operator="in" result="fog"></feComposite>
+      <feMerge><feMergeNode in="fog"></feMergeNode></feMerge>
+    </filter>
+
+    <!-- 端で薄くなるラジアル・フェザーマスク -->
+    
+    <radialGradient id="edgeFadeGrad" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox" spreadMethod="pad">
+      <stop offset="0" stop-color="white"></stop>
+      <stop offset="0.3333" stop-color="white"></stop>
+      <stop offset="1" stop-color="black"></stop>
+    </radialGradient>
+    <mask id="edgeFadeMask" maskUnits="objectBoundingBox">
+      <rect x="0" y="0" width="300" height="300" fill="url(#edgeFadeGrad)"></rect>
+    </mask>
+
   </defs>
 
-  <rect width="100%" height="100%" fill="pink" />
-    <g opacity="1">
-      <text x="500" y="64" dy="0"   font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">あ</text>
-      <text x="500" y="64" dy="64"  font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">い</text>
-      <text x="500" y="64" dy="128" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)" transform="rotate(90, 532, 160)">A</text> <!-- 128+(64/2)文字の中心を指定 -->
-      <text x="500" y="64" dy="192" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)" transform="rotate(90, 532, 224)">B</text>
-      <text x="500" y="64" dy="256" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">う</text>
-      <text x="500" y="64" dy="320" font-family="Hachi Maru Pop" font-size="64" stroke-width="1" stroke="white" fill="url(#grad-global)">え</text>
-    </g>
+  <!-- 透明な矩形に霧フィルタを適用し、端フェザーのマスクをかける -->
+  <rect x="0" y="0" width="100%" height="100%" fill="none" filter="url(#fogFilter)" mask="url(#edgeFadeMask)"></rect>
 </svg>
-
 
   <script type="module">
     document.getElementById("downloadBtn").addEventListener("click", function () {

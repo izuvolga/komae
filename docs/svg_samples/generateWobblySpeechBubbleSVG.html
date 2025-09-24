@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <script>
+
+/**
+ * ふにゃふにゃ吹き出し（300x300表示固定、3×3余白のviewBox）
+ * - 円周をランダムに揺らしつつ、tailAngleに最も近い点をなだらかに延長
+ *
+ * @param {Object} params
+ * @param {number} params.strokeWidth          - 線の太さ(px)
+ * @param {string} [params.strokeColor="#000"] - 線の色
+ * @param {string} [params.fillColor="#fff"]   - 内側の色
+ * @param {number} [params.tailLength=40]      - tailの長さ(0でなし)
+ * @param {number} [params.tailAngle=90]       - tail角度(0=上,90=右)
+ * @param {number} [params.wobbleAmp=10]       - ふにゃふにゃの振幅(px)
+ * @param {number} [params.wobbleAnchors=24]   - 揺らぎの粗さ(アンカー数が多いほど細かくなる)
+ * @param {number} [params.seed=1]             - 乱数シード（同じ値なら同じ形）
+ * @returns {string} SVG文字列
+ */
+function generateWobblySpeechBubbleSVG({
+  strokeWidth,
+  strokeColor = '#000',
+  fillColor = '#fff',
+  tailLength = 40,
+  tailAngle = 90,
+  wobbleAmp = 10,
+  wobbleAnchors = 24,
+  seed = 1,
+}) {
+  // === 基本寸法（見た目300固定、座標は3×3余白） ===
+  const r = Math.max(1, 120 - (strokeWidth ?? 0) / 2); // 本体半径
+  const V = +(6 * r).toFixed(2);                        // viewBox幅高（6r）
+  const cx = 3 * r, cy = 3 * r;                        // 中心
+  const fmt = (n) => Number(n.toFixed(2));
+
+  // === 角度系：0=上,90=右 を画面座標のラジアン（右=0,下=+90°）へ ===
+  const theta = (tailAngle - 90) * Math.PI / 180;
+
+  // === 乱数（LCG） & スムーズ補間 ===
+  const rand = (() => { // 0..1
+    let s = (seed >>> 0) || 1;
+    return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  })();
+  const smoothstep = (t) => t * t * (3 - 2 * t);
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  // === ふにゃふにゃ設定 ===
+  const anchors = Math.max(6, Math.floor(wobbleAnchors));
+  const amp = Math.max(0, Math.min(wobbleAmp, r * 0.35)); // 行き過ぎ防止
+  const stepA = (2 * Math.PI) / anchors;
+
+  // 円周に沿ってランダムな半径オフセットのアンカーを配置
+  const offs = Array.from({ length: anchors }, () => (rand() * 2 - 1) * amp);
+  // 閉じるため先頭を末尾に再掲して補間時のラップを取りやすく
+  offs.push(offs[0]);
+
+  // 高解像の頂点列（アンカー間を滑らかに補間）
+  const N = anchors * 16; // 充分になめらか
+  let points = new Array(N);
+
+  for (let i = 0; i < N; i++) {
+    const a = (2 * Math.PI) * i / N;
+    const j = Math.floor(a / stepA); // 区間アンカー
+    const t = (a - j * stepA) / stepA;
+    const o = lerp(offs[j], offs[j + 1], smoothstep(t)); // 滑らか補間
+    const ro = r + o;
+    const x = cx + ro * Math.cos(a);
+    const y = cy + ro * Math.sin(a);
+    points[i] = [fmt(x), fmt(y)];
+  }
+
+  // === tail（最も近い頂点を基準に、なだらかに延長） ===
+  // tail基部の「扇形の半角」を円周長に対する基準から計算（見映え用）
+  const baseChord = Math.max(16, Math.min(60, tailLength * 0.8 + 16));
+  let alpha = baseChord / (2 * r);                 // 小角近似: 弦長 ≈ 2r*alpha
+  alpha = Math.min(alpha, Math.PI * 0.4);          // 行き過ぎ防止
+
+  // 指定角度に最も近い点のインデックス
+  const idxTail = Math.round(((theta % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)) / (2 * Math.PI) * N) % N;
+
+  // はみ出し安全（3×3余白）：最大延長は ≒ 2r - 最大外向き揺らぎ
+  const maxTail = Math.max(0, 2 * r - amp);
+  const tlen = Math.max(0, Math.min(tailLength, maxTail));
+
+  if (tlen > 0) {
+    const halfSpan = Math.max(1, Math.ceil((alpha / (2 * Math.PI)) * N)); // 半角に相当する点数
+    const pExp = 1.35; // テーパー強度（1〜2の間で微調整）
+    for (let d = -halfSpan; d <= halfSpan; d++) {
+      const k = (idxTail + d + N) % N;
+      const frac = 1 - Math.min(1, Math.abs(d) / (halfSpan + 0.0001));
+      const gain = Math.pow(frac, pExp);
+      // 角度kの方向ベクトルに沿って延長（元の中心から外へ押し出す）
+      const a = (2 * Math.PI) * k / N;
+      const dx = Math.cos(a) * tlen * gain;
+      const dy = Math.sin(a) * tlen * gain;
+      points[k] = [fmt(points[k][0] + dx), fmt(points[k][1] + dy)];
+    }
+  }
+
+  // === パス（折れ線で十分。滑らか化したい場合は stroke-linejoin を round） ===
+  let d = `M ${points[0][0]} ${points[0][1]} `;
+  for (let i = 1; i < N; i++) d += `L ${points[i][0]} ${points[i][1]} `;
+  d += 'Z';
+
+  return `<svg width="300" height="300" viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${d}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth || 0}" stroke-linejoin="round"/>
+</svg>`;
+}
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = generateWobblySpeechBubbleSVG({
+      strokeWidth: 5,
+      strokeColor: '#222',
+      fillColor: '#fff',
+      tailLength: 80,
+      tailAngle: 210,     // 震える声で右上に向けたい
+      wobbleAmp: 12,     // 揺れ幅を大きめに
+      wobbleAnchors: 20, // 粗め（少ないほど、大きくうねる）
+      seed: 42,          // 同じseedなら同じ形
+    });
+  });
+  </script>
+  </head>
+  <body>
+  </body>
+</html>
