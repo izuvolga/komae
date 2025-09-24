@@ -802,7 +802,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     value={getCurrentValue('text')}
                     onChange={(e) => setCurrentValue({text: e.target.value})}
                     multiline
-                    rows={3}
+                    maxRows={30}
                     fullWidth
                     variant="outlined"
                     size="small"
@@ -822,6 +822,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     onChange={(e) => setCurrentValue({context: e.target.value})}
                     placeholder="例: キャラクターAの叫び声、ナレーション等"
                     fullWidth
+                    multiline
+                    minRows={1}
+                    maxRows={3}
                     variant="outlined"
                     size="small"
                   />
@@ -1009,7 +1012,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           size="small"
                           onChange={(e) => {
                             if (e.target.checked) {
-                              // チェックを入れたら該当言語の設定を削除（確認用テキストを使用）
+                              // チェックを入れたら該当言語の設定を削除（ダミーテキストを使用）
                               if (editingInstance?.multilingual_text) {
                                 const currentLang = getCurrentLanguage();
                                 const newMultilingualText = { ...editingInstance.multilingual_text };
@@ -1238,10 +1241,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   特定の言語でのみ異なる設定にしたい場合に使用します
                 </Typography>
 
-                {/* 言語別の確認用テキスト */}
+                {/* 言語別のダミーテキスト */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, margin: 0 }}>
-                    言語別の確認用テキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
+                    言語別のダミーテキスト（{activePreviewTab === 'ja' ? '日本語' : activePreviewTab === 'en' ? 'English' : activePreviewTab}）
                   </Typography>
                   <FormControlLabel
                     control={
@@ -1293,7 +1296,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       }}
                     >
                       <TextField
-                        label="確認用テキスト"
+                        label="ダミーテキスト"
                         value={isTextOverrideEnabled ? (overrideTexts[activePreviewTab] || '') : ''}
                         onChange={(e) => {
                           if (isTextOverrideEnabled) {
