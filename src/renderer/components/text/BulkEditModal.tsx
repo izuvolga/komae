@@ -215,22 +215,12 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
           borderColor: 'divider',
           p: 3
         }}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-            TextAsset Bulk Edit とは？
-          </Typography>
           <Typography variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
-            この機能は、プロジェクト内のすべてのテキストアセットインスタンスを
-            YAML形式で一括編集するためのツールです。
-          </Typography>
-          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
-            <li><strong>YAML編集</strong>: すべてのテキストを構造化されたYAML形式で編集</li>
-            <li><strong>多言語対応</strong>: 複数言語のテキストを同時に管理</li>
-            <li><strong>AI支援</strong>: 生成AIを使った一括翻訳・編集をサポート</li>
-            <li><strong>ページ構造</strong>: ページごとにテキストが整理されて表示</li>
-          </Box>
-          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-            特に翻訳作業や大量のテキスト編集において、スプレッドシート形式よりも
-            効率的な編集が可能です。
+            プロジェクト内のすべてのテキストを<a href="https://ja.wikipedia.org/wiki/YAML" target="_blank" rel="noopener noreferrer">YAML形式</a>で一括編集するためのツールです。
+            以下のテキストデータを編集して「Import」ボタンを押すと、変更内容がプロジェクトに反映されます。
+            存在しないページは無視されます。
+            特に翻訳作業や大量のテキスト編集において、スプレッドシート形式よりも効率的な編集が可能です。
+            生成AIを利用したテキスト編集を行う場合は、「Copy AI Prompt」ボタンでプロンプトをクリップボードにコピーし、AIサービスに貼り付けてご利用ください。
           </Typography>
         </Box>
       </Collapse>
