@@ -43,7 +43,6 @@ import {
   calculateResizeValues,
   ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
