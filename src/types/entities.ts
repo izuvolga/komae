@@ -741,6 +741,32 @@ export function getEffectivePosition(
   return { x, y };
 }
 
+export function getEffectiveScaleX(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'scale_x', phase);
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  return DEFAULT_LANGUAGE_SETTINGS.scale_x!;
+}
+
+export function getEffectiveScaleY(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'scale_y', phase);
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  return DEFAULT_LANGUAGE_SETTINGS.scale_y!;
+}
+
 /**
  * 最終的なフォントを取得する
  */

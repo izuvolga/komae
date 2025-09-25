@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, TextAssetInstancePhase } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, getEffectiveScaleX, getEffectiveScaleY, TextAssetInstancePhase } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -545,6 +545,8 @@ export function generateMultilingualTextElement(
     const finalPosY = overridePos ? overridePos.y : finalPos.y;
     const finalFontSize = getEffectiveFontSize(asset, textInstance, lang, phase);
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
+    const finalScaleX = getEffectiveScaleX(asset, textInstance, lang, phase);
+    const finalScaleY = getEffectiveScaleY(asset, textInstance, lang, phase);
     const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);
 
     // テキスト内容が空の場合はスキップ
@@ -554,10 +556,17 @@ export function generateMultilingualTextElement(
 
     const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
 
+    // transform属性を構築（scale以外の変換も将来的に対応できる形で）
+    const transforms = [];
+    if (finalScaleX !== 1.0 || finalScaleY !== 1.0) {
+      transforms.push(`scale(${finalScaleX}, ${finalScaleY})`);
+    }
+    const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
+
     // ID属性を追加（domIdが指定されている場合）
     const idAttribute = domId ? ` id="${domId}"` : '';
     // lang-{languageCode}クラスを追加
-    const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}${idAttribute}>${textElement}</g>`;
+    const languageElement = `<g class="lang-${lang}" opacity="${finalOpacity}"${displayStyle}${idAttribute}${transformAttr}>${textElement}</g>`;
     results.push(languageElement);
   }
 

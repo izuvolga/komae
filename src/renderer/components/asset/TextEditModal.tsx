@@ -418,7 +418,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), activePreviewTab]);
+  }, [dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), activePreviewTab]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -983,6 +983,37 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     />
                   </Box>
                 </Box>
+
+                {/* スケール設定 */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Xスケール</Typography>
+                    <NumericInput
+                      value={getCurrentValue('scale_x')}
+                      onChange={(value) => setCurrentValue({scale_x: value})}
+                      onKeyDown={handleTextFieldKeyEvent}
+                      min={0.01}
+                      max={10}
+                      decimals={2}
+                      className="small"
+                      placeholder="1.0"
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yスケール</Typography>
+                    <NumericInput
+                      value={getCurrentValue('scale_y')}
+                      onChange={(value) => setCurrentValue({scale_y: value})}
+                      onKeyDown={handleTextFieldKeyEvent}
+                      min={0.01}
+                      max={10}
+                      decimals={2}
+                      className="small"
+                      placeholder="1.0"
+                    />
+                  </Box>
+                </Box>
+
                 <Box sx={{ mb: 2 }}>
                   <OpacityInput
                     value={getCurrentValue('opacity')}
@@ -1204,6 +1235,38 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         onKeyDown={handleTextFieldKeyEvent}
                         min={-9999}
                         max={9999}
+                        decimals={2}
+                        className="small"
+                        placeholder="アセット設定使用"
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* スケール設定 */}
+                  <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Xスケール</Typography>
+                      <NumericInput
+                        value={getCurrentValue('scale_x')}
+                        onChange={(value) => setCurrentValue({scale_x: value})}
+                        onKeyDown={handleTextFieldKeyEvent}
+                        min={0.01}
+                        max={10}
+                        decimals={2}
+                        className="small"
+                        placeholder="アセット設定使用"
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yスケール</Typography>
+                      <NumericInput
+                        value={getCurrentValue('scale_y')}
+                        onChange={(value) => setCurrentValue({scale_y: value})}
+                        onKeyDown={handleTextFieldKeyEvent}
+                        min={0.01}
+                        max={10}
                         decimals={2}
                         className="small"
                         placeholder="アセット設定使用"
@@ -1451,6 +1514,39 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         />
                       </Box>
                     </Box>
+
+                    {/* スケール設定 */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Xスケール</Typography>
+                        <NumericInput
+                          value={getCurrentValue('scale_x')}
+                          onChange={(value) => setCurrentValue({scale_x: value})}
+                          onKeyDown={handleTextFieldKeyEvent}
+                          min={0.01}
+                          max={10}
+                          decimals={2}
+                          className="small"
+                          placeholder="アセット設定使用"
+                          disabled={!isLanguageDefaultOverrideEnabled()}
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>Yスケール</Typography>
+                        <NumericInput
+                          value={getCurrentValue('scale_y')}
+                          onChange={(value) => setCurrentValue({scale_y: value})}
+                          onKeyDown={handleTextFieldKeyEvent}
+                          min={0.01}
+                          max={10}
+                          decimals={2}
+                          className="small"
+                          placeholder="アセット設定使用"
+                          disabled={!isLanguageDefaultOverrideEnabled()}
+                        />
+                      </Box>
+                    </Box>
+
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>文字の向き</Typography>
                       <ToggleButtonGroup

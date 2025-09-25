@@ -50,7 +50,9 @@
 ## TextAsset 改善
 - [x]: bulkgauge と同じ方式で各文字を<text>に分割する
 - [x]: EditModal の範囲選択エリアを、DOM要素の値を使ってより正確な値にする
+- [ ]: TextAsset に scale_x, scale_y を対応する
 - [ ]: TextAsset に rotate を対応する
+- [ ]: TextAsset で日本語の句読点 + 縦書きがおかしい点を解消する。
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
   - 行番号表示
   - 編集をしたら、編集がされた行の背景色を変更する
