@@ -509,9 +509,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const proposedX = dragStartValues.x + deltaX;
         const proposedY = dragStartValues.y + deltaY;
 
+        // 縦書きテキストの場合は座標系を調整してスナップ計算
+        const isVerticalText = getCurrentValue('vertical');
+        const snapX = isVerticalText ? proposedX - currentSize.width : proposedX;
+
         // スナップ計算を実行
         const snapResult = calculateSnap(
-          proposedX,
+          snapX,
           proposedY,
           currentSize.width,
           currentSize.height,
@@ -520,8 +524,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           SNAP_THRESHOLD,
         );
 
+        // 縦書きテキストの場合は結果を元の座標系に戻す
+        const finalX = isVerticalText ? snapResult.snappedX + currentSize.width : snapResult.snappedX;
+
         // スナップした位置を適用
-        setCurrentPosition(snapResult.snappedX, snapResult.snappedY);
+        setCurrentPosition(finalX, snapResult.snappedY);
 
         // ガイドラインを更新
         setSnapGuides(snapResult.snapGuides);
