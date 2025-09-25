@@ -305,39 +305,6 @@ export const wrapSVGWithParentContainer = (
         ${svgContent}
     </svg>`;
 };
-export const wrapSVGWithParentContainerElem = (
-  svgContent: string, 
-  x: number, 
-  y: number, 
-  width: number, 
-  height: number, 
-  opacity: number,
-  originalWidth: number,
-  originalHeight: number,
-  offsetX: number = 0,
-  offsetY: number = 0
-): JSX.ReactElement => {
-  const scaleX = width / originalWidth;
-  const scaleY = height / originalHeight;
-  // SVG 内部での X, Y 座標は scale 処理を考慮して調整
-  const adjustedX = x * (1 / scaleX);
-  const adjustedY = y * (1 / scaleY);
-
-  return (
-    <svg
-      version="1.1"
-      xmlns="http://www.w3.org/2000/svg"
-      x={`${adjustedX + offsetX}px`}
-      y={`${adjustedY + offsetY}px`}
-      width={`${originalWidth}px`}
-      height={`${originalHeight}px`}
-      transform={`scale(${width / originalWidth}, ${height / originalHeight})`}
-      style={{ opacity }}
-    >
-      {svgContent}
-    </svg>
-  );
-};
 
 /**
  * Z-Indexバリデーション結果の型
