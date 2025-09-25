@@ -268,9 +268,10 @@ export const getCurrentZIndex = (
 
 /**
  * SVGコンテンツを親SVG要素でラップして位置・サイズ・不透明度を制御
+ * クリッピングを抑止するため <g> を利用（<svg>入れ子によるはみ出し非表示が起きない）
  * @param svgContent - ラップするSVGコンテンツ
  * @param x - X座標
- * @param y - Y座標  
+ * @param y - Y座標
  * @param width - 幅
  * @param height - 高さ
  * @param opacity - 不透明度
@@ -279,7 +280,7 @@ export const getCurrentZIndex = (
  * @returns ラップされたSVG文字列
  */
 export const wrapSVGWithParentContainer = (
-  svgContent: string, 
+  svgFragment: string, 
   x: number, 
   y: number, 
   width: number, 
@@ -288,22 +289,12 @@ export const wrapSVGWithParentContainer = (
   originalWidth: number,
   originalHeight: number
 ): string => {
-  const scaleX = width / originalWidth;
-  const scaleY = height / originalHeight;
-  // SVG 内部での X, Y 座標は scale 処理を考慮して調整
-  const adjustedX = x * (1 / scaleX);
-  const adjustedY = y * (1 / scaleY);
-
-  return `<svg version="1.1"
-      xmlns="http://www.w3.org/2000/svg"
-      x="${adjustedX}px"
-      y="${adjustedY}px"
-      width="${originalWidth}px"
-      height="${originalHeight}px"
-      transform="scale(${width / originalWidth}, ${height / originalHeight})"
-      style="opacity: ${opacity};">
-        ${svgContent}
-    </svg>`;
+  const sx = width / originalWidth;
+  const sy = height / originalHeight;
+  // 重要: transform の適用順は右→左。なのでtransform="translate(x,y) scale(sx,sy)" と書く
+  return `<g transform="translate(${x}, ${y}) scale(${sx}, ${sy})" opacity="${opacity}">
+    ${svgFragment}
+  </g>`;
 };
 
 /**
