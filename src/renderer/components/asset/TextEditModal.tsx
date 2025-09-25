@@ -90,6 +90,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeStartScales, setResizeStartScales] = useState({ scaleX: 1, scaleY: 1 });
+  const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [currentSize, setCurrentSize] = useState({ width: 600, height: 600 });
@@ -488,6 +490,43 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     e.stopPropagation();
     calculateDynamicScale(); // リサイズ開始時にスケール計算
 
+    // DOM要素の実サイズを取得
+    const textElement = document.getElementById(PREVIEW_DOM_ID);
+    let realSize = { width: currentSize.width, height: currentSize.height };
+    if (textElement) {
+      const rect = textElement.getBoundingClientRect();
+      if (rect && rect.width > 0 && rect.height > 0 && !isNaN(rect.width) && !isNaN(rect.height)) {
+        // DOM要素から取得したサイズをSVG座標系に変換
+        const convertedWidth = rect.width / dynamicScale;
+        const convertedHeight = rect.height / dynamicScale;
+        if (!isNaN(convertedWidth) && !isNaN(convertedHeight) && convertedWidth > 0 && convertedHeight > 0) {
+          realSize = {
+            width: convertedWidth,
+            height: convertedHeight
+          };
+        }
+      }
+    }
+
+    // サイズが無効な場合のフォールバック：最小有効サイズを使用
+    if (isNaN(realSize.width) || realSize.width <= 0) {
+      realSize.width = 100; // 最小幅
+    }
+    if (isNaN(realSize.height) || realSize.height <= 0) {
+      realSize.height = 50; // 最小高さ
+    }
+
+    // 現在のスケール値を保存
+    const currentScaleX = getCurrentValue('scale_x') || 1.0;
+    const currentScaleY = getCurrentValue('scale_y') || 1.0;
+
+    console.log('Resize start values:', {
+      currentScaleX, currentScaleY,
+      realSize,
+      currentSize,
+      dynamicScale
+    });
+
     setIsResizing(true);
     setResizeHandle(handle);
     setDragStartPos({ x: e.clientX, y: e.clientY });
@@ -497,6 +536,12 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       width: currentSize.width,
       height: currentSize.height
     });
+    // 新しい状態を保存
+    setResizeStartScales({
+      scaleX: currentScaleX,
+      scaleY: currentScaleY
+    });
+    setResizeStartSize(realSize);
   };
 
   // グローバルマウスイベントの処理
@@ -532,14 +577,104 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
         // ガイドラインを更新
         setSnapGuides(snapResult.snapGuides);
+      } else if (isResizing && resizeHandle) {
+        console.log('Resizing detected:', { isResizing, resizeHandle });
+        const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
+        console.log('Mouse delta:', { deltaX, deltaY });
+
+        // ハンドル種類に応じて新しいサイズを計算
+        let newWidth = resizeStartSize.width;
+        let newHeight = resizeStartSize.height;
+        console.log('Initial size:', { newWidth, newHeight });
+
+        switch (resizeHandle) {
+          case 'top-left':
+          case 'nw': // 左上
+            newWidth = resizeStartSize.width - deltaX;
+            newHeight = resizeStartSize.height - deltaY;
+            break;
+          case 'top':
+          case 'n': // 上
+            newHeight = resizeStartSize.height - deltaY;
+            break;
+          case 'top-right':
+          case 'ne': // 右上
+            newWidth = resizeStartSize.width + deltaX;
+            newHeight = resizeStartSize.height - deltaY;
+            break;
+          case 'right':
+          case 'e': // 右
+            newWidth = resizeStartSize.width + deltaX;
+            break;
+          case 'bottom-right':
+          case 'se': // 右下
+            newWidth = resizeStartSize.width + deltaX;
+            newHeight = resizeStartSize.height + deltaY;
+            break;
+          case 'bottom':
+          case 's': // 下
+            newHeight = resizeStartSize.height + deltaY;
+            break;
+          case 'bottom-left':
+          case 'sw': // 左下
+            newWidth = resizeStartSize.width - deltaX;
+            newHeight = resizeStartSize.height + deltaY;
+            break;
+          case 'left':
+          case 'w': // 左
+            newWidth = resizeStartSize.width - deltaX;
+            break;
+        }
+
+        // 最小サイズの制限
+        newWidth = Math.max(10, newWidth);
+        newHeight = Math.max(10, newHeight);
+
+        // 基準サイズとの比率を計算（NaN防止）
+        const scaleRatioX = (resizeStartSize.width > 0 && !isNaN(resizeStartSize.width))
+          ? newWidth / resizeStartSize.width
+          : 1;
+        const scaleRatioY = (resizeStartSize.height > 0 && !isNaN(resizeStartSize.height))
+          ? newHeight / resizeStartSize.height
+          : 1;
+
+        // 新しいスケール値を計算（NaN防止）
+        const newScaleX = (!isNaN(resizeStartScales.scaleX) && !isNaN(scaleRatioX))
+          ? resizeStartScales.scaleX * scaleRatioX
+          : resizeStartScales.scaleX || 1.0;
+        const newScaleY = (!isNaN(resizeStartScales.scaleY) && !isNaN(scaleRatioY))
+          ? resizeStartScales.scaleY * scaleRatioY
+          : resizeStartScales.scaleY || 1.0;
+
+        // 最小・最大スケール値の制限
+        const clampedScaleX = Math.max(0.01, Math.min(10, newScaleX));
+        const clampedScaleY = Math.max(0.01, Math.min(10, newScaleY));
+
+        console.log('Scale calculation:', {
+          newWidth, newHeight,
+          resizeStartSize,
+          scaleRatioX, scaleRatioY,
+          resizeStartScales,
+          newScaleX, newScaleY,
+          clampedScaleX, clampedScaleY
+        });
+
+        // スケール値を更新
+        setCurrentValue({
+          scale_x: clampedScaleX,
+          scale_y: clampedScaleY
+        });
       }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      setIsResizing(false);
+      setResizeHandle(null);
+      setSnapGuides([]);
     };
 
-    if (isDragging) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -547,7 +682,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragStartPos, dragStartValues, canvasConfig]);
+  }, [isDragging, isResizing, dragStartPos, dragStartValues, resizeHandle, resizeStartScales, resizeStartSize, canvasConfig]);
 
   const handleSave = () => {
     if (mode === 'asset') {
