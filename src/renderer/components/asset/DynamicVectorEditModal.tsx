@@ -50,7 +50,7 @@ import {
   ZIndexValidationResult
 } from '../../utils/editModalUtils';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
-import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay2';
+import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 
 export interface DynamicVectorEditModalProps {

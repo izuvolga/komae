@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { ProjectData } from '../../../types/entities';
 import { wrapSVGWithParentContainer } from '../../utils/editModalUtils';
-import { ResizeHandleOverlay } from './ResizeHandleOverlay2';
+import { ResizeHandleOverlay } from './ResizeHandleOverlay';
 import { SnapGuide } from '../../utils/snapUtils';
 
 interface EditModalSvgCanvasProps {
