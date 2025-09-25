@@ -17,7 +17,7 @@
 - [ ]: たまに ImageAsset のサムネイルが表示されないことがあるのでリトライなど対応を講じる
 - [ ]: プロジェクトの背景色を SVG で生成する
 - [ ]: 通知の位置が、プレビューウィンドウのトグルボタンを隠すのがちょっとうざい
-- [ ]: PreviewArea, AssetLibrary の表示トグル状態も ui-state.yaml に保存する
+- [x]: PreviewArea, AssetLibrary の表示トグル状態も ui-state.yaml に保存する
 - [x]: 以下のファイルにおいても、共通フック useTextFieldKeyboardShortcuts を利用する
   - [x]:src/renderer/components/asset/ValueEditModal.tsx
   - [x]:src/renderer/components/asset/DynamicVectorEditModal.tsx
@@ -60,6 +60,7 @@
 
 ## DynamicVectorAsset
 - [ ]: カスタムアセットのIDがファイル名になっているのを何とかする
+- [ ]: フォーマットを JSDoc 対応させる
 - [ ]: DynamicVectorAsset の @parameters に紐づけられている ValueAsset の型が変化したときに、紐づけを解除して @parameters の値を初期値に変更する
 - [ ]: @parameters の型に color を追加し、Edit 画面でカラーピッカーを表示する
 - [ ]: @parameters の型に font を追加し、フォントのプロダウン
