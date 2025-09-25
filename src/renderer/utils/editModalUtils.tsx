@@ -286,9 +286,7 @@ export const wrapSVGWithParentContainer = (
   height: number, 
   opacity: number,
   originalWidth: number,
-  originalHeight: number,
-  offsetX: number = 0,
-  offsetY: number = 0
+  originalHeight: number
 ): string => {
   const scaleX = width / originalWidth;
   const scaleY = height / originalHeight;
@@ -298,8 +296,8 @@ export const wrapSVGWithParentContainer = (
 
   return `<svg version="1.1"
       xmlns="http://www.w3.org/2000/svg"
-      x="${adjustedX + offsetX}px"
-      y="${adjustedY + offsetY}px"
+      x="${adjustedX}px"
+      y="${adjustedY}px"
       width="${originalWidth}px"
       height="${originalHeight}px"
       transform="scale(${width / originalWidth}, ${height / originalHeight})"
