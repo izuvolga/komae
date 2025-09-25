@@ -397,10 +397,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   const getTextFrameSize = useCallback(() => {
     const pos = currentPos;
-    const fontSize = getCurrentValue('font_size');
-    const lines = (getCurrentValue('text') || '').split('\n');
     const vertical = getCurrentValue('vertical');
-    const leading = getCurrentValue('leading') || 1.2;
 
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
@@ -551,6 +548,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
+        console.log('DEBUG: Resize handle mouse down. currentPos:', currentPos);
+        console.log('DEBUG: Resize handle mouse down. currentSize:', currentSize);
         // 提案された新しい位置を計算
         const proposedX = dragStartValues.x + deltaX;
         const proposedY = dragStartValues.y + deltaY;
