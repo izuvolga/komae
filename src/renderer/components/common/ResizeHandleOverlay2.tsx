@@ -37,7 +37,6 @@ export const ResizeHandleOverlay: React.FC<ResizeHandleOverlayProps> = ({
 
   const svgWidth = svgRight - svgLeft;
   const svgHeight = svgBottom - svgTop;
-  
 
   return (
     <svg
@@ -74,7 +73,7 @@ export const generateResizeHandles = (
     let x = 0;
     let y = 0;
     let cursor = 'nw-resize';
-    
+
     switch (handle) {
       case 'top-left':
         x = position.x;
@@ -97,7 +96,7 @@ export const generateResizeHandles = (
         cursor = 'se-resize';
         break;
     }
-    
+
     return (
       <g key={handle}>
         {/* 外側の白い枠 */}
@@ -109,6 +108,7 @@ export const generateResizeHandles = (
           fill="white"
           stroke="#007acc"
           strokeWidth="2"
+          opacity={0.5}
           style={{ cursor, pointerEvents: 'all' }}
           onMouseDown={(e) => onResizeMouseDown(e, handle)}
         />
@@ -120,6 +120,7 @@ export const generateResizeHandles = (
           height={handleSize - 6}
           fill="#007acc"
           stroke="none"
+          opacity={0.5}
           style={{ pointerEvents: 'none' }}
         />
       </g>
