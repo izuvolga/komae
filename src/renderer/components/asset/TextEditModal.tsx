@@ -92,7 +92,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
-  const [currentSize, setCurrentSize] = useState({ width: 0, height: 0 });
+  const [currentSize, setCurrentSize] = useState({ width: 600, height: 600 });
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -157,6 +157,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // ドラッグ開始時にスケールを計算する関数
   const calculateDynamicScale = () => {
+
     if (scaleCalculated || !previewSvgRef.current || !project) return;
 
     const svgElement = previewSvgRef.current;
@@ -396,10 +397,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     return !!(editingInstance.multilingual_text && currentLang in editingInstance.multilingual_text);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
-  const getTextFrameSize = useCallback(() => {
-    const pos = currentPos;
-    const vertical = getCurrentValue('vertical');
-
+  useEffect(() => {
+    console.log('DEBUG: TextEditModal: Dynamic scale or SVG ref changed, recalculating size...');
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
       const textElement = document.getElementById(PREVIEW_DOM_ID);
@@ -407,47 +406,19 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         // HTMLElementとして画面上のサイズを取得
         const rect = textElement.getBoundingClientRect();
         if (rect && rect.width > 0 && rect.height > 0) {
-          // pos.x, pos.yは描画エリア全体の基準点
-          // - 横書き: 左上 (pos.x, pos.y)
-          // - 縦書き: 右上 (pos.x, pos.y)
-          let top = pos.y;
-          let left = pos.x;
           // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-          let width = rect.width;
-          let height = rect.height;
-          // 縦書きの場合には、X座標の開始点は要素の右側になるように調整
-          if (vertical) {
-            left -= width;
-          }
-          return {
-            top: top,
-            left: left,
-            width: width,
-            height: height,
-          };
+          calculateDynamicScale();
+          let width = rect.width / dynamicScale;
+          let height = rect.height / dynamicScale;
+          // UI上のサイズも更新
+          setCurrentSize({ width, height });
         }
       }
     } catch (error) {
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [currentPos, getCurrentValue, getCurrentLanguage]);
-
-  /** 現在のサイズを推定計算する
-   * getTextFrameSize の結果に基づいて初期サイズを設定
-   * canvasConfig と照らし合わせて、実際のキャンバス上でのサイズを計算する
-   */
-  useEffect(() => {
-    const frameSize = getTextFrameSize();
-    if (frameSize) {
-      const width = frameSize.width / dynamicScale;
-      const height = frameSize.height / dynamicScale;
-      if (width > 0 && height > 0) {
-        setCurrentSize({ width, height });
-      }
-    }
-  }, [getTextFrameSize, dynamicScale,]);
-
+  }, [dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), activePreviewTab]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -512,9 +483,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // リサイズハンドラー
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
+    console.log('Resize handle mouse down:', handle);
     e.preventDefault();
     e.stopPropagation();
-
     calculateDynamicScale(); // リサイズ開始時にスケール計算
 
     setIsResizing(true);
@@ -530,8 +501,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // グローバルマウスイベントの処理
   useEffect(() => {
-
-
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
@@ -646,7 +615,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         availableLanguages,
         previewLanguage,
         phase,
-        "text-edit-modal-preview",
+        PREVIEW_DOM_ID,
         {x: 0, y: 0} // 座標移動は EditModalSvgCanvas 側で行うためここでは不要
       );
       return textElement;
@@ -770,8 +739,9 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   originalWidth={currentSize.width}
                   originalHeight={currentSize.height}
                   onDragStart={(e) => {
+                    console.log('Drag start:', e.clientX, e.clientY);
                     e.preventDefault();
-                    calculateDynamicScale(); // ドラッグ開始時にスケール計算
+                    calculateDynamicScale();
                     setIsDragging(true);
                     setDragStartPos({ x: e.clientX, y: e.clientY });
                     setDragStartValues({
