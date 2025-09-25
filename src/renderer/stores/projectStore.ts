@@ -69,8 +69,8 @@ interface ProjectStore {
   setActiveWindow: (window: UIState['activeWindow']) => void;
   setZoomLevel: (level: number) => void;
   setCanvasFit: (canvasFit: boolean) => void;
-  toggleAssetLibrary: () => void;
-  togglePreview: () => void;
+  toggleAssetLibrary: () => Promise<void>;
+  togglePreview: () => Promise<void>;
   toggleFontManagement: () => void;
   toggleCustomAssetManagement: () => void;
   setAssetLibraryWidth: (width: number) => void;
@@ -368,13 +368,29 @@ export const useProjectStore = create<ProjectStore>()(
           state.ui.canvasFit = canvasFit;
         }),
 
-        toggleAssetLibrary: () => set((state) => {
-          state.ui.showAssetLibrary = !state.ui.showAssetLibrary;
-        }),
+        toggleAssetLibrary: async () => {
+          const state = get();
+          const newValue = !state.ui.showAssetLibrary;
+          set((state) => {
+            state.ui.showAssetLibrary = newValue;
+          });
+          // ui-state.yaml に状態を保存
+          if (state.currentProjectPath) {
+            await window.electronAPI?.uiState?.update(state.currentProjectPath, 'showAssetLibrary', newValue);
+          }
+        },
 
-        togglePreview: () => set((state) => {
-          state.ui.showPreview = !state.ui.showPreview;
-        }),
+        togglePreview: async () => {
+          const state = get();
+          const newValue = !state.ui.showPreview;
+          set((state) => {
+            state.ui.showPreview = newValue;
+          });
+          // ui-state.yaml に状態を保存
+          if (state.currentProjectPath) {
+            await window.electronAPI?.uiState?.update(state.currentProjectPath, 'showPreview', newValue);
+          }
+        },
         toggleFontManagement: () => set((state) => {
           state.ui.showFontManagement = !state.ui.showFontManagement;
         }),
@@ -946,9 +962,16 @@ export const useProjectStore = create<ProjectStore>()(
               try {
                 const uiState = await window.electronAPI.uiState.load(projectPath);
                 set((state) => {
-                  // UI状態をマージ（hiddenColumns/hiddenRowsのみ更新）
+                  // UI状態をマージ（hiddenColumns/hiddenRowsに加えて表示状態も更新）
                   state.ui.hiddenColumns = uiState.hiddenColumns || [];
                   state.ui.hiddenRows = uiState.hiddenRows || [];
+                  // プレビューエリアとアセットライブラリの表示状態を復元
+                  if (uiState.showPreview !== undefined) {
+                    state.ui.showPreview = uiState.showPreview;
+                  }
+                  if (uiState.showAssetLibrary !== undefined) {
+                    state.ui.showAssetLibrary = uiState.showAssetLibrary;
+                  }
                 });
               } catch (uiError) {
                 console.warn('Failed to load UI state, using defaults:', uiError);
