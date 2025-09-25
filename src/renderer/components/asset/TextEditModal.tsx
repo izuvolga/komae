@@ -92,6 +92,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [currentSize, setCurrentSize] = useState({ width: 0, height: 0 });
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -433,23 +434,20 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   }, [currentPos, getCurrentValue, getCurrentLanguage]);
 
   /** 現在のサイズを推定計算する
-   * getTextFrameSize() を使ってテキスト要素のサイズを取得し、
+   * getTextFrameSize の結果に基づいて初期サイズを設定
    * canvasConfig と照らし合わせて、実際のキャンバス上でのサイズを計算する
    */
-  const getCurrentSize = (): { width: number; height: number } => {
-    const canvasWidth = canvasConfig?.width || 600;
-    const canvasHeight = canvasConfig?.height || 600;
-    const textFrameSize = getTextFrameSize();
-    if (textFrameSize) {
-      const width = textFrameSize.width / dynamicScale;
-      const height = textFrameSize.height / dynamicScale;
+  useEffect(() => {
+    const frameSize = getTextFrameSize();
+    if (frameSize) {
+      const width = frameSize.width / dynamicScale;
+      const height = frameSize.height / dynamicScale;
       if (width > 0 && height > 0) {
-        return { width, height };
+        setCurrentSize({ width, height });
       }
     }
-    return { width: canvasWidth, height: canvasHeight }; // サイズが取得できない場合のデフォルト値
-  }
-  const currentSize = getCurrentSize();
+  }, [getTextFrameSize, dynamicScale,]);
+
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
