@@ -65,6 +65,18 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`}
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMidYMid meet"
+      style={{
+        backgroundColor: 'var(--layout-bg-color)',
+        backgroundImage: `
+          linear-gradient(45deg, var(--canvas-grid-color) 25%, transparent 25%),
+          linear-gradient(-45deg, var(--canvas-grid-color) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, var(--canvas-grid-color) 75%),
+          linear-gradient(-45deg, transparent 75%, var(--canvas-grid-color) 75%)
+        `,
+        backgroundSize: '20px 20px',
+        backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+        overflow: 'auto'
+      }}
     >
       {/* キャンバス背景 */}
       <rect

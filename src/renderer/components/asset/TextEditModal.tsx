@@ -512,16 +512,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     setEditingInstance(updatedInstance);
   };
 
-  // ドラッグ操作のハンドラー
-  const handleTextMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    setIsDragging(true);
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragStartValues({ x: currentPos.x, y: currentPos.y, width:currentSize.width, height:currentSize.height});
-  };
-
   // リサイズハンドラー
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     e.preventDefault();
