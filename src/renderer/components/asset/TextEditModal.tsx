@@ -548,8 +548,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
 
-        console.log('DEBUG: Resize handle mouse down. currentPos:', currentPos);
-        console.log('DEBUG: Resize handle mouse down. currentSize:', currentSize);
         // 提案された新しい位置を計算
         const proposedX = dragStartValues.x + deltaX;
         const proposedY = dragStartValues.y + deltaY;
@@ -562,7 +560,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           currentSize.height,
           project.canvas.width,
           project.canvas.height,
-          SNAP_THRESHOLD
+          SNAP_THRESHOLD,
         );
 
         // スナップした位置を適用
@@ -670,37 +668,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [editingAsset, editingInstance, mode, canvasConfig, getCurrentLanguage, activePreviewTab, project]);
 
-  // SVG形式のテキストドラッグエリアを生成
-  const textDragAreaSVG = useMemo(() => {
-    const frameSize = getTextFrameSize();
-    if (!frameSize) return '<g></g>'; // サイズが取得できない場合は空要素を返す
-    const canvasWidth = canvasConfig?.width || 800;
-    const canvasHeight = canvasConfig?.height || 600;
-
-    return `<svg
-      width="100%"
-      height="100%"
-      viewBox="0 0 ${canvasWidth} ${canvasHeight}"
-      xmlns="http://www.w3.org/2000/svg"
-      style="position: absolute; top: 0; left: 0; pointer-events: none;"
-    >
-      <rect
-        x="${frameSize.left}"
-        y="${frameSize.top}"
-        width="${frameSize.width}"
-        height="${frameSize.height}"
-        fill="${isDragging ? 'rgba(0, 123, 255, 0.2)' : 'transparent'}"
-        stroke="${isDragging ? '#007bff' : 'rgba(0, 123, 255, 0.3)'}"
-        stroke-width="${isDragging ? '2' : '1'}"
-        stroke-dasharray="${isDragging ? '5,5' : '3,3'}"
-        style="pointer-events: all; cursor: move;"
-        data-drag-area="true"
-      />
-    </svg>`;
-  }, [getTextFrameSize, canvasConfig, isDragging]);
-
-  // モーダル外側クリックでの閉じる処理を削除
-
   const modalTitle = mode === 'asset' ? 'テキストアセット編集' : 'テキストアセットインスタンス編集';
 
   return (
@@ -799,7 +766,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                 position: 'relative',
                 width: 600,
                 height: 600,
-                border: '2px solid #007bff',
                 borderRadius: 1,
                 overflow: 'hidden',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
