@@ -27,6 +27,9 @@ interface EditModalSvgCanvasProps {
   maskMode?: 'none' | 'edit' | 'apply';
   maskCoords?: [[number, number], [number, number], [number, number], [number, number]] | null;
   onMaskPointDragStart?: (e: React.MouseEvent, pointIndex: number) => void;
+
+  // 縦書きテキスト対応
+  isVerticalText?: boolean;
 }
 
 export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasProps>(({
@@ -42,11 +45,19 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
   snapGuides,
   maskMode = 'none',
   maskCoords,
-  onMaskPointDragStart
+  onMaskPointDragStart,
+  isVerticalText = false
 }, ref) => {
   // 動的余白計算（キャンバス長辺の10%）
   const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
   const handleSize = Math.max(project.canvas.width, project.canvas.height) * 0.04; // キャンバスの長辺の4%をハンドルサイズにする
+  
+  // 縦書きテキストの場合の位置調整
+  const adjustedPos = isVerticalText ? {
+    x: currentPos.x - currentSize.width,
+    y: currentPos.y
+  } : currentPos;
+  
   const content = wrapSVGWithParentContainer(
               svgContent,
               currentPos.x + margin,
@@ -134,8 +145,8 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       {/* インタラクション用透明エリア（マスクモード時は無効化） */}
       {maskMode !== 'edit' && (
         <rect
-          x={currentPos.x + margin}
-          y={currentPos.y + margin}
+          x={adjustedPos.x + margin}
+          y={adjustedPos.y + margin}
           width={currentSize.width}
           height={currentSize.height}
           fill="transparent"
@@ -152,8 +163,8 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
         canvasWidth={project.canvas.width}
         canvasHeight={project.canvas.height}
         currentPos={{
-          x: currentPos.x + margin,
-          y: currentPos.y + margin
+          x: adjustedPos.x + margin,
+          y: adjustedPos.y + margin
         }}
         currentSize={currentSize}
         onResizeMouseDown={onResizeStart}

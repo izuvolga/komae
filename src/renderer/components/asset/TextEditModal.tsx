@@ -738,6 +738,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   svgContent={previewSVG}
                   originalWidth={currentSize.width}
                   originalHeight={currentSize.height}
+                  isVerticalText={getCurrentValue('vertical')}
                   onDragStart={(e) => {
                     console.log('Drag start:', e.clientX, e.clientY);
                     e.preventDefault();
