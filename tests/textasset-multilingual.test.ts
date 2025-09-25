@@ -37,6 +37,11 @@ describe('TextAsset Multilingual Features', () => {
         z_index: 2,
         fill_color: '#000000',
         stroke_color: '#FFFFFF',
+        scale_x: 1.0,
+        scale_y: 1.0,
+        rotate: 0,
+        char_rotate: 0,
+        char_rotate_pattern: undefined,
       });
       expect(asset.default_language_override).toBeUndefined();
     });
@@ -62,6 +67,11 @@ describe('TextAsset Multilingual Features', () => {
         z_index: 2,
         fill_color: '#000000',
         stroke_color: '#FFFFFF',
+        scale_x: 1.0,
+        scale_y: 1.0,
+        rotate: 0,
+        char_rotate: 0,
+        char_rotate_pattern: undefined,
       });
       expect(asset.default_language_override).toBeUndefined();
     });

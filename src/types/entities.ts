@@ -253,13 +253,21 @@ export interface LanguageSettings {
   z_index?: number;
   fill_color?: string;
   stroke_color?: string;
+  // スケール機能
+  scale_x?: number;
+  scale_y?: number;
+  // 回転機能
+  rotate?: number;
+  char_rotate?: number;
+  char_rotate_pattern?: string;
 }
 
 export function isLanguageSettingsField(field: string): field is keyof LanguageSettings {
   const languageSettingsFields: Record<keyof LanguageSettings, true> = {
     pos_x: true, pos_y: true, font: true, font_size: true, stroke_width: true,
     leading: true, vertical: true, opacity: true, z_index: true,
-    fill_color: true, stroke_color: true
+    fill_color: true, stroke_color: true,
+    scale_x: true, scale_y: true, rotate: true, char_rotate: true, char_rotate_pattern: true
   };
   return field in languageSettingsFields;
 }
@@ -875,6 +883,13 @@ export function createDefaultLanguageSettings(): LanguageSettings {
     z_index: 2,
     fill_color: '#000000',
     stroke_color: '#FFFFFF',
+    // スケール機能
+    scale_x: 1.0,
+    scale_y: 1.0,
+    // 回転機能
+    rotate: 0,
+    char_rotate: 0,
+    char_rotate_pattern: undefined,
   };
 }
 
@@ -1058,6 +1073,55 @@ export function validateOpacity(value: number | undefined, fieldName: string): {
  * @param asset - バリデーション対象のTextAsset
  * @returns バリデーション結果
  */
+/**
+ * スケール値のバリデーション（0より大きい値をチェック）
+ * @param value - チェック対象の値
+ * @param fieldName - フィールド名（エラーメッセージ用）
+ * @returns バリデーション結果
+ */
+export function validateScale(value: number | undefined, fieldName: string): {
+  isValid: boolean;
+  error?: string;
+} {
+  if (value === undefined) {
+    return { isValid: true }; // undefinedは許可
+  }
+
+  if (value <= 0) {
+    return {
+      isValid: false,
+      error: `${fieldName}の値は0より大きい値を入力してください。現在の値: ${value}`
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * 正規表現パターンのバリデーション
+ * @param pattern - チェック対象のパターン
+ * @param fieldName - フィールド名（エラーメッセージ用）
+ * @returns バリデーション結果
+ */
+export function validateRegexPattern(pattern: string | undefined, fieldName: string): {
+  isValid: boolean;
+  error?: string;
+} {
+  if (pattern === undefined || pattern === '') {
+    return { isValid: true }; // undefinedや空文字は許可
+  }
+
+  try {
+    new RegExp(pattern);
+    return { isValid: true };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: `${fieldName}の正規表現パターンが不正です。パターン: ${pattern}`
+    };
+  }
+}
+
 export function validateTextAssetData(asset: TextAsset): {
   isValid: boolean;
   errors: string[];
@@ -1082,6 +1146,20 @@ export function validateTextAssetData(asset: TextAsset): {
         errors.push(opacityValidation.error);
       }
     }
+    // スケール値のバリデーション
+    const scaleXValidation = validateScale(asset.default_settings.scale_x, '共通設定のXスケール');
+    if (!scaleXValidation.isValid && scaleXValidation.error) {
+      errors.push(scaleXValidation.error);
+    }
+    const scaleYValidation = validateScale(asset.default_settings.scale_y, '共通設定のYスケール');
+    if (!scaleYValidation.isValid && scaleYValidation.error) {
+      errors.push(scaleYValidation.error);
+    }
+    // 正規表現パターンのバリデーション
+    const regexValidation = validateRegexPattern(asset.default_settings.char_rotate_pattern, '共通設定の文字回転パターン');
+    if (!regexValidation.isValid && regexValidation.error) {
+      errors.push(regexValidation.error);
+    }
   }
 
   // 言語別オーバーライド設定のバリデーション（オプショナル）
@@ -1095,6 +1173,20 @@ export function validateTextAssetData(asset: TextAsset): {
         if (!opacityValidation.isValid && opacityValidation.error) {
           errors.push(opacityValidation.error);
         }
+      }
+      // スケール値のバリデーション
+      const scaleXValidation = validateScale(settings.scale_x, `${langCode}言語のXスケール`);
+      if (!scaleXValidation.isValid && scaleXValidation.error) {
+        errors.push(scaleXValidation.error);
+      }
+      const scaleYValidation = validateScale(settings.scale_y, `${langCode}言語のYスケール`);
+      if (!scaleYValidation.isValid && scaleYValidation.error) {
+        errors.push(scaleYValidation.error);
+      }
+      // 正規表現パターンのバリデーション
+      const regexValidation = validateRegexPattern(settings.char_rotate_pattern, `${langCode}言語の文字回転パターン`);
+      if (!regexValidation.isValid && regexValidation.error) {
+        errors.push(regexValidation.error);
       }
     });
   }
@@ -1163,6 +1255,22 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
       // 行間のバリデーション
       if (settings.leading !== undefined && settings.leading < 0) {
         errors.push(`${lang}言語の行間は0以上の値を入力してください。現在の値: ${settings.leading}`);
+      }
+
+      // スケール値のバリデーション
+      const scaleXValidation = validateScale(settings.scale_x, `${lang}言語のXスケール`);
+      if (!scaleXValidation.isValid && scaleXValidation.error) {
+        errors.push(scaleXValidation.error);
+      }
+      const scaleYValidation = validateScale(settings.scale_y, `${lang}言語のYスケール`);
+      if (!scaleYValidation.isValid && scaleYValidation.error) {
+        errors.push(scaleYValidation.error);
+      }
+
+      // 正規表現パターンのバリデーション
+      const regexValidation = validateRegexPattern(settings.char_rotate_pattern, `${lang}言語の文字回転パターン`);
+      if (!regexValidation.isValid && regexValidation.error) {
+        errors.push(regexValidation.error);
       }
     }
   }
