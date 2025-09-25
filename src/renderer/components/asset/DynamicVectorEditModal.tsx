@@ -46,7 +46,6 @@ import {
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
-  wrapSVGWithParentContainer,
   validateZIndexNumber,
   ZIndexValidationResult
 } from '../../utils/editModalUtils';

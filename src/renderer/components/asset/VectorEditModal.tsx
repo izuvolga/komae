@@ -33,8 +33,6 @@ import {
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
-  wrapSVGWithParentContainer,
-  wrapSVGWithParentContainerElem,
   validateZIndexNumber,
   ZIndexValidationResult,
   calculateResizeValues,
