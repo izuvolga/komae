@@ -101,6 +101,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
   const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
   const [maskEditMode, setMaskEditMode] = useState(false);
+  const [previewContent, setPreviewContent] = useState<string>('');
 
   // マウス操作関連の状態
   const [isDragging, setIsDragging] = useState(false);
@@ -125,6 +126,53 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
     setEditedAsset(asset);
     setEditedInstance(assetInstance || null);
   }, [asset, assetInstance]);
+
+  // プレビューコンテンツを非同期で取得
+  useEffect(() => {
+    const loadPreviewContent = async () => {
+      try {
+        if (isImageAsset) {
+          const imageAsset = asset as ImageAsset;
+          let imagePath: string;
+
+          if (imageAsset.original_file && currentProjectPath) {
+            // 新しいAssetFile APIを使用
+            imagePath = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
+          } else {
+            // Fallback: 既存のoriginal_file_pathを使用
+            imagePath = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
+          }
+
+          const content = `<image xlink:href="${imagePath}" x="0" y="0" width="${imageAsset.original_width}" height="${imageAsset.original_height}" />`;
+          setPreviewContent(content);
+        } else {
+          // VectorAssetの場合：AssetFileがあれば使用、なければfallback
+          const vectorAsset = asset as VectorAsset;
+          let svgContent: string;
+
+          if (vectorAsset.original_file && currentProjectPath) {
+            // 新しいAssetFile APIを使用してSVGコンテンツを取得
+            try {
+              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
+            } catch (error) {
+              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
+              svgContent = vectorAsset.svg_content;
+            }
+          } else {
+            // Fallback: 既存のsvg_contentを使用
+            svgContent = vectorAsset.svg_content;
+          }
+
+          setPreviewContent(svgContent);
+        }
+      } catch (error) {
+        console.error('Failed to load preview content:', error);
+        setPreviewContent('');
+      }
+    };
+
+    loadPreviewContent();
+  }, [asset, currentProjectPath, isImageAsset]);
 
   // 動的スケール計算用のref
   const previewSvgRef = useRef<SVGSVGElement>(null);
@@ -501,16 +549,6 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
     }
   }, [isDragging, isResizing, maskDragPointIndex, dragStartPos, dragStartValues, maskDragStartPos, maskDragStartValues, resizeHandle, aspectRatioLocked, currentSize, project.canvas]);
 
-  // プレビュー用のコンテンツを取得
-  const getPreviewContent = () => {
-    if (isImageAsset) {
-      const imagePath = getCustomProtocolUrl((asset as ImageAsset).original_file_path, currentProjectPath);
-      return `<image xlink:href="${imagePath}" x="0" y="0" width="${(asset as ImageAsset).original_width}" height="${(asset as ImageAsset).original_height}" />`;
-    } else {
-      // VectorAssetの場合はSVGコンテンツをそのまま使用
-      return (asset as VectorAsset).svg_content;
-    }
-  };
 
 
   const modalTitle = mode === 'instance' ? `GraphicInstance 編集: ${asset.name}` : `Graphic 編集: ${asset.name}`;
@@ -570,7 +608,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
               currentPos={currentPos}
               currentSize={currentSize}
               currentOpacity={currentOpacity}
-              svgContent={getPreviewContent()}
+              svgContent={previewContent}
               originalWidth={isImageAsset ? (asset as ImageAsset).original_width : (asset as VectorAsset).original_width}
               originalHeight={isImageAsset ? (asset as ImageAsset).original_height : (asset as VectorAsset).original_height}
               onDragStart={(e) => {

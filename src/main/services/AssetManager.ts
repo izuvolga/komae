@@ -315,9 +315,9 @@ export class AssetManager {
         assetInfo = {
           name: asset.name,
           filePath: asset.type === 'ImageAsset'
-            ? asset.original_file_path
+            ? (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path
             : asset.type === 'VectorAsset'
-              ? asset.original_file_path
+              ? (asset as VectorAsset).original_file?.path || (asset as VectorAsset).original_file_path
               : undefined,
           type: asset.type,
         };
@@ -419,8 +419,13 @@ export class AssetManager {
 
       for (const asset of Object.values(projectData.assets)) {
         if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
-          // original_file_pathが相対パスの場合、絶対パスに変換
-          let filePath = asset.original_file_path;
+          // ファイルパスを取得（AssetFileが優先、フォールバックでoriginal_file_path）
+          let filePath: string;
+          if (asset.type === 'ImageAsset') {
+            filePath = (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path;
+          } else {
+            filePath = (asset as VectorAsset).original_file?.path || (asset as VectorAsset).original_file_path;
+          }
           if (!path.isAbsolute(filePath)) {
             filePath = path.resolve(this.currentProjectPath, filePath);
           }

@@ -35,20 +35,43 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       
       try {
         if (asset.type === 'ImageAsset') {
-          // ImageAssetの場合は既存のロジック
-          const protocolUrl = getCustomProtocolUrl((asset as ImageAsset).original_file_path, currentProjectPath);
+          // ImageAssetの場合：AssetFileがあれば使用、なければfallback
+          const imageAsset = asset as ImageAsset;
+          let protocolUrl: string;
+
+          if (imageAsset.original_file && currentProjectPath) {
+            // 新しいAssetFile APIを使用
+            protocolUrl = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
+          } else {
+            // Fallback: 既存のoriginal_file_pathを使用
+            protocolUrl = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
+          }
+
           if (isMounted) {
             setCustomProtocolUrl(protocolUrl);
             setIsLoading(false);
           }
         } else if (asset.type === 'VectorAsset') {
-          // VectorAssetの場合はsvg_contentを直接使用
+          // VectorAssetの場合：AssetFileがあれば使用、なければfallback
           const vectorAsset = asset as VectorAsset;
-          if (vectorAsset.svg_content) {
-            if (isMounted) {
-              setSvgContent(vectorAsset.svg_content);
-              setIsLoading(false);
+          let svgContent: string;
+
+          if (vectorAsset.original_file && currentProjectPath) {
+            // 新しいAssetFile APIを使用してSVGコンテンツを取得
+            try {
+              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
+            } catch (error) {
+              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
+              svgContent = vectorAsset.svg_content;
             }
+          } else {
+            // Fallback: 既存のsvg_contentを使用
+            svgContent = vectorAsset.svg_content;
+          }
+
+          if (svgContent && isMounted) {
+            setSvgContent(svgContent);
+            setIsLoading(false);
           } else {
             throw new Error('SVG content not found');
           }

@@ -1689,7 +1689,10 @@ export const EnhancedSpreadsheet: React.FC = () => {
                         <div className="image-content">
                           <img
                             className="image-preview-small"
-                            src={getCustomProtocolUrl(asset.original_file_path, currentProjectPath)}
+                            src={getCustomProtocolUrl(
+                              (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path,
+                              currentProjectPath
+                            )}
                             alt={asset.name}
                             onError={(e) => {
                               // 画像読み込みエラー時のフォールバック

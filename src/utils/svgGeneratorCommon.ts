@@ -147,7 +147,8 @@ export async function generateSvgStructureCommon(
 
       // アセット定義を追加（初回のみ）
       if (!processedAssets.has(asset.id)) {
-        const protocolUrl = getProtocolUrl(imageAsset.original_file_path);
+        const filePath = imageAsset.original_file?.path || imageAsset.original_file_path;
+        const protocolUrl = getProtocolUrl(filePath);
         const assetDef = generateImageAssetDefinition(imageAsset, protocolUrl);
         assetDefinitions.push(assetDef);
         processedAssets.add(asset.id);

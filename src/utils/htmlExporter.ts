@@ -367,7 +367,8 @@ export class HtmlExporter {
 
       if (!processedAssets.has(assetId)) {
         const imageAsset = asset as any; // ImageAsset型
-        const base64Data = encodeImageToBase64(imageAsset.original_file_path, this.projectPath);
+        const filePath = imageAsset.original_file?.path || imageAsset.original_file_path;
+        const base64Data = encodeImageToBase64(filePath, this.projectPath);
         const opacity = imageAsset.default_opacity ?? 1.0;
 
         const assetDef = [
@@ -548,7 +549,8 @@ export class HtmlExporter {
     return Object.values(project.assets)
       .filter(asset => asset.type === 'ImageAsset')
       .map(asset => {
-        const base64Data = encodeImageToBase64(asset.original_file_path, this.projectPath);
+        const filePath = asset.original_file?.path || asset.original_file_path;
+        const base64Data = encodeImageToBase64(filePath, this.projectPath);
         return `    <g id="${asset.id}">
       <image href="${base64Data}" x="${asset.default_pos_x}" y="${asset.default_pos_y}" width="${asset.original_width}" height="${asset.original_height}" opacity="${asset.default_opacity}" />
     </g>`;
