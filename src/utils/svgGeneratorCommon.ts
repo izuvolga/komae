@@ -92,18 +92,15 @@ export async function generateCompleteSvg(
     `  visibility="visible"`,
     `>`,
     `  <defs>`,
-    `    <!-- プロジェクト全体で使用されるImageAssetのマスク情報を宣言 -->`,
     ...clipPathDefinitions.map(def => `    ${def}`),
     `  </defs>`,
     ``,
-    `  <!-- 存在するImageAssetをすべて宣言する -->`,
     `  <g id="assets">`,
     `    <g visibility="hidden">`,
     ...assetDefinitions.map(def => `      ${def}`),
     `    </g>`,
     `  </g>`,
     ``,
-    `  <!-- JavaScriptで各pageの内容をid="draw"の中に描画する -->`,
     `  <g id="draw">`,
     ...useElements.map(use => `    ${use}`),
     `  </g>`,
@@ -169,10 +166,19 @@ export async function generateSvgStructureCommon(
 
     } else if (asset.type === 'VectorAsset') {
       const vectorAsset = asset as VectorAsset;
-
-      // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
-      const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
-      useElements.push(vectorElement);
+      if (!processedAssets.has(asset.id)) {
+        processedAssets.add(asset.id);
+        const assetDef = generateVectorAssetDefinition(vectorAsset);
+        assetDefinitions.push(assetDef);
+        processedAssets.add(asset.id);
+      }
+      const useElement = generateUseElement(vectorAsset, instance);
+      useElements.push(useElement);
+      // VectorAssetはuse要素として追加（アセット定義を参照）
+      // 旧処理
+      // // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
+      // const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
+      // useElements.push(vectorElement);
 
     } else if (asset.type === 'DynamicVectorAsset') {
       const dynamicVectorAsset = asset as DynamicVectorAsset;
@@ -391,15 +397,31 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
 }
 
 /**
+ * 画像アセット定義を生成する（<defs>内で使用）
+ */
+function generateVectorAssetDefinition(asset: VectorAsset): string {
+  const x = asset.default_pos_x;
+  const y = asset.default_pos_y;
+
+  return [
+    `<g id="${asset.id}">`,
+    `  <svg width="${asset.default_width}" height="${asset.default_height}" viewBox="0 0 ${asset.original_width} ${asset.original_height}" x="${x}" y="${y}" preserveAspectRatio="none">`,
+    `    ${asset.svg_content}`,
+    `  </svg>`,
+    `</g>`
+  ].join('\n      ');
+}
+
+/**
  * use要素を生成する（描画時に使用）
  */
-function generateUseElement(asset: ImageAsset, instance: AssetInstance): string {
+function generateUseElement(asset: ImageAsset | VectorAsset, instance: AssetInstance): string {
   // Transform文字列を構築
   const transforms: string[] = [];
 
   // 位置調整（ImageAssetInstanceのみ対応）
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
-    const imageInstance = instance as ImageAssetInstance;
+    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
     const defaultX = asset.default_pos_x;
     const defaultY = asset.default_pos_y;
     const posX = imageInstance.override_pos_x ?? defaultX;
@@ -414,7 +436,7 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
 
   // サイズ調整（ImageAssetInstanceのみ対応）
   if ('override_width' in instance || 'override_height' in instance) {
-    const imageInstance = instance as ImageAssetInstance;
+    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
     const width = imageInstance.override_width ?? asset.default_width;
     const height = imageInstance.override_height ?? asset.default_height;
 
@@ -426,10 +448,10 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
     }
   }
 
-  // opacity調整（ImageAssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
+  // opacity調整（AssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
   let finalOpacity = asset.default_opacity;
   if ('override_opacity' in instance) {
-    const imageInstance = instance as ImageAssetInstance;
+    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
     if (imageInstance.override_opacity !== undefined) {
       finalOpacity = imageInstance.override_opacity;
     }
@@ -437,7 +459,7 @@ function generateUseElement(asset: ImageAsset, instance: AssetInstance): string 
 
   // マスク適用（ImageAssetでマスクが存在する場合）
   let clipPathAttr = '';
-  const imageInstance = instance as ImageAssetInstance;
+  const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
   const maskId = getMaskId(asset, imageInstance);
   if (maskId) {
     clipPathAttr = ` clip-path="url(#${maskId})"`;
@@ -484,13 +506,13 @@ export function generateAllClipPathDefinitions(project: ProjectData, instances: 
 
   for (const instance of instances) {
     const asset = project.assets[instance.asset_id];
-    if (!asset || asset.type !== 'ImageAsset') continue;
-
-    const imageAsset = asset as ImageAsset;
-    const imageInstance = instance as ImageAssetInstance;
+    if (!asset) continue;
+    if (asset.type !== 'ImageAsset' && asset.type !== 'VectorAsset') continue;
+    const graphicAsset = asset as ImageAsset | VectorAsset;
+    const graphicInstance = instance as ImageAssetInstance | VectorAssetInstance;
 
     // インスタンスレベルのマスクを優先、なければアセットレベルのマスクを使用
-    const mask = imageInstance.override_mask ?? imageAsset.default_mask;
+    const mask = graphicInstance.override_mask ?? graphicAsset.default_mask;
     if (!mask) continue;
 
     // マスクIDを生成（アセットID + マスクのハッシュで重複回避）
@@ -509,7 +531,7 @@ export function generateAllClipPathDefinitions(project: ProjectData, instances: 
 /**
  * インスタンスに適用されるマスクIDを取得
  */
-function getMaskId(asset: ImageAsset, instance: ImageAssetInstance): string | null {
+function getMaskId(asset: ImageAsset | VectorAsset, instance: ImageAssetInstance): string | null {
   const mask = instance.override_mask ?? asset.default_mask;
   if (!mask) return null;
 
