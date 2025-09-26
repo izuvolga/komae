@@ -89,6 +89,7 @@ export interface VectorAsset extends BaseAsset {
   default_width: number;
   default_height: number;
   default_opacity: number;
+  default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
   default_z_index: number;
   svg_content: string; // SVGの内容をテキストとして保持
 }
@@ -223,6 +224,7 @@ export interface VectorAssetInstance extends BaseAssetInstance {
   override_width?: number;
   override_height?: number;
   override_opacity?: number;
+  override_mask?: [[number, number], [number, number], [number, number], [number, number]];
   override_z_index?: number;
 }
 
@@ -1375,6 +1377,25 @@ export function validateVectorAssetData(asset: VectorAsset): {
   const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
   if (!opacityValidation.isValid && opacityValidation.error) {
     errors.push(opacityValidation.error);
+  }
+
+  // マスクのバリデーション（optional）
+  if (asset.default_mask) {
+    if (asset.default_mask.length !== 4) {
+      errors.push('デフォルトマスクは4つの座標点で構成される必要があります。');
+    } else {
+      for (let i = 0; i < asset.default_mask.length; i++) {
+        const point = asset.default_mask[i];
+        if (point.length !== 2) {
+          errors.push(`マスク座標点${i + 1}はX,Y座標のペアである必要があります。`);
+        } else {
+          const [x, y] = point;
+          if (typeof x !== 'number' || typeof y !== 'number') {
+            errors.push(`マスク座標点${i + 1}のX,Y座標は数値である必要があります。`);
+          }
+        }
+      }
+    }
   }
 
   return {

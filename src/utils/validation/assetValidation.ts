@@ -33,6 +33,48 @@ export function validateOpacity(opacity: number | undefined, fieldName: string):
   return { isValid: true };
 }
 
+// マスクのバリデーション
+export function validateMask(
+  mask: [[number, number], [number, number], [number, number], [number, number]] | undefined, 
+  fieldName: string
+): ValidationResult {
+  if (mask === undefined) {
+    return { isValid: true, errors: [] };
+  }
+
+  const errors: string[] = [];
+
+  // マスクが正しい配列構造かチェック
+  if (!Array.isArray(mask) || mask.length !== 4) {
+    errors.push(`${fieldName}は4つの座標点を持つ配列である必要があります。`);
+    return { isValid: false, errors };
+  }
+
+  // 各座標点が正しい形式かチェック
+  for (let i = 0; i < mask.length; i++) {
+    const point = mask[i];
+    if (!Array.isArray(point) || point.length !== 2) {
+      errors.push(`${fieldName}の${i + 1}番目の座標点は[x, y]の形式である必要があります。`);
+      continue;
+    }
+
+    const [x, y] = point;
+    if (typeof x !== 'number' || typeof y !== 'number') {
+      errors.push(`${fieldName}の${i + 1}番目の座標点は数値である必要があります。現在の値: [${x}, ${y}]`);
+    }
+
+    // 座標値の範囲チェック（0.0〜1.0の範囲）
+    if (x < 0 || x > 1 || y < 0 || y > 1) {
+      errors.push(`${fieldName}の${i + 1}番目の座標点は0.0〜1.0の範囲である必要があります。現在の値: [${x}, ${y}]`);
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
 /**
  * アセットインスタンスのオーバーライド値を検証する共通関数
  * @param instance - 検証するアセットインスタンス
@@ -42,6 +84,7 @@ export function validateAssetInstanceOverrides(instance: {
   override_opacity?: number;
   override_width?: number;
   override_height?: number;
+  override_mask?: [[number, number], [number, number], [number, number], [number, number]];
 }): ValidationResult {
   const errors: string[] = [];
 
@@ -58,6 +101,12 @@ export function validateAssetInstanceOverrides(instance: {
 
   if (instance.override_height !== undefined && instance.override_height <= 0) {
     errors.push(`オーバーライド高さは0より大きい値を入力してください。現在の値: ${instance.override_height}`);
+  }
+
+  // オーバーライドマスクのバリデーション
+  const maskValidation = validateMask(instance.override_mask, 'マスク (オーバーライド)');
+  if (!maskValidation.isValid) {
+    errors.push(...maskValidation.errors);
   }
 
   return {
