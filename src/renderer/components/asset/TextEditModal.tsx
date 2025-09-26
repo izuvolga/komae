@@ -490,7 +490,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // リサイズハンドラー
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
-    console.log('Resize handle mouse down:', handle);
     e.preventDefault();
     e.stopPropagation();
     calculateDynamicScale(); // リサイズ開始時にスケール計算
@@ -524,16 +523,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     // 現在のスケール値を保存
     const currentScaleX = getCurrentValue('scale_x') || 1.0;
     const currentScaleY = getCurrentValue('scale_y') || 1.0;
-
-    console.log('Resize start values:', {
-      currentScaleX, currentScaleY,
-      realSize,
-      currentSize,
-      dynamicScale,
-      textElement: !!textElement,
-      rect: textElement ? textElement.getBoundingClientRect() : null,
-      PREVIEW_DOM_ID
-    });
 
     setIsResizing(true);
     setResizeHandle(handle);
@@ -586,14 +575,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         // ガイドラインを更新
         setSnapGuides(snapResult.snapGuides);
       } else if (isResizing && resizeHandle) {
-        console.log('Resizing detected:', { isResizing, resizeHandle });
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
-        console.log('Mouse delta:', { deltaX, deltaY });
 
         // ハンドル種類に応じて新しいサイズを計算
         let newWidth = resizeStartSize.width;
         let newHeight = resizeStartSize.height;
-        console.log('Initial size:', { newWidth, newHeight });
 
         switch (resizeHandle) {
           case 'top-left':
@@ -658,15 +644,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const clampedScaleX = Math.max(0.01, Math.min(10, newScaleX));
         const clampedScaleY = Math.max(0.01, Math.min(10, newScaleY));
 
-        console.log('Scale calculation:', {
-          newWidth, newHeight,
-          resizeStartSize,
-          scaleRatioX, scaleRatioY,
-          resizeStartScales,
-          newScaleX, newScaleY,
-          clampedScaleX, clampedScaleY
-        });
-
         // 位置調整：ハンドルがマウスカーソルに追従するように
         const isVerticalText = getCurrentValue('vertical');
         const currentPosX = dragStartValues.x;
@@ -680,38 +657,31 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           switch (resizeHandle) {
             case 'top-left':
             case 'nw':
-              console.log('Adjusting top-left position');
               // X方向：スケール増加で左に移動、Y方向：スケール増加で上に移動
               newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
               newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
               break;
             case 'top':
             case 'n':
-              console.log('Adjusting top position');
               // Y方向のみ：スケール増加で上に移動
               newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
               break;
             case 'top-right':
             case 'ne':
-              console.log('Adjusting top-right position');
               // Y方向のみ：スケール増加で上に移動
               newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
               break;
             case 'left':
             case 'w':
-              console.log('Adjusting left position');
               // X方向のみ：スケール増加で左に移動
               newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
               break;
             case 'bottom-left':
             case 'sw':
-              console.log('Adjusting bottom-left position');
               // X方向のみ：スケール増加で左に移動
               newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
               break;
-            default:
-              console.log('No position adjustment for handle:', resizeHandle);
-              // bottom-right, right, bottom: 位置調整不要
+            // bottom-right, right, bottom: 位置調整不要
           }
         } else {
           // 縦書きテキスト（右上基準）
@@ -745,16 +715,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             // bottom-left, left, bottom: 位置調整不要
           }
         }
-
-        console.log('Position adjustment:', {
-          isVerticalText,
-          resizeHandle,
-          currentPosX, currentPosY,
-          newPosX, newPosY,
-          positionDelta: { x: newPosX - currentPosX, y: newPosY - currentPosY },
-          resizeStartSize,
-          scaleRatioX, scaleRatioY
-        });
 
         // 値を更新
         setCurrentValue({
