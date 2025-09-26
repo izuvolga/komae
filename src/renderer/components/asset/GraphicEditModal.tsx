@@ -22,6 +22,7 @@ import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
 import type { ImageAsset, VectorAsset, ImageAssetInstance, VectorAssetInstance, Page } from '../../../types/entities';
+import { AssetFile } from '../../../types/AssetFile';
 import { validateImageAssetData, validateImageAssetInstanceData, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import {
   convertMouseDelta,
@@ -135,13 +136,11 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
           const imageAsset = asset as ImageAsset;
           let imagePath: string;
 
-          if (imageAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用
-            imagePath = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
-          } else {
-            // Fallback: 既存のoriginal_file_pathを使用
-            imagePath = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
-          }
+          // プレーンオブジェクトをAssetFileインスタンスに変換
+          const assetFile = AssetFile.ensureAssetFile(imageAsset.original_file);
+
+          // AssetFile APIを使用
+          imagePath = getCustomProtocolUrl(assetFile.path, currentProjectPath);
 
           const content = `<image xlink:href="${imagePath}" x="0" y="0" width="${imageAsset.original_width}" height="${imageAsset.original_height}" />`;
           setPreviewContent(content);
@@ -150,18 +149,11 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
           const vectorAsset = asset as VectorAsset;
           let svgContent: string;
 
-          if (vectorAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用してSVGコンテンツを取得
-            try {
-              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
-            } catch (error) {
-              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
-              svgContent = vectorAsset.svg_content;
-            }
-          } else {
-            // Fallback: 既存のsvg_contentを使用
-            svgContent = vectorAsset.svg_content;
-          }
+          // プレーンオブジェクトをAssetFileインスタンスに変換
+          const assetFile = AssetFile.ensureAssetFile(vectorAsset.original_file);
+
+          // AssetFile APIを使用してSVGコンテンツを取得
+          svgContent = await assetFile.getContent(currentProjectPath || '');
 
           setPreviewContent(svgContent);
         }

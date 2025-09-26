@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 import { getCustomProtocolUrl, calculateThumbnailSize } from '../../utils/imageUtils';
 import { useProjectStore } from '../../stores/projectStore';
 import type { Asset, AssetInstance, ImageAsset, VectorAsset, DynamicVectorAsset, DynamicVectorAssetInstance } from '../../../types/entities';
+import { AssetFile } from '../../../types/AssetFile';
 import './AssetThumbnail.css';
 
 interface AssetThumbnailProps {
@@ -39,13 +40,11 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           const imageAsset = asset as ImageAsset;
           let protocolUrl: string;
 
-          if (imageAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用
-            protocolUrl = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
-          } else {
-            // Fallback: 既存のoriginal_file_pathを使用
-            protocolUrl = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
-          }
+          // プレーンオブジェクトをAssetFileインスタンスに変換
+          const assetFile = AssetFile.ensureAssetFile(imageAsset.original_file);
+
+          // AssetFile APIを使用
+          protocolUrl = getCustomProtocolUrl(assetFile.path, currentProjectPath);
 
           if (isMounted) {
             setCustomProtocolUrl(protocolUrl);
@@ -56,18 +55,11 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           const vectorAsset = asset as VectorAsset;
           let svgContent: string;
 
-          if (vectorAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用してSVGコンテンツを取得
-            try {
-              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
-            } catch (error) {
-              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
-              svgContent = vectorAsset.svg_content;
-            }
-          } else {
-            // Fallback: 既存のsvg_contentを使用
-            svgContent = vectorAsset.svg_content;
-          }
+          // プレーンオブジェクトをAssetFileインスタンスに変換
+          const assetFile = AssetFile.ensureAssetFile(vectorAsset.original_file);
+
+          // AssetFile APIを使用してSVGコンテンツを取得
+          svgContent = await assetFile.getContent(currentProjectPath || '');
 
           if (svgContent && isMounted) {
             setSvgContent(svgContent);

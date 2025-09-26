@@ -1,6 +1,5 @@
 // AssetFileクラス - ファイル管理の統一クラス
-import * as fs from 'fs';
-import * as path from 'path';
+// Node.jsモジュールは動的にインポートして使用
 
 export type FileType = 'raster' | 'vector';
 
@@ -46,8 +45,40 @@ export class AssetFile {
       throw new Error('getContent() is only available for vector files');
     }
 
-    const fullPath = path.resolve(projectPath, this.path);
-    return fs.readFileSync(fullPath, 'utf8');
+    // 環境に応じてファイル読み込み方法を変更
+    if (typeof window !== 'undefined' && window.electronAPI) {
+      // レンダラープロセス: IPCを使用
+      try {
+        const fullPath = await this.resolveFullPath(projectPath);
+        return await window.electronAPI.readTextFile(fullPath);
+      } catch (error) {
+        throw new Error(`Failed to read file content: ${error}`);
+      }
+    } else {
+      // メインプロセス: 直接fs使用
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const fullPath = path.resolve(projectPath, this.path);
+        return fs.readFileSync(fullPath, 'utf8');
+      } catch (error) {
+        throw new Error(`Failed to read file content: ${error}`);
+      }
+    }
+  }
+
+  /**
+   * プロジェクトパスとの組み合わせでフルパスを解決
+   */
+  private async resolveFullPath(projectPath: string): Promise<string> {
+    if (typeof window !== 'undefined' && window.electronAPI) {
+      // レンダラープロセス: パス解決もIPCで行う
+      return await window.electronAPI.resolvePath(projectPath, this.path);
+    } else {
+      // メインプロセス: pathモジュールを使用
+      const path = await import('path');
+      return path.resolve(projectPath, this.path);
+    }
   }
 
   /**
@@ -67,7 +98,7 @@ export class AssetFile {
         protocolUrl = urlResolver(this.path, projectPath);
       } else {
         // Fallback: シンプルなfile://プロトコル
-        const fullPath = path.resolve(projectPath, this.path);
+        const fullPath = await this.resolveFullPath(projectPath);
         protocolUrl = `file://${fullPath}`;
       }
       return `<image xlink:href="${protocolUrl}" x="0" y="0" width="${width}" height="${height}" />`;
@@ -83,10 +114,18 @@ export class AssetFile {
    */
   async validateIntegrity(projectPath: string): Promise<boolean> {
     try {
-      const { calculateFileHash } = await import('../utils/fileTypeDetection');
-      const fullPath = path.resolve(projectPath, this.path);
-      const currentHash = await calculateFileHash(fullPath);
-      return currentHash === this.hash;
+      if (typeof window !== 'undefined' && window.electronAPI) {
+        // レンダラープロセス: IPCを通じてハッシュ計算を依頼
+        // 現在はIPCハンドラーがないため、一時的にtrueを返す
+        // TODO: IPCハンドラーを追加してハッシュ計算機能を実装
+        return true;
+      } else {
+        // メインプロセス: 直接ファイルハッシュを計算
+        const { calculateFileHash } = await import('../utils/fileTypeDetection');
+        const fullPath = await this.resolveFullPath(projectPath);
+        const currentHash = await calculateFileHash(fullPath);
+        return currentHash === this.hash;
+      }
     } catch (error) {
       return false;
     }
@@ -116,6 +155,26 @@ export class AssetFile {
       originalWidth: data.originalWidth,
       originalHeight: data.originalHeight,
     });
+  }
+
+  /**
+   * オブジェクトがAssetFileインスタンスかどうかをチェック
+   */
+  static isAssetFile(obj: any): obj is AssetFile {
+    return obj instanceof AssetFile;
+  }
+
+  /**
+   * プレーンオブジェクトをAssetFileインスタンスに安全に変換
+   */
+  static ensureAssetFile(obj: any): AssetFile {
+    if (AssetFile.isAssetFile(obj)) {
+      return obj;
+    }
+    if (obj && typeof obj === 'object' && obj.path && obj.type && obj.hash) {
+      return AssetFile.fromJSON(obj);
+    }
+    throw new Error('Invalid AssetFile object');
   }
 
   /**

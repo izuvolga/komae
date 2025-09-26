@@ -1,10 +1,17 @@
 import { ProjectData, Asset, Page, AssetInstance, CustomAsset, DynamicVectorAsset } from '../../src/types/entities';
+import { AssetFile } from '../../src/types/AssetFile';
 
 export const mockImageAsset: Asset = {
   id: 'img-f3227b66-61ec-428d-adb2-e4f1526e378c',
   type: 'ImageAsset',
   name: '1-18',
-  original_file_path: 'assets/images/1-18.jpg',
+  original_file: new AssetFile({
+    path: 'assets/images/1-18.jpg',
+    type: 'raster',
+    hash: 'mock-hash-1',
+    originalWidth: 1428,
+    originalHeight: 802
+  }),
   original_width: 1428,
   original_height: 802,
   default_pos_x: 8.571428571428651,
@@ -40,11 +47,40 @@ export const mockTextAsset: Asset = {
   }
 };;
 
+// SVGコンテンツのモック（テスト用）
+const mockSvgContent = `<?xml version="1.0" standalone="no"?>
+<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="60" height="60" stroke="black" fill="transparent" stroke-width="5"/>
+</svg>`;
+
+// AssetFileのモッククラス（テスト用）
+class MockAssetFile extends AssetFile {
+  constructor(params: {
+    path: string;
+    type: 'raster' | 'vector';
+    hash: string;
+    originalWidth: number;
+    originalHeight: number;
+  }, private mockContent?: string) {
+    super(params);
+  }
+
+  async getContent(_projectPath: string): Promise<string> {
+    return this.mockContent || '';
+  }
+}
+
 export const mockVectorAsset: Asset = {
   id: 'vector-7011a954-c8c3-49bc-a48c-2554755d7da7',
   type: 'VectorAsset',
   name: 'rect',
-  original_file_path: 'assets/vectors/rect.svg',
+  original_file: new MockAssetFile({
+    path: 'assets/vectors/rect.svg',
+    type: 'vector',
+    hash: 'mock-hash-2',
+    originalWidth: 100,
+    originalHeight: 100
+  }, mockSvgContent),
   original_width: 100,
   original_height: 100,
   default_pos_x: -25.093333333333348,
@@ -53,10 +89,6 @@ export const mockVectorAsset: Asset = {
   default_height: 420.8533333333334,
   default_opacity: 1,
   default_z_index: 2,
-  svg_content: `<?xml version="1.0" standalone="no"?>
-<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <rect x="20" y="20" width="60" height="60" stroke="black" fill="transparent" stroke-width="5"/>
-</svg>`,
 };
 
 export const mockValueAsset: Asset = {

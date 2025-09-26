@@ -62,6 +62,7 @@ export async function generateCompleteSvg(
   project: ProjectData,
   instances: AssetInstance[],
   getProtocolUrl: (filePath: string) => string,
+  projectPath: string,
   currentLanguage?: string,
   customAssets?: Record<string, any>, // テスト用のCustomAsset情報
   pageIndex: number = 0
@@ -73,6 +74,7 @@ export async function generateCompleteSvg(
     getProtocolUrl,
     availableLanguages,
     currentLanguage || 'ja',
+    projectPath,
     pageIndex,
     customAssets
   );
@@ -120,6 +122,7 @@ export async function generateSvgStructureCommon(
   getProtocolUrl: (filePath: string) => string,
   availableLanguages: string[],
   currentLanguage: string,
+  projectPath: string,
   pageIndex: number = 0,
   customAssets?: Record<string, any>,
   customAssetManager?: any // CustomAssetManagerのインスタンス（Mainプロセス用）
@@ -147,7 +150,7 @@ export async function generateSvgStructureCommon(
 
       // アセット定義を追加（初回のみ）
       if (!processedAssets.has(asset.id)) {
-        const filePath = imageAsset.original_file?.path || imageAsset.original_file_path;
+        const filePath = imageAsset.original_file.path;
         const protocolUrl = getProtocolUrl(filePath);
         const assetDef = generateImageAssetDefinition(imageAsset, protocolUrl);
         assetDefinitions.push(assetDef);
@@ -169,7 +172,7 @@ export async function generateSvgStructureCommon(
       const vectorAsset = asset as VectorAsset;
       if (!processedAssets.has(asset.id)) {
         processedAssets.add(asset.id);
-        const assetDef = generateVectorAssetDefinition(vectorAsset);
+        const assetDef = await generateVectorAssetDefinition(vectorAsset, projectPath);
         assetDefinitions.push(assetDef);
         processedAssets.add(asset.id);
       }
@@ -355,12 +358,16 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
  * 画像アセット定義を生成する（<defs>内で使用）
  * 元データを忠実に再現するデータを生成
  */
-function generateVectorAssetDefinition(asset: VectorAsset): string {
+async function generateVectorAssetDefinition(asset: VectorAsset, projectPath: string): Promise<string> {
   const width = asset.original_width;
   const height = asset.original_height;
+  
+  // AssetFileからSVGコンテンツを非同期で取得
+  const svgContent = await asset.original_file.getContent(projectPath);
+  
   return [
     `<svg id="${asset.id}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" x="0" y="0" preserveAspectRatio="none">`,
-    `  ${asset.svg_content}`,
+    `  ${svgContent}`,
     `</svg>`,
   ].join('\n      ');
 }

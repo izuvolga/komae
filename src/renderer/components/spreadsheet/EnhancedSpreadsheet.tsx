@@ -1690,7 +1690,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           <img
                             className="image-preview-small"
                             src={getCustomProtocolUrl(
-                              (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path,
+                              (asset as ImageAsset).original_file.path,
                               currentProjectPath
                             )}
                             alt={asset.name}
@@ -1706,7 +1706,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           <div
                             className="vector-preview-small"
                             dangerouslySetInnerHTML={{
-                              __html: (asset as VectorAsset).svg_content || '<div>SVG Error</div>'
+                              __html: '<div style="background: #f0f0f0; text-align: center; padding: 10px; font-size: 10px;">Vector</div>'
                             }}
                             style={{
                               maxWidth: '60px',

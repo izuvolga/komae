@@ -2,8 +2,21 @@
 
 import { z } from 'zod';
 import { ProjectData, Asset, Page, LanguageSettings, UIState } from '../types/entities';
+import { AssetFileData, FileType, AssetFile } from '../types/AssetFile';
 
 // 基本的なスキーマ定義
+
+// FileType スキーマ
+const FileTypeSchema = z.enum(['raster', 'vector']);
+
+// AssetFileData スキーマ
+const AssetFileDataSchema = z.object({
+  path: z.string().min(1),
+  type: FileTypeSchema,
+  hash: z.string().min(1),
+  originalWidth: z.number().min(0.01),
+  originalHeight: z.number().min(0.01),
+});
 
 // LanguageSettings スキーマ
 const LanguageSettingsSchema = z.object({
@@ -88,7 +101,7 @@ const ImageAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('ImageAsset'),
   name: z.string().min(1),
-  original_file_path: z.string().min(1),
+  original_file: AssetFileDataSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),
@@ -117,7 +130,7 @@ const VectorAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('VectorAsset'),
   name: z.string().min(1),
-  original_file_path: z.string().min(1),
+  original_file: AssetFileDataSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),
@@ -126,7 +139,6 @@ const VectorAssetSchema = z.object({
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
-  svg_content: z.string(),
 });
 // DynamicVectorAsset スキーマ
 const DynamicVectorAssetSchema = z.object({
@@ -254,7 +266,35 @@ export class ValidationError extends Error {
  */
 export function validateProjectData(data: unknown): ProjectData {
   try {
-    return ProjectDataSchema.parse(data);
+    const parsed = ProjectDataSchema.parse(data);
+
+    // AssetFileデータをAssetFileインスタンスに変換
+    const convertedAssets: Record<string, Asset> = {};
+    for (const [id, asset] of Object.entries(parsed.assets)) {
+      if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
+        // AssetFileインスタンスを作成
+        const assetFile = new AssetFile({
+          path: asset.original_file.path,
+          type: asset.original_file.type,
+          hash: asset.original_file.hash,
+          originalWidth: asset.original_file.originalWidth,
+          originalHeight: asset.original_file.originalHeight
+        });
+
+        // AssetFileを置き換え
+        convertedAssets[id] = {
+          ...asset,
+          original_file: assetFile
+        };
+      } else {
+        convertedAssets[id] = asset;
+      }
+    }
+
+    return {
+      ...parsed,
+      assets: convertedAssets
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new ValidationError(
@@ -273,7 +313,25 @@ export function validateProjectData(data: unknown): ProjectData {
  */
 export function validateAsset(data: unknown): Asset {
   try {
-    return AssetSchema.parse(data);
+    const parsed = AssetSchema.parse(data);
+
+    // AssetFileデータをAssetFileインスタンスに変換
+    if (parsed.type === 'ImageAsset' || parsed.type === 'VectorAsset') {
+      const assetFile = new AssetFile({
+        path: parsed.original_file.path,
+        type: parsed.original_file.type,
+        hash: parsed.original_file.hash,
+        originalWidth: parsed.original_file.originalWidth,
+        originalHeight: parsed.original_file.originalHeight
+      });
+
+      return {
+        ...parsed,
+        original_file: assetFile
+      };
+    }
+
+    return parsed;
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new ValidationError(

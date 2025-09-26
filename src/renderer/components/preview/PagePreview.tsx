@@ -41,11 +41,12 @@ export const PagePreview: React.FC<PagePreviewProps> = ({ project, page, zoomLev
         
         // 完全なSVG文字列を生成
         const svgContent = await generateCompleteSvg(
-          project, 
-          instances, 
+          project,
+          instances,
           (filePath: string) => {
             return getCustomProtocolUrl(filePath, currentProjectPath);
-          }, 
+          },
+          currentProjectPath || '',
           getCurrentLanguage(),
           undefined, // customAssets
           pageIndex // 正しいページインデックスを渡す
