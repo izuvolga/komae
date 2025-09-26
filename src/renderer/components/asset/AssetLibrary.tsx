@@ -8,7 +8,6 @@ import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
 import { GraphicEditModal } from './GraphicEditModal';
 import { TextEditModal } from './TextEditModal';
-import { VectorEditModal } from './VectorEditModal';
 import { DynamicVectorEditModal } from './DynamicVectorEditModal';
 import { ValueEditModal } from './ValueEditModal';
 import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
@@ -206,12 +205,12 @@ export const AssetLibrary: React.FC = () => {
     setEditingVectorAsset(null);
   };
 
-  const handleImageAssetSave = (updatedAsset: ImageAsset) => {
+  const handleGraphicAssetSave = (updatedAsset: ImageAsset | VectorAsset) => {
     updateAsset(updatedAsset.id, updatedAsset);
     logger.logUserInteraction('asset_save', 'AssetLibrary', {
       assetId: updatedAsset.id,
       assetName: updatedAsset.name,
-      assetType: 'ImageAsset',
+      assetType: updatedAsset.type,
     });
   };
 
@@ -224,14 +223,6 @@ export const AssetLibrary: React.FC = () => {
     });
   };
 
-  const handleVectorAssetSave = (updatedAsset: VectorAsset) => {
-    updateAsset(updatedAsset.id, updatedAsset);
-    logger.logUserInteraction('asset_save', 'AssetLibrary', {
-      assetId: updatedAsset.id,
-      assetName: updatedAsset.name,
-      assetType: 'VectorAsset',
-    });
-  };
 
   const handleDynamicVectorAssetSave = (updatedAsset: DynamicVectorAsset) => {
     updateAsset(updatedAsset.id, updatedAsset);
@@ -872,7 +863,7 @@ export const AssetLibrary: React.FC = () => {
           asset={editingImageAsset}
           isOpen={!!editingImageAsset}
           onClose={handleImageModalClose}
-          onSaveAsset={handleImageAssetSave}
+          onSaveAsset={handleGraphicAssetSave}
         />
       )}
 
@@ -889,12 +880,12 @@ export const AssetLibrary: React.FC = () => {
 
       {/* VectorAsset編集モーダル */}
       {editingVectorAsset && (
-        <VectorEditModal
+        <GraphicEditModal
           mode="asset"
           asset={editingVectorAsset}
           isOpen={!!editingVectorAsset}
           onClose={handleVectorModalClose}
-          onSaveAsset={handleVectorAssetSave}
+          onSaveAsset={handleGraphicAssetSave}
         />
       )}
 

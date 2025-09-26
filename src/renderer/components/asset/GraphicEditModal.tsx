@@ -21,8 +21,8 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
-import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
-import { validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
+import type { ImageAsset, VectorAsset, ImageAssetInstance, VectorAssetInstance, Page } from '../../../types/entities';
+import { validateImageAssetData, validateImageAssetInstanceData, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import {
   convertMouseDelta,
   getCurrentPosition,
@@ -38,7 +38,10 @@ import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 
 // 統合されたプロパティ
-interface GraphicEditModalProps extends BaseEditModalProps<ImageAsset, ImageAssetInstance> {
+type GraphicAsset = ImageAsset | VectorAsset;
+type GraphicAssetInstance = ImageAssetInstance | VectorAssetInstance;
+
+interface GraphicEditModalProps extends BaseEditModalProps<GraphicAsset, GraphicAssetInstance> {
   page?: Page;
 }
 
@@ -56,11 +59,32 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
   const project = useProjectStore((state) => state.project);
   const currentProjectPath = useProjectStore((state) => state.currentProjectPath);
 
+  // アセットタイプを判定
+  const assetType = asset.type as 'ImageAsset' | 'VectorAsset';
+  const isImageAsset = assetType === 'ImageAsset';
+
   // 編集中のデータ（モードに応じて切り替え）
-  const [editedAsset, setEditedAsset] = useState<ImageAsset>(asset);
-  const [editedInstance, setEditedInstance] = useState<ImageAssetInstance | null>(
+  const [editedAsset, setEditedAsset] = useState<GraphicAsset>(asset);
+  const [editedInstance, setEditedInstance] = useState<GraphicAssetInstance | null>(
     assetInstance || null
   );
+
+  // バリデーション関数ラッパー
+  const validateAssetWrapper = (asset: GraphicAsset) => {
+    if (isImageAsset) {
+      return validateImageAssetData(asset as ImageAsset);
+    } else {
+      return validateVectorAssetData(asset as VectorAsset);
+    }
+  };
+
+  const validateInstanceWrapper = (instance: GraphicAssetInstance) => {
+    if (isImageAsset) {
+      return validateImageAssetInstanceData(instance as ImageAssetInstance);
+    } else {
+      return validateVectorAssetInstanceData(instance as VectorAssetInstance);
+    }
+  };
 
   // Submit処理フック
   const { handleSubmit } = useEditModalSubmit({
@@ -70,8 +94,8 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
     onSaveAsset,
     onSaveInstance,
     onClose,
-    validateAsset: validateImageAssetData,
-    validateInstance: validateImageAssetInstanceData
+    validateAsset: validateAssetWrapper,
+    validateInstance: validateInstanceWrapper
   });
 
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
@@ -141,10 +165,12 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
   // 現在の値を取得（Asset vs Instance） - 共通ユーティリティを使用
 
   const getCurrentMask = () => {
+    if (!isImageAsset) return null;
+
     if (mode === 'instance' && editedInstance) {
-      return editedInstance.override_mask ?? asset.default_mask ?? null;
+      return (editedInstance as ImageAssetInstance).override_mask ?? (asset as ImageAsset).default_mask ?? null;
     }
-    return editedAsset.default_mask ?? null;
+    return (editedAsset as ImageAsset).default_mask ?? null;
   };
 
   // マスクがキャンバスサイズと同じかどうかを判定
@@ -267,6 +293,9 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
   // z_index専用のサニタイズ関数、バリデーション関数、数値入力検証は共通ユーティリティを使用
 
   const updateMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | undefined) => {
+    // VectorAssetの場合はマスクを更新しない
+    if (!isImageAsset) return;
+
     // キャンバスの四隅と同じ場合かつ、画像編集モードの場合にはマスクを削除（undefinedに設定）
     let finalMask = mask;
     if (mask && isCanvasSizeMask(mask) && !maskEditMode) {
@@ -277,12 +306,12 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
       setEditedInstance(prev => prev ? {
         ...prev,
         override_mask: finalMask,
-      } : null);
+      } as ImageAssetInstance : null);
     } else {
       setEditedAsset(prev => ({
         ...prev,
         default_mask: finalMask,
-      }));
+      } as ImageAsset));
     }
   };
 
@@ -455,10 +484,16 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
     }
   }, [isDragging, isResizing, maskDragPointIndex, dragStartPos, dragStartValues, maskDragStartPos, maskDragStartValues, resizeHandle, aspectRatioLocked, currentSize, project.canvas]);
 
-  const imagePath = getCustomProtocolUrl(asset.original_file_path, currentProjectPath);
-  function wrapImagePathBySvg(path: string) {
-    return `<image xlink:href="${path}" x="0" y="0" width="${asset.original_width}" height="${asset.original_height}" />`;
-  }
+  // プレビュー用のコンテンツを取得
+  const getPreviewContent = () => {
+    if (isImageAsset) {
+      const imagePath = getCustomProtocolUrl((asset as ImageAsset).original_file_path, currentProjectPath);
+      return `<image xlink:href="${imagePath}" x="0" y="0" width="${(asset as ImageAsset).original_width}" height="${(asset as ImageAsset).original_height}" />`;
+    } else {
+      // VectorAssetの場合はSVGコンテンツをそのまま使用
+      return (asset as VectorAsset).svg_content;
+    }
+  };
 
 
   const modalTitle = mode === 'instance' ? `GraphicInstance 編集: ${asset.name}` : `Graphic 編集: ${asset.name}`;
@@ -518,9 +553,9 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
               currentPos={currentPos}
               currentSize={currentSize}
               currentOpacity={currentOpacity}
-              svgContent={wrapImagePathBySvg(imagePath)}
-              originalWidth={asset.original_width}
-              originalHeight={asset.original_height}
+              svgContent={getPreviewContent()}
+              originalWidth={isImageAsset ? (asset as ImageAsset).original_width : (asset as VectorAsset).original_width}
+              originalHeight={isImageAsset ? (asset as ImageAsset).original_height : (asset as VectorAsset).original_height}
               onDragStart={(e) => {
                 if (maskEditMode) return;
                 e.preventDefault();
@@ -718,15 +753,15 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
               </Box>
             )}
 
-              {/* マスク編集切り替えボタン（Asset編集時のみ、マスク編集時は非表示） */}
-            {mode === 'asset' && !maskEditMode && (
+              {/* マスク編集切り替えボタン（ImageAsset編集時のみ、マスク編集時は非表示） */}
+            {mode === 'asset' && isImageAsset && !maskEditMode && (
               <Box sx={{ mb: 3 }}>
                 <Button
                   variant="outlined"
                   onClick={() => {
                     if (!maskEditMode) {
                       // マスク編集モードに入る時、マスクが未定義の場合、キャンバスサイズの4点に設定
-                      if (!editedAsset.default_mask) {
+                      if (!(editedAsset as ImageAsset).default_mask) {
                         const canvasWidth = project.canvas.width;
                         const canvasHeight = project.canvas.height;
                         const newMask: [[number, number], [number, number], [number, number], [number, number]] = [
@@ -735,7 +770,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
                           [canvasWidth, canvasHeight],   // 右下
                           [0, canvasHeight]              // 左下
                         ];
-                        setEditedAsset(prev => ({ ...prev, default_mask: newMask }));
+                        setEditedAsset(prev => ({ ...prev, default_mask: newMask } as ImageAsset));
                       }
                     }
                     setMaskEditMode(!maskEditMode);
@@ -747,13 +782,13 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
               </Box>
             )}
 
-            {/* マスク編集パラメータ - MUI化 */}
-            {maskEditMode && currentMask && (
+            {/* マスク編集パラメータ - MUI化（ImageAssetのみ） */}
+            {isImageAsset && maskEditMode && currentMask && (
               <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid', borderBottomColor: 'divider' }}>
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
                   デフォルトマスク
                 </Typography>
-                {currentMask.map((point, index) => (
+                {currentMask.map((point: [number, number], index: number) => (
                   <Box key={index} sx={{
                     mb: 2,
                     p: 2,
