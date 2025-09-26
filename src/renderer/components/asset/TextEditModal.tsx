@@ -524,7 +524,10 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       currentScaleX, currentScaleY,
       realSize,
       currentSize,
-      dynamicScale
+      dynamicScale,
+      textElement: !!textElement,
+      rect: textElement ? textElement.getBoundingClientRect() : null,
+      PREVIEW_DOM_ID
     });
 
     setIsResizing(true);
@@ -659,10 +662,101 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           clampedScaleX, clampedScaleY
         });
 
-        // スケール値を更新
+        // 位置調整：ハンドルがマウスカーソルに追従するように
+        const isVerticalText = getCurrentValue('vertical');
+        const currentPosX = dragStartValues.x;
+        const currentPosY = dragStartValues.y;
+
+        let newPosX = currentPosX;
+        let newPosY = currentPosY;
+
+        if (!isVerticalText) {
+          // 横書きテキスト（左上基準）
+          switch (resizeHandle) {
+            case 'top-left':
+            case 'nw':
+              console.log('Adjusting top-left position');
+              // X方向：スケール増加で左に移動、Y方向：スケール増加で上に移動
+              newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'top':
+            case 'n':
+              console.log('Adjusting top position');
+              // Y方向のみ：スケール増加で上に移動
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'top-right':
+            case 'ne':
+              console.log('Adjusting top-right position');
+              // Y方向のみ：スケール増加で上に移動
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'left':
+            case 'w':
+              console.log('Adjusting left position');
+              // X方向のみ：スケール増加で左に移動
+              newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
+              break;
+            case 'bottom-left':
+            case 'sw':
+              console.log('Adjusting bottom-left position');
+              // X方向のみ：スケール増加で左に移動
+              newPosX = currentPosX - (resizeStartSize.width * (scaleRatioX - 1));
+              break;
+            default:
+              console.log('No position adjustment for handle:', resizeHandle);
+              // bottom-right, right, bottom: 位置調整不要
+          }
+        } else {
+          // 縦書きテキスト（右上基準）
+          switch (resizeHandle) {
+            case 'top-left':
+            case 'nw':
+              // Y方向のみ：スケール増加で上に移動
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'top':
+            case 'n':
+              // Y方向のみ：スケール増加で上に移動
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'top-right':
+            case 'ne':
+              // X方向：スケール増加で右に移動、Y方向：スケール増加で上に移動
+              newPosX = currentPosX + (resizeStartSize.width * (scaleRatioX - 1));
+              newPosY = currentPosY - (resizeStartSize.height * (scaleRatioY - 1));
+              break;
+            case 'right':
+            case 'e':
+              // X方向のみ：スケール増加で右に移動
+              newPosX = currentPosX + (resizeStartSize.width * (scaleRatioX - 1));
+              break;
+            case 'bottom-right':
+            case 'se':
+              // X方向のみ：スケール増加で右に移動
+              newPosX = currentPosX + (resizeStartSize.width * (scaleRatioX - 1));
+              break;
+            // bottom-left, left, bottom: 位置調整不要
+          }
+        }
+
+        console.log('Position adjustment:', {
+          isVerticalText,
+          resizeHandle,
+          currentPosX, currentPosY,
+          newPosX, newPosY,
+          positionDelta: { x: newPosX - currentPosX, y: newPosY - currentPosY },
+          resizeStartSize,
+          scaleRatioX, scaleRatioY
+        });
+
+        // 値を更新
         setCurrentValue({
+          pos_x: newPosX,
+          pos_y: newPosY,
           scale_x: clampedScaleX,
-          scale_y: clampedScaleY
+          scale_y: clampedScaleY,
         });
       }
     };
