@@ -1,6 +1,7 @@
 # v0.0 リリースに向けてのTODO
 
 ## 細かい改善
+- [ ]: Vector アセットのマスクがプロジェクトに保存されない
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
