@@ -174,11 +174,6 @@ export async function generateSvgStructureCommon(
       }
       const useElement = generateUseElement(vectorAsset, instance);
       useElements.push(useElement);
-      // VectorAssetはuse要素として追加（アセット定義を参照）
-      // 旧処理
-      // // VectorAssetは毎回インライン要素として追加（インスタンスごとに異なる変形が必要）
-      // const vectorElement = generateVectorElement(vectorAsset, instance as VectorAssetInstance);
-      // useElements.push(vectorElement);
 
     } else if (asset.type === 'DynamicVectorAsset') {
       const dynamicVectorAsset = asset as DynamicVectorAsset;
@@ -200,46 +195,6 @@ export async function generateSvgStructureCommon(
   }
 
   return { assetDefinitions, useElements };
-}
-
-/**
- * VectorAsset要素を生成する
- */
-function generateVectorElement(asset: VectorAsset, instance: VectorAssetInstance): string {
-  // インスタンスのオーバーライド値を取得
-  const posX = instance.override_pos_x ?? asset.default_pos_x;
-  const posY = instance.override_pos_y ?? asset.default_pos_y;
-  const width = instance.override_width ?? asset.default_width;
-  const height = instance.override_height ?? asset.default_height;
-  const opacity = instance.override_opacity ?? asset.default_opacity;
-
-  // 修正されたwrapSVGWithParentContainer関数のロジックを適用
-  const originalWidth = asset.original_width;
-  const originalHeight = asset.original_height;
-  const scaleX = width / originalWidth;
-  const scaleY = height / originalHeight;
-
-  // SVG 内部での X, Y 座標は scale 処理を考慮して調整
-  const adjustedX = posX * (1 / scaleX);
-  const adjustedY = posY * (1 / scaleY);
-
-  const wrappedSVG = `<svg version="1.1"
-    xmlns="http://www.w3.org/2000/svg"
-    x="${adjustedX}px"
-    y="${adjustedY}px"
-    width="${originalWidth}px"
-    height="${originalHeight}px"
-    transform="scale(${scaleX}, ${scaleY})"
-    style="opacity: ${opacity};">
-      ${asset.svg_content}
-  </svg>`;
-
-  // グループ要素でラップ（ID付き）
-  return [
-    `<g id="vector-${instance.id}">`,
-    `  ${wrappedSVG}`,
-    `</g>`
-  ].join('\n    ');
 }
 
 /**
@@ -381,77 +336,73 @@ async function generateDynamicVectorElement(
  * 画像アセット定義を生成する（<defs>内で使用）
  */
 function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): string {
-  const x = asset.default_pos_x;
-  const y = asset.default_pos_y;
-  const width = asset.default_width;
-  const height = asset.default_height;
-  const opacity = asset.default_opacity;
+  // const x = asset.default_pos_x;
+  // const y = asset.default_pos_y;
+  // const width = asset.default_width;
+  // const height = asset.default_height;
+  const width = asset.original_width;
+  const height = asset.original_height;
 
   return [
-    `<g id="${asset.id}" opacity="${opacity}">`,
-    `  <image id="image-${asset.id}"`,
-    `    xlink:href="${protocolUrl}"`,
-    `    width="${width}" height="${height}" x="${x}" y="${y}" preserveAspectRatio="none"/>`,
-    `</g>`
+    `<image id="${asset.id}"`,
+    `  xlink:href="${protocolUrl}"`,
+    `  width="${width}" height="${height}" x="0" y="0" preserveAspectRatio="none"/>`,
   ].join('\n      ');
 }
 
 /**
  * 画像アセット定義を生成する（<defs>内で使用）
+ * 元データを忠実に再現するデータを生成
  */
 function generateVectorAssetDefinition(asset: VectorAsset): string {
-  const x = asset.default_pos_x;
-  const y = asset.default_pos_y;
-
+  const width = asset.original_width;
+  const height = asset.original_height;
   return [
-    `<g id="${asset.id}">`,
-    `  <svg width="${asset.default_width}" height="${asset.default_height}" viewBox="0 0 ${asset.original_width} ${asset.original_height}" x="${x}" y="${y}" preserveAspectRatio="none">`,
-    `    ${asset.svg_content}`,
-    `  </svg>`,
-    `</g>`
+    `<svg id="${asset.id}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" x="0" y="0" preserveAspectRatio="none">`,
+    `  ${asset.svg_content}`,
+    `</svg>`,
   ].join('\n      ');
 }
 
 /**
  * use要素を生成する（描画時に使用）
+ * editModalUtils.tsx の wrapSVGWithParentContainer と動作をあわせること
  */
 function generateUseElement(asset: ImageAsset | VectorAsset, instance: AssetInstance): string {
   // Transform文字列を構築
   const transforms: string[] = [];
 
-  // 位置調整（ImageAssetInstanceのみ対応）
+  const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
+
+  // 位置調整
+  let translateX = asset.default_pos_x;
+  let translateY = asset.default_pos_y;
   if ('override_pos_x' in instance || 'override_pos_y' in instance) {
-    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
-    const defaultX = asset.default_pos_x;
-    const defaultY = asset.default_pos_y;
-    const posX = imageInstance.override_pos_x ?? defaultX;
-    const posY = imageInstance.override_pos_y ?? defaultY;
-    // アセットのデフォルト位置からの差分を計算してtranslateに追加
-    const translateX = posX - defaultX;
-    const translateY = posY - defaultY;
-    if (translateX !== 0 || translateY !== 0) {
-      transforms.push(`translate(${translateX},${translateY})`);
-    }
+    translateX = imageInstance.override_pos_x ?? asset.default_pos_x;
+    translateY = imageInstance.override_pos_y ?? asset.default_pos_y;
+  }
+  // アセットのデフォルト位置からの差分を計算してtranslateに追加
+  if (translateX !== 0 || translateY !== 0) {
+    transforms.push(`translate(${translateX},${translateY})`);
   }
 
-  // サイズ調整（ImageAssetInstanceのみ対応）
+  // サイズ調整
+  let scaleX = asset.default_width / asset.original_width;
+  let scaleY = asset.default_height / asset.original_height;
   if ('override_width' in instance || 'override_height' in instance) {
-    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
     const width = imageInstance.override_width ?? asset.default_width;
     const height = imageInstance.override_height ?? asset.default_height;
-
     // デフォルトサイズからの倍率を計算してscaleに追加
-    const scaleX = width / asset.default_width;
-    const scaleY = height / asset.default_height;
-    if (scaleX !== 1 || scaleY !== 1) {
-      transforms.push(`scale(${scaleX},${scaleY})`);
-    }
+    scaleX = width / asset.original_width;
+    scaleY = height / asset.original_height;
+  }
+  if (scaleX !== 1 || scaleY !== 1) {
+    transforms.push(`scale(${scaleX},${scaleY})`);
   }
 
-  // opacity調整（AssetInstanceの override_opacity を優先、なければAssetのdefault_opacity）
+  // opacity調整
   let finalOpacity = asset.default_opacity;
   if ('override_opacity' in instance) {
-    const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
     if (imageInstance.override_opacity !== undefined) {
       finalOpacity = imageInstance.override_opacity;
     }
@@ -459,7 +410,6 @@ function generateUseElement(asset: ImageAsset | VectorAsset, instance: AssetInst
 
   // マスク適用（ImageAssetでマスクが存在する場合）
   let clipPathAttr = '';
-  const imageInstance = instance as ImageAssetInstance | VectorAssetInstance;
   const maskId = getMaskId(asset, imageInstance);
   if (maskId) {
     clipPathAttr = ` clip-path="url(#${maskId})"`;
@@ -617,7 +567,7 @@ function generateSingleLanguageTextElement(
   const leading = getEffectiveLeading(asset, textInstance, language);
   const vertical = getEffectiveVertical(asset, textInstance, language);
 
-  // XMLエスケープを適用
+  // XMLエスケープを適用 (TODO: 必要か？)
   const escapedText = escapeXml(textContent);
 
   // Transform設定（位置調整）
