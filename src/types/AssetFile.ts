@@ -1,7 +1,6 @@
 // AssetFileクラス - ファイル管理の統一クラス
 import * as fs from 'fs';
 import * as path from 'path';
-import { getCustomProtocolUrl } from '../renderer/utils/imageUtils';
 
 export type FileType = 'raster' | 'vector';
 
@@ -58,11 +57,19 @@ export class AssetFile {
   async generateSVGElement(
     width: number,
     height: number,
-    projectPath: string
+    projectPath: string,
+    urlResolver?: (filePath: string, projectPath: string) => string
   ): Promise<string> {
     if (this.type === 'raster') {
       // ラスタ画像の場合：<image>要素を生成
-      const protocolUrl = getCustomProtocolUrl(this.path, projectPath);
+      let protocolUrl: string;
+      if (urlResolver) {
+        protocolUrl = urlResolver(this.path, projectPath);
+      } else {
+        // Fallback: シンプルなfile://プロトコル
+        const fullPath = path.resolve(projectPath, this.path);
+        protocolUrl = `file://${fullPath}`;
+      }
       return `<image xlink:href="${protocolUrl}" x="0" y="0" width="${width}" height="${height}" />`;
     } else {
       // ベクタ画像の場合：SVGコンテンツを直接読み込み

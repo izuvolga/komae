@@ -14,6 +14,8 @@ import {
 } from '../../utils/duplicateAssetHandler';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ProjectData } from '../../types/entities';
 import { createImageAsset, createDefaultTextAsset, createVectorAsset, createDynamicVectorAsset } from '../../types/entities';
+import { AssetFile } from '../../types/AssetFile';
+import { determineFileType, calculateFileHash } from '../../utils/fileTypeDetection';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -171,12 +173,33 @@ export class AssetManager {
     // 画像の基本情報を取得（実際の実装では画像ライブラリを使用）
     const imageInfo = await this.getImageInfo(filePath);
 
+    // AssetFileインスタンスを生成
+    const assetFile = new AssetFile({
+      path: relativePath,
+      type: determineFileType(filePath),
+      hash: await calculateFileHash(filePath),
+      originalWidth: imageInfo.width,
+      originalHeight: imageInfo.height
+    });
+
     // entities.tsのヘルパー関数を使用してImageAssetを作成
     const asset = createImageAsset({
       name: fileName,
       relativePath: relativePath,
       originalWidth: imageInfo.width,
       originalHeight: imageInfo.height,
+    });
+
+    // AssetFileインスタンスを追加
+    asset.original_file = assetFile;
+
+    await this.logger.logDevelopment('asset_file_created', 'AssetFile instance created for ImageAsset', {
+      assetId: asset.id,
+      assetName: asset.name,
+      filePath: relativePath,
+      fileType: assetFile.type,
+      fileHash: assetFile.hash,
+      dimensions: `${assetFile.originalWidth}x${assetFile.originalHeight}`,
     });
 
     return asset;
@@ -237,6 +260,15 @@ export class AssetManager {
     // SVGの基本情報を取得
     const svgInfo = await this.getSVGInfo(filePath);
 
+    // AssetFileインスタンスを生成
+    const assetFile = new AssetFile({
+      path: relativePath,
+      type: determineFileType(filePath),
+      hash: await calculateFileHash(filePath),
+      originalWidth: svgInfo.width,
+      originalHeight: svgInfo.height
+    });
+
     // entities.tsのヘルパー関数を使用してVectorAssetを作成
     const asset = createVectorAsset({
       name: fileName,
@@ -244,6 +276,19 @@ export class AssetManager {
       originalWidth: svgInfo.width,
       originalHeight: svgInfo.height,
       svgContent: svgInfo.content,
+    });
+
+    // AssetFileインスタンスを追加
+    asset.original_file = assetFile;
+
+    await this.logger.logDevelopment('asset_file_created', 'AssetFile instance created for VectorAsset', {
+      assetId: asset.id,
+      assetName: asset.name,
+      filePath: relativePath,
+      fileType: assetFile.type,
+      fileHash: assetFile.hash,
+      dimensions: `${assetFile.originalWidth}x${assetFile.originalHeight}`,
+      svgContentLength: svgInfo.content.length,
     });
 
     return asset;
