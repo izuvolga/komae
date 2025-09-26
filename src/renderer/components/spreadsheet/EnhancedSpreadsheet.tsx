@@ -4,9 +4,8 @@ import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
 import { useAssetInstanceReset } from '../../hooks/useAssetInstanceReset';
 import { PageThumbnail } from './PageThumbnail';
-import { ImageEditModal } from '../asset/ImageEditModal';
+import { GraphicEditModal } from '../asset/GraphicEditModal';
 import { TextEditModal } from '../asset/TextEditModal';
-import { VectorEditModal } from '../asset/VectorEditModal';
 import { ValueEditModal } from '../asset/ValueEditModal';
 import { DynamicVectorEditModal } from '../asset/DynamicVectorEditModal';
 import type { Asset, ImageAsset, ImageAssetInstance, TextAsset, TextAssetInstance, VectorAsset, VectorAssetInstance, ValueAsset, ValueAssetInstance, DynamicVectorAsset, DynamicVectorAssetInstance, Page, AssetInstance } from '../../../types/entities';
@@ -83,21 +82,15 @@ export const EnhancedSpreadsheet: React.FC = () => {
     originalRect: null as DOMRect | null,
     insertIndex: -1,
   });
-  const [editingImageInstance, setEditingImageInstance] = useState<{
-    instance: ImageAssetInstance | null;
-    asset: ImageAsset;
+  const [editingGraphicInstance, setEditingGraphicInstance] = useState<{
+    instance: ImageAssetInstance | VectorAssetInstance | null;
+    asset: ImageAsset | VectorAsset;
     page: Page | null;
   } | null>(null);
 
   const [editingTextInstance, setEditingTextInstance] = useState<{
     instance: TextAssetInstance | null;
     asset: TextAsset;
-    page: Page | null;
-  } | null>(null);
-
-  const [editingVectorInstance, setEditingVectorInstance] = useState<{
-    instance: VectorAssetInstance | null;
-    asset: VectorAsset;
     page: Page | null;
   } | null>(null);
 
@@ -417,22 +410,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
 
     // インスタンスが確実に存在する場合のみ編集モーダルを開く
     if (instance) {
-      if (asset.type === 'ImageAsset') {
-        setEditingImageInstance({
-          instance: instance as ImageAssetInstance,
-          asset: asset as ImageAsset,
+      if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
+        setEditingGraphicInstance({
+          instance: instance as ImageAssetInstance | VectorAssetInstance,
+          asset: asset as ImageAsset | VectorAsset,
           page: currentPage,
         });
       } else if (asset.type === 'TextAsset') {
         setEditingTextInstance({
           instance: instance as TextAssetInstance,
           asset: asset as TextAsset,
-          page: currentPage,
-        });
-      } else if (asset.type === 'VectorAsset') {
-        setEditingVectorInstance({
-          instance: instance as VectorAssetInstance,
-          asset: asset as VectorAsset,
           page: currentPage,
         });
       } else if (asset.type === 'ValueAsset') {
@@ -671,16 +658,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
     handleResetCellByKeyboard
   ]);
 
-  const handleImageInstanceSave = (updatedInstance: ImageAssetInstance) => {
-    if (editingImageInstance && editingImageInstance.page) {
-      updateAssetInstance(editingImageInstance.page.id, updatedInstance.id, updatedInstance);
+  const handleGraphicInstanceSave = (updatedInstance: ImageAssetInstance | VectorAssetInstance) => {
+    if (editingGraphicInstance && editingGraphicInstance.page) {
+      updateAssetInstance(editingGraphicInstance.page.id, updatedInstance.id, updatedInstance);
     }
-    setEditingImageInstance(null);
+    setEditingGraphicInstance(null);
   };
 
-  const handleImageAssetSave = (updatedAsset: ImageAsset) => {
+  const handleGraphicAssetSave = (updatedAsset: ImageAsset | VectorAsset) => {
     updateAsset(updatedAsset.id, updatedAsset);
-    setEditingImageInstance(null);
+    setEditingGraphicInstance(null);
   };
 
   const handleTextInstanceSave = (updatedInstance: TextAssetInstance) => {
@@ -695,28 +682,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
     setEditingTextInstance(null);
   };
 
-  const handleImageModalClose = () => {
-    setEditingImageInstance(null);
+  const handleGraphicModalClose = () => {
+    setEditingGraphicInstance(null);
   };
 
   const handleTextModalClose = () => {
     setEditingTextInstance(null);
-  };
-
-  const handleVectorInstanceSave = (updatedInstance: VectorAssetInstance) => {
-    if (editingVectorInstance && editingVectorInstance.page) {
-      updateAssetInstance(editingVectorInstance.page.id, updatedInstance.id, updatedInstance);
-    }
-    setEditingVectorInstance(null);
-  };
-
-  const handleVectorAssetSave = (updatedAsset: VectorAsset) => {
-    updateAsset(updatedAsset.id, updatedAsset);
-    setEditingVectorInstance(null);
-  };
-
-  const handleVectorModalClose = () => {
-    setEditingVectorInstance(null);
   };
 
   const handleValueInstanceSave = (updatedInstance: ValueAssetInstance) => {
@@ -1004,22 +975,16 @@ export const EnhancedSpreadsheet: React.FC = () => {
     const asset = contextMenu.asset;
 
     // アセット編集用の状態を設定（インスタンスではなくアセット自体の編集）
-    if (asset.type === 'ImageAsset') {
-      setEditingImageInstance({
+    if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
+      setEditingGraphicInstance({
         instance: null, // アセット編集モードなのでnull
-        asset: asset as ImageAsset,
+        asset: asset as ImageAsset | VectorAsset,
         page: null, // アセット編集モードなのでnull
       });
     } else if (asset.type === 'TextAsset') {
       setEditingTextInstance({
         instance: null, // アセット編集モードなのでnull
         asset: asset as TextAsset,
-        page: null, // アセット編集モードなのでnull
-      });
-    } else if (asset.type === 'VectorAsset') {
-      setEditingVectorInstance({
-        instance: null, // アセット編集モードなのでnull
-        asset: asset as VectorAsset,
         page: null, // アセット編集モードなのでnull
       });
     } else if (asset.type === 'ValueAsset') {
@@ -1867,17 +1832,17 @@ export const EnhancedSpreadsheet: React.FC = () => {
         visibleAssetsCount={visibleAssets.length}
       />
 
-      {/* ImageAsset/ImageAssetInstance編集モーダル */}
-      {editingImageInstance && (
-        <ImageEditModal
-          mode={editingImageInstance.instance ? "instance" : "asset"}
-          asset={editingImageInstance.asset}
-          assetInstance={editingImageInstance.instance || undefined}
-          page={editingImageInstance.page || undefined}
-          isOpen={!!editingImageInstance}
-          onClose={handleImageModalClose}
-          onSaveAsset={editingImageInstance.instance ? undefined : handleImageAssetSave}
-          onSaveInstance={editingImageInstance.instance ? handleImageInstanceSave : undefined}
+      {/* GraphicAsset/GraphicAssetInstance編集モーダル */}
+      {editingGraphicInstance && (
+        <GraphicEditModal
+          mode={editingGraphicInstance.instance ? "instance" : "asset"}
+          asset={editingGraphicInstance.asset}
+          assetInstance={editingGraphicInstance.instance || undefined}
+          page={editingGraphicInstance.page || undefined}
+          isOpen={!!editingGraphicInstance}
+          onClose={handleGraphicModalClose}
+          onSaveAsset={editingGraphicInstance.instance ? undefined : handleGraphicAssetSave}
+          onSaveInstance={editingGraphicInstance.instance ? handleGraphicInstanceSave : undefined}
         />
       )}
 
@@ -1892,20 +1857,6 @@ export const EnhancedSpreadsheet: React.FC = () => {
           onClose={handleTextModalClose}
           onSaveAsset={editingTextInstance.instance ? undefined : handleTextAssetSave}
           onSaveInstance={editingTextInstance.instance ? handleTextInstanceSave : undefined}
-        />
-      )}
-
-      {/* VectorAsset/VectorAssetInstance編集モーダル */}
-      {editingVectorInstance && (
-        <VectorEditModal
-          mode={editingVectorInstance.instance ? "instance" : "asset"}
-          asset={editingVectorInstance.asset}
-          assetInstance={editingVectorInstance.instance || undefined}
-          page={editingVectorInstance.page || undefined}
-          isOpen={!!editingVectorInstance}
-          onClose={handleVectorModalClose}
-          onSaveAsset={editingVectorInstance.instance ? undefined : handleVectorAssetSave}
-          onSaveInstance={editingVectorInstance.instance ? handleVectorInstanceSave : undefined}
         />
       )}
 
