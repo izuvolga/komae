@@ -1029,9 +1029,9 @@ const AssetItem: React.FC<AssetItemProps> = ({
               whiteSpace: 'nowrap',
               fontSize: '0.7rem'
             }}
-            title={(asset as ImageAsset).original_file.path}
+            title={(asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path}
           >
-            {(asset as ImageAsset).original_file.path}
+            {(asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path}
           </Typography>
         )}
       </Box>

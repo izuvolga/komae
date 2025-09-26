@@ -626,41 +626,20 @@ class KomaeApp {
         const fs = await import('fs');
         const path = await import('path');
         const os = await import('os');
-
+        
         // 一時ディレクトリにファイルを作成
         const tempDir = os.tmpdir();
         const tempFileName = `komae_${Date.now()}_${fileName}`;
         const tempFilePath = path.join(tempDir, tempFileName);
-
+        
         // Uint8ArrayをBufferに変換してファイルに書き込み
         const buffer = Buffer.from(data);
         fs.writeFileSync(tempFilePath, buffer);
-
+        
         console.debug('[Main IPC] Created temp file:', tempFilePath);
         return tempFilePath;
       } catch (error) {
         console.error('Failed to create temp file:', error);
-        throw error;
-      }
-    });
-
-    // File Operations (for AssetFile)
-    ipcMain.handle('file:readText', async (event, filePath: string) => {
-      try {
-        const fs = await import('fs');
-        return fs.readFileSync(filePath, 'utf8');
-      } catch (error) {
-        console.error('Failed to read text file:', error);
-        throw error;
-      }
-    });
-
-    ipcMain.handle('file:resolvePath', async (event, basePath: string, relativePath: string) => {
-      try {
-        const path = await import('path');
-        return path.resolve(basePath, relativePath);
-      } catch (error) {
-        console.error('Failed to resolve path:', error);
         throw error;
       }
     });

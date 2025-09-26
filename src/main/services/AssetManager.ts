@@ -185,8 +185,13 @@ export class AssetManager {
     // entities.tsのヘルパー関数を使用してImageAssetを作成
     const asset = createImageAsset({
       name: fileName,
-      originalFile: assetFile,
+      relativePath: relativePath,
+      originalWidth: imageInfo.width,
+      originalHeight: imageInfo.height,
     });
+
+    // AssetFileインスタンスを追加
+    asset.original_file = assetFile;
 
     await this.logger.logDevelopment('asset_file_created', 'AssetFile instance created for ImageAsset', {
       assetId: asset.id,
@@ -267,8 +272,14 @@ export class AssetManager {
     // entities.tsのヘルパー関数を使用してVectorAssetを作成
     const asset = createVectorAsset({
       name: fileName,
-      originalFile: assetFile,
+      relativePath: relativePath,
+      originalWidth: svgInfo.width,
+      originalHeight: svgInfo.height,
+      svgContent: svgInfo.content,
     });
+
+    // AssetFileインスタンスを追加
+    asset.original_file = assetFile;
 
     await this.logger.logDevelopment('asset_file_created', 'AssetFile instance created for VectorAsset', {
       assetId: asset.id,
@@ -304,9 +315,9 @@ export class AssetManager {
         assetInfo = {
           name: asset.name,
           filePath: asset.type === 'ImageAsset'
-            ? (asset as ImageAsset).original_file.path
+            ? (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path
             : asset.type === 'VectorAsset'
-              ? (asset as VectorAsset).original_file.path
+              ? (asset as VectorAsset).original_file?.path || (asset as VectorAsset).original_file_path
               : undefined,
           type: asset.type,
         };
@@ -408,12 +419,12 @@ export class AssetManager {
 
       for (const asset of Object.values(projectData.assets)) {
         if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
-          // AssetFileからファイルパスを取得
+          // ファイルパスを取得（AssetFileが優先、フォールバックでoriginal_file_path）
           let filePath: string;
           if (asset.type === 'ImageAsset') {
-            filePath = (asset as ImageAsset).original_file.path;
+            filePath = (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path;
           } else {
-            filePath = (asset as VectorAsset).original_file.path;
+            filePath = (asset as VectorAsset).original_file?.path || (asset as VectorAsset).original_file_path;
           }
           if (!path.isAbsolute(filePath)) {
             filePath = path.resolve(this.currentProjectPath, filePath);

@@ -101,14 +101,13 @@ export const PageThumbnail: React.FC<PageThumbnailProps> = ({
         
         // generateSvgStructureCommon は非同期になったため await を使用
         const { assetDefinitions, useElements } = await generateSvgStructureCommon(
-          project,
-          instances,
+          project, 
+          instances, 
           (filePath: string) => {
             return getCustomProtocolUrl(filePath, currentProjectPath);
-          },
-          availableLanguages,
+          }, 
+          availableLanguages, 
           currentLanguage,
-          currentProjectPath || '',
           pageIndex, // 正しいページインデックスを渡す
           {} // customAssets は使用しない（IPCで直接取得）
         );

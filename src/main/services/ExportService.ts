@@ -233,7 +233,6 @@ export class ExportService {
       },
       availableLanguages,
       currentLanguage,
-      this.currentProjectPath || '',
       pageIndex, // pageIndex
       undefined, // customAssets
       customAssetManager // CustomAssetManagerインスタンスを渡す

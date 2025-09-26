@@ -123,19 +123,12 @@ const electronAPI = {
     showDirectorySelectDialog: (options: { title?: string }) => 
       ipcRenderer.invoke('dialog:showDirectorySelect', options),
     
-    readImageAsDataUrl: (filePath: string): Promise<string> =>
+    readImageAsDataUrl: (filePath: string): Promise<string> => 
       ipcRenderer.invoke('fileSystem:readImageAsDataUrl', filePath),
-
-    createTempFile: (fileName: string, data: Uint8Array): Promise<string> =>
+    
+    createTempFile: (fileName: string, data: Uint8Array): Promise<string> => 
       ipcRenderer.invoke('fileSystem:createTempFile', fileName, data),
   },
-
-  // File Operations (for AssetFile)
-  readTextFile: (filePath: string): Promise<string> =>
-    ipcRenderer.invoke('file:readText', filePath),
-
-  resolvePath: (basePath: string, relativePath: string): Promise<string> =>
-    ipcRenderer.invoke('file:resolvePath', basePath, relativePath),
 
   // App Settings Operations
   appSettings: {

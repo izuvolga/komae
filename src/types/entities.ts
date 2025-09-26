@@ -30,7 +30,8 @@ export interface BaseAsset {
 
 export interface ImageAsset extends BaseAsset {
   type: 'ImageAsset';
-  original_file: AssetFile; // 統一されたファイル管理
+  original_file_path: string; // 段階的移行のため残す
+  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -82,7 +83,8 @@ export enum TextAssetInstancePhase {
 
 export interface VectorAsset extends BaseAsset {
   type: 'VectorAsset';
-  original_file: AssetFile; // 統一されたファイル管理
+  original_file_path: string; // 段階的移行のため残す
+  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -92,6 +94,7 @@ export interface VectorAsset extends BaseAsset {
   default_opacity: number;
   default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
   default_z_index: number;
+  svg_content: string; // 段階的移行のため残す
 }
 
 // CustomAsset関連の型定義（JSファイルから解析される情報）
@@ -555,22 +558,24 @@ import {
  */
 export function createImageAsset(params: {
   name: string;
-  originalFile: AssetFile;
+  relativePath: string;
+  originalWidth: number;
+  originalHeight: number;
 }): ImageAsset {
   return {
     id: generateImageAssetId(),
     type: 'ImageAsset',
     name: params.name,
-    original_file: params.originalFile,
-    original_width: params.originalFile.originalWidth,
-    original_height: params.originalFile.originalHeight,
+    original_file_path: params.relativePath,
+    original_width: params.originalWidth,
+    original_height: params.originalHeight,
     default_pos_x: 0,
     default_pos_y: 0,
-    default_width: params.originalFile.originalWidth,
-    default_height: params.originalFile.originalHeight,
+    default_width: params.originalWidth,
+    default_height: params.originalHeight,
     default_opacity: 1.0,
     default_z_index: 0,
-    // default_maskは初期状態でundefined（マスクなし）
+    // default_maskは初期状態ではundefined（マスクなし）
   };
 }
 
@@ -951,21 +956,25 @@ export function createDefaultTextAsset(params: {
  */
 export function createVectorAsset(params: {
   name: string;
-  originalFile: AssetFile;
+  relativePath: string;
+  originalWidth: number;
+  originalHeight: number;
+  svgContent: string;
 }): VectorAsset {
   return {
     id: generateVectorAssetId(),
     type: 'VectorAsset',
     name: params.name,
-    original_file: params.originalFile,
-    original_width: params.originalFile.originalWidth,
-    original_height: params.originalFile.originalHeight,
+    original_file_path: params.relativePath,
+    original_width: params.originalWidth,
+    original_height: params.originalHeight,
     default_pos_x: 50,
     default_pos_y: 50,
-    default_width: params.originalFile.originalWidth,
-    default_height: params.originalFile.originalHeight,
+    default_width: params.originalWidth,
+    default_height: params.originalHeight,
     default_opacity: 1.0,
     default_z_index: 0,
+    svg_content: params.svgContent,
   };
 }
 
@@ -1342,8 +1351,12 @@ export function validateVectorAssetData(asset: VectorAsset): {
     errors.push('アセット名は必須です。');
   }
 
-  if (!asset.original_file || !asset.original_file.path || asset.original_file.path.trim() === '') {
+  if (!asset.original_file_path || asset.original_file_path.trim() === '') {
     errors.push('ファイルパスは必須です。');
+  }
+
+  if (!asset.svg_content || asset.svg_content.trim() === '') {
+    errors.push('SVGコンテンツは必須です。');
   }
 
   // サイズのバリデーション
