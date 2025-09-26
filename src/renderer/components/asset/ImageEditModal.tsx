@@ -8,7 +8,6 @@ import {
   IconButton,
   Typography,
   Box,
-  Paper,
   TextField,
   FormControlLabel,
   Checkbox,
@@ -16,32 +15,23 @@ import {
 import { Close as CloseIcon, Crop as CropIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
-import type { BaseEditModalProps, EditMode } from '../../../types/common';
+import type { BaseEditModalProps } from '../../../types/common';
 import { useEditModalSubmit } from '../../hooks/useEditModalSubmit';
 import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
-import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type { ImageAsset, ImageAssetInstance, Page } from '../../../types/entities';
-import { getEffectiveZIndex, validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
+import { validateImageAssetData, validateImageAssetInstanceData } from '../../../types/entities';
 import {
   convertMouseDelta,
-  constrainToCanvas,
-  EDIT_MODAL_SCALE,
   getCurrentPosition,
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
-  validateZIndexValue,
   validateZIndexNumber,
   ZIndexValidationResult,
-  sanitizeZIndexInput,
-  validateNumericInput,
-  validateAndSetNumericValue,
-  formatNumberForDisplay,
   calculateResizeValues,
-  ResizeCalculationParams
 } from '../../utils/editModalUtils';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
@@ -85,7 +75,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   });
 
   const [aspectRatioLocked, setAspectRatioLocked] = useState(false);
-  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
   const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
   const [maskEditMode, setMaskEditMode] = useState(false);
 
@@ -139,12 +128,6 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
     // スケール計算: 表示されているキャンバス幅 / 実際のキャンバス幅
     const calculatedScale = canvasDisplayWidth / canvasWidth;
-
-    console.log(`VectorEditModal scale calculation:
-      - Canvas width: ${canvasWidth}px
-      - SVG display width: ${svgDisplayWidth}px
-      - Canvas display width: ${canvasDisplayWidth}px
-      - Calculated scale: ${calculatedScale}`);
 
     setDynamicScale(calculatedScale);
     setScaleCalculated(true);
@@ -241,7 +224,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
       setEditedAsset(prev => ({
         ...prev,
         default_width: width,
-        default_height: height,  
+        default_height: height,
       }));
     }
   };
@@ -304,21 +287,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   };
 
 
-  // 数値入力バリデーション関数、数値バリデーション、表示フォーマット関数は共通ユーティリティを使用
-
-  // Enterキーでフォーカスを外すハンドラー
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      (e.target as HTMLInputElement).blur();
-    }
-  };
-
-
   const handleMaskPointMouseDown = (e: React.MouseEvent, pointIndex: number) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     setMaskDragPointIndex(pointIndex);
     setMaskDragStartPos({ x: e.clientX, y: e.clientY });
     if (currentMask) {
@@ -328,10 +300,10 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
 
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     if (maskEditMode) return;
-    
+
     e.preventDefault();
     e.stopPropagation();
-    
+
     setIsResizing(true);
     setResizeHandle(handle);
     setDragStartPos({ x: e.clientX, y: e.clientY });
@@ -367,7 +339,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         updatePosition(snapResult.snappedX, snapResult.snappedY);
       } else if (isResizing && resizeHandle) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y);
-        
+
         // チェックボックスが有効な場合は元画像の縦横比を適用
         let finalResizeResult;
         if (aspectRatioLocked) {
@@ -453,14 +425,14 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
         updateSize(finalResizeResult.width, finalResizeResult.height);
       } else if (maskDragPointIndex !== null && currentMask) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, maskDragStartPos.x, maskDragStartPos.y);
-        
+
         const newMask = [...maskDragStartValues] as [[number, number], [number, number], [number, number], [number, number]];
         const originalPoint = maskDragStartValues[maskDragPointIndex];
         newMask[maskDragPointIndex] = [
           Math.max(0, Math.min(project.canvas.width, originalPoint[0] + deltaX)),
           Math.max(0, Math.min(project.canvas.height, originalPoint[1] + deltaY))
         ];
-        
+
         updateMask(newMask);
       }
     };
@@ -487,7 +459,7 @@ export const ImageEditModal: React.FC<ImageEditModalProps> = ({
   function wrapImagePathBySvg(path: string) {
     return `<image xlink:href="${path}" x="0" y="0" width="${asset.original_width}" height="${asset.original_height}" />`;
   }
-    
+
 
   const modalTitle = mode === 'instance' ? `ImageAssetInstance 編集: ${asset.name}` : `ImageAsset 編集: ${asset.name}`;
 
