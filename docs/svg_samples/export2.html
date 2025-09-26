@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>SVG to PNG Export</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #downloadBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hachi+Maru+Pop&display=swap" rel="stylesheet">
+
+</head>
+<body style="background-color: #AAAAAA">
+  <button style="position: absolute; top: 250px; left: 200px;" id="downloadBtn">Download PNG</button>
+
+  <!-- ここにSVG描画（対象はbody直下の最初のsvg要素） -->
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" style="background-color: #000000">
+  <defs>
+    <clipPath id="clipPath">
+      <path d="M 0 0 L 150 0 L 150 150 L 0 150 Z" fill="#ff0000"></path>
+    </clipPath>
+  </defs>
+  <g id="assets">
+    <g visibility="hidden">
+      <g id="myrect">
+        <rect x="75" y="75" rx="20" width="150" height="150" fill="#ff0000"></rect>
+      </g>
+    </g>
+  </g>
+  <g id="draw">
+    <use href="#myrect" visibility="visible" transform="scale(1.5)" clip-path="url(#clipPath)" />
+  </g>
+</svg>
+
+  <script type="module">
+    document.getElementById("downloadBtn").addEventListener("click", function () {
+      // body直下の最初のSVG要素を取得
+      const svg = document.querySelector("body > svg");
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svg);
+
+      const img = new Image();
+      const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1000;
+        canvas.height = 1000;
+        const ctx = canvas.getContext("2d");
+
+        // 背景を白にしたい場合
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        const a = document.createElement("a");
+        var ua = navigator.userAgent.toLowerCase();
+        var isSafari = /safari/.test(ua);
+        var isChrome = /chrome/.test(ua);
+        var isOpera = /opera/.test(ua);
+        if (isSafari && !isChrome && !isOpera) {
+          var browser = "safari";
+        } else if (isChrome && !isOpera) {
+          var browser = "chrome";
+        } else {
+          var browser = "firefox";
+        }
+
+        a.setAttribute("download", "export_" + browser + ".png");
+        a.dispatchEvent(new MouseEvent("click"));
+
+        a.download = "export_" + browser + ".png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+      };
+      img.src = url;
+    });
+  </script>
+</body>
+</html>
+
