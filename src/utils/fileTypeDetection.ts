@@ -7,7 +7,7 @@ import { FileType } from '../types/AssetFile';
 /**
  * サポートされているファイル拡張子
  */
-const RASTER_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp'];
+const RASTER_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif'];
 const VECTOR_EXTENSIONS = ['.svg'];
 const SUPPORTED_EXTENSIONS = [...RASTER_EXTENSIONS, ...VECTOR_EXTENSIONS];
 
