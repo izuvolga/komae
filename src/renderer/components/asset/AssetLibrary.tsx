@@ -6,7 +6,7 @@ import { useProjectStore } from '../../stores/projectStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { PanelCollapseLeftIcon } from '../icons/PanelIcons';
 import { AssetThumbnail } from './AssetThumbnail';
-import { ImageEditModal } from './ImageEditModal';
+import { GraphicEditModal } from './GraphicEditModal';
 import { TextEditModal } from './TextEditModal';
 import { VectorEditModal } from './VectorEditModal';
 import { DynamicVectorEditModal } from './DynamicVectorEditModal';
@@ -867,7 +867,7 @@ export const AssetLibrary: React.FC = () => {
 
       {/* ImageAsset編集モーダル */}
       {editingImageAsset && (
-        <ImageEditModal
+        <GraphicEditModal
           mode="asset"
           asset={editingImageAsset}
           isOpen={!!editingImageAsset}
