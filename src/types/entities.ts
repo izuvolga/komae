@@ -2,6 +2,7 @@
 // docs/design/000-entity.mdに基づく
 
 import { validateAssetInstanceOverrides } from '../utils/validation/assetValidation';
+import { AssetFile } from './AssetFile';
 
 export interface ProjectMetadata {
   komae_version: string;
@@ -29,7 +30,8 @@ export interface BaseAsset {
 
 export interface ImageAsset extends BaseAsset {
   type: 'ImageAsset';
-  original_file_path: string;
+  original_file_path: string; // 段階的移行のため残す
+  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -81,7 +83,8 @@ export enum TextAssetInstancePhase {
 
 export interface VectorAsset extends BaseAsset {
   type: 'VectorAsset';
-  original_file_path: string;
+  original_file_path: string; // 段階的移行のため残す
+  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -91,7 +94,7 @@ export interface VectorAsset extends BaseAsset {
   default_opacity: number;
   default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
   default_z_index: number;
-  svg_content: string; // SVGの内容をテキストとして保持
+  svg_content: string; // 段階的移行のため残す
 }
 
 // CustomAsset関連の型定義（JSファイルから解析される情報）
