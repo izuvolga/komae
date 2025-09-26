@@ -3,11 +3,13 @@
 ## 細かい改善
 - [ ]: Vector アセットのマスクがプロジェクトに保存されない
 - [ ]: escapeXml 関数、必要か？
+- [ ]: エクセルヘッダの#の箇所を?にして説明を表示
+- [ ]: プレビュー画面でマウスのホバーでアセットの編集画面を開くようにする
 - [ ]: TextAssetが存在しないときには、多言語プルダウンメニューとテキストアセット一括編集は非活性化
 - [ ]: 多言語のプルダウンメニューが、アプリ自体の言語設定ぽくて紛らわしいので、UIを改善する
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
-- [ ]: ImageAssetInstance / VectorAsset / DynamicVectorAsset は、統一的なモーダルで行けるんじゃないか？
+- [ ]: ImageAssetInstance / VectorAsset は、統一的なモーダルで行けるんじゃないか？
 - [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
 - [x]: TextEditAsset の縦書き
   - https://mui.com/material-ui/react-toggle-button/#size と TextRotateVertical TextRotationNone を使う
