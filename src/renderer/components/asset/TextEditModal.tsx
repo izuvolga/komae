@@ -400,6 +400,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   useEffect(() => {
+    // リサイズ中は無限ループを防ぐためスキップ
+    if (isResizing) {
+      return;
+    }
+
     console.log('DEBUG: TextEditModal: Dynamic scale or SVG ref changed, recalculating size...');
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
@@ -420,7 +425,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), activePreviewTab]);
+  }, [isResizing, dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), activePreviewTab]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -758,6 +763,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           scale_x: clampedScaleX,
           scale_y: clampedScaleY,
         });
+
+        // リサイズハンドル追従のため、currentSizeもリアルタイム更新
+        const updatedSize = {
+          width: newWidth,
+          height: newHeight
+        };
+        setCurrentSize(updatedSize);
       }
     };
 
