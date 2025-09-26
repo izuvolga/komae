@@ -340,7 +340,7 @@ export const AssetLibrary: React.FC = () => {
       // CustomAssetベースのDynamicVectorAssetを作成
       const result = createDynamicVectorAsset({
         customAsset, // 完全なCustomAssetオブジェクトを渡す
-        name: `${customAssetInfo.name} (カスタムSVG)`,
+        name: `${customAssetInfo.name} (カスタム図形)`,
       });
       
       addAsset(result);
@@ -667,13 +667,13 @@ export const AssetLibrary: React.FC = () => {
                 <DvaOutIcon sx={{ position: 'absolute', top: 0, left: 0, fontSize: 24, color: 'text.primary' }} />
                 <DvaInIcon sx={{ position: 'absolute', top: 4.5, left: 4, fontSize: 16, color: 'background.default' }} />
               </Box>
-              カスタム SVG
+              カスタム図形
             </MenuItem>
             <MenuItem onClick={handleCreateTextAsset}>
               <TextFieldsIcon sx={{ mr: 1 }} /> テキスト
             </MenuItem>
             <MenuItem onClick={handleCreateValueAsset}>
-              <FunctionsIcon sx={{ mr: 1 }} /> 値アセット
+              <FunctionsIcon sx={{ mr: 1 }} /> 値
             </MenuItem>
           </Menu>
           <IconButton
