@@ -63,6 +63,7 @@
 - [ ]: 塗りの色にグラデーション使えないかなぁ
 
 ## DynamicVectorAsset
+- [ ]: 名前を ShapeAsset に変える（対外的にはカスタム図形アセット）
 - [ ]: カスタムアセットのIDがファイル名になっているのを何とかする
 - [ ]: フォーマットを JSDoc 対応させる
 - [ ]: DynamicVectorAsset の @parameters に紐づけられている ValueAsset の型が変化したときに、紐づけを解除して @parameters の値を初期値に変更する
