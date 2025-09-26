@@ -407,18 +407,21 @@ function generateUseElement(asset: ImageAsset | VectorAsset, instance: AssetInst
       finalOpacity = imageInstance.override_opacity;
     }
   }
-
-  // マスク適用（ImageAssetでマスクが存在する場合）
-  let clipPathAttr = '';
-  const maskId = getMaskId(asset, imageInstance);
-  if (maskId) {
-    clipPathAttr = ` clip-path="url(#${maskId})"`;
-  }
-
   const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
   const opacityAttr = finalOpacity !== undefined ? ` opacity="${finalOpacity}"` : '';
+  let results = [];
 
-  return `<use href="#${asset.id}"${transformAttr}${opacityAttr}${clipPathAttr} />`;
+  // マスク適用
+  const maskId = getMaskId(asset, imageInstance);
+  if (maskId) {
+    // use要素にclip-path属性を追加。MDMによると<use>要素には指定できるはずなのだが、なぜか効かないため、<g>要素で囲む
+    results.push(`<g clip-path="url(#${maskId})">`);
+  }
+  results.push(`<use href="#${asset.id}"${transformAttr}${opacityAttr} />`);
+  if (maskId) {
+    results.push(`</g>`);
+  }
+  return results.join('\n');
 }
 
 /**
