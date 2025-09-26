@@ -8,41 +8,31 @@ import {
   IconButton,
   Typography,
   Box,
-  Grid,
-  Paper,
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTheme } from '../../../theme/ThemeContext';
-import type { BaseEditModalProps, EditMode } from '../../../types/common';
+import type { BaseEditModalProps } from '../../../types/common';
 import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
 import { ReadOnlyInput } from '../common/ReadOnlyInput';
 import type { VectorAsset, VectorAssetInstance, Page } from '../../../types/entities';
-import { getEffectiveZIndex, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
+import { validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
 import {
   convertMouseDelta,
-  constrainToCanvas,
-  EDIT_MODAL_CANVAS_SCALE,
-  EDIT_MODAL_CANVAS_SCALE_INVERSE,
   getCurrentPosition,
   getCurrentSize,
   getCurrentOpacity,
   getCurrentZIndex,
   validateZIndexNumber,
   ZIndexValidationResult,
-  calculateResizeValues,
-  ResizeCalculationParams
 } from '../../utils/editModalUtils';
-import { ResizeHandleOverlay } from '../common/ResizeHandleOverlay';
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
-import { off } from 'process';
-import { wrap } from 'module';
 
 
 // 統合されたプロパティ
@@ -70,7 +60,6 @@ export const VectorEditModal: React.FC<VectorEditModalProps> = ({
     assetInstance || null
   );
 
-  const [tempInputValues, setTempInputValues] = useState<Record<string, string>>({});
   const [zIndexValidation, setZIndexValidation] = useState<ZIndexValidationResult>({ isValid: true });
 
   // マウス操作関連の状態
