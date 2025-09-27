@@ -535,10 +535,23 @@ export function generateMultilingualTextElement(
       continue;
     }
 
-    const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
+    const textElement = generateSingleLanguageTextElement(
+      asset,
+      textInstance,
+      lang,
+      0,
+      0,
+      finalFontSize,
+      finalOpacity,
+      textContent
+    );
 
     // transform属性を構築（scale、rotate等の変換）
     const transforms = [];
+    // 位置調整をtext要素内で行うと、scale により位置がずれるため、ここでtranslateを適用
+    if (finalPosX !== 0 || finalPosY !== 0) {
+      transforms.push(`translate(${finalPosX}, ${finalPosY})`);
+    }
     if (finalScaleX !== 1.0 || finalScaleY !== 1.0) {
       transforms.push(`scale(${finalScaleX}, ${finalScaleY})`);
     }
