@@ -16,7 +16,7 @@ export class AssetManagerError extends Error {
 /**
  * アセットタイプ
  */
-export type AssetType = 'image' | 'vector';
+export type AssetType = 'raster' | 'vector';
 
 /**
  * 相対パスを絶対パスに解決する
@@ -46,18 +46,18 @@ export function makeAssetPathRelative(projectPath: string, absolutePath: string)
   if (!path.isAbsolute(absolutePath)) {
     return absolutePath;
   }
-  
+
   // プロジェクトディレクトリ内のパスかチェック
   const relativePath = path.relative(projectPath, absolutePath);
-  
+
   // プロジェクト外のパスの場合（../ で始まる）
   if (relativePath.startsWith('..')) {
     throw new AssetManagerError(
-      `Path is outside project directory: ${absolutePath}`, 
+      `Path is outside project directory: ${absolutePath}`,
       'PATH_OUTSIDE_PROJECT'
     );
   }
-  
+
   return relativePath;
 }
 
@@ -69,19 +69,19 @@ export function makeAssetPathRelative(projectPath: string, absolutePath: string)
  * @returns コピー先の相対パス
  */
 export async function copyAssetToProject(
-  projectPath: string, 
-  sourceFilePath: string, 
+  projectPath: string,
+  sourceFilePath: string,
   assetType: 'images' | 'vectors' | 'fonts'
 ): Promise<string> {
   // パラメータ検証
   if (!projectPath || !sourceFilePath) {
     throw new AssetManagerError('Invalid parameters provided', 'INVALID_PARAMETERS');
   }
-  
+
   if (assetType !== 'images' && assetType !== 'vectors' && assetType !== 'fonts') {
     throw new AssetManagerError(`Invalid asset type: ${assetType}`, 'INVALID_ASSET_TYPE');
   }
-  
+
   // ソースファイルの存在確認
   try {
     const sourceStats = await fs.stat(sourceFilePath);
@@ -94,15 +94,15 @@ export async function copyAssetToProject(
     }
     throw new AssetManagerError(`Source file not found: ${sourceFilePath}`, 'SOURCE_NOT_FOUND');
   }
-  
+
   // ファイル名と拡張子を取得
   const originalFileName = path.basename(sourceFilePath);
   const extension = path.extname(originalFileName);
   const nameWithoutExt = path.basename(originalFileName, extension);
-  
+
   // 保存先ディレクトリを決定
   const targetDir = path.join(projectPath, 'assets', assetType);
-  
+
   // ディレクトリが存在しない場合は作成
   try {
     await fs.mkdir(targetDir, { recursive: true });
@@ -112,12 +112,12 @@ export async function copyAssetToProject(
       'DIRECTORY_CREATE_FAILED'
     );
   }
-  
+
   // ファイル名の重複チェックと連番生成
   let targetFileName = originalFileName;
   let targetPath = path.join(targetDir, targetFileName);
   let counter = 1;
-  
+
   try {
     while (true) {
       try {
@@ -131,10 +131,10 @@ export async function copyAssetToProject(
         break;
       }
     }
-    
+
     // ファイルをコピー
     await fs.copyFile(sourceFilePath, targetPath);
-    
+
     // 相対パスを返す
     return path.join('assets', assetType, targetFileName);
   } catch (error) {
@@ -164,7 +164,7 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
     }
     throw new AssetManagerError(`File not found: ${filePath}`, 'FILE_NOT_FOUND');
   }
-  
+
   // ファイル拡張子からタイプを判定
   const extension = path.extname(filePath);
   try {
@@ -181,7 +181,7 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
     }
     throw new AssetManagerError(`Failed to validate file: ${String(error)}`, 'VALIDATION_FAILED');
   }
-  
+
   return true;
 }
 
@@ -192,19 +192,19 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
  */
 export function getAssetTypeFromExtension(extension: string): AssetType {
   const lowerExt = extension.toLowerCase();
-  
+
   // 画像ファイル拡張子
-  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
   if (imageExtensions.includes(lowerExt)) {
-    return 'image';
+    return 'raster';
   }
-  
+
   // ベクター画像ファイル拡張子
   const vectorExtensions = ['.svg'];
   if (vectorExtensions.includes(lowerExt)) {
     return 'vector';
   }
-  
+
   throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');
 }
 
@@ -218,7 +218,7 @@ export async function deleteAssetFromProject(
   try {
     // パスを正規化（相対パスまたは絶対パス両方に対応）
     let targetPath: string;
-    
+
     if (path.isAbsolute(assetPath)) {
       // 絶対パスの場合、プロジェクト内かチェック
       if (!assetPath.startsWith(projectPath)) {

@@ -127,7 +127,7 @@ export class AssetManager {
       }
 
       let asset: Asset;
-      if (assetType === 'image') {
+      if (assetType === 'raster') {
         asset = await this.importImageAsset(filePath, finalAssetName, extension);
       } else if (assetType === 'vector') {
         asset = await this.importVectorAsset(filePath, finalAssetName, extension);
