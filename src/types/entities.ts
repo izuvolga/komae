@@ -2,8 +2,7 @@
 // docs/design/000-entity.mdに基づく
 
 import { validateAssetInstanceOverrides } from '../utils/validation/assetValidation';
-
-export type FileCategory = 'raster' | 'vector';
+import { FileCategory } from '@/types/fileType';
 
 export interface AssetFile {
   path: string;

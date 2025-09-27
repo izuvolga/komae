@@ -13,7 +13,7 @@ import { ValueEditModal } from './ValueEditModal';
 import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ValueAsset } from '../../../types/entities';
 import { createValueAsset, createDynamicVectorAsset } from '../../../types/entities';
-import { getSupportedExtensions } from '@/types/fileType';
+import { getSupportedExtensionsNoDot, getSupportedMimeTypes } from '@/types/fileType';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -377,7 +377,7 @@ export const AssetLibrary: React.FC = () => {
       const result = await window.electronAPI?.fileSystem?.showOpenDialog({
         title: '画像アセットをインポート',
         filters: [
-          { name: '画像ファイル', extensions: getSupportedExtensions() },
+          { name: '画像ファイル', extensions: getSupportedExtensionsNoDot() },
         ],
         properties: ['openFile', 'multiSelections'],
       });
@@ -504,10 +504,9 @@ export const AssetLibrary: React.FC = () => {
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files) as ElectronFile[];
+    const mimeTypes = getSupportedMimeTypes();
     const supportedFiles = files.filter(file =>
-      file.type.startsWith('image/') ||
-      file.type === 'image/svg+xml' ||
-      /\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(file.name)
+      file.type && mimeTypes.includes(file.type)
     );
 
     if (supportedFiles.length === 0) {

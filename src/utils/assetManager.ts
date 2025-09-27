@@ -1,8 +1,6 @@
-// 相対パス解決とアセットファイル管理機能
-
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { FileCategory } from '../types/entities';
+import { FileCategory } from '@/types/fileType';
 import { determineFileType } from './fileTypeDetection';
 
 /**

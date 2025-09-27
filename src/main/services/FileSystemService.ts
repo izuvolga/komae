@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import type { Stats } from 'fs';
 import * as path from 'path';
+import { getMimeTypeFromExtension } from '@/types/fileType';
 
 export class FileSystemService {
   async ensureDirectory(dirPath: string): Promise<void> {
@@ -89,15 +90,6 @@ export class FileSystemService {
    */
   private getMimeType(filePath: string): string {
     const ext = this.getFileExtension(filePath);
-    switch (ext) {
-      case '.png': return 'image/png';
-      case '.jpg':
-      case '.jpeg': return 'image/jpeg';
-      case '.gif': return 'image/gif';
-      case '.webp': return 'image/webp';
-      case '.svg': return 'image/svg+xml';
-      case '.bmp': return 'image/bmp';
-      default: return 'image/png';
-    }
+    return getMimeTypeFromExtension(ext) ?? 'image/png';
   }
 }

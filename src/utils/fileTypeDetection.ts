@@ -1,5 +1,5 @@
 import {getRasterExtensions, getVectorExtensions} from '@/types/fileType';
-import { FileCategory } from '@/types/entities';
+import { FileCategory } from '@/types/fileType';
 import path from 'path';
 
 /**
