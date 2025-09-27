@@ -426,7 +426,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('rotate'), activePreviewTab, dynamicScale]);
+  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('rotate'), getCurrentValue('char_rotate'), activePreviewTab, dynamicScale]);
 
   // dynamicScale更新専用のuseEffect
   useEffect(() => {
