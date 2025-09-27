@@ -644,6 +644,16 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('fileSystem:readFileContent', async (event, filePath: string) => {
+      try {
+        const fs = await import('fs');
+        return fs.readFileSync(filePath, 'utf8');
+      } catch (error) {
+        console.error('Failed to read file content:', error);
+        throw error;
+      }
+    });
+
     // Application Operations
     ipcMain.handle('app:getVersion', async () => {
       return app.getVersion();

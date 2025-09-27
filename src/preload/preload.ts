@@ -126,8 +126,11 @@ const electronAPI = {
     readImageAsDataUrl: (filePath: string): Promise<string> => 
       ipcRenderer.invoke('fileSystem:readImageAsDataUrl', filePath),
     
-    createTempFile: (fileName: string, data: Uint8Array): Promise<string> => 
+    createTempFile: (fileName: string, data: Uint8Array): Promise<string> =>
       ipcRenderer.invoke('fileSystem:createTempFile', fileName, data),
+
+    readFileContent: (filePath: string): Promise<string> =>
+      ipcRenderer.invoke('fileSystem:readFileContent', filePath),
   },
 
   // App Settings Operations
