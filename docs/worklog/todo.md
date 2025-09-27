@@ -8,7 +8,7 @@
 - [ ]: プレビュー画面でマウスのホバーでアセットの編集画面を開くようにする
 - [ ]: TextAssetが存在しないときには、多言語プルダウンメニューとテキストアセット一括編集は非活性化
 - [ ]: 多言語のプルダウンメニューが、アプリ自体の言語設定ぽくて紛らわしいので、UIを改善する
-- [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
+- [ ]: GraphicEditModal / TextEditModal / DynamicEditModal で、キーボードの上下左右キーで自動的に 1px X/Y 座標を移動できるようにする
 - [ ]: ImageAssetInstance / TextAssetInstance / VectorAsset / DynamicVectorAsset の Edit 画面のプレビューの箇所、そのページの他のアセット（つまり Preview Window の内容）も薄くプレビューキャンバスに表示するようにする
 - [x]: ImageAssetInstance / VectorAsset は、統一的なモーダルで行けるんじゃないか？
 - [ ]: 2ページ作成、2ページ目にカーソルを合わせた状態で、2ページ目を削除すると、カーソルがセルがない場所に存在する
@@ -64,9 +64,8 @@
 - [x]: EditModal の範囲選択エリアを、DOM要素の値を使ってより正確な値にする
 - [x]: TextAsset に scale_x, scale_y を対応する
 - [x]: TextAsset に rotate を対応する
-- [ ]: TextAsset で日本語の句読点 + 縦書きがおかしい点を解消する。
+- [x]: TextAsset で日本語の句読点 + 縦書きがおかしい点を解消する。
   - 中国語、台湾語、朝鮮語の句読点も確認する
-  - モンゴル語は縦書きだが、左から右に書くため無視かなぁ。すでに国内はキリル文字だっていうし。
 - [ ]: TextAsset Bulk Edit にエディタ感のある見た目にする
   - 行番号表示
   - 編集をしたら、編集がされた行の背景色を変更する
