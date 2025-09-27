@@ -8,7 +8,6 @@ import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, delet
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import {
   detectDuplicateAssetName,
-  generateUniqueAssetName,
   resolveDuplicateAssetConflict,
   DuplicateResolutionStrategy
 } from '../../utils/duplicateAssetHandler';
