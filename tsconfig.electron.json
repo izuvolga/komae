@@ -12,11 +12,17 @@
     "resolveJsonModule": true,
     "declaration": false,
     "outDir": "./build",
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
-    "src/main.ts",
-    "src/preload.ts"
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/types/**/*",
+    "src/utils/**/*"
   ],
   "exclude": [
     "node_modules",
