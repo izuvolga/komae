@@ -9,6 +9,8 @@ interface RotateInputProps {
   className?: string;
   min?: number;
   max?: number;
+  onRotationStart?: () => void;
+  onRotationEnd?: () => void;
 }
 
 /**
@@ -23,7 +25,9 @@ export const RotateInput: React.FC<RotateInputProps> = ({
   disabled = false,
   className = '',
   min = 0,
-  max = 360
+  max = 360,
+  onRotationStart,
+  onRotationEnd
 }) => {
   // 値を指定の範囲にクランプ
   const clampValue = useCallback((inputValue: number): number => {
@@ -54,6 +58,9 @@ export const RotateInput: React.FC<RotateInputProps> = ({
           <Slider
             value={clampedValue}
             onChange={(_, newValue) => onChange(newValue as number)}
+            onChangeCommitted={() => onRotationEnd?.()}
+            onMouseDown={() => onRotationStart?.()}
+            onTouchStart={() => onRotationStart?.()}
             min={min}
             max={max}
             step={1}
