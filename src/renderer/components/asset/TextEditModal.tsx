@@ -95,7 +95,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
-  const [currentSize, setCurrentSize] = useState({ width: 600, height: 600 });
+  const [currentSize, setCurrentSize] = useState({width: 600, height: 600 });
+  const [actualPos, setActualPos] = useState({x: 0, y: 0 }); // 実際のDOM要素上での位置
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -415,10 +416,29 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const rect = textElement.getBoundingClientRect();
         if (rect && rect.width > 0 && rect.height > 0) {
           // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-          let width = rect.width / dynamicScale;
-          let height = rect.height / dynamicScale;
+          const width = rect.width / dynamicScale;
+          const height = rect.height / dynamicScale;
+          const virtualX = rect.left;
+          const virtualY = rect.top;
+          let virtualCanvasX = 0;
+          let virtualCanvasY = 0;
+          if (previewSvgRef.current) {
+            const svgElement = previewSvgRef.current;
+            const virtualCanvas = svgElement.getBoundingClientRect();
+            virtualCanvasX = virtualCanvas.left;
+            virtualCanvasY = virtualCanvas.top;
+          }
+          const x = (virtualX - virtualCanvasX) / dynamicScale;
+          const y = (virtualY - virtualCanvasY) / dynamicScale;
+          console.log(`TextEditModal size update1:
+            - Virtual element pos: (${virtualX}px, ${virtualY}px)
+            - Virtual canvas pos: (${virtualCanvasX}px, ${virtualCanvasY}px)
+            - Calculated SVG pos: (${x}, ${y})
+            - Element size: ${width} x ${height}
+            - Dynamic scale: ${dynamicScale}`);
           // UI上のサイズも更新
           setCurrentSize({ width, height });
+          setActualPos({ x, y });
         }
       }
     } catch (error) {
@@ -434,11 +454,33 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       try {
         const textElement = document.getElementById(PREVIEW_DOM_ID);
         if (textElement) {
+          // HTMLElementとして画面上のサイズを取得
           const rect = textElement.getBoundingClientRect();
           if (rect && rect.width > 0 && rect.height > 0) {
-            let width = rect.width / dynamicScale;
-            let height = rect.height / dynamicScale;
+            // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
+            const width = rect.width / dynamicScale;
+            const height = rect.height / dynamicScale;
+            const virtualX = rect.left;
+            const virtualY = rect.top;
+            let virtualCanvasX = 0;
+            let virtualCanvasY = 0;
+            if (previewSvgRef.current) {
+              const svgElement = previewSvgRef.current;
+              const virtualCanvas = svgElement.getBoundingClientRect();
+              virtualCanvasX = virtualCanvas.left;
+              virtualCanvasY = virtualCanvas.top;
+            }
+            const x = (virtualX - virtualCanvasX) / dynamicScale;
+            const y = (virtualY - virtualCanvasY) / dynamicScale;
+            console.log(`TextEditModal size update2:
+              - Virtual element pos: (${virtualX}px, ${virtualY}px)
+              - Virtual canvas pos: (${virtualCanvasX}px, ${virtualCanvasY}px)
+              - Calculated SVG pos: (${x}, ${y})
+              - Element size: ${width} x ${height}
+              - Dynamic scale: ${dynamicScale}`);
+            // UI上のサイズも更新
             setCurrentSize({ width, height });
+            setActualPos({ x, y });
           }
         }
       } catch (error) {
@@ -989,6 +1031,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   }}
                   onResizeStart={handleResizeMouseDown}
                   snapGuides={snapGuides}
+                  // offset={actualPos}
                 />
               </Box>
             </Box>

@@ -30,6 +30,9 @@ interface EditModalSvgCanvasProps {
 
   // 縦書きテキスト対応
   isVerticalText?: boolean;
+
+  // 描画位置をずらすオフセット（rotate 時に利用）
+  offset?: { x: number; y: number };
 }
 
 export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasProps>(({
@@ -46,18 +49,19 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
   maskMode = 'none',
   maskCoords,
   onMaskPointDragStart,
-  isVerticalText = false
+  isVerticalText = false,
+  offset = { x: 0, y: 0 },
 }, ref) => {
   // 動的余白計算（キャンバス長辺の10%）
   const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
   const handleSize = Math.max(project.canvas.width, project.canvas.height) * 0.04; // キャンバスの長辺の4%をハンドルサイズにする
-  
+
   // 縦書きテキストの場合の位置調整
   const adjustedPos = isVerticalText ? {
     x: currentPos.x - currentSize.width,
     y: currentPos.y
   } : currentPos;
-  
+
   const content = wrapSVGWithParentContainer(
               svgContent,
               currentPos.x + margin,
@@ -70,7 +74,6 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
             )
   return (
     <svg
-      ref={ref}
       width="100%"
       height="100%"
       viewBox={`0 0 ${project.canvas.width + margin * 2} ${project.canvas.height + margin * 2}`}
@@ -90,18 +93,26 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       }}
     >
       {/* キャンバス背景 */}
-      <rect
+      <svg
+        ref={ref} // rect 要素には ref を渡さないので svg で囲む
+        id="canvas-background"
         x={margin}
         y={margin}
         width={project.canvas.width}
         height={project.canvas.height}
-        fill={project.canvas.backgroundColor || '#ffffff'}
-        rx="2"
-        style={{
-          filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))',
-          position: 'relative'
-        }}
-      />
+        viewBox={`0 0 ${project.canvas.width} ${project.canvas.height}`}
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid meet"
+        >
+        <rect
+          x={0}
+          y={0}
+          width={project.canvas.width}
+          height={project.canvas.height}
+          fill={project.canvas.backgroundColor || '#ffffff'}
+          rx="2"
+        />
+      </svg>
 
       {/* SVG描画結果 */}
       {(maskMode === 'none' || maskMode === 'edit') && (
@@ -145,8 +156,8 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       {/* インタラクション用透明エリア（マスクモード時は無効化） */}
       {maskMode !== 'edit' && (
         <rect
-          x={adjustedPos.x + margin}
-          y={adjustedPos.y + margin}
+          x={adjustedPos.x + margin + offset.x}
+          y={adjustedPos.y + margin + offset.y}
           width={currentSize.width}
           height={currentSize.height}
           fill="transparent"
@@ -163,8 +174,8 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
         canvasWidth={project.canvas.width}
         canvasHeight={project.canvas.height}
         currentPos={{
-          x: adjustedPos.x + margin,
-          y: adjustedPos.y + margin
+          x: adjustedPos.x + margin + offset.x,
+          y: adjustedPos.y + margin + offset.y
         }}
         currentSize={currentSize}
         onResizeMouseDown={onResizeStart}
@@ -176,10 +187,10 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
       {snapGuides.map((guide, index) => (
         <line
           key={index}
-          x1={guide.type === 'vertical' ? guide.position + margin : guide.start + margin}
-          y1={guide.type === 'vertical' ? guide.start + margin : guide.position + margin}
-          x2={guide.type === 'vertical' ? guide.position + margin : guide.end + margin}
-          y2={guide.type === 'vertical' ? guide.end + margin : guide.position + margin}
+          x1={(guide.type === 'vertical' ? guide.position : guide.start) + margin}
+          y1={(guide.type === 'vertical' ? guide.start : guide.position) + margin}
+          x2={(guide.type === 'vertical' ? guide.position : guide.end  ) + margin}
+          y2={(guide.type === 'vertical' ? guide.end : guide.position  ) + margin}
           stroke="#ff4444"
           strokeWidth="3"
           strokeDasharray="4,4"
