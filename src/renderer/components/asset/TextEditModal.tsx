@@ -508,12 +508,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [previewSvgRef.current, project]);
 
-  // rotate値の変化を監視してoffsetを再計算
-  useEffect(() => {
-    if (!isDragging) {
-      recalculateOffset();
-    }
-  }, [getCurrentValue('rotate'), getCurrentValue('vertical')]);
+  // rotate値変更時に手動でoffsetを再計算（useEffectの無限ループを防ぐため）
+  const handleRotateChange = (value: number): void => {
+    setCurrentValue({rotate: value});
+    recalculateOffset();
+  };
+
+  const handleCharRotateChange = (value: number): void => {
+    setCurrentValue({char_rotate: value});
+    // char_rotate変更時は通常offset再計算は不要だが、必要に応じて実装
+  };
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -1317,7 +1321,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <Box sx={{ flex: 1 }}>
                     <RotateInput
                       value={getCurrentValue('rotate')}
-                      onChange={(value) => setCurrentValue({rotate: value})}
+                      onChange={handleRotateChange}
                       label="回転角度 (度)"
                       min={0}
                       max={360}
@@ -1326,7 +1330,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <Box sx={{ flex: 1 }}>
                     <RotateInput
                       value={getCurrentValue('char_rotate')}
-                      onChange={(value) => setCurrentValue({char_rotate: value})}
+                      onChange={handleCharRotateChange}
                       label="文字回転角度 (度)"
                       min={0}
                       max={360}
@@ -1600,7 +1604,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <Box sx={{ flex: 1 }}>
                       <RotateInput
                         value={getCurrentValue('rotate')}
-                        onChange={(value) => setCurrentValue({rotate: value})}
+                        onChange={handleRotateChange}
                         label="回転角度 (度)"
                         min={0}
                         max={360}
@@ -1610,7 +1614,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <Box sx={{ flex: 1 }}>
                       <RotateInput
                         value={getCurrentValue('char_rotate')}
-                        onChange={(value) => setCurrentValue({char_rotate: value})}
+                        onChange={handleCharRotateChange}
                         label="文字回転角度 (度)"
                         min={0}
                         max={360}
@@ -1896,7 +1900,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <Box sx={{ flex: 1 }}>
                         <RotateInput
                           value={getCurrentValue('rotate')}
-                          onChange={(value) => setCurrentValue({rotate: value})}
+                          onChange={handleRotateChange}
                           label="回転角度 (度)"
                           min={0}
                           max={360}
@@ -1906,7 +1910,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <Box sx={{ flex: 1 }}>
                         <RotateInput
                           value={getCurrentValue('char_rotate')}
-                          onChange={(value) => setCurrentValue({char_rotate: value})}
+                          onChange={handleCharRotateChange}
                           label="文字回転角度 (度)"
                           min={0}
                           max={360}
