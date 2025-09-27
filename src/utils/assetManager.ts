@@ -2,6 +2,8 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { FileCategory } from '../types/entities';
+import { determineFileType } from './fileTypeDetection';
 
 /**
  * アセット管理に関するエラー
@@ -12,11 +14,6 @@ export class AssetManagerError extends Error {
     this.name = 'AssetManagerError';
   }
 }
-
-/**
- * アセットタイプ
- */
-export type AssetType = 'raster' | 'vector';
 
 /**
  * 相対パスを絶対パスに解決する
@@ -65,20 +62,20 @@ export function makeAssetPathRelative(projectPath: string, absolutePath: string)
  * アセットファイルをプロジェクトにコピーする
  * @param projectPath プロジェクトディレクトリのパス
  * @param sourceFilePath コピー元ファイルのパス
- * @param assetType アセットタイプ ('images' または 'vectors' または 'fonts')
+ * @param assetType アセットタイプ ('images' または 'vector' または 'fonts')
  * @returns コピー先の相対パス
  */
 export async function copyAssetToProject(
   projectPath: string,
   sourceFilePath: string,
-  assetType: 'images' | 'vectors' | 'fonts'
+  assetType: 'images' | 'vector' | 'fonts'
 ): Promise<string> {
   // パラメータ検証
   if (!projectPath || !sourceFilePath) {
     throw new AssetManagerError('Invalid parameters provided', 'INVALID_PARAMETERS');
   }
 
-  if (assetType !== 'images' && assetType !== 'vectors' && assetType !== 'fonts') {
+  if (assetType !== 'images' && assetType !== 'vector' && assetType !== 'fonts') {
     throw new AssetManagerError(`Invalid asset type: ${assetType}`, 'INVALID_ASSET_TYPE');
   }
 
@@ -151,7 +148,7 @@ export async function copyAssetToProject(
  * @param expectedType 期待するアセットタイプ
  * @returns 検証が成功した場合はtrue
  */
-export async function validateAssetFile(filePath: string, expectedType: AssetType): Promise<boolean> {
+export async function validateAssetFile(filePath: string, expectedType: FileCategory): Promise<boolean> {
   // ファイルの存在確認
   try {
     const stats = await fs.stat(filePath);
@@ -168,7 +165,7 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
   // ファイル拡張子からタイプを判定
   const extension = path.extname(filePath);
   try {
-    const actualType = getAssetTypeFromExtension(extension);
+    const actualType = determineFileType(extension);
     if (actualType !== expectedType) {
       throw new AssetManagerError(
         `File type mismatch: expected ${expectedType}, but got ${actualType}`,
@@ -183,29 +180,6 @@ export async function validateAssetFile(filePath: string, expectedType: AssetTyp
   }
 
   return true;
-}
-
-/**
- * ファイル拡張子からアセットタイプを取得する
- * @param extension ファイル拡張子（.を含む）
- * @returns アセットタイプ
- */
-export function getAssetTypeFromExtension(extension: string): AssetType {
-  const lowerExt = extension.toLowerCase();
-
-  // 画像ファイル拡張子
-  const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
-  if (imageExtensions.includes(lowerExt)) {
-    return 'raster';
-  }
-
-  // ベクター画像ファイル拡張子
-  const vectorExtensions = ['.svg'];
-  if (vectorExtensions.includes(lowerExt)) {
-    return 'vector';
-  }
-
-  throw new AssetManagerError(`Unsupported file extension: ${extension}`, 'UNSUPPORTED_EXTENSION');
 }
 
 /**

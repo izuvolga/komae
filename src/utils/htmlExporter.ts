@@ -40,6 +40,7 @@ function encodeImageToBase64(filePath: string, projectPath?: string | null): str
 
 /**
  * ファイル拡張子からMIMEタイプを取得する
+ * 注: fileTypeDetection.ts と実装をあわせること
  */
 function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();

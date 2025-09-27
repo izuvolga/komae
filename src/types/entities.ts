@@ -3,11 +3,11 @@
 
 import { validateAssetInstanceOverrides } from '../utils/validation/assetValidation';
 
-export type FileType = 'raster' | 'vector';
+export type FileCategory = 'raster' | 'vector';
 
 export interface AssetFile {
   path: string;
-  type: FileType;
+  type: FileCategory;
   hash: string;
   original_width: number;
   original_height: number;

@@ -1,10 +1,11 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { readdir, rmdir } from 'fs/promises';
 import imageSize from 'image-size';
 import { FileSystemService } from './FileSystemService';
 import { CustomAssetManager } from './CustomAssetManager';
-import { copyAssetToProject, getAssetTypeFromExtension, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
+import { copyAssetToProject, validateAssetFile, deleteAssetFromProject } from '../../utils/assetManager';
 import { getLogger, PerformanceTracker } from '../../utils/logger';
 import {
   detectDuplicateAssetName,
@@ -13,7 +14,7 @@ import {
 } from '../../utils/duplicateAssetHandler';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ProjectData, AssetFile } from '../../types/entities';
 import { createImageAsset, createDefaultTextAsset, createVectorAsset, createDynamicVectorAsset } from '../../types/entities';
-import { determineFileType, calculateFileHash } from '../../utils/fileTypeDetection';
+import { determineFileType } from '../../utils/fileTypeDetection';
 
 export { DuplicateResolutionStrategy } from '../../utils/duplicateAssetHandler';
 
@@ -72,7 +73,7 @@ export class AssetManager {
       });
 
       // ファイルタイプを検証
-      const assetType = getAssetTypeFromExtension(extension);
+      const assetType = determineFileType(extension);
       await validateAssetFile(filePath, assetType);
 
       // 重複アセット名のハンドリング
@@ -175,7 +176,7 @@ export class AssetManager {
     const assetFile: AssetFile = {
       path: relativePath,
       type: determineFileType(filePath),
-      hash: await calculateFileHash(filePath),
+      hash: await this.calculateFileHash(filePath),
       original_width: imageInfo.width,
       original_height: imageInfo.height
     };
@@ -251,7 +252,7 @@ export class AssetManager {
 
   private async importVectorAsset(filePath: string, fileName: string, extension: string): Promise<VectorAsset> {
     // ファイルをプロジェクトにコピー
-    const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'vectors');
+    const relativePath = await copyAssetToProject(this.currentProjectPath!, filePath, 'vector');
 
     // SVGの基本情報を取得
     const svgInfo = await this.getSVGInfo(filePath);
@@ -260,7 +261,7 @@ export class AssetManager {
     const assetFile: AssetFile = {
       path: relativePath,
       type: determineFileType(filePath),
-      hash: await calculateFileHash(filePath),
+      hash: await this.calculateFileHash(filePath),
       original_width: svgInfo.width,
       original_height: svgInfo.height
     };
@@ -511,6 +512,20 @@ export class AssetManager {
     return deletedFiles;
   }
 
+  /**
+   * ファイルのハッシュ値を計算
+   * @param filePath - ファイルパス
+   * @returns Promise<string> SHA-256ハッシュ値
+   */
+  private async calculateFileHash(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const hash = crypto.createHash('sha256');
+      const stream = fs.createReadStream(filePath);
+      stream.on('error', reject);
+      stream.on('data', chunk => hash.update(chunk));
+      stream.on('end', () => resolve(hash.digest('hex')));
+    });
+  }
 
   private async getImageInfo(filePath: string): Promise<{ width: number; height: number }> {
     try {

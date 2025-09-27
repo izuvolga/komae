@@ -13,6 +13,7 @@ import { ValueEditModal } from './ValueEditModal';
 import CustomAssetManagementModal from '../customasset/CustomAssetManagementModal';
 import type { Asset, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, ValueAsset } from '../../../types/entities';
 import { createValueAsset, createDynamicVectorAsset } from '../../../types/entities';
+import { getSupportedExtensions } from '@/types/fileType';
 import './AssetLibrary.css';
 
 // ElectronのFile拡張インターフェース
@@ -72,7 +73,7 @@ export const AssetLibrary: React.FC = () => {
   const handleAssetClick = (assetId: string, ctrlKey: boolean) => {
     // コンテキストメニューを閉じる
     setContextMenu(null);
-    
+
     logger.logUserInteraction('asset_select', 'AssetLibrary', {
       assetId,
       ctrlKey,
@@ -120,7 +121,7 @@ export const AssetLibrary: React.FC = () => {
         assetName: contextMenu.asset.name,
         assetType: contextMenu.asset.type,
       });
-      
+
       if (contextMenu.asset.type === 'ImageAsset') {
         setEditingImageAsset(contextMenu.asset as ImageAsset);
       } else if (contextMenu.asset.type === 'TextAsset') {
@@ -268,7 +269,7 @@ export const AssetLibrary: React.FC = () => {
 
       // TextAssetを作成
       const result = await window.electronAPI.asset.createTextAsset('New Text', 'テキスト');
-      
+
       if (result.success && result.asset) {
         // TextAssetは直接プロジェクトに追加
         addAsset(result.asset);
@@ -313,7 +314,7 @@ export const AssetLibrary: React.FC = () => {
     await logger.logUserInteraction('dynamic_vector_asset_create', 'AssetLibrary', {
       currentAssetCount: assetList.length,
     });
-    
+
     handleCreateMenuClose();
     setShowCustomAssetManagementModal(true);
   };
@@ -332,7 +333,7 @@ export const AssetLibrary: React.FC = () => {
 
       // CustomAssetの完全なオブジェクトを取得
       const customAsset = await window.electronAPI.customAsset.getAsset(customAssetInfo.id);
-      
+
       if (!customAsset) {
         throw new Error(`CustomAsset with ID "${customAssetInfo.id}" not found`);
       }
@@ -342,17 +343,17 @@ export const AssetLibrary: React.FC = () => {
         customAsset, // 完全なCustomAssetオブジェクトを渡す
         name: `${customAssetInfo.name} (カスタム図形)`,
       });
-      
+
       addAsset(result);
-      
+
       await logger.logUserInteraction('dynamic_vector_asset_create_from_custom_success', 'AssetLibrary', {
         assetId: result.id,
         assetName: result.name,
         customAssetId: customAssetInfo.id,
       });
-      
+
       setShowCustomAssetManagementModal(false);
-      
+
       // 作成後すぐに編集モードで開く
       setEditingDynamicVectorAsset(result);
     } catch (error) {
@@ -367,7 +368,7 @@ export const AssetLibrary: React.FC = () => {
   const handleImportImageAsset = async () => {
     handleCreateMenuClose(); // メニューを閉じる
     const tracker = new UIPerformanceTracker('asset_import_dialog');
-    
+
     try {
       await logger.logUserInteraction('asset_import_dialog_open', 'AssetLibrary', {
         currentAssetCount: assetList.length,
@@ -376,7 +377,7 @@ export const AssetLibrary: React.FC = () => {
       const result = await window.electronAPI?.fileSystem?.showOpenDialog({
         title: '画像アセットをインポート',
         filters: [
-          { name: '画像ファイル', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'svg'] },
+          { name: '画像ファイル', extensions: getSupportedExtensions() },
         ],
         properties: ['openFile', 'multiSelections'],
       });
@@ -425,7 +426,7 @@ export const AssetLibrary: React.FC = () => {
 
   const handleDeleteClick = async () => {
     if (selectedAssets.length === 0) return;
-    
+
     logger.logUserInteraction('asset_delete_confirm', 'AssetLibrary', {
       selectedCount: selectedAssets.length,
       selectedAssets: selectedAssets,
@@ -480,7 +481,7 @@ export const AssetLibrary: React.FC = () => {
   const handleFileDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // ファイルがドラッグされている場合のみ処理
     if (e.dataTransfer.types.includes('Files')) {
       setIsDragOver(true);
@@ -490,7 +491,7 @@ export const AssetLibrary: React.FC = () => {
   const handleFileDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // ドラッグがAssetLibrary要素から完全に離れた場合のみ処理
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragOver(false);
@@ -503,8 +504,8 @@ export const AssetLibrary: React.FC = () => {
     setIsDragOver(false);
 
     const files = Array.from(e.dataTransfer.files) as ElectronFile[];
-    const supportedFiles = files.filter(file => 
-      file.type.startsWith('image/') || 
+    const supportedFiles = files.filter(file =>
+      file.type.startsWith('image/') ||
       file.type === 'image/svg+xml' ||
       /\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(file.name)
     );
@@ -556,7 +557,7 @@ export const AssetLibrary: React.FC = () => {
           // ファイルパスが取得できる場合は直接インポート
           await importAsset(file.path);
         }
-        
+
         successCount++;
       } catch (error) {
         errorCount++;
