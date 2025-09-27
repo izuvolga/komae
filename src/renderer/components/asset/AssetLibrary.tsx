@@ -145,7 +145,7 @@ export const AssetLibrary: React.FC = () => {
           assetId: contextMenu.asset.id,
           assetName: contextMenu.asset.name,
         });
-        await deleteAsset(contextMenu.asset.id);
+        deleteAsset(contextMenu.asset.id);
         selectAssets(selectedAssets.filter(id => id !== contextMenu.asset.id));
       }
     }
