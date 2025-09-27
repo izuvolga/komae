@@ -355,6 +355,7 @@ export function validateLanguageSettings(data: unknown): LanguageSettings {
  */
 export function validateLanguageCode(langCode: string): boolean {
   // 基本的なISO 639-1フォーマットチェック（2文字小文字）
+  // RFC 4646 の方言 zh-cn などは現状考慮しない
   return /^[a-z]{2}$/.test(langCode);
 }
 
