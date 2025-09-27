@@ -571,7 +571,7 @@ function generateSingleLanguageTextElement(
   textContent: string
 ): string {
   const effectiveFont = getEffectiveFontFace(asset, textInstance, language);
-  const font = resolveSvgFontName(effectiveFont || 'Arial');
+  const font = resolveSvgFontName(effectiveFont || 'system-ui');
   const strokeWidth = getEffectiveStrokeWidth(asset, textInstance, language);
   const colors = getEffectiveColors(asset, textInstance, language);
   const strokeColor = colors.stroke;
