@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, getEffectiveScaleX, getEffectiveScaleY, TextAssetInstancePhase } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, getEffectiveScaleX, getEffectiveScaleY, getEffectiveRotate, TextAssetInstancePhase } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -527,6 +527,7 @@ export function generateMultilingualTextElement(
     const finalOpacity = getEffectiveOpacity(asset, textInstance, lang, phase);
     const finalScaleX = getEffectiveScaleX(asset, textInstance, lang, phase);
     const finalScaleY = getEffectiveScaleY(asset, textInstance, lang, phase);
+    const finalRotate = getEffectiveRotate(asset, textInstance, lang, phase);
     const textContent = getEffectiveTextValue(asset, textInstance, lang, phase);
 
     // テキスト内容が空の場合はスキップ
@@ -536,10 +537,13 @@ export function generateMultilingualTextElement(
 
     const textElement = generateSingleLanguageTextElement(asset, textInstance, lang, finalPosX, finalPosY, finalFontSize, finalOpacity, textContent);
 
-    // transform属性を構築（scale以外の変換も将来的に対応できる形で）
+    // transform属性を構築（scale、rotate等の変換）
     const transforms = [];
     if (finalScaleX !== 1.0 || finalScaleY !== 1.0) {
       transforms.push(`scale(${finalScaleX}, ${finalScaleY})`);
+    }
+    if (finalRotate !== 0) {
+      transforms.push(`rotate(${finalRotate})`);
     }
     const transformAttr = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 

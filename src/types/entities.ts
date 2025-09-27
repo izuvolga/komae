@@ -778,6 +778,19 @@ export function getEffectiveScaleY(
   return DEFAULT_LANGUAGE_SETTINGS.scale_y!;
 }
 
+export function getEffectiveRotate(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'rotate', phase);
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  return DEFAULT_LANGUAGE_SETTINGS.rotate!;
+}
+
 /**
  * 最終的なフォントを取得する
  */
