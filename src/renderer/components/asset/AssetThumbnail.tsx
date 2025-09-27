@@ -48,10 +48,11 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           const vectorAsset = asset as VectorAsset;
           let svgContent: string;
 
+          console.log('VectorAsset original_file:', vectorAsset.original_file, typeof vectorAsset.original_file);
           if (vectorAsset.original_file && currentProjectPath) {
             // 新しいAssetFile APIを使用してSVGコンテンツを取得
             try {
-              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
+              svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
             } catch (error) {
               console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
               svgContent = vectorAsset.svg_content;

@@ -153,7 +153,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
           if (vectorAsset.original_file && currentProjectPath) {
             // 新しいAssetFile APIを使用してSVGコンテンツを取得
             try {
-              svgContent = await vectorAsset.original_file.getContent(currentProjectPath);
+              svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
             } catch (error) {
               console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
               svgContent = vectorAsset.svg_content;

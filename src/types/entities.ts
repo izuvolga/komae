@@ -2,7 +2,16 @@
 // docs/design/000-entity.mdに基づく
 
 import { validateAssetInstanceOverrides } from '../utils/validation/assetValidation';
-import { AssetFile } from './AssetFile';
+
+export type FileType = 'raster' | 'vector';
+
+export interface AssetFile {
+  path: string;
+  type: FileType;
+  hash: string;
+  originalWidth: number;
+  originalHeight: number;
+}
 
 export interface ProjectMetadata {
   komae_version: string;

@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { FileType } from '../types/AssetFile';
+import type { FileType } from '../types/entities';
 
 /**
  * サポートされているファイル拡張子

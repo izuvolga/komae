@@ -1,8 +1,7 @@
 // Zodスキーマによるプロジェクトデータバリデーション
 
 import { z } from 'zod';
-import { ProjectData, Asset, Page, LanguageSettings, UIState } from '../types/entities';
-import { AssetFile } from '../types/AssetFile';
+import { ProjectData, Asset, Page, LanguageSettings, UIState, AssetFile } from '../types/entities';
 
 // 基本的なスキーマ定義
 
@@ -91,7 +90,7 @@ const AssetFileSchema = z.object({
   hash: z.string().min(1),
   originalWidth: z.number().min(0.01),
   originalHeight: z.number().min(0.01),
-}).transform((data) => new AssetFile({ ...data, originalWidth: data.originalWidth, originalHeight: data.originalHeight })); // TransformでAssetFileインスタンスを生成
+});
 
 // ImageAsset スキーマ
 const ImageAssetSchema = z.object({
