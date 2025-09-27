@@ -1690,7 +1690,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           <img
                             className="image-preview-small"
                             src={getCustomProtocolUrl(
-                              (asset as ImageAsset).original_file?.path || (asset as ImageAsset).original_file_path,
+                              (asset as ImageAsset).original_file.path,
                               currentProjectPath
                             )}
                             alt={asset.name}

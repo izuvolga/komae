@@ -93,7 +93,7 @@ export enum TextAssetInstancePhase {
 export interface VectorAsset extends BaseAsset {
   type: 'VectorAsset';
   original_file_path: string; // 段階的移行のため残す
-  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
+  original_file: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;

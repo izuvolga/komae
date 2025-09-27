@@ -134,15 +134,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
         if (isImageAsset) {
           const imageAsset = asset as ImageAsset;
           let imagePath: string;
-
-          if (imageAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用
-            imagePath = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
-          } else {
-            // Fallback: 既存のoriginal_file_pathを使用
-            imagePath = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
-          }
-
+          imagePath = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
           const content = `<image xlink:href="${imagePath}" x="0" y="0" width="${imageAsset.original_width}" height="${imageAsset.original_height}" />`;
           setPreviewContent(content);
         } else {
