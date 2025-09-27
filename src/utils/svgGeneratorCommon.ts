@@ -1,5 +1,5 @@
 import type { ProjectData, ImageAsset, TextAsset, VectorAsset, DynamicVectorAsset, AssetInstance, ImageAssetInstance, TextAssetInstance, VectorAssetInstance, DynamicVectorAssetInstance, FontInfo } from '../types/entities';
-import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, getEffectiveScaleX, getEffectiveScaleY, getEffectiveRotate, TextAssetInstancePhase } from '../types/entities';
+import { getEffectiveZIndex, getEffectiveTextValue, getEffectiveFontSize, getEffectivePosition, getEffectiveColors, getEffectiveFontFace, getEffectiveVertical, getEffectiveStrokeWidth, getEffectiveLeading, getEffectiveOpacity, getEffectiveZIndexForLanguage, getEffectiveScaleX, getEffectiveScaleY, getEffectiveRotate, getEffectiveCharRotate, TextAssetInstancePhase } from '../types/entities';
 
 /**
  * フォント情報のキャッシュ
@@ -578,6 +578,7 @@ function generateSingleLanguageTextElement(
   const fillColor = colors.fill;
   const leading = getEffectiveLeading(asset, textInstance, language);
   const vertical = getEffectiveVertical(asset, textInstance, language);
+  const charRotate = getEffectiveCharRotate(asset, textInstance, language);
 
   // XMLエスケープを適用 (TODO: 必要か？)
   const escapedText = escapeXml(textContent);
@@ -618,12 +619,21 @@ function generateSingleLanguageTextElement(
         const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
+        // 文字の中心点を計算（縦書きの場合）
+        const centerX = lineXPos - fontSize / 2;
+        const centerY = charYPos - fontSize / 2;
+
+        // char_rotateが0でない場合、文字の中心を基準とした回転transformを追加
+        const charTransformAttr = charRotate !== 0
+          ? ` transform="rotate(${charRotate} ${centerX} ${centerY})"`
+          : '';
+
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
         // これを防ぐため、ストロークを文字の内側に描画するには、paint-order プロパティを使用するのだが、
         // 作成時点で paint-order はすべてのブラウザでサポートされているわけではないため、text要素を2回重ねて描画する方法を採用する。
         // さらに、縦書きの場合、text-anchor="end"を指定して文字の右端をX座標の基準に配置する。
-        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
-        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes}${charTransformAttr}>${char}</text>`);
+        textBody.push(`    <text text-anchor="end" ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes}${charTransformAttr}>${char}</text>`);
       }
     });
     return textBody.join('\n');
@@ -647,11 +657,20 @@ function generateSingleLanguageTextElement(
         const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
+        // 文字の中心点を計算（横書きの場合）
+        const centerX = charXPos + fontSize / 2;
+        const centerY = lineYPos - fontSize / 2;
+
+        // char_rotateが0でない場合、文字の中心を基準とした回転transformを追加
+        const charTransformAttr = charRotate !== 0
+          ? ` transform="rotate(${charRotate} ${centerX} ${centerY})"`
+          : '';
+
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
         // これを防ぐため、ストロークを文字の内側に描画するには、paint-order プロパティを使用するのだが、
         // 作成時点で paint-order はすべてのブラウザでサポートされているわけではないため、text要素を2回重ねて描画する方法を採用する。
-        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes} ${transformAttr}>${char}</text>`);
-        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes} ${transformAttr}>${char}</text>`);
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${strokeColor}" stroke-width="${strokeWidth}" ${fillattributes}${charTransformAttr}>${char}</text>`);
+        textBody.push(`    <text ${posattributes} ${fontattributes} stroke="${fillColor}" ${fillattributes}${charTransformAttr}>${char}</text>`);
       }
     });
     return textBody.join('\n');

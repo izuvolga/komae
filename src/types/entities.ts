@@ -791,6 +791,19 @@ export function getEffectiveRotate(
   return DEFAULT_LANGUAGE_SETTINGS.rotate!;
 }
 
+export function getEffectiveCharRotate(
+  asset: TextAsset,
+  instance: TextAssetInstance | null,
+  currentLang: string,
+  phase: TextAssetInstancePhase = TextAssetInstancePhase.AUTO
+): number {
+  const languageSetting = getEffectiveLanguageSetting(asset, instance, currentLang, 'char_rotate', phase);
+  if (languageSetting !== undefined) {
+    return languageSetting;
+  }
+  return DEFAULT_LANGUAGE_SETTINGS.char_rotate!;
+}
+
 /**
  * 最終的なフォントを取得する
  */
