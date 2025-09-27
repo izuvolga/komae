@@ -150,11 +150,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const previewSvgRef = useRef<SVGSVGElement>(null);
   const [dynamicScale, setDynamicScale] = useState(1);
   const [scaleCalculated, setScaleCalculated] = useState(false);
-  const [previousRotate, setPreviousRotate] = useState<number>(0);
-  const [isRotating, setIsRotating] = useState(false);
-  const [rotationCenter, setRotationCenter] = useState<{x: number, y: number} | null>(null);
-  const [rotationStartPosition, setRotationStartPosition] = useState<{x: number, y: number} | null>(null);
-  const [rotationStartAngle, setRotationStartAngle] = useState<number>(0);
 
   // スナップ機能関連の状態
   const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
@@ -162,54 +157,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // 動的余白計算（キャンバス長辺の10%）
   const margin = Math.max(project.canvas.width, project.canvas.height) * 0.1;
-
-  // 回転時の中心点回転をシミュレートするための位置補正計算
-  const calculateRotationOffset = (
-    width: number,
-    height: number,
-    rotateDegrees: number,
-    isVertical: boolean = false
-  ): { offsetX: number; offsetY: number } => {
-    const rad = (rotateDegrees * Math.PI) / 180;
-
-    // テキストコンテンツの中心点を計算
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // 現在の基準点から中心点までのベクトル
-    // 横書き: 左上(0,0)から中心点への距離
-    // 縦書き: 右上(width,0)から中心点への距離
-    const refToCenterX = isVertical ? -centerX : centerX;
-    const refToCenterY = centerY;
-
-    // 回転後の中心点位置を計算
-    const rotatedCenterX = refToCenterX * Math.cos(rad) - refToCenterY * Math.sin(rad);
-    const rotatedCenterY = refToCenterX * Math.sin(rad) + refToCenterY * Math.cos(rad);
-
-    // 中心点回転をシミュレートするためのオフセット
-    return {
-      offsetX: refToCenterX - rotatedCenterX,
-      offsetY: refToCenterY - rotatedCenterY
-    };
-  };
-
-  // 固定中心点を基準とした位置計算関数
-  const calculateCenterFixedPosition = (
-    centerX: number,
-    centerY: number,
-    width: number,
-    height: number,
-    isVertical: boolean = false
-  ): { newPosX: number, newPosY: number } => {
-    // 固定された中心点から新しい左上座標を逆算
-    const offsetX = isVertical ? width : width / 2;
-    const offsetY = height / 2;
-
-    return {
-      newPosX: centerX - offsetX,
-      newPosY: centerY - offsetY
-    };
-  };
 
   // ドラッグ開始時にスケールを計算する関数
   const calculateDynamicScale = () => {
@@ -479,7 +426,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('char_rotate'), activePreviewTab, dynamicScale]);
+  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('rotate'), getCurrentValue('char_rotate'), activePreviewTab, dynamicScale]);
 
   // dynamicScale更新専用のuseEffect
   useEffect(() => {
@@ -487,40 +434,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       calculateDynamicScale();
     }
   }, [previewSvgRef.current, project]);
-
-  // previousRotateの初期化
-  useEffect(() => {
-    const currentRotate = getCurrentValue('rotate');
-    setPreviousRotate(currentRotate);
-  }, [editingAsset, mode]);
-
-  // 回転開始ハンドラー
-  const handleRotationStart = () => {
-    const currentPosX = getCurrentValue('pos_x');
-    const currentPosY = getCurrentValue('pos_y');
-    const currentRotate = getCurrentValue('rotate');
-    const isVertical = getCurrentValue('vertical');
-    const currentWidth = currentSize.width;
-    const currentHeight = currentSize.height;
-
-    // 現在のテキスト中心点を計算
-    const centerX = currentPosX + (isVertical ? currentWidth : currentWidth / 2);
-    const centerY = currentPosY + currentHeight / 2;
-
-    // 回転状態を開始
-    setIsRotating(true);
-    setRotationCenter({ x: centerX, y: centerY });
-    setRotationStartPosition({ x: currentPosX, y: currentPosY });
-    setRotationStartAngle(currentRotate);
-  };
-
-  // 回転終了ハンドラー
-  const handleRotationEnd = () => {
-    setIsRotating(false);
-    setRotationCenter(null);
-    setRotationStartPosition(null);
-    setRotationStartAngle(0);
-  };
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
@@ -545,215 +458,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     };
 
     setEditingAsset(updatedAsset);
-  };
-
-  // rotate値変更時の中心点回転シミュレーション処理
-  const handleRotateChange = (newRotate: number) => {
-    if (mode !== 'asset') return;
-
-    const currentSettings = editingAsset.default_settings || {};
-    const currentWidth = currentSize.width;
-    const currentHeight = currentSize.height;
-    const isVertical = getCurrentValue('vertical');
-    const currentPosX = getCurrentValue('pos_x');
-    const currentPosY = getCurrentValue('pos_y');
-
-    let adjustedPosX = currentPosX;
-    let adjustedPosY = currentPosY;
-
-    // 回転中の場合、固定中心点を基準とした位置計算
-    if (isRotating && rotationCenter) {
-      const { newPosX, newPosY } = calculateCenterFixedPosition(
-        rotationCenter.x,
-        rotationCenter.y,
-        currentWidth,
-        currentHeight,
-        isVertical
-      );
-      adjustedPosX = newPosX;
-      adjustedPosY = newPosY;
-    } else {
-      // 回転中でない場合、従来の差分計算
-      const oldOffset = calculateRotationOffset(currentWidth, currentHeight, previousRotate, isVertical);
-      const newOffset = calculateRotationOffset(currentWidth, currentHeight, newRotate, isVertical);
-
-      const deltaOffsetX = newOffset.offsetX - oldOffset.offsetX;
-      const deltaOffsetY = newOffset.offsetY - oldOffset.offsetY;
-
-      adjustedPosX = currentPosX + deltaOffsetX;
-      adjustedPosY = currentPosY + deltaOffsetY;
-    }
-
-    // rotate、pos_x、pos_yを同時に更新
-    const updatedSettings = {
-      ...currentSettings,
-      rotate: newRotate,
-      pos_x: adjustedPosX,
-      pos_y: adjustedPosY
-    };
-
-    const updatedAsset = {
-      ...editingAsset,
-      default_settings: updatedSettings
-    };
-
-    setEditingAsset(updatedAsset);
-    setPreviousRotate(newRotate);
-
-    // rotate変更後にサイズ再計算を実行（nextTick相当でDOM更新後に実行）
-    setTimeout(() => {
-      try {
-        const textElement = document.getElementById(PREVIEW_DOM_ID);
-        if (textElement) {
-          const rect = textElement.getBoundingClientRect();
-          if (rect && rect.width > 0 && rect.height > 0) {
-            let width = rect.width / dynamicScale;
-            let height = rect.height / dynamicScale;
-            setCurrentSize({ width, height });
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate size after rotate:', error);
-      }
-    }, 0);
-  };
-
-  // インスタンス設定用のrotate変更ハンドラー
-  const handleInstanceRotateChange = (newRotate: number) => {
-    if (mode !== 'instance' || !editingInstance) return;
-
-    const currentWidth = currentSize.width;
-    const currentHeight = currentSize.height;
-    const isVertical = getCurrentValue('vertical');
-    const currentPosX = getCurrentValue('pos_x');
-    const currentPosY = getCurrentValue('pos_y');
-
-    let adjustedPosX = currentPosX;
-    let adjustedPosY = currentPosY;
-
-    // 回転中の場合、固定中心点を基準とした位置計算
-    if (isRotating && rotationCenter) {
-      const { newPosX, newPosY } = calculateCenterFixedPosition(
-        rotationCenter.x,
-        rotationCenter.y,
-        currentWidth,
-        currentHeight,
-        isVertical
-      );
-      adjustedPosX = newPosX;
-      adjustedPosY = newPosY;
-    } else {
-      // 回転中でない場合、従来の差分計算
-      const oldOffset = calculateRotationOffset(currentWidth, currentHeight, previousRotate, isVertical);
-      const newOffset = calculateRotationOffset(currentWidth, currentHeight, newRotate, isVertical);
-
-      const deltaOffsetX = newOffset.offsetX - oldOffset.offsetX;
-      const deltaOffsetY = newOffset.offsetY - oldOffset.offsetY;
-
-      adjustedPosX = currentPosX + deltaOffsetX;
-      adjustedPosY = currentPosY + deltaOffsetY;
-    }
-
-    // rotate、pos_x、pos_yを同時に更新
-    const updatedInstance = {
-      ...editingInstance,
-      rotate: newRotate,
-      pos_x: adjustedPosX,
-      pos_y: adjustedPosY
-    };
-
-    setEditingInstance(updatedInstance);
-    setPreviousRotate(newRotate);
-
-    // rotate変更後にサイズ再計算を実行
-    setTimeout(() => {
-      try {
-        const textElement = document.getElementById(PREVIEW_DOM_ID);
-        if (textElement) {
-          const rect = textElement.getBoundingClientRect();
-          if (rect && rect.width > 0 && rect.height > 0) {
-            let width = rect.width / dynamicScale;
-            let height = rect.height / dynamicScale;
-            setCurrentSize({ width, height });
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate size after rotate:', error);
-      }
-    }, 0);
-  };
-
-  // 言語別設定用のrotate変更ハンドラー
-  const handleLanguageRotateChange = (newRotate: number, language: string) => {
-    if (mode !== 'asset') return;
-
-    const currentWidth = currentSize.width;
-    const currentHeight = currentSize.height;
-    const isVertical = getCurrentValue('vertical');
-    const currentPosX = getCurrentValue('pos_x');
-    const currentPosY = getCurrentValue('pos_y');
-
-    let adjustedPosX = currentPosX;
-    let adjustedPosY = currentPosY;
-
-    // 回転中の場合、固定中心点を基準とした位置計算
-    if (isRotating && rotationCenter) {
-      const { newPosX, newPosY } = calculateCenterFixedPosition(
-        rotationCenter.x,
-        rotationCenter.y,
-        currentWidth,
-        currentHeight,
-        isVertical
-      );
-      adjustedPosX = newPosX;
-      adjustedPosY = newPosY;
-    } else {
-      // 回転中でない場合、従来の差分計算
-      const oldOffset = calculateRotationOffset(currentWidth, currentHeight, previousRotate, isVertical);
-      const newOffset = calculateRotationOffset(currentWidth, currentHeight, newRotate, isVertical);
-
-      const deltaOffsetX = newOffset.offsetX - oldOffset.offsetX;
-      const deltaOffsetY = newOffset.offsetY - oldOffset.offsetY;
-
-      adjustedPosX = currentPosX + deltaOffsetX;
-      adjustedPosY = currentPosY + deltaOffsetY;
-    }
-
-    // rotate、pos_x、pos_yを同時に更新
-    const updatedOverrides = updateLanguageSettings<LanguageSettings>(
-      editingAsset.default_language_override,
-      language,
-      {
-        rotate: newRotate,
-        pos_x: adjustedPosX,
-        pos_y: adjustedPosY
-      }
-    );
-
-    const updatedAsset = {
-      ...editingAsset,
-      default_language_override: updatedOverrides
-    };
-
-    setEditingAsset(updatedAsset);
-    setPreviousRotate(newRotate);
-
-    // rotate変更後にサイズ再計算を実行
-    setTimeout(() => {
-      try {
-        const textElement = document.getElementById(PREVIEW_DOM_ID);
-        if (textElement) {
-          const rect = textElement.getBoundingClientRect();
-          if (rect && rect.width > 0 && rect.height > 0) {
-            let width = rect.width / dynamicScale;
-            let height = rect.height / dynamicScale;
-            setCurrentSize({ width, height });
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate size after rotate:', error);
-      }
-    }, 0);
   };
 
   // 複数の言語オーバーライド設定を同時に更新する関数
@@ -1524,9 +1228,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   <Box sx={{ flex: 1 }}>
                     <RotateInput
                       value={getCurrentValue('rotate')}
-                      onChange={handleRotateChange}
-                      onRotationStart={handleRotationStart}
-                      onRotationEnd={handleRotationEnd}
+                      onChange={(value) => setCurrentValue({rotate: value})}
                       label="回転角度 (度)"
                       min={0}
                       max={360}
@@ -1809,9 +1511,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                     <Box sx={{ flex: 1 }}>
                       <RotateInput
                         value={getCurrentValue('rotate')}
-                        onChange={handleInstanceRotateChange}
-                        onRotationStart={handleRotationStart}
-                        onRotationEnd={handleRotationEnd}
+                        onChange={(value) => setCurrentValue({rotate: value})}
                         label="回転角度 (度)"
                         min={0}
                         max={360}
@@ -2107,9 +1807,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       <Box sx={{ flex: 1 }}>
                         <RotateInput
                           value={getCurrentValue('rotate')}
-                          onChange={(value) => handleLanguageRotateChange(value, getCurrentLanguage())}
-                          onRotationStart={handleRotationStart}
-                          onRotationEnd={handleRotationEnd}
+                          onChange={(value) => setCurrentValue({rotate: value})}
                           label="回転角度 (度)"
                           min={0}
                           max={360}
