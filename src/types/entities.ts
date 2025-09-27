@@ -51,6 +51,20 @@ export interface ImageAsset extends BaseAsset {
   default_z_index: number;
 }
 
+export interface VectorAsset extends BaseAsset {
+  type: 'VectorAsset';
+  original_file: AssetFile;
+  original_width: number;
+  original_height: number;
+  default_pos_x: number;
+  default_pos_y: number;
+  default_width: number;
+  default_height: number;
+  default_opacity: number;
+  default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
+  default_z_index: number;
+}
+
 export interface TextAsset extends BaseAsset {
   type: 'TextAsset';
 
@@ -87,20 +101,6 @@ export enum TextAssetInstancePhase {
   ASSET_COMMON  = 1, // 共通設定（アセットのdefault_settingsを使用）
   ASSET_LANG    = 2, // アセットの言語別設定（default_language_overrideを使用）
   INSTANCE_LANG = 3, // インスタンスの言語別設定（override_language_settingsを使用）
-}
-
-export interface VectorAsset extends BaseAsset {
-  type: 'VectorAsset';
-  original_file: AssetFile;
-  original_width: number;
-  original_height: number;
-  default_pos_x: number;
-  default_pos_y: number;
-  default_width: number;
-  default_height: number;
-  default_opacity: number;
-  default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
-  default_z_index: number;
 }
 
 // CustomAsset関連の型定義（JSファイルから解析される情報）
@@ -160,6 +160,9 @@ export interface ValueAsset extends BaseAsset {
 }
 
 export type Asset = ImageAsset | TextAsset | VectorAsset | DynamicVectorAsset | ValueAsset;
+// 共通項目が多いため、両者をまとめた型を定義
+export type GraphicAsset = ImageAsset | VectorAsset;
+export type GraphicAssetInstance = ImageAssetInstance | VectorAssetInstance;
 
 // Font管理定義
 export enum FontType {
@@ -221,12 +224,6 @@ export interface ImageAssetInstance extends BaseAssetInstance {
   override_z_index?: number;
 }
 
-export interface TextAssetInstance extends BaseAssetInstance {
-  override_context?: string;
-  multilingual_text: Record<string, string>;
-  override_language_settings?: Record<string, LanguageSettings>;
-}
-
 export interface VectorAssetInstance extends BaseAssetInstance {
   override_pos_x?: number;
   override_pos_y?: number;
@@ -235,6 +232,12 @@ export interface VectorAssetInstance extends BaseAssetInstance {
   override_opacity?: number;
   override_mask?: [[number, number], [number, number], [number, number], [number, number]];
   override_z_index?: number;
+}
+
+export interface TextAssetInstance extends BaseAssetInstance {
+  override_context?: string;
+  multilingual_text: Record<string, string>;
+  override_language_settings?: Record<string, LanguageSettings>;
 }
 
 export interface DynamicVectorAssetInstance extends BaseAssetInstance {
@@ -1229,29 +1232,6 @@ export function validateTextAssetData(asset: TextAsset): {
 }
 
 /**
- * ImageAssetのバリデーション
- * @param asset - バリデーション対象のImageAsset
- * @returns バリデーション結果
- */
-export function validateImageAssetData(asset: ImageAsset): {
-  isValid: boolean;
-  errors: string[];
-} {
-  const errors: string[] = [];
-
-  // デフォルト不透明度のバリデーション
-  const opacityValidation = validateOpacity(asset.default_opacity, 'デフォルト不透明度');
-  if (!opacityValidation.isValid && opacityValidation.error) {
-    errors.push(opacityValidation.error);
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
-
-/**
  * TextAssetInstanceのバリデーション
  * @param instance - バリデーション対象のTextAssetInstance
  * @returns バリデーション結果
@@ -1317,7 +1297,7 @@ export function validateTextAssetInstanceData(instance: TextAssetInstance): {
  * @param instance - バリデーション対象のImageAssetInstance
  * @returns バリデーション結果
  */
-export function validateImageAssetInstanceData(instance: ImageAssetInstance): {
+export function validateGraphicAssetInstanceData(instance: ImageAssetInstance | VectorAssetInstance): {
   isValid: boolean;
   errors: string[];
 } {
@@ -1340,7 +1320,7 @@ export function validateImageAssetInstanceData(instance: ImageAssetInstance): {
  * @param asset - バリデーション対象のVectorAsset
  * @returns バリデーション結果
  */
-export function validateVectorAssetData(asset: VectorAsset): {
+export function validateGraphicAssetData(asset: ImageAsset | VectorAsset): {
   isValid: boolean;
   errors: string[];
 } {
@@ -1397,18 +1377,6 @@ export function validateVectorAssetData(asset: VectorAsset): {
     isValid: errors.length === 0,
     errors
   };
-}
-
-/**
- * VectorAssetInstanceのバリデーション
- * @param instance - バリデーション対象のVectorAssetInstance
- * @returns バリデーション結果
- */
-export function validateVectorAssetInstanceData(instance: VectorAssetInstance): {
-  isValid: boolean;
-  errors: string[];
-} {
-  return validateAssetInstanceOverrides(instance);
 }
 
 /**

@@ -21,8 +21,8 @@ import { getCustomProtocolUrl } from '../../utils/imageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
-import type { ImageAsset, VectorAsset, ImageAssetInstance, VectorAssetInstance, Page } from '../../../types/entities';
-import { validateImageAssetData, validateImageAssetInstanceData, validateVectorAssetData, validateVectorAssetInstanceData } from '../../../types/entities';
+import type { ImageAsset, VectorAsset, GraphicAsset, GraphicAssetInstance, Page } from '../../../types/entities';
+import { validateGraphicAssetData, validateGraphicAssetInstanceData } from '../../../types/entities';
 import {
   convertMouseDelta,
   getCurrentPosition,
@@ -36,10 +36,6 @@ import {
 import { calculateSnap, SnapGuide } from '../../utils/snapUtils';
 import { EditModalSvgCanvas } from '../common/EditModalSvgCanvas';
 import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
-
-// 統合されたプロパティ
-type GraphicAsset = ImageAsset | VectorAsset;
-type GraphicAssetInstance = ImageAssetInstance | VectorAssetInstance;
 
 interface GraphicEditModalProps extends BaseEditModalProps<GraphicAsset, GraphicAssetInstance> {
   page?: Page;
@@ -71,19 +67,11 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
 
   // バリデーション関数ラッパー
   const validateAssetWrapper = (asset: GraphicAsset) => {
-    if (isImageAsset) {
-      return validateImageAssetData(asset as ImageAsset);
-    } else {
-      return validateVectorAssetData(asset as VectorAsset);
-    }
+    return validateGraphicAssetData(asset);
   };
 
   const validateInstanceWrapper = (instance: GraphicAssetInstance) => {
-    if (isImageAsset) {
-      return validateImageAssetInstanceData(instance as ImageAssetInstance);
-    } else {
-      return validateVectorAssetInstanceData(instance as VectorAssetInstance);
-    }
+    return validateGraphicAssetInstanceData(instance);
   };
 
   // Submit処理フック
@@ -138,7 +126,6 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
           const content = `<image xlink:href="${imagePath}" x="0" y="0" width="${imageAsset.original_width}" height="${imageAsset.original_height}" />`;
           setPreviewContent(content);
         } else {
-          // VectorAssetの場合：AssetFileがあれば使用、なければfallback
           const vectorAsset = asset as VectorAsset;
           let svgContent: string;
           svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
@@ -193,18 +180,10 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
 
   const getCurrentMask = () => {
     if (mode === 'instance' && editedInstance) {
-      if (isImageAsset) {
-        return (editedInstance as ImageAssetInstance).override_mask ?? (asset as ImageAsset).default_mask ?? null;
-      } else {
-        return (editedInstance as VectorAssetInstance).override_mask ?? (asset as VectorAsset).default_mask ?? null;
-      }
+      return editedInstance.override_mask ?? asset.default_mask ?? null;
     }
-    if (isImageAsset) {
-      return (editedAsset as ImageAsset).default_mask ?? null;
-    } else {
-      return (editedAsset as VectorAsset).default_mask ?? null;
-    }
-  };;
+    return editedAsset.default_mask ?? null;
+  };
 
   // マスクがキャンバスサイズと同じかどうかを判定
   const isCanvasSizeMask = (mask: [[number, number], [number, number], [number, number], [number, number]] | null): boolean => {
@@ -331,33 +310,18 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
     if (mask && isCanvasSizeMask(mask) && !maskEditMode) {
       finalMask = undefined;
     }
-
     if (mode === 'instance' && editedInstance) {
-      if (isImageAsset) {
-        setEditedInstance(prev => prev ? {
-          ...prev,
-          override_mask: finalMask,
-        } as ImageAssetInstance : null);
-      } else {
-        setEditedInstance(prev => prev ? {
-          ...prev,
-          override_mask: finalMask,
-        } as VectorAssetInstance : null);
-      }
+      setEditedInstance(prev => prev ? {
+        ...prev,
+        override_mask: finalMask,
+      } : null);
     } else {
-      if (isImageAsset) {
-        setEditedAsset(prev => ({
-          ...prev,
-          default_mask: finalMask,
-        } as ImageAsset));
-      } else {
-        setEditedAsset(prev => ({
-          ...prev,
-          default_mask: finalMask,
-        } as VectorAsset));
-      }
+      setEditedAsset(prev => ({
+        ...prev,
+        default_mask: finalMask,
+      }));
     }
-  };;
+  };
 
 
   const handleMaskPointMouseDown = (e: React.MouseEvent, pointIndex: number) => {
@@ -588,8 +552,8 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
               currentSize={currentSize}
               currentOpacity={currentOpacity}
               svgContent={previewContent}
-              originalWidth={isImageAsset ? (asset as ImageAsset).original_width : (asset as VectorAsset).original_width}
-              originalHeight={isImageAsset ? (asset as ImageAsset).original_height : (asset as VectorAsset).original_height}
+              originalWidth={asset.original_width}
+              originalHeight={asset.original_height}
               onDragStart={(e) => {
                 if (maskEditMode) return;
                 e.preventDefault();
@@ -795,7 +759,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
                   onClick={() => {
                     if (!maskEditMode) {
                       // マスク編集モードに入る時、マスクが未定義の場合、キャンバスサイズの4点に設定
-                      const currentMask = isImageAsset ? (editedAsset as ImageAsset).default_mask : (editedAsset as VectorAsset).default_mask;
+                      const currentMask = editedAsset.default_mask;
                       if (!currentMask) {
                         const canvasWidth = project.canvas.width;
                         const canvasHeight = project.canvas.height;
@@ -805,11 +769,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
                           [canvasWidth, canvasHeight],   // 右下
                           [0, canvasHeight]              // 左下
                         ];
-                        if (isImageAsset) {
-                          setEditedAsset(prev => ({ ...prev, default_mask: newMask } as ImageAsset));
-                        } else {
-                          setEditedAsset(prev => ({ ...prev, default_mask: newMask } as VectorAsset));
-                        }
+                        setEditedAsset(prev => ({ ...prev, default_mask: newMask }));
                       }
                     }
                     setMaskEditMode(!maskEditMode);

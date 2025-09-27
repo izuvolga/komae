@@ -34,7 +34,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
       setCustomProtocolUrl(null);
       
       try {
-        if (asset.type === 'ImageAsset') {
+        if (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') {
           // ImageAssetの場合：AssetFileがあれば使用、なければfallback
           const imageAsset = asset as ImageAsset;
           let protocolUrl: string;
@@ -42,21 +42,6 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           if (isMounted) {
             setCustomProtocolUrl(protocolUrl);
             setIsLoading(false);
-          }
-        } else if (asset.type === 'VectorAsset') {
-          // VectorAssetの場合：AssetFileがあれば使用、なければfallback
-          const vectorAsset = asset as VectorAsset;
-          let svgContent: string;
-
-          console.log('VectorAsset original_file:', vectorAsset.original_file, typeof vectorAsset.original_file);
-          // 新しいAssetFile APIを使用してSVGコンテンツを取得
-          svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
-
-          if (svgContent && isMounted) {
-            setSvgContent(svgContent);
-            setIsLoading(false);
-          } else {
-            throw new Error('SVG content not found');
           }
         } else if (asset.type === 'DynamicVectorAsset') {
           // DynamicVectorAssetの場合は初期値でSVGを生成
@@ -243,7 +228,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
   }
 
   // ImageAssetの表示
-  if (customProtocolUrl && asset.type === 'ImageAsset') {
+  if (customProtocolUrl && (asset.type === 'ImageAsset' || asset.type === 'VectorAsset')) {
     return (
       <Box
         className="asset-thumbnail"
