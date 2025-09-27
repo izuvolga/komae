@@ -39,8 +39,7 @@ export interface BaseAsset {
 
 export interface ImageAsset extends BaseAsset {
   type: 'ImageAsset';
-  original_file_path: string; // 段階的移行のため残す
-  original_file: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
+  original_file: AssetFile;
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -92,8 +91,7 @@ export enum TextAssetInstancePhase {
 
 export interface VectorAsset extends BaseAsset {
   type: 'VectorAsset';
-  original_file_path: string; // 段階的移行のため残す
-  original_file: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
+  original_file: AssetFile;
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -573,7 +571,6 @@ export function createImageAsset(params: {
     id: generateImageAssetId(),
     type: 'ImageAsset',
     name: params.name,
-    original_file_path: params.originalFile.path, // 段階的移行のため残す
     original_file: params.originalFile,
     original_width: params.originalFile.originalWidth,
     original_height: params.originalFile.originalHeight,
@@ -972,7 +969,6 @@ export function createVectorAsset(params: {
     type: 'VectorAsset',
     name: params.name,
     original_file: params.originalFile,
-    original_file_path: params.originalFile.path, // 段階的移行のため残す
     original_width: params.originalFile.originalWidth,
     original_height: params.originalFile.originalHeight,
     default_pos_x: 50,
@@ -1356,10 +1352,6 @@ export function validateVectorAssetData(asset: VectorAsset): {
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
-  }
-
-  if (!asset.original_file_path || asset.original_file_path.trim() === '') {
-    errors.push('ファイルパスは必須です。');
   }
 
   if (!asset.svg_content || asset.svg_content.trim() === '') {

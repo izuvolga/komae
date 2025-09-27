@@ -451,7 +451,6 @@ export const MainLayout: React.FC = () => {
   //         default_pos_x: 50 + (i * 30),
   //         default_pos_y: 50 + (i * 20),
   //         default_opacity: 1.0,
-  //         original_file_path: '', // 旧式のフィールドは未定義
   //         default_width: 400 + (i * 30),
   //         default_height: 300 + (i * 20),
   //         default_z_index: 0,
