@@ -400,14 +400,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     return !!(editingInstance.multilingual_text && currentLang in editingInstance.multilingual_text);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
-  // サイズ計算専用のuseEffect（dynamicScale依存を除去して無限ループを回避）
+  // currentSizeを更新するuseEffect
   useEffect(() => {
     // リサイズ中は無限ループを防ぐためスキップ
     if (isResizing) {
       return;
     }
 
-    console.log('DEBUG: TextEditModal: Text properties changed, recalculating size...');
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
       const textElement = document.getElementById(PREVIEW_DOM_ID);
@@ -426,7 +425,27 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('rotate'), getCurrentValue('char_rotate'), activePreviewTab, dynamicScale]);
+  }, [isResizing, dynamicScale, getCurrentValue('scale_x'), getCurrentValue('scale_y'), activePreviewTab]);
+
+  // currentSizeを更新するuseEffect (高頻度に変化する可能性のある値に対応)
+  useEffect(() => {
+    // setTimeout で囲むことで、nextTick相当でDOM更新後に実行し、UIのカクつきを防ぐ
+    setTimeout(() => {
+      try {
+        const textElement = document.getElementById(PREVIEW_DOM_ID);
+        if (textElement) {
+          const rect = textElement.getBoundingClientRect();
+          if (rect && rect.width > 0 && rect.height > 0) {
+            let width = rect.width / dynamicScale;
+            let height = rect.height / dynamicScale;
+            setCurrentSize({ width, height });
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to recalculate size after rotate:', error);
+      }
+    }, 0);
+  }, [getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('leading'), getCurrentValue('font_size'), getCurrentValue('rotate'), getCurrentValue('char_rotate')]);
 
   // dynamicScale更新専用のuseEffect
   useEffect(() => {
