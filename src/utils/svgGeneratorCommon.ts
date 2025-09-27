@@ -628,13 +628,24 @@ function generateSingleLanguageTextElement(
         // （SVGのtext要素はベースラインが基準のため）
         const charYPos = posY + fontSize + (i * (fontSize + leading));
 
-        const posattributes = `x="${lineXPos}" y="${charYPos}"`;
+        // 縦書き時の句読点位置調整（日本語の「、」「。」）
+        const isPunctuation = char === '、' || char === '。'; // 「、」「。」
+        let adjustedLineXPos = lineXPos;
+        let adjustedCharYPos = charYPos;
+
+        if (isPunctuation) {
+          // 句読点の場合、X座標をフォントサイズ分右に、Y座標をフォントサイズ分上に移動
+          adjustedLineXPos = lineXPos + fontSize * 0.7;
+          adjustedCharYPos = charYPos - fontSize * 0.7;
+        }
+
+        const posattributes = `x="${adjustedLineXPos}" y="${adjustedCharYPos}"`;
         const fontattributes = `font-size="${fontSize}" font-family="${font}"`;
         const fillattributes = `fill="${fillColor}"`;
 
         // 文字の中心点を計算（縦書きの場合）
-        const centerX = lineXPos - fontSize / 2;
-        const centerY = charYPos - fontSize / 2;
+        const centerX = adjustedLineXPos - fontSize / 2;
+        const centerY = adjustedCharYPos - fontSize / 2;
 
         // char_rotateが0でない場合、文字の中心を基準とした回転transformを追加
         const charTransformAttr = charRotate !== 0

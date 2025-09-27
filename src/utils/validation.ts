@@ -18,6 +18,12 @@ const LanguageSettingsSchema = z.object({
   z_index: z.number().optional(),
   fill_color: z.string().optional(),
   stroke_color: z.string().optional(),
+  scale_x: z.number().min(0.01).optional(),
+  scale_y: z.number().min(0.01).optional(),
+  // 回転機能
+  rotate: z.number().min(0).max(360).optional(),
+  char_rotate: z.number().min(0).max(360).optional(),
+  char_rotate_pattern: z.string().optional(),
 });
 
 // AssetInstance 基本スキーマ
