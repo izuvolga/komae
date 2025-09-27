@@ -1223,8 +1223,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       value={getCurrentValue('rotate')}
                       onChange={(value) => setCurrentValue({rotate: value})}
                       label="回転角度 (度)"
-                      min={-180}
-                      max={180}
+                      min={0}
+                      max={360}
                     />
                   </Box>
                   <Box sx={{ flex: 1 }}>
@@ -1506,8 +1506,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         value={getCurrentValue('rotate')}
                         onChange={(value) => setCurrentValue({rotate: value})}
                         label="回転角度 (度)"
-                        min={-180}
-                        max={180}
+                        min={0}
+                        max={360}
                         disabled={!isLanguageOverrideEnabled()}
                       />
                     </Box>
@@ -1802,8 +1802,8 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           value={getCurrentValue('rotate')}
                           onChange={(value) => setCurrentValue({rotate: value})}
                           label="回転角度 (度)"
-                          min={-180}
-                          max={180}
+                          min={0}
+                          max={360}
                           disabled={!isLanguageDefaultOverrideEnabled()}
                         />
                       </Box>
