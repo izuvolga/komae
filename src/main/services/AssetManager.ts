@@ -177,8 +177,8 @@ export class AssetManager {
       path: relativePath,
       type: determineFileType(filePath),
       hash: await calculateFileHash(filePath),
-      originalWidth: imageInfo.width,
-      originalHeight: imageInfo.height
+      original_width: imageInfo.width,
+      original_height: imageInfo.height
     };
 
     // entities.tsのヘルパー関数を使用してImageAssetを作成
@@ -196,7 +196,7 @@ export class AssetManager {
       filePath: relativePath,
       fileType: assetFile.type,
       fileHash: assetFile.hash,
-      dimensions: `${assetFile.originalWidth}x${assetFile.originalHeight}`,
+      dimensions: `${assetFile.original_width}x${assetFile.original_height}`,
     });
 
     return asset;
@@ -262,8 +262,8 @@ export class AssetManager {
       path: relativePath,
       type: determineFileType(filePath),
       hash: await calculateFileHash(filePath),
-      originalWidth: svgInfo.width,
-      originalHeight: svgInfo.height
+      original_width: svgInfo.width,
+      original_height: svgInfo.height
     };
 
     // entities.tsのヘルパー関数を使用してVectorAssetを作成
@@ -279,7 +279,7 @@ export class AssetManager {
       filePath: relativePath,
       fileType: assetFile.type,
       fileHash: assetFile.hash,
-      dimensions: `${assetFile.originalWidth}x${assetFile.originalHeight}`,
+      dimensions: `${assetFile.original_width}x${assetFile.original_height}`,
       svgContentLength: svgInfo.content.length,
     });
 

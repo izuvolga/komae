@@ -9,8 +9,8 @@ export interface AssetFile {
   path: string;
   type: FileType;
   hash: string;
-  originalWidth: number;
-  originalHeight: number;
+  original_width: number;
+  original_height: number;
 }
 
 export interface ProjectMetadata {
@@ -572,12 +572,12 @@ export function createImageAsset(params: {
     type: 'ImageAsset',
     name: params.name,
     original_file: params.originalFile,
-    original_width: params.originalFile.originalWidth,
-    original_height: params.originalFile.originalHeight,
+    original_width: params.originalFile.original_width,
+    original_height: params.originalFile.original_height,
     default_pos_x: 0,
     default_pos_y: 0,
-    default_width: params.originalFile.originalWidth,
-    default_height: params.originalFile.originalHeight,
+    default_width: params.originalFile.original_width,
+    default_height: params.originalFile.original_height,
     default_opacity: 1.0,
     default_z_index: 0,
     // default_maskは初期状態ではundefined（マスクなし）
@@ -969,12 +969,12 @@ export function createVectorAsset(params: {
     type: 'VectorAsset',
     name: params.name,
     original_file: params.originalFile,
-    original_width: params.originalFile.originalWidth,
-    original_height: params.originalFile.originalHeight,
+    original_width: params.originalFile.original_width,
+    original_height: params.originalFile.original_height,
     default_pos_x: 50,
     default_pos_y: 50,
-    default_width: params.originalFile.originalWidth,
-    default_height: params.originalFile.originalHeight,
+    default_width: params.originalFile.original_width,
+    default_height: params.originalFile.original_height,
     default_opacity: 1.0,
     default_z_index: 0,
     svg_content: params.svgContent,

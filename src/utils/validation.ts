@@ -88,8 +88,8 @@ const AssetFileSchema = z.object({
   path: z.string().min(1),
   type: z.enum(['raster', 'vector']),
   hash: z.string().min(1),
-  originalWidth: z.number().min(0.01),
-  originalHeight: z.number().min(0.01),
+  original_width: z.number().min(0.01),
+  original_height: z.number().min(0.01),
 });
 
 // ImageAsset スキーマ
