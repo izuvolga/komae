@@ -400,13 +400,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     return !!(editingInstance.multilingual_text && currentLang in editingInstance.multilingual_text);  // React controlled inputエラー防止のため、!!演算子でboolean型を保証
   };
 
+  // サイズ計算専用のuseEffect（dynamicScale依存を除去して無限ループを回避）
   useEffect(() => {
     // リサイズ中は無限ループを防ぐためスキップ
     if (isResizing) {
       return;
     }
 
-    console.log('DEBUG: TextEditModal: Dynamic scale or SVG ref changed, recalculating size...');
+    console.log('DEBUG: TextEditModal: Text properties changed, recalculating size...');
     // 実際に描画されたDOM要素からサイズを取得を試行
     try {
       const textElement = document.getElementById(PREVIEW_DOM_ID);
@@ -415,7 +416,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
         const rect = textElement.getBoundingClientRect();
         if (rect && rect.width > 0 && rect.height > 0) {
           // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-          calculateDynamicScale();
           let width = rect.width / dynamicScale;
           let height = rect.height / dynamicScale;
           // UI上のサイズも更新
@@ -426,7 +426,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
       // DOM取得に失敗した場合は警告を出力
       console.warn('Failed to get text element bounding box:', error);
     }
-  }, [isResizing, dynamicScale, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), activePreviewTab]);
+  }, [isResizing, getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('font_size'), getCurrentValue('scale_x'), getCurrentValue('scale_y'), getCurrentValue('leading'), getCurrentValue('rotate'), activePreviewTab, dynamicScale]);
+
+  // dynamicScale更新専用のuseEffect
+  useEffect(() => {
+    if (previewSvgRef.current) {
+      calculateDynamicScale();
+    }
+  }, [previewSvgRef.current, project]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
