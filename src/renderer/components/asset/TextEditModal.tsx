@@ -431,75 +431,16 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (isResizing) {
       return;
     }
-
-    // 実際に描画されたDOM要素からサイズを取得を試行
-    try {
-      const textElement = document.getElementById(PREVIEW_DOM_ID);
-      if (textElement) {
-        // HTMLElementとして画面上のサイズを取得
-        const rect = textElement.getBoundingClientRect();
-        if (rect && rect.width > 0 && rect.height > 0) {
-          // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-          const width = rect.width / dynamicScale;
-          const height = rect.height / dynamicScale;
-          const virtualX = rect.left;
-          const virtualY = rect.top;
-          let virtualCanvasX = 0;
-          let virtualCanvasY = 0;
-          if (previewSvgRef.current) {
-            const svgElement = previewSvgRef.current;
-            const virtualCanvas = svgElement.getBoundingClientRect();
-            virtualCanvasX = virtualCanvas.left;
-            virtualCanvasY = virtualCanvas.top;
-          }
-          const x = (virtualX - virtualCanvasX) / dynamicScale;
-          const y = (virtualY - virtualCanvasY) / dynamicScale;
-          // UI上のサイズも更新
-          setCurrentSize({ width, height });
-          setActualPos({ x, y });
-        }
-      }
-    } catch (error) {
-      // DOM取得に失敗した場合は警告を出力
-      console.warn('Failed to get text element bounding box:', error);
-    }
+    updateSizeAndPosition();
   }, [isResizing, dynamicScale, getCurrentValue('scale_x'), getCurrentValue('scale_y'), activePreviewTab]);
 
   // currentSizeを更新するuseEffect (高頻度に変化する可能性のある値に対応)
   useEffect(() => {
     // setTimeout で囲むことで、nextTick相当でDOM更新後に実行し、UIのカクつきを防ぐ
     setTimeout(() => {
-      try {
-        const textElement = document.getElementById(PREVIEW_DOM_ID);
-        if (textElement) {
-          // HTMLElementとして画面上のサイズを取得
-          const rect = textElement.getBoundingClientRect();
-          if (rect && rect.width > 0 && rect.height > 0) {
-            // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
-            const width = rect.width / dynamicScale;
-            const height = rect.height / dynamicScale;
-            const virtualX = rect.left;
-            const virtualY = rect.top;
-            let virtualCanvasX = 0;
-            let virtualCanvasY = 0;
-            if (previewSvgRef.current) {
-              const svgElement = previewSvgRef.current;
-              const virtualCanvas = svgElement.getBoundingClientRect();
-              virtualCanvasX = virtualCanvas.left;
-              virtualCanvasY = virtualCanvas.top;
-            }
-            const x = (virtualX - virtualCanvasX) / dynamicScale;
-            const y = (virtualY - virtualCanvasY) / dynamicScale;
-            // UI上のサイズも更新
-            setCurrentSize({ width, height });
-            setActualPos({ x, y });
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to recalculate size after rotate:', error);
-      }
+      updateSizeAndPosition();
     }, 0);
-  }, [getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('leading'), getCurrentValue('font_size'), getCurrentValue('rotate'), getCurrentValue('char_rotate')]);
+  }, [getCurrentValue('text'), getCurrentValue('vertical'), getCurrentValue('leading'), getCurrentValue('font_size')]);
 
   // dynamicScale更新専用のuseEffect
   useEffect(() => {
@@ -508,15 +449,47 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [previewSvgRef.current, project]);
 
+  // DOM要素からサイズと位置を計算する共通関数
+  const updateSizeAndPosition = (): void => {
+    try {
+      const textElement = document.getElementById(PREVIEW_DOM_ID);
+      const svgElement = previewSvgRef.current
+      if (textElement && svgElement) {
+        // HTML要素として画面上のサイズを取得
+        const rect = textElement.getBoundingClientRect();
+        const virtualCanvas = svgElement.getBoundingClientRect();
+        if (rect && virtualCanvas) {
+          // DOM 要素から取得したサイズなので、SVG上の座標系のサイズに変換する
+          const width = rect.width / dynamicScale;
+          const height = rect.height / dynamicScale;
+          const virtualX = rect.x;
+          const virtualY = rect.y;
+          const virtualCanvasX = virtualCanvas.x;
+          const virtualCanvasY = virtualCanvas.y;
+          const x = (virtualX - virtualCanvasX) / dynamicScale;
+          const y = (virtualY - virtualCanvasY) / dynamicScale;
+          // UI上のサイズも更新
+          setCurrentSize({ width, height });
+          setActualPos({ x, y });
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to update size and position:', error);
+    }
+  };
+
   // rotate値変更時に手動でoffsetを再計算（useEffectの無限ループを防ぐため）
   const handleRotateChange = (value: number): void => {
     setCurrentValue({rotate: value});
+    updateSizeAndPosition();
     recalculateOffset();
   };
 
   const handleCharRotateChange = (value: number): void => {
     setCurrentValue({char_rotate: value});
     // char_rotate変更時は通常offset再計算は不要だが、必要に応じて実装
+    updateSizeAndPosition();
+    recalculateOffset();
   };
 
   // 複数の共通設定を同時に更新する関数
