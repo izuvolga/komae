@@ -28,6 +28,7 @@ import { updateLanguageSettings } from '../../../utils/languageUtils';
 import { NumericInput } from '../common/NumericInput';
 import { ZIndexInput } from '../common/ZIndexInput';
 import { OpacityInput } from '../common/OpacityInput';
+import { RotateInput } from '../common/RotateInput';
 import { ColorPicker } from '../common/ColorPicker';
 import { useTextFieldKeyboardShortcuts } from '../../hooks/useTextFieldKeyboardShortcuts';
 import type { TextAsset, TextAssetInstance, TextAssetEditableField, Page, FontInfo, LanguageSettings} from '../../../types/entities';
@@ -1215,6 +1216,28 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                   </Box>
                 </Box>
 
+                {/* 回転設定 */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <RotateInput
+                      value={getCurrentValue('rotate')}
+                      onChange={(value) => setCurrentValue({rotate: value})}
+                      label="回転角度 (度)"
+                      min={-180}
+                      max={180}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <RotateInput
+                      value={getCurrentValue('char_rotate')}
+                      onChange={(value) => setCurrentValue({char_rotate: value})}
+                      label="文字回転角度 (度)"
+                      min={0}
+                      max={360}
+                    />
+                  </Box>
+                </Box>
+
                 <Box sx={{ mb: 2 }}>
                   <OpacityInput
                     value={getCurrentValue('opacity')}
@@ -1471,6 +1494,30 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                         decimals={2}
                         className="small"
                         placeholder="アセット設定使用"
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* 回転設定 */}
+                  <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <RotateInput
+                        value={getCurrentValue('rotate')}
+                        onChange={(value) => setCurrentValue({rotate: value})}
+                        label="回転角度 (度)"
+                        min={-180}
+                        max={180}
+                        disabled={!isLanguageOverrideEnabled()}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <RotateInput
+                        value={getCurrentValue('char_rotate')}
+                        onChange={(value) => setCurrentValue({char_rotate: value})}
+                        label="文字回転角度 (度)"
+                        min={0}
+                        max={360}
                         disabled={!isLanguageOverrideEnabled()}
                       />
                     </Box>
@@ -1743,6 +1790,30 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                           decimals={2}
                           className="small"
                           placeholder="アセット設定使用"
+                          disabled={!isLanguageDefaultOverrideEnabled()}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* 回転設定 */}
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <RotateInput
+                          value={getCurrentValue('rotate')}
+                          onChange={(value) => setCurrentValue({rotate: value})}
+                          label="回転角度 (度)"
+                          min={-180}
+                          max={180}
+                          disabled={!isLanguageDefaultOverrideEnabled()}
+                        />
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <RotateInput
+                          value={getCurrentValue('char_rotate')}
+                          onChange={(value) => setCurrentValue({char_rotate: value})}
+                          label="文字回転角度 (度)"
+                          min={0}
+                          max={360}
                           disabled={!isLanguageDefaultOverrideEnabled()}
                         />
                       </Box>
