@@ -5,7 +5,9 @@ import type {
   ExportFormat,
   ExportOptions,
   OpenDialogOptions,
-  SaveDialogOptions
+  SaveDialogOptions,
+  ImageAsset,
+  VectorAsset
 } from '../types/entities';
 import type { AppSettings } from '../main/services/AppSettingsManager';
 
@@ -51,6 +53,9 @@ const electronAPI = {
     
     createTextAsset: (name: string, defaultText: string) => 
       ipcRenderer.invoke('asset:createTextAsset', name, defaultText),
+
+    readFileContent: (asset: ImageAsset | VectorAsset): Promise<string> =>
+      ipcRenderer.invoke('asset:readFileContent', asset),
   },
 
   // Font Operations
@@ -128,9 +133,6 @@ const electronAPI = {
     
     createTempFile: (fileName: string, data: Uint8Array): Promise<string> =>
       ipcRenderer.invoke('fileSystem:createTempFile', fileName, data),
-
-    readFileContent: (filePath: string): Promise<string> =>
-      ipcRenderer.invoke('fileSystem:readFileContent', filePath),
   },
 
   // App Settings Operations

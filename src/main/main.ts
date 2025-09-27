@@ -11,7 +11,7 @@ import { AppSettingsManager } from './services/AppSettingsManager';
 import { TempProjectManager } from './services/TempProjectManager';
 import { UIStateManager } from './services/UIStateManager';
 import { getLogger } from '../utils/logger';
-import type { ProjectCreateParams, ExportFormat, ExportOptions } from '../types/entities';
+import type { ProjectCreateParams, ExportFormat, ExportOptions, VectorAsset, ImageAsset } from '../types/entities';
 
 class KomaeApp {
   private mainWindow: BrowserWindow | null = null;
@@ -421,6 +421,23 @@ class KomaeApp {
       }
     });
 
+    ipcMain.handle('asset:readFileContent', async (event, asset: ImageAsset | VectorAsset) => {
+      try {
+        const fs = await import('fs');
+        const projectPath = this.projectManager.getCurrentProjectPath();
+        if (!projectPath) {
+          throw new Error('No project is currently loaded');
+        }
+        if (!asset.original_file?.path) {
+          throw new Error('Asset does not have an associated original_file path');
+        }
+        return fs.readFileSync(path.join(projectPath, asset.original_file.path), 'utf8');
+      } catch (error) {
+        console.error('Failed to read file content:', error);
+        throw error;
+      }
+    });
+
     // Font Operations
     ipcMain.handle('font:loadBuiltinFonts', async () => {
       try {
@@ -640,16 +657,6 @@ class KomaeApp {
         return tempFilePath;
       } catch (error) {
         console.error('Failed to create temp file:', error);
-        throw error;
-      }
-    });
-
-    ipcMain.handle('fileSystem:readFileContent', async (event, filePath: string) => {
-      try {
-        const fs = await import('fs');
-        return fs.readFileSync(filePath, 'utf8');
-      } catch (error) {
-        console.error('Failed to read file content:', error);
         throw error;
       }
     });
