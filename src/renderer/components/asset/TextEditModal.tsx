@@ -234,7 +234,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     // rotate値が1-359度の場合のみoffsetを適用
     if (currentRotate >= 1 && currentRotate <= 359) {
       if (vertical) {
-        const offsetX = actualPos.x - currentPos.x + currentSize.width;
+        const offsetX = actualPos.x - currentPos.x + currentSize.width / 2;
         const offsetY = actualPos.y - currentPos.y;
         setOffset({ x: offsetX, y: offsetY });
       } else {
@@ -454,12 +454,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
           }
           const x = (virtualX - virtualCanvasX) / dynamicScale;
           const y = (virtualY - virtualCanvasY) / dynamicScale;
-          console.log(`TextEditModal size update1:
-            - Virtual element pos: (${virtualX}px, ${virtualY}px)
-            - Virtual canvas pos: (${virtualCanvasX}px, ${virtualCanvasY}px)
-            - Calculated SVG pos: (${x}, ${y})
-            - Element size: ${width} x ${height}
-            - Dynamic scale: ${dynamicScale}`);
           // UI上のサイズも更新
           setCurrentSize({ width, height });
           setActualPos({ x, y });
@@ -496,12 +490,6 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
             }
             const x = (virtualX - virtualCanvasX) / dynamicScale;
             const y = (virtualY - virtualCanvasY) / dynamicScale;
-            console.log(`TextEditModal size update2:
-              - Virtual element pos: (${virtualX}px, ${virtualY}px)
-              - Virtual canvas pos: (${virtualCanvasX}px, ${virtualCanvasY}px)
-              - Calculated SVG pos: (${x}, ${y})
-              - Element size: ${width} x ${height}
-              - Dynamic scale: ${dynamicScale}`);
             // UI上のサイズも更新
             setCurrentSize({ width, height });
             setActualPos({ x, y });
@@ -525,7 +513,7 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     if (!isDragging) {
       recalculateOffset();
     }
-  }, [getCurrentValue('rotate'), getCurrentValue('vertical'), actualPos, currentPos, currentSize, isDragging]);
+  }, [getCurrentValue('rotate'), getCurrentValue('vertical')]);
 
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
