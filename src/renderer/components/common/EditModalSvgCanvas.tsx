@@ -240,14 +240,6 @@ export const EditModalSvgCanvas = forwardRef<SVGSVGElement, EditModalSvgCanvasPr
             const localHandleSize = handleSize;
             const x = point[0] + margin;
             const y = point[1] + margin;
-            const offset = localHandleSize / 2;
-            const offset_direction = [
-              [ 1,  1], // 左上
-              [-1,  1], // 右上
-              [-1, -1], // 右下
-              [ 1, -1]  // 左下
-            ][index];
-
             return (
               <g key={`mask-handle-${index}`}>
                 {/* 外側の白い枠 */}
