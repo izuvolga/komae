@@ -12,7 +12,6 @@ import {
   Notifications,
   KeyboardArrowDown,
   Tune,
-  Settings,
 } from '@mui/icons-material';
 import { PanelExpandLeftIcon, PanelExpandRightIcon } from '../icons/PanelIcons';
 import { generateAssetInstanceId } from '../../../utils/idGenerator';
@@ -30,7 +29,8 @@ import { useAppSettingsStore } from '../../stores/appSettingsStore';
 import { getRendererLogger, UIPerformanceTracker } from '../../utils/logger';
 import { useTheme } from '../../../theme/ThemeContext';
 import { getLanguageDisplayName } from '../../../constants/languages';
-import type { ExportOptions, ProjectCreateParams } from '../../../types/entities';
+import type { ImageAsset, TextAsset, ExportOptions, ProjectCreateParams } from '../../../types/entities';
+
 import './MainLayout.css';
 
 export const MainLayout: React.FC = () => {
@@ -424,112 +424,101 @@ export const MainLayout: React.FC = () => {
     }
   };
 
-  const handleCreateSampleProject = () => {
-    // アセット20個生成
-    const assets: any = {};
-    const imageTypes = ['キャラクター', '背景', 'アイテム', 'エフェクト'];
-    const textTypes = ['セリフ', 'ナレーション', 'モノローグ', 'タイトル'];
-    
-    for (let i = 1; i <= 20; i++) {
-      if (i <= 10) {
-        // 画像アセット10個
-        const imageType = imageTypes[(i - 1) % imageTypes.length];
-        assets[`sample-img-${i}`] = {
-          id: `sample-img-${i}`,
-          type: 'ImageAsset' as const,
-          name: `${imageType}${Math.ceil(i / imageTypes.length)}`,
-          original_file_path: `/sample/${imageType.toLowerCase()}${i}.png`,
-          original_width: 300 + (i * 20),
-          original_height: 400 + (i * 30),
-          default_pos_x: 50 + (i * 30),
-          default_pos_y: 50 + (i * 20),
-          default_opacity: 1.0,
-          // default_maskは未定義（テストデータなのでコメントアウト）
-        };
-      } else {
-        // テキストアセット10個
-        const textIndex = i - 10;
-        const textType = textTypes[(textIndex - 1) % textTypes.length];
-        const sampleTexts = ['こんにちは！', 'いい天気ですね', 'ありがとう', 'さようなら', 'おはよう', 'こんばんは', 'お疲れ様', 'がんばって', 'いらっしゃいませ', 'また明日'];
-        
-        assets[`sample-text-${textIndex}`] = {
-          id: `sample-text-${textIndex}`,
-          type: 'TextAsset' as const,
-          name: `${textType}${textIndex}`,
-          default_text: sampleTexts[(textIndex - 1) % sampleTexts.length],
-          font: 'system-ui',
-          stroke_width: 2.0,
-          font_size: 20 + textIndex * 2,
-          stroke_color: '#000000',
-          fill_color: textIndex % 2 === 0 ? '#FFFFFF' : '#FFE4E1',
-          default_pos_x: 400 + (textIndex * 25),
-          default_pos_y: 80 + (textIndex * 15),
-          opacity: 1.0,
-          leading: 0,
-          vertical: textIndex % 3 === 0,
-        };
-      }
-    }
+  // 仕様が落ち着くまでサンプルプロジェクトは廃止
+  // const handleCreateSampleProject = () => {
+  //   // アセット20個生成
+  //   const assets: Record<string, ImageAsset | TextAsset > = {};
+  //   const imageTypes: string[] = ['キャラクター', '背景', 'アイテム', 'エフェクト'];
+  //   const textTypes: string[] = ['セリフ', 'ナレーション', 'モノローグ', 'タイトル'];
 
-    // ページ20個生成
-    const pages: any[] = [];
-    for (let i = 1; i <= 20; i++) {
-      const asset_instances: any = {};
-      
-      // 各ページに2-4個のランダムなアセットインスタンスを配置
-      const instanceCount = 2 + (i % 3); // 2-4個
-      const usedAssets = new Set<string>();
-      
-      for (let j = 0; j < instanceCount; j++) {
-        let assetKey: string;
-        do {
-          const assetIndex = Math.floor(Math.random() * 20) + 1;
-          assetKey = assetIndex <= 10 ? `sample-img-${assetIndex}` : `sample-text-${assetIndex - 10}`;
-        } while (usedAssets.has(assetKey));
-        
-        usedAssets.add(assetKey);
-        
-        const instanceId = generateAssetInstanceId();
-        asset_instances[instanceId] = {
-          id: instanceId,
-          asset_id: assetKey,
-          z_index: j,
-          transform: { 
-            scale_x: 0.8 + (Math.random() * 0.4), // 0.8-1.2
-            scale_y: 0.8 + (Math.random() * 0.4), // 0.8-1.2
-            rotation: (Math.random() - 0.5) * 10  // -5度から5度
-          },
-          opacity: 0.7 + (Math.random() * 0.3), // 0.7-1.0
-        };
-      }
-      
-      pages.push({
-        id: `sample-page-${i}`,
-        title: `ページ${i}`,
-        asset_instances,
-      });
-    }
+  //   for (let i = 1; i <= 20; i++) {
+  //     if (i <= 10) {
+  //       // 画像アセット10個
+  //       const imageType = imageTypes[(i - 1) % imageTypes.length];
+  //       assets[`sample-img-${i}`] = {
+  //         id: `sample-img-${i}`,
+  //         type: 'ImageAsset' as const,
+  //         name: `${imageType}${Math.ceil(i / imageTypes.length)}`,
+  //         original_file: {
+  //           path: `/sample/${imageType.toLowerCase()}${i}.png`,
+  //           originalHeight: 300 + (i * 20),
+  //           originalWidth: 400 + (i * 30),
+  //           hash: '',
+  //           type: 'raster'
+  //         },
+  //         original_height: 300 + (i * 20),
+  //         original_width: 400 + (i * 30),
+  //         default_pos_x: 50 + (i * 30),
+  //         default_pos_y: 50 + (i * 20),
+  //         default_opacity: 1.0,
+  //         original_file_path: '', // 旧式のフィールドは未定義
+  //         default_width: 400 + (i * 30),
+  //         default_height: 300 + (i * 20),
+  //         default_z_index: 0,
+  //         // default_maskは未定義（テストデータなのでコメントアウト）
+  //       };
+  //     }
+  //   }
 
-    // サンプルプロジェクトデータ
-    const sampleProject = {
-      metadata: {
-        komae_version: '1.0',
-        project_version: '1.0',
-        title: '大規模サンプルプロジェクト',
-        description: 'アセット20個・ページ20個の大規模サンプルプロジェクト',
-        supportedLanguages: ['ja'],
-        currentLanguage: 'ja',
-      },
-      canvas: { width: 800, height: 600 },
-      assets,
-      pages,
-      fonts: {},
-      hiddenColumns: [],
-      hiddenRows: [],
-    };
+  //   // ページ20個生成
+  //   const pages: any[] = [];
+  //   for (let i = 1; i <= 20; i++) {
+  //     const asset_instances: any = {};
+      
+  //     // 各ページに2-4個のランダムなアセットインスタンスを配置
+  //     const instanceCount = 2 + (i % 3); // 2-4個
+  //     const usedAssets = new Set<string>();
+      
+  //     for (let j = 0; j < instanceCount; j++) {
+  //       let assetKey: string;
+  //       do {
+  //         const assetIndex = Math.floor(Math.random() * 20) + 1;
+  //         assetKey = assetIndex <= 10 ? `sample-img-${assetIndex}` : `sample-text-${assetIndex - 10}`;
+  //       } while (usedAssets.has(assetKey));
+        
+  //       usedAssets.add(assetKey);
+        
+  //       const instanceId = generateAssetInstanceId();
+  //       asset_instances[instanceId] = {
+  //         id: instanceId,
+  //         asset_id: assetKey,
+  //         z_index: j,
+  //         transform: { 
+  //           scale_x: 0.8 + (Math.random() * 0.4), // 0.8-1.2
+  //           scale_y: 0.8 + (Math.random() * 0.4), // 0.8-1.2
+  //           rotation: (Math.random() - 0.5) * 10  // -5度から5度
+  //         },
+  //         opacity: 0.7 + (Math.random() * 0.3), // 0.7-1.0
+  //       };
+  //     }
+      
+  //     pages.push({
+  //       id: `sample-page-${i}`,
+  //       title: `ページ${i}`,
+  //       asset_instances,
+  //     });
+  //   }
 
-    setProject(sampleProject);
-  };
+  //   // サンプルプロジェクトデータ
+  //   const sampleProject = {
+  //     metadata: {
+  //       komae_version: '1.0',
+  //       project_version: '1.0',
+  //       title: '大規模サンプルプロジェクト',
+  //       description: 'アセット20個・ページ20個の大規模サンプルプロジェクト',
+  //       supportedLanguages: ['ja'],
+  //       currentLanguage: 'ja',
+  //     },
+  //     canvas: { width: 800, height: 600 },
+  //     assets,
+  //     pages,
+  //     fonts: {},
+  //     hiddenColumns: [],
+  //     hiddenRows: [],
+  //   };
+
+  //   setProject(sampleProject);
+  // };
 
   if (!project) {
     return (
@@ -547,7 +536,7 @@ export const MainLayout: React.FC = () => {
                   新規プロジェクト
                 </button>
                 <button className="btn btn-secondary" onClick={handleOpenProjectDialog}>プロジェクトを開く</button>
-                <button className="btn btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button>
+                {/* <button className="btn btn-secondary" onClick={handleCreateSampleProject}>サンプルプロジェクト</button> */}
               </div>
             </div>
           </div>
