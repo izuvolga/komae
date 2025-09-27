@@ -628,8 +628,27 @@ function generateSingleLanguageTextElement(
         // （SVGのtext要素はベースラインが基準のため）
         const charYPos = posY + fontSize + (i * (fontSize + leading));
 
-        // 縦書き時の句読点位置調整（日本語の「、」「。」）
-        const isPunctuation = char === '、' || char === '。'; // 「、」「。」
+        // 縦書き時の句読点位置調整（日本語、中国語、台湾語、朝鮮語の小さな句読点）
+        const isPunctuation =
+          // 日本語
+          char === '、' || char === '。' ||
+          // 中国語（簡体字・繁体字共通）
+          char === '，' || char === '、' ||
+          // 台湾語・朝鮮語でも使用される句読点
+          char === '．';
+
+        // 縦書き時に90度回転が必要な文字
+        const needsVerticalRotation =
+          char === '「' || char === '」' || // かぎ括弧
+          char === '（' || char === '）' || // 丸括弧
+          char === '【' || char === '】' || // 角括弧
+          char === '『' || char === '』' || // 二重かぎ括弧
+          char === '"' || char === '"' ||   // ダブルクォート
+          char === 'ー' ||                 // 長音
+          char === '〜' ||                 // 波ダッシュ
+          char === '：' ||                 // 全角コロン
+          char === '；';                   // 全角セミコロン
+
         let adjustedLineXPos = lineXPos;
         let adjustedCharYPos = charYPos;
 
@@ -647,9 +666,15 @@ function generateSingleLanguageTextElement(
         const centerX = adjustedLineXPos - fontSize / 2;
         const centerY = adjustedCharYPos - fontSize / 2;
 
-        // char_rotateが0でない場合、文字の中心を基準とした回転transformを追加
-        const charTransformAttr = charRotate !== 0
-          ? ` transform="rotate(${charRotate} ${centerX} ${centerY})"`
+        // char_rotateと縦書き用回転を組み合わせた回転角度を計算
+        let totalRotation = charRotate;
+        if (needsVerticalRotation) {
+          totalRotation += 90; // 縦書き用の90度回転を追加
+        }
+
+        // 回転transformを追加（0度でない場合のみ）
+        const charTransformAttr = totalRotation !== 0
+          ? ` transform="rotate(${totalRotation} ${centerX} ${centerY})"`
           : '';
 
         // SVG のデフォルトでは、ストロークは文字の中央に描画されるため、太いストロークの場合、文字が潰れてしまうことがある。
