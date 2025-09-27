@@ -38,15 +38,7 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           // ImageAssetの場合：AssetFileがあれば使用、なければfallback
           const imageAsset = asset as ImageAsset;
           let protocolUrl: string;
-
-          if (imageAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用
-            protocolUrl = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
-          } else {
-            // Fallback: 既存のoriginal_file_pathを使用
-            protocolUrl = getCustomProtocolUrl(imageAsset.original_file_path, currentProjectPath);
-          }
-
+          protocolUrl = getCustomProtocolUrl(imageAsset.original_file.path, currentProjectPath);
           if (isMounted) {
             setCustomProtocolUrl(protocolUrl);
             setIsLoading(false);

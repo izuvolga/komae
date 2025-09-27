@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { ProjectData, Asset, Page, LanguageSettings, UIState } from '../types/entities';
+import { AssetFile } from '../types/AssetFile';
 
 // 基本的なスキーマ定義
 
@@ -90,7 +91,7 @@ const AssetFileSchema = z.object({
   hash: z.string().min(1),
   originalWidth: z.number().min(0.01),
   originalHeight: z.number().min(0.01),
-});
+}).transform((data) => new AssetFile({ ...data, originalWidth: data.originalWidth, originalHeight: data.originalHeight })); // TransformでAssetFileインスタンスを生成
 
 // ImageAsset スキーマ
 const ImageAssetSchema = z.object({
@@ -98,7 +99,7 @@ const ImageAssetSchema = z.object({
   type: z.literal('ImageAsset'),
   name: z.string().min(1),
   original_file_path: z.string().min(1),
-  original_file: AssetFileSchema.optional(),
+  original_file: AssetFileSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),
@@ -128,7 +129,7 @@ const VectorAssetSchema = z.object({
   type: z.literal('VectorAsset'),
   name: z.string().min(1),
   original_file_path: z.string().min(1),
-  original_file: AssetFileSchema.optional(),
+  original_file: AssetFileSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),

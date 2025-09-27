@@ -185,9 +185,7 @@ export class AssetManager {
     // entities.tsのヘルパー関数を使用してImageAssetを作成
     const asset = createImageAsset({
       name: fileName,
-      relativePath: relativePath,
-      originalWidth: imageInfo.width,
-      originalHeight: imageInfo.height,
+      originalFile: assetFile,
     });
 
     // AssetFileインスタンスを追加
@@ -272,9 +270,7 @@ export class AssetManager {
     // entities.tsのヘルパー関数を使用してVectorAssetを作成
     const asset = createVectorAsset({
       name: fileName,
-      relativePath: relativePath,
-      originalWidth: svgInfo.width,
-      originalHeight: svgInfo.height,
+      originalFile: assetFile,
       svgContent: svgInfo.content,
     });
 

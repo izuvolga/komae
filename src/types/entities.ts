@@ -31,7 +31,7 @@ export interface BaseAsset {
 export interface ImageAsset extends BaseAsset {
   type: 'ImageAsset';
   original_file_path: string; // 段階的移行のため残す
-  original_file?: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
+  original_file: AssetFile; // 新しいファイル管理（段階的移行のためオプショナル）
   original_width: number;
   original_height: number;
   default_pos_x: number;
@@ -558,21 +558,20 @@ import {
  */
 export function createImageAsset(params: {
   name: string;
-  relativePath: string;
-  originalWidth: number;
-  originalHeight: number;
+  originalFile: AssetFile;
 }): ImageAsset {
   return {
     id: generateImageAssetId(),
     type: 'ImageAsset',
     name: params.name,
-    original_file_path: params.relativePath,
-    original_width: params.originalWidth,
-    original_height: params.originalHeight,
+    original_file_path: params.originalFile.path, // 段階的移行のため残す
+    original_file: params.originalFile,
+    original_width: params.originalFile.originalWidth,
+    original_height: params.originalFile.originalHeight,
     default_pos_x: 0,
     default_pos_y: 0,
-    default_width: params.originalWidth,
-    default_height: params.originalHeight,
+    default_width: params.originalFile.originalWidth,
+    default_height: params.originalFile.originalHeight,
     default_opacity: 1.0,
     default_z_index: 0,
     // default_maskは初期状態ではundefined（マスクなし）
@@ -956,22 +955,21 @@ export function createDefaultTextAsset(params: {
  */
 export function createVectorAsset(params: {
   name: string;
-  relativePath: string;
-  originalWidth: number;
-  originalHeight: number;
-  svgContent: string;
+  originalFile: AssetFile;
+  svgContent: string; // SVGコンテンツを直接指定する場合
 }): VectorAsset {
   return {
     id: generateVectorAssetId(),
     type: 'VectorAsset',
     name: params.name,
-    original_file_path: params.relativePath,
-    original_width: params.originalWidth,
-    original_height: params.originalHeight,
+    original_file: params.originalFile,
+    original_file_path: params.originalFile.path, // 段階的移行のため残す
+    original_width: params.originalFile.originalWidth,
+    original_height: params.originalFile.originalHeight,
     default_pos_x: 50,
     default_pos_y: 50,
-    default_width: params.originalWidth,
-    default_height: params.originalHeight,
+    default_width: params.originalFile.originalWidth,
+    default_height: params.originalFile.originalHeight,
     default_opacity: 1.0,
     default_z_index: 0,
     svg_content: params.svgContent,
