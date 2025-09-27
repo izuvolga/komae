@@ -37,6 +37,17 @@ const ImageAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
+// VectorAssetInstance スキーマ
+const VectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
+  override_pos_x: z.number().optional(),
+  override_pos_y: z.number().optional(),
+  override_width: z.number().min(0).optional(),
+  override_height: z.number().min(0).optional(),
+  override_opacity: z.number().min(0).max(1).optional(),
+  override_z_index: z.number().optional(),
+  override_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
+});
+
 // TextAssetInstance スキーマ
 const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   multilingual_text: z.record(z.string(), z.string()),
@@ -46,15 +57,6 @@ const TextAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_z_index: z.number().optional(),
 });
 
-// VectorAssetInstance スキーマ
-const VectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
-  override_pos_x: z.number().optional(),
-  override_pos_y: z.number().optional(),
-  override_width: z.number().min(0).optional(),
-  override_height: z.number().min(0).optional(),
-  override_opacity: z.number().min(0).max(1).optional(),
-  override_z_index: z.number().optional(),
-});
 // DynamicVectorAssetInstance スキーマ
 const DynamicVectorAssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_pos_x: z.number().optional(),
@@ -109,18 +111,6 @@ const ImageAssetSchema = z.object({
   default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
 
-// TextAsset スキーマ（新仕様）
-const TextAssetSchema = z.object({
-  id: z.string().min(1),
-  type: z.literal('TextAsset'),
-  name: z.string().min(1),
-  default_text: z.string(),
-  default_context: z.string().optional(),
-  default_text_override: z.record(z.string(), z.string()).optional(),
-  default_settings: LanguageSettingsSchema,
-  default_language_override: z.record(z.string(), LanguageSettingsSchema).optional(),
-});
-
 // VectorAsset スキーマ
 const VectorAssetSchema = z.object({
   id: z.string().min(1),
@@ -135,7 +125,21 @@ const VectorAssetSchema = z.object({
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
+  default_mask: z.tuple([z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()]), z.tuple([z.number(), z.number()])]).optional(),
 });
+
+// TextAsset スキーマ（新仕様）
+const TextAssetSchema = z.object({
+  id: z.string().min(1),
+  type: z.literal('TextAsset'),
+  name: z.string().min(1),
+  default_text: z.string(),
+  default_context: z.string().optional(),
+  default_text_override: z.record(z.string(), z.string()).optional(),
+  default_settings: LanguageSettingsSchema,
+  default_language_override: z.record(z.string(), LanguageSettingsSchema).optional(),
+});
+
 // DynamicVectorAsset スキーマ
 const DynamicVectorAssetSchema = z.object({
   id: z.string().min(1),
