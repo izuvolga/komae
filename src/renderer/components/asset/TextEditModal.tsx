@@ -91,12 +91,14 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragStartValues, setDragStartValues] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [dragStartOffset, setDragStartOffset] = useState({ x: 0, y: 0 }); // ドラッグ開始時のoffset値
   const [resizeStartScales, setResizeStartScales] = useState({ scaleX: 1, scaleY: 1 });
   const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [currentSize, setCurrentSize] = useState({width: 600, height: 600 });
-  const [actualPos, setActualPos] = useState({x: 0, y: 0 }); // 実際のDOM要素上での位置
+  const [actualPos, setActualPos] = useState({x: 0, y: 0 }); // 実際のDOM要素上での位置から逆算した座標
+  const [offset, setOffset] = useState({x: 0, y: 0}); // rotate時の位置補正用オフセット
   const canvasConfig = useProjectStore((state) => state.project?.canvas);
   const project = useProjectStore((state) => state.project);
   const getCurrentLanguage = useProjectStore((state) => state.getCurrentLanguage);
@@ -223,6 +225,28 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
   };
 
   const currentPos = getCurrentPosition();
+
+  // rotate値に基づいてoffsetを再計算する関数
+  const recalculateOffset = (): void => {
+    const currentRotate = getCurrentValue('rotate') || 0;
+    const vertical = getCurrentValue('vertical') || 0;
+
+    // rotate値が1-359度の場合のみoffsetを適用
+    if (currentRotate >= 1 && currentRotate <= 359) {
+      if (vertical) {
+        const offsetX = actualPos.x - currentPos.x + currentSize.width;
+        const offsetY = actualPos.y - currentPos.y;
+        setOffset({ x: offsetX, y: offsetY });
+      } else {
+        const offsetX = actualPos.x - currentPos.x;
+        const offsetY = actualPos.y - currentPos.y;
+        setOffset({ x: offsetX, y: offsetY });
+      }
+    } else {
+      // rotate値が0度または360度の場合はoffsetなし
+      setOffset({ x: 0, y: 0 });
+    }
+  };
 
   // 現在のフェーズと言語を取得する
   function getCurrentPhase(): TextAssetInstancePhase {
@@ -496,6 +520,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     }
   }, [previewSvgRef.current, project]);
 
+  // rotate値の変化を監視してoffsetを再計算
+  useEffect(() => {
+    if (!isDragging) {
+      recalculateOffset();
+    }
+  }, [getCurrentValue('rotate'), getCurrentValue('vertical'), actualPos, currentPos, currentSize, isDragging]);
+
   // 複数の共通設定を同時に更新する関数
   const handleCommonSettingsChange = (settings: Partial<LanguageSettings>) => {
     if (mode !== 'asset') return;
@@ -615,6 +646,13 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const { deltaX, deltaY } = convertMouseDelta(e.clientX, e.clientY, dragStartPos.x, dragStartPos.y, dynamicScale);
+
+        // // ドラッグ中のoffset調整：デルタ値を減算して相殺
+        // const adjustedOffset = {
+        //   x: dragStartOffset.x - deltaX,
+        //   y: dragStartOffset.y - deltaY
+        // };
+        // setOffset(adjustedOffset);
 
         // 提案された新しい位置を計算
         const proposedX = dragStartValues.x + deltaX;
@@ -1028,10 +1066,11 @@ export const TextEditModal: React.FC<TextEditModalProps> = ({
                       width: currentSize.width,
                       height: currentSize.height
                     });
+                    setDragStartOffset({ x: offset.x, y: offset.y }); // ドラッグ開始時のoffsetを保存
                   }}
                   onResizeStart={handleResizeMouseDown}
                   snapGuides={snapGuides}
-                  // offset={actualPos}
+                  offset={offset}
                 />
               </Box>
             </Box>
