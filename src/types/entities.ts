@@ -101,7 +101,6 @@ export interface VectorAsset extends BaseAsset {
   default_opacity: number;
   default_mask?: [[number, number], [number, number], [number, number], [number, number]]; // 4点の座標（optional）
   default_z_index: number;
-  svg_content: string; // 段階的移行のため残す
 }
 
 // CustomAsset関連の型定義（JSファイルから解析される情報）
@@ -962,7 +961,6 @@ export function createDefaultTextAsset(params: {
 export function createVectorAsset(params: {
   name: string;
   originalFile: AssetFile;
-  svgContent: string; // SVGコンテンツを直接指定する場合
 }): VectorAsset {
   return {
     id: generateVectorAssetId(),
@@ -977,7 +975,6 @@ export function createVectorAsset(params: {
     default_height: params.originalFile.original_height,
     default_opacity: 1.0,
     default_z_index: 0,
-    svg_content: params.svgContent,
   };
 }
 
@@ -1352,10 +1349,6 @@ export function validateVectorAssetData(asset: VectorAsset): {
   // 基本フィールドのバリデーション
   if (!asset.name || asset.name.trim() === '') {
     errors.push('アセット名は必須です。');
-  }
-
-  if (!asset.svg_content || asset.svg_content.trim() === '') {
-    errors.push('SVGコンテンツは必須です。');
   }
 
   // サイズのバリデーション

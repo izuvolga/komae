@@ -49,18 +49,8 @@ export const AssetThumbnail: React.FC<AssetThumbnailProps> = ({
           let svgContent: string;
 
           console.log('VectorAsset original_file:', vectorAsset.original_file, typeof vectorAsset.original_file);
-          if (vectorAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用してSVGコンテンツを取得
-            try {
-              svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
-            } catch (error) {
-              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
-              svgContent = vectorAsset.svg_content;
-            }
-          } else {
-            // Fallback: 既存のsvg_contentを使用
-            svgContent = vectorAsset.svg_content;
-          }
+          // 新しいAssetFile APIを使用してSVGコンテンツを取得
+          svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
 
           if (svgContent && isMounted) {
             setSvgContent(svgContent);

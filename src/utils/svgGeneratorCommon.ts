@@ -169,7 +169,7 @@ export async function generateSvgStructureCommon(
       const vectorAsset = asset as VectorAsset;
       if (!processedAssets.has(asset.id)) {
         processedAssets.add(asset.id);
-        const assetDef = generateVectorAssetDefinition(vectorAsset);
+        const assetDef = await generateVectorAssetDefinition(project, vectorAsset);
         assetDefinitions.push(assetDef);
         processedAssets.add(asset.id);
       }
@@ -355,12 +355,16 @@ function generateImageAssetDefinition(asset: ImageAsset, protocolUrl: string): s
  * 画像アセット定義を生成する（<defs>内で使用）
  * 元データを忠実に再現するデータを生成
  */
-function generateVectorAssetDefinition(asset: VectorAsset): string {
+async function generateVectorAssetDefinition(project: ProjectData, asset: VectorAsset): Promise<string> {
   const width = asset.original_width;
   const height = asset.original_height;
+  let content: string;
+  // Rendererプロセス: IPCを使用
+  content = await (window as any).electronAPI.asset.readFileContent(asset);
+  // TODO: どうも Main プロセスでは動作しないらしい？
   return [
     `<svg id="${asset.id}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" x="0" y="0" preserveAspectRatio="none">`,
-    `  ${asset.svg_content}`,
+    `  ${content}`,
     `</svg>`,
   ].join('\n      ');
 }

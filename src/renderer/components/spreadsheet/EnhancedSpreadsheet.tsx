@@ -1685,12 +1685,12 @@ export const EnhancedSpreadsheet: React.FC = () => {
                     ) || (
                       /* TextAsset以外 */
                       <div className="cell-content">
-                      {isUsed && asset.type === 'ImageAsset' && (
+                      {isUsed && (asset.type === 'ImageAsset' || asset.type === 'VectorAsset') && (
                         <div className="image-content">
                           <img
                             className="image-preview-small"
                             src={getCustomProtocolUrl(
-                              (asset as ImageAsset).original_file.path,
+                              (asset as ImageAsset | VectorAsset).original_file.path,
                               currentProjectPath
                             )}
                             alt={asset.name}
@@ -1701,7 +1701,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                           />
                         </div>
                       )}
-                      {isUsed && asset.type === 'VectorAsset' && (
+                      {/*isUsed && asset.type === 'VectorAsset' && (
                         <div className="vector-content">
                           <div
                             className="vector-preview-small"
@@ -1718,7 +1718,7 @@ export const EnhancedSpreadsheet: React.FC = () => {
                             }}
                           />
                         </div>
-                      )}
+                      )*/}
                       {isUsed && asset.type === 'DynamicVectorAsset' && (
                         <div className="dynamic-vector-content">
                           <AssetThumbnail

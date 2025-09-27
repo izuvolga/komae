@@ -97,7 +97,6 @@ const ImageAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('ImageAsset'),
   name: z.string().min(1),
-  original_file_path: z.string().min(1),
   original_file: AssetFileSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
@@ -127,7 +126,6 @@ const VectorAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('VectorAsset'),
   name: z.string().min(1),
-  original_file_path: z.string().min(1),
   original_file: AssetFileSchema,
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
@@ -137,7 +135,6 @@ const VectorAssetSchema = z.object({
   default_height: z.number().min(0.01),
   default_opacity: z.number().min(0).max(1),
   default_z_index: z.number(),
-  svg_content: z.string(),
 });
 // DynamicVectorAsset スキーマ
 const DynamicVectorAssetSchema = z.object({

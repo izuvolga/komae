@@ -141,20 +141,7 @@ export const GraphicEditModal: React.FC<GraphicEditModalProps> = ({
           // VectorAssetの場合：AssetFileがあれば使用、なければfallback
           const vectorAsset = asset as VectorAsset;
           let svgContent: string;
-
-          if (vectorAsset.original_file && currentProjectPath) {
-            // 新しいAssetFile APIを使用してSVGコンテンツを取得
-            try {
-              svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
-            } catch (error) {
-              console.warn('Failed to get content from AssetFile, falling back to svg_content:', error);
-              svgContent = vectorAsset.svg_content;
-            }
-          } else {
-            // Fallback: 既存のsvg_contentを使用
-            svgContent = vectorAsset.svg_content;
-          }
-
+          svgContent = await window.electronAPI.asset.readFileContent(vectorAsset);
           setPreviewContent(svgContent);
         }
       } catch (error) {

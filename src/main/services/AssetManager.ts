@@ -270,17 +270,6 @@ export class AssetManager {
     const asset = createVectorAsset({
       name: fileName,
       originalFile: assetFile,
-      svgContent: svgInfo.content,
-    });
-
-    await this.logger.logDevelopment('asset_file_created', 'AssetFile instance created for VectorAsset', {
-      assetId: asset.id,
-      assetName: asset.name,
-      filePath: relativePath,
-      fileType: assetFile.type,
-      fileHash: assetFile.hash,
-      dimensions: `${assetFile.original_width}x${assetFile.original_height}`,
-      svgContentLength: svgInfo.content.length,
     });
 
     return asset;
