@@ -83,12 +83,22 @@ const AssetInstanceSchema = BaseAssetInstanceSchema.extend({
   override_value: z.any().optional(),
 });
 
+// AssetFile スキーマ
+const AssetFileSchema = z.object({
+  path: z.string().min(1),
+  type: z.enum(['raster', 'vector']),
+  hash: z.string().min(1),
+  originalWidth: z.number().min(0.01),
+  originalHeight: z.number().min(0.01),
+});
+
 // ImageAsset スキーマ
 const ImageAssetSchema = z.object({
   id: z.string().min(1),
   type: z.literal('ImageAsset'),
   name: z.string().min(1),
   original_file_path: z.string().min(1),
+  original_file: AssetFileSchema.optional(),
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),
@@ -118,6 +128,7 @@ const VectorAssetSchema = z.object({
   type: z.literal('VectorAsset'),
   name: z.string().min(1),
   original_file_path: z.string().min(1),
+  original_file: AssetFileSchema.optional(),
   original_width: z.number().min(0.01),
   original_height: z.number().min(0.01),
   default_pos_x: z.number(),
@@ -160,8 +171,6 @@ const ValueAssetSchema = z.object({
   initial_value: z.any(),
   new_page_behavior: z.enum(['reset', 'inherit']),
 });
-
-  // initial_value: z.union([z.string(), z.number()]),
 
 // Asset Union スキーマ
 const AssetSchema = z.union([ImageAssetSchema, TextAssetSchema, VectorAssetSchema, DynamicVectorAssetSchema, ValueAssetSchema]);
